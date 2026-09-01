@@ -29,47 +29,51 @@ namespace axionpro.api.Controllers.Login
     {
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;  // Logger service ka declaration
-      
+
         public AuthController(IMediator mediator, ILoggerService logger)
         {
             _mediator = mediator;
             _logger = logger;
         }
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: POST /api/auth/login.</para>
-        //         /// </remarks>
-        //
-        //
-        //         [HttpPost("login")]
-        //         public async Task<IActionResult> Login([FromBody] LoginRequestDTO logindto)
-        //          {
-        //             _logger.LogInfo("Received login request for user: {LoginId}" + logindto.LoginId.ToString());
-        //             var command = new LoginCommand(logindto);
-        //             var result = await _mediator.Send(command);
-        //             if (!result.IsSucceeded)
-        //             {
-        //                 return Unauthorized(result);
-        //             }
-        //            return Ok(result);
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: authenticates the user.</para>
+                /// <para>Handler flow: LoginCommand is processed by LoginCommandHandler; operation(s): GetByLoginIdAsync, GetSingleRecordAsync, GetValidateTenantPlan, GetEmployeeRolesWithDetailsByIdAsync, Remove.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); LoginResponseDTO: Success (bool), Token (string?), AccessToken (string?), RefreshToken (string?), TokenExpiry (DateTime?), UserType (string?), Message (string?), EmployeeInfo (GetEmployeeLoginInfoResponseDTO?), Allroles (string?), CommonItems (List&lt;ModuleDTO&gt;?), OperationalMenus (List&lt;MainModuleDto&gt;?), HostUser (GetHostUserResponseDTO?)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: POST /api/auth/login.</para>
+                /// </remarks>
+
+
+                [HttpPost("login")]
+                public async Task<IActionResult> Login([FromBody] LoginRequestDTO logindto)
+                 {
+                    _logger.LogInfo("Received login request for user: {LoginId}" + logindto.LoginId.ToString());
+                    var command = new LoginCommand(logindto);
+                    var result = await _mediator.Send(command);
+                    if (!result.IsSucceeded)
+                    {
+                        return Unauthorized(result);
+                    }
+                   return Ok(result);
+                }
         /// <summary>
         /// Used-In-Angular: performs the Angular function refresh token.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: performs the Angular function refresh token.</para>
+        /// <para>Handler flow: RefreshTokenCommand is processed by RefreshTokenCommandHandler; operation(s): GetByHashedTokenAsync, GetActiveByIdAsync, GetSingleRecordAsync, GetValidateTenantPlan, GetEmployeeRolesWithDetailsByIdAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); LoginResponseDTO: Success (bool), Token (string?), AccessToken (string?), RefreshToken (string?), TokenExpiry (DateTime?), UserType (string?), Message (string?), EmployeeInfo (GetEmployeeLoginInfoResponseDTO?), Allroles (string?), CommonItems (List&lt;ModuleDTO&gt;?), OperationalMenus (List&lt;MainModuleDto&gt;?), HostUser (GetHostUserResponseDTO?)</para>
         /// <para>Angular function(s): AuthApi.refreshToken (app/core/services/auth-api.ts:178).</para>
         /// <para>Angular purpose: performs the Angular function refresh token.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
         /// <para>Angular UI component(s): TokenRefreshService (app/core/services/token-refresh-service.ts); authInterceptor (app/core/interceptors/auth-interceptor.ts); appConfig (app/app.config.ts)</para>
         /// </remarks>
-        [HttpPost("refresh-token")]    
+        [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
         {
             var command = new RefreshTokenCommand(request);
@@ -163,6 +167,9 @@ namespace axionpro.api.Controllers.Login
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates login password.</para>
+        /// <para>Handler flow: UpdateLoginPasswordCommand is processed by UpdateLoginPasswordCommandHandler; operation(s): UpdatePassword.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); UpdatePasswordResponseDTO: Success (bool)</para>
         /// <para>Angular function(s): AuthApi.updateLoginPassword (app/core/services/auth-api.ts:207).</para>
         /// <para>Angular purpose: updates login password.</para>
         /// <para>Integrated UI page(s): /auth/registration-password; /app/update-password</para>
@@ -170,15 +177,15 @@ namespace axionpro.api.Controllers.Login
         /// </remarks>
 
         [HttpPost("update-login-password")]
-                
-        
+
+
         public async Task<IActionResult> SetLoginPassword([FromBody] UpdatePasswordRequestDTO request)
         {
-             
+
                 var command = new UpdateLoginPasswordCommand(request);
                var result = await _mediator.Send(command);
             return Ok(result);
-            
+
 
         }
         /// <summary>
@@ -186,47 +193,53 @@ namespace axionpro.api.Controllers.Login
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves new login password url.</para>
+        /// <para>Handler flow: GetNewLoginPasswordURLCommand is processed by GetNewLoginPasswordURLCommandHandler; operation(s): GetSingleRecordAsync, AddMinutes.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetNewPasswordLinkResponseDTO: UrlLink (string)</para>
         /// <para>Angular function(s): AuthApi.resendCredential (app/core/services/auth-api.ts:220).</para>
         /// <para>Angular purpose: performs the Angular function resend credential.</para>
         /// <para>Integrated UI page(s): /app/employees</para>
         /// <para>Angular UI component(s): Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
-        [HttpPost("resend-credential")]        
+        [HttpPost("resend-credential")]
         public async Task<IActionResult> CreateNewLoginPasswordURL([FromBody] SetNewPasswordLinkRequestDTO request)
         {
-            
+
 
                 var command = new GetNewLoginPasswordURLCommand(request);
 
                 var result = await _mediator.Send(command);
 
-              
+
                 return Ok(result);
-            
+
         }
         /// <summary>
         /// Used-In-Angular: creates new login password.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: performs the Angular function new login password.</para>
+        /// <para>Handler flow: NewLoginPasswordCommand is processed by NewLoginPasswordCommandHandler; operation(s): GetEmployeeIdByUserLogin, UpdatePassword.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); UpdatePasswordResponseDTO: Success (bool)</para>
         /// <para>Angular function(s): AuthApi.createNewLoginPassword (app/core/services/auth-api.ts:214).</para>
         /// <para>Angular purpose: creates new login password.</para>
         /// <para>Integrated UI page(s): /auth/reset-password; /auth/set-password</para>
         /// <para>Angular UI component(s): ResetPassword (app/features/authentication/reset-password/reset-password.ts); SetPassword (app/features/authentication/set-password/set-password.ts)</para>
         /// </remarks>
-        [HttpPost("create-new-password")]                
+        [HttpPost("create-new-password")]
         public async Task<IActionResult> CreateLoginPassword([FromBody] NewLoginPasswordRequestDTO request)
         {
-           
+
                 var command = new NewLoginPasswordCommand(request);
 
-                var result = await _mediator.Send(command);              
+                var result = await _mediator.Send(command);
 
                 return Ok(result);
-           
+
         }
 
-        //[HttpGet("get-page-type")]        
+        //[HttpGet("get-page-type")]
         //public async Task<IActionResult> GetPageTypes([FromQuery] PageTypeEnumRequestDTO request)
         //{
         //    try
@@ -250,6 +263,9 @@ namespace axionpro.api.Controllers.Login
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: performs the Angular function forgot password.</para>
+        /// <para>Handler flow: ForgotPasswordCommand is processed by ForgotPasswordCommandHandler; operation(s): GetSingleRecordAsync, GetValidOtpByEmployeeIdAsync, AddMinutes, DeleteAsync, GetTemplateByCodeAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); ForgotPasswordResponseDTO: EmailResendAfterMinute (int), Message (string?)</para>
         /// <para>Angular function(s): AuthApi.forgotPassword (app/core/services/auth-api.ts:186).</para>
         /// <para>Angular purpose: performs the Angular function forgot password.</para>
         /// <para>Integrated UI page(s): /auth/forgot-password; /auth/verify-otp</para>
@@ -257,15 +273,15 @@ namespace axionpro.api.Controllers.Login
         /// </remarks>
 
 
-        [HttpPost("forgot-password")]       
-        
+        [HttpPost("forgot-password")]
+
         public async Task<IActionResult> EnterLoginId([FromBody] ForgotPasswordUserIdRequestDTO request)
         {
                 var command = new ForgotPasswordCommand(request);
-                var result = await _mediator.Send(command);         
+                var result = await _mediator.Send(command);
                 return Ok(result);
-           
-          
+
+
         }
 
         //[HttpPost("set-login-new-password")]
@@ -305,6 +321,9 @@ namespace axionpro.api.Controllers.Login
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: validates otp.</para>
+        /// <para>Handler flow: ValidateOtpCommand is processed by ValidateOtpCommandHandler; operation(s): GetSingleRecordAsync, GetValidOtpByEmployeeIdAsync, UpdateOTPAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): AuthApi.validateForgotPassOtp (app/core/services/auth-api.ts:193).</para>
         /// <para>Angular purpose: validates forgot pass otp.</para>
         /// <para>Integrated UI page(s): /auth/verify-otp</para>
@@ -312,16 +331,16 @@ namespace axionpro.api.Controllers.Login
         /// </remarks>
 
 
-        [HttpPost("validate-forgot-password-otp")]    
+        [HttpPost("validate-forgot-password-otp")]
         public async Task<IActionResult> ValidateForgotPasswordOtp([FromBody] ValidateOtpRequestDTO request)
         {
-            
-              
+
+
                 var command = new ValidateOtpCommand(request);
-                var result = await _mediator.Send(command);               
+                var result = await _mediator.Send(command);
 
                 return Ok(result);
-           
+
         }
 
         //...
@@ -330,4 +349,4 @@ namespace axionpro.api.Controllers.Login
     }
 }
 
- 
+

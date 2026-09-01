@@ -46,6 +46,9 @@ public class ModuleOperationController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: creates module operation.</para>
+    /// <para>Handler flow: CreateModuleOperationCommand is processed by CreateModuleOperationCommandHandler; operation(s): CreateModuleOperationMappingAsync, GetModuleOperationMappingByIdAsync, GetModuleHierarchyForOperationActivationAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); ModuleOperationMappingByProductOwnerResponseDTO: Id (int), ModuleId (int), OperationId (int), DataViewStructureId (int?), PageTypeId (int?), ModuleName (string?), OperationName (string?), DataViewStructureDisplayOn (string?), PageTypeName (string?), PageURL (string?), IconURL (string?), IsCommonItem (bool?)</para>
     /// <para>Angular function(s): ModuleOperationApi.addModuleOperation (app/core/services/module-operation-api.ts:38).</para>
     /// <para>Angular purpose: creates module operation.</para>
     /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -68,6 +71,9 @@ public class ModuleOperationController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: updates module operation mapping by product owner.</para>
+    /// <para>Handler flow: UpdateModuleOperationMappingByProductOwnerCommand is processed by UpdateModuleOperationMappingByProductOwnerCommandHandler; operation(s): GetModuleOperationMappingByIdAsync, Map, UpdateModuleOperationMappingAsync, GetValueOrDefault, GetModuleHierarchyForOperationActivationAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); ModuleOperationMappingByProductOwnerResponseDTO: Id (int), ModuleId (int), OperationId (int), DataViewStructureId (int?), PageTypeId (int?), ModuleName (string?), OperationName (string?), DataViewStructureDisplayOn (string?), PageTypeName (string?), PageURL (string?), IconURL (string?), IsCommonItem (bool?)</para>
     /// <para>Angular function(s): ModuleOperationApi.updateModuleOperation (app/core/services/module-operation-api.ts:45).</para>
     /// <para>Angular purpose: updates module operation.</para>
     /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -90,6 +96,9 @@ public class ModuleOperationController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: deletes module operation.</para>
+    /// <para>Handler flow: DeleteModuleOperationCommand is processed by DeleteModuleOperationCommandHandler.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
     /// <para>Angular function(s): ModuleOperationApi.deleteModuleOperation (app/core/services/module-operation-api.ts:51).</para>
     /// <para>Angular purpose: deletes module operation.</para>
     /// <para>Integrated UI page(s): /app/modules/module-operations</para>
@@ -112,6 +121,9 @@ public class ModuleOperationController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves module operation by id.</para>
+    /// <para>Handler flow: GetModuleOperationByIdQuery is processed by GetModuleOperationByIdQueryHandler; operation(s): GetModuleOperationMappingByIdAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); ModuleOperationMappingByProductOwnerResponseDTO: Id (int), ModuleId (int), OperationId (int), DataViewStructureId (int?), PageTypeId (int?), ModuleName (string?), OperationName (string?), DataViewStructureDisplayOn (string?), PageTypeName (string?), PageURL (string?), IconURL (string?), IsCommonItem (bool?)</para>
     /// <para>Angular function(s): ModuleOperationApi.getModuleOperation (app/core/services/module-operation-api.ts:32).</para>
     /// <para>Angular purpose: retrieves module operation.</para>
     /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -134,6 +146,9 @@ public class ModuleOperationController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves all module operations.</para>
+    /// <para>Handler flow: GetAllModuleOperationsQuery is processed by GetAllModuleOperationsQueryHandler; operation(s): GetAllModuleOperationMappingsAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); ModuleOperationMappingByProductOwnerResponseDTO: Id (int), ModuleId (int), OperationId (int), DataViewStructureId (int?), PageTypeId (int?), ModuleName (string?), OperationName (string?), DataViewStructureDisplayOn (string?), PageTypeName (string?), PageURL (string?), IconURL (string?), IsCommonItem (bool?)</para>
     /// <para>Angular function(s): ModuleOperationApi.getModuleOperations (app/core/services/module-operation-api.ts:26).</para>
     /// <para>Angular purpose: retrieves module operations.</para>
     /// <para>Integrated UI page(s): /app/modules/module-operations</para>

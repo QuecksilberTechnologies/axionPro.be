@@ -15,7 +15,7 @@ using System.Net;
 [Route("api/[controller]")]
 [ApiController]
 public class ClientInfoController : ControllerBase
-{ 
+{
     private string GetPublicIpFromRequest()
     {
         // Agar client proxy ke through connected hai toh "X-Forwarded-For" header check karein
@@ -33,6 +33,9 @@ public class ClientInfoController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves device info.</para>
+    /// <para>Handler flow: No application request/handler class was statically resolved from the controller action.</para>
+    /// <para>Response DTO property analysis: No concrete response DTO properties were statically resolved from the request/handler declaration.</para>
     /// <para>Angular function(s): AuthApi.getDeviceInfo (app/core/services/auth-api.ts:170).</para>
     /// <para>Angular purpose: retrieves device info.</para>
     /// <para>Integrated UI page(s): /auth/login</para>

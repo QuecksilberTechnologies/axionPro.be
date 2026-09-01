@@ -41,6 +41,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates host user.</para>
+        /// <para>Handler flow: CreateHostUserCommand is processed by CreateHostUserCommandHandler; operation(s): AddAsync, SaveChangesAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); CreateHostUserResponseDTO: Id (long), HostRoleId (long), Name (string), LoginId (string), Email (string?), MobileNumber (string?), IsActive (bool), RoleName (string?), Permissions (List&lt;HostUserPermissionResponseDTO&gt;)</para>
         /// <para>Angular function(s): HostApi.createHostUser (app/core/services/host-api.ts:72).</para>
         /// <para>Angular purpose: creates host user.</para>
         /// <para>Integrated UI page(s): /app/host-users</para>
@@ -60,6 +63,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates host role.</para>
+        /// <para>Handler flow: CreateHostRoleCommand is processed by CreateHostRoleCommandHandler; operation(s): AddAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); CreateHostRoleResponseDTO: Id (long), Name (string), Description (string?), IsActive (bool), Permissions (List&lt;HostRolePermissionResponseDTO&gt;)</para>
         /// <para>Angular function(s): HostApi.createHostRole (app/core/services/host-api.ts:102).</para>
         /// <para>Angular purpose: creates host role.</para>
         /// <para>Integrated UI page(s): /app/host-roles</para>
@@ -85,6 +91,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves host user by id.</para>
+        /// <para>Handler flow: GetHostUserByIdQuery is processed by GetHostUserByIdQueryHandler; operation(s): GetByIdAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetHostUserResponseDTO: Id (long), HostRoleId (long), HostRoleName (string?), Name (string), LoginId (string), Email (string?), MobileNumber (string?), IsActive (bool), AddedDateTime (DateTime?), UpdatedDateTime (DateTime?)</para>
         /// <para>Angular function(s): HostApi.getHostUserById (app/core/services/host-api.ts:46).</para>
         /// <para>Angular purpose: retrieves host user by id.</para>
         /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>
@@ -107,6 +116,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves all host users.</para>
+        /// <para>Handler flow: GetAllHostUsersQuery is processed by GetAllHostUsersQueryHandler; operation(s): GetPagedAsync.</para>
+        /// <para>Response DTO property analysis: PagedApiResponse: IsSucceeded (bool), Message (string), Data (List&lt;T&gt;), TotalCount (int), PageNumber (int), PageSize (int), TotalPages (int), HasPrevious (bool), HasNext (bool), HasUploadedAll (bool?), IsPrimaryMarked (bool?), CompletionPercentage (double?); GetHostUserResponseDTO: Id (long), HostRoleId (long), HostRoleName (string?), Name (string), LoginId (string), Email (string?), MobileNumber (string?), IsActive (bool), AddedDateTime (DateTime?), UpdatedDateTime (DateTime?)</para>
         /// <para>Angular function(s): HostApi.getHostUsers (app/core/services/host-api.ts:38).</para>
         /// <para>Angular purpose: retrieves host users.</para>
         /// <para>Integrated UI page(s): /app/host-dashboard; /app/host-users</para>
@@ -131,6 +143,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates host user.</para>
+        /// <para>Handler flow: UpdateHostUserCommand is processed by UpdateHostUserCommandHandler; operation(s): GetByIdAsync, GetByLoginIdAsync, UpdateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); UpdateHostUserResponseDTO: Id (long), HostRoleId (long), HostRoleName (string?), Name (string), LoginId (string), Email (string?), MobileNumber (string?), IsActive (bool), UpdatedDateTime (DateTime?)</para>
         /// <para>Angular function(s): HostApi.updateHostUser (app/core/services/host-api.ts:78).</para>
         /// <para>Angular purpose: updates host user.</para>
         /// <para>Integrated UI page(s): /app/host-users; /app/profile</para>
@@ -154,6 +169,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes host user.</para>
+        /// <para>Handler flow: DeleteHostUserCommand is processed by DeleteHostUserCommandHandler; operation(s): GetByIdAsync, DeleteAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): HostApi.deleteHostUser (app/core/services/host-api.ts:84).</para>
         /// <para>Angular purpose: deletes host user.</para>
         /// <para>Integrated UI page(s): /app/host-users</para>
@@ -181,6 +199,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates host user password.</para>
+        /// <para>Handler flow: ChangeHostUserPasswordCommand is processed by ChangeHostUserPasswordCommandHandler; operation(s): GetByIdAsync, UpdateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): HostApi.changeHostUserPassword (app/core/services/host-api.ts:96).</para>
         /// <para>Angular purpose: updates host user password.</para>
         /// <para>Integrated UI page(s): /app/update-password</para>
@@ -204,6 +225,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: performs the Angular function reset host user password.</para>
+        /// <para>Handler flow: ResetHostUserPasswordCommand is processed by ResetHostUserPasswordCommandHandler; operation(s): GetByIdAsync, UpdateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): HostApi.resetHostUserPassword (app/core/services/host-api.ts:90).</para>
         /// <para>Angular purpose: performs the Angular function reset host user password.</para>
         /// <para>Integrated UI page(s): /app/host-users</para>
@@ -231,6 +255,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves host role by id.</para>
+        /// <para>Handler flow: GetHostRoleByIdQuery is processed by GetHostRoleByIdQueryHandler; operation(s): GetByIdAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetHostRoleResponseDTO: Id (long), Name (string), Description (string?), IsActive (bool), AddedDateTime (DateTime?), UpdatedDateTime (DateTime?)</para>
         /// <para>Angular function(s): HostApi.getHostRoleById (app/core/services/host-api.ts:58).</para>
         /// <para>Angular purpose: retrieves host role by id.</para>
         /// <para>Integrated UI page(s): /app/host-roles/permissions/:hostRoleId</para>
@@ -253,6 +280,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves all host roles.</para>
+        /// <para>Handler flow: GetAllHostRolesQuery is processed by GetAllHostRolesQueryHandler; operation(s): GetAllAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetHostRoleResponseDTO: Id (long), Name (string), Description (string?), IsActive (bool), AddedDateTime (DateTime?), UpdatedDateTime (DateTime?)</para>
         /// <para>Angular function(s): HostApi.getHostRoles (app/core/services/host-api.ts:52).</para>
         /// <para>Angular purpose: retrieves host roles.</para>
         /// <para>Integrated UI page(s): /app/host-dashboard; /app/host-roles; /app/host-users</para>
@@ -274,6 +304,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates host role.</para>
+        /// <para>Handler flow: UpdateHostRoleCommand is processed by UpdateHostRoleCommandHandler; operation(s): GetByIdAsync, GetByRoleNameAsync, UpdateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); UpdateHostRoleResponseDTO: Id (long), Name (string), Description (string?), IsActive (bool), UpdatedDateTime (DateTime?)</para>
         /// <para>Angular function(s): HostApi.updateHostRole (app/core/services/host-api.ts:108).</para>
         /// <para>Angular purpose: updates host role.</para>
         /// <para>Integrated UI page(s): /app/host-roles</para>
@@ -297,6 +330,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes host role.</para>
+        /// <para>Handler flow: DeleteHostRoleCommand is processed by DeleteHostRoleCommandHandler; operation(s): GetByIdAsync, DeleteAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): HostApi.deleteHostRole (app/core/services/host-api.ts:114).</para>
         /// <para>Angular purpose: deletes host role.</para>
         /// <para>Integrated UI page(s): /app/host-roles</para>
@@ -316,7 +352,7 @@ namespace axionpro.api.Controllers.Host
         }
 
         #endregion
-         
+
         #region Host Module Queries
 
         /// <summary>
@@ -324,6 +360,9 @@ namespace axionpro.api.Controllers.Host
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves host modules.</para>
+        /// <para>Handler flow: GetHostModulesQuery is processed by GetHostModulesQueryHandler; operation(s): GetHostModulesAsync.</para>
+        /// <para>Response DTO property analysis: PagedApiResponse: IsSucceeded (bool), Message (string), Data (List&lt;T&gt;), TotalCount (int), PageNumber (int), PageSize (int), TotalPages (int), HasPrevious (bool), HasNext (bool), HasUploadedAll (bool?), IsPrimaryMarked (bool?), CompletionPercentage (double?); GetHostModuleResponseDTO: Id (int), TenantId (long?), ModuleCode (string?), ModuleName (string), DisplayName (string?), Urlpath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUi (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool)</para>
         /// <para>Angular function(s): HostApi.getHostModules (app/core/services/host-api.ts:66).</para>
         /// <para>Angular purpose: retrieves host modules.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -342,29 +381,30 @@ namespace axionpro.api.Controllers.Host
 
             return Ok(result);
         }
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: GET /api/host/get-host-module-by-id/{}.</para>
-        //         /// </remarks>
-        //
-        //         [HttpGet("get-host-module-by-id/{id:int}")]
-        //         public async Task<IActionResult> GetHostModuleById(
-        //             int id,
-        //             [FromQuery] bool? isActive = null)
-        //         {
-        //             _logger.LogInfo($"Received request to get Host module. Id: {id}, IsActive: {isActive}");
-        //
-        //             var query = new GetHostModuleByIdQuery(id, isActive);
-        //             var result = await _mediator.Send(query);
-        //
-        //             return Ok(result);
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves host module by id.</para>
+                /// <para>Handler flow: GetHostModuleByIdQuery is processed by GetHostModuleByIdQueryHandler; operation(s): GetHostModuleByIdAsync.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetHostModuleResponseDTO: Id (int), TenantId (long?), ModuleCode (string?), ModuleName (string), DisplayName (string?), Urlpath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUi (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: GET /api/host/get-host-module-by-id/{}.</para>
+                /// </remarks>
+
+                [HttpGet("get-host-module-by-id/{id:int}")]
+                public async Task<IActionResult> GetHostModuleById(
+                    int id,
+                    [FromQuery] bool? isActive = null)
+                {
+                    _logger.LogInfo($"Received request to get Host module. Id: {id}, IsActive: {isActive}");
+
+                    var query = new GetHostModuleByIdQuery(id, isActive);
+                    var result = await _mediator.Send(query);
+
+                    return Ok(result);
+                }
 
         #endregion
 

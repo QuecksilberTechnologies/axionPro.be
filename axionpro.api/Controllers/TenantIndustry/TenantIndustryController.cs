@@ -13,7 +13,7 @@ using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
- 
+
 
 namespace axionpro.api.Controllers.TenantIndustry
 {
@@ -40,6 +40,9 @@ namespace axionpro.api.Controllers.TenantIndustry
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves all tenant industry.</para>
+        /// <para>Handler flow: GetAllTenantIndustryQuery is processed by GetAllTenantIndustryQueryHandler; operation(s): GetAllActiveIndustriesAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantIndustryResponseDTO: Id (int), IndustryName (string), Description (string?), Remark (string?), IsActive (bool)</para>
         /// <para>Angular function(s): IndustriesApi.getIndustries (app/core/services/industries-api.ts:45).</para>
         /// <para>Angular purpose: retrieves industries.</para>
         /// <para>Integrated UI page(s): /auth/register-tenant; /app/tenants/new; /app/tenants/:tenantId/edit</para>
@@ -59,12 +62,15 @@ namespace axionpro.api.Controllers.TenantIndustry
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves tenant subscription.</para>
+        /// <para>Handler flow: GetTenantSubscriptionQuery is processed by GetTenantSubscriptionQueryHandler; operation(s): GetTenantSubscriptionPlanInfoAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantSubscriptionPlanResponseDTO: Id (long), TenantId (long?), SubscriptionPlanId (int), SubscriptionStartDate (DateTime), SubscriptionEndDate (DateTime?), IsActive (bool), PaymentTxnId (string?), PaymentMode (string?), IsTrial (bool)</para>
         /// <para>Angular function(s): IndustriesApi.getTenantSubscriptionPlans (app/core/services/industries-api.ts:59).</para>
         /// <para>Angular purpose: retrieves tenant subscription plans.</para>
         /// <para>Integrated UI page(s): /app/subscriptions</para>
         /// <para>Angular UI component(s): SubscriptionPlanDetail (app/features/host/subscriptions/subscription-plan-detail/subscription-plan-detail.ts); SubscriptionsStore (app/features/host/subscriptions/subscriptions.store.ts); Subscriptions (app/features/host/subscriptions/subscriptions.ts)</para>
         /// </remarks>
-        [HttpGet("get-tenant-subscription-plan")]       
+        [HttpGet("get-tenant-subscription-plan")]
         public async Task<IActionResult> GetTenantSubscriptionPlanInfoAsync([FromQuery] TenantSubscriptionPlanRequestDTO code)
         {
             _logger.LogInfo($"Getting email templates for code: {code}");

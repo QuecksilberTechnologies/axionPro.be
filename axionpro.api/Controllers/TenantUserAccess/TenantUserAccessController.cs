@@ -45,6 +45,9 @@ public sealed class TenantUserAccessController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves tenant user access.</para>
+    /// <para>Handler flow: GetTenantUserAccessQuery is processed by GetTenantUserAccessQueryHandler; operation(s): GetEmployeeRolesWithDetailsByIdAsync, GetCurrentTenantOperationalAccessAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantUserAccessResponseDTO: OperationalMenus (IReadOnlyCollection&lt;MainModuleDto&gt;)</para>
     /// <para>Angular function(s): AccessBootstrapApi.getTenantBootstrap (app/core/services/access-bootstrap-api.ts:34).</para>
     /// <para>Angular purpose: retrieves tenant bootstrap.</para>
     /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>

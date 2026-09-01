@@ -30,21 +30,24 @@ public class UserModuleRolePermissionController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: creates role permission.</para>
+    /// <para>Handler flow: CreateRolePermissionCommand is processed by CreateRolePermissionCommandHandler; operation(s): GetByRoleIdAsync, Add, SaveChangesAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
     /// <para>Angular function(s): RolesApi.saveRolePermissions (app/core/services/roles-api.ts:155).</para>
     /// <para>Angular purpose: updates role permissions.</para>
     /// <para>Integrated UI page(s): /app/roles/permissions/:roleId</para>
     /// <para>Angular UI component(s): RolePermissionsStore (app/features/roles/role-permissions/role-permissions.store.ts); RolePermissions (app/features/roles/role-permissions/role-permissions.ts)</para>
     /// </remarks>
 
-    [HttpPost("assign-role-permissions")]    
-    
+    [HttpPost("assign-role-permissions")]
+
     // [Authorize]
     public async Task<IActionResult> CreatePermission([FromBody] CreateModuleOperationRolePermissionsRequestDTO insertRoleModulePermissionsRequestDTO)
     {
         _logger.LogInfo("Received request for update a new role" + insertRoleModulePermissionsRequestDTO.ToString());
         var command = new CreateRolePermissionCommand(insertRoleModulePermissionsRequestDTO);
         var result = await _mediator.Send(command);
-       
+
         return Ok(result);
     }
     /// <summary>
@@ -52,6 +55,9 @@ public class UserModuleRolePermissionController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves role permission.</para>
+    /// <para>Handler flow: GetRolePermissionCommand is processed by GetRolePermissionCommandHandler; operation(s): GetByRoleIdAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
     /// <para>Angular function(s): RolesApi.getRoleBasedPermissions (app/core/services/roles-api.ts:146).</para>
     /// <para>Angular purpose: retrieves role based permissions.</para>
     /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>

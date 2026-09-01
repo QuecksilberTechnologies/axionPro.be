@@ -32,21 +32,24 @@ public class UserRoleController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: assigns or maps user roles.</para>
+    /// <para>Handler flow: AssignUserRolesCommand is processed by AssignUserRolesCommandHandler; operation(s): GetEmployeeRolesWithDetailsByIdAsync, UpdateRange, AddRangeAsync, SaveChangesAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); UserRoleDTO: RoleName (string?), UserRoleId (long), RoleId (int), IsActive (bool), IsPrimaryRole (bool), RoleType (int)</para>
     /// <para>Angular function(s): RolesApi.assignRolesToUser (app/core/services/roles-api.ts:172).</para>
     /// <para>Angular purpose: assigns or maps roles to user.</para>
     /// <para>Integrated UI page(s): /app/employees</para>
     /// <para>Angular UI component(s): EmployeesStore (app/features/employees/employees.store.ts); Employees (app/features/employees/employees.ts)</para>
     /// </remarks>
 
-    [HttpPost("assign-roles-to-user")]    
-    
+    [HttpPost("assign-roles-to-user")]
+
     // [Authorize]
     public async Task<IActionResult> CreatePermission([FromBody] UserRoleListDTO insertRoleModulePermissionsRequestDTO)
     {
         _logger.LogInfo("Received request for update a new role" + insertRoleModulePermissionsRequestDTO.ToString());
         var command = new AssignUserRolesCommand(insertRoleModulePermissionsRequestDTO);
         var result = await _mediator.Send(command);
-       
+
         return Ok(result);
     }
     /// <summary>
@@ -54,6 +57,9 @@ public class UserRoleController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves all user roles.</para>
+    /// <para>Handler flow: GetAllUserRolesCommand is processed by GetAllUserRolesCommandHandler; operation(s): GetEmployeeRolesWithDetailsByIdAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); UserRoleDTO: RoleName (string?), UserRoleId (long), RoleId (int), IsActive (bool), IsPrimaryRole (bool), RoleType (int)</para>
     /// <para>Angular function(s): RolesApi.getAllUserRoles (app/core/services/roles-api.ts:166).</para>
     /// <para>Angular purpose: retrieves all user roles.</para>
     /// <para>Integrated UI page(s): /app/employees</para>

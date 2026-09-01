@@ -47,6 +47,9 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates parent module.</para>
+        /// <para>Handler flow: CreateParentModuleCommand is processed by CreateParentModuleCommandHandler; operation(s): AddParentModuleAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetParentModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
         /// <para>Angular function(s): ParentModuleApi.addParentModule (app/core/services/parent-module-api.ts:45).</para>
         /// <para>Angular purpose: creates parent module.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -71,6 +74,9 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates parent module.</para>
+        /// <para>Handler flow: UpdateParentModuleCommand is processed by UpdateParentModuleCommandHandler; operation(s): GetParentModuleForUpdateAsync, UpdateParentModuleAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetParentModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
         /// <para>Angular function(s): ParentModuleApi.updateParentModule (app/core/services/parent-module-api.ts:51).</para>
         /// <para>Angular purpose: updates parent module.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -96,6 +102,9 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates parent module status.</para>
+        /// <para>Handler flow: UpdateParentModuleStatusCommand is processed by UpdateParentModuleStatusCommandHandler; operation(s): GetHeaderModuleForStatusUpdateAsync, GetDescendantModulesForStatusUpdateAsync, GetModuleOperationMappingsForStatusUpdateAsync, GetNonDeletedByModuleIdsAsync, SaveModuleStatusCascadeAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetParentModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
         /// <para>Angular function(s): ParentModuleApi.setParentModuleStatus (app/core/services/parent-module-api.ts:57).</para>
         /// <para>Angular purpose: updates parent module status.</para>
         /// <para>Integrated UI page(s): /app/modules</para>
@@ -124,6 +133,9 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves parent module by id.</para>
+        /// <para>Handler flow: GetParentModuleByIdQuery is processed by GetParentModuleByIdQueryHandler; operation(s): GetParentModuleByIdAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetParentModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
         /// <para>Angular function(s): ParentModuleApi.getParentModule (app/core/services/parent-module-api.ts:39).</para>
         /// <para>Angular purpose: retrieves parent module.</para>
         /// <para>Integrated UI page(s): /app/modules/module-operations; /app/modules</para>
@@ -148,6 +160,9 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves module headers.</para>
+        /// <para>Handler flow: GetModuleHeadersCommand is processed by GetModuleHeadersCommandHandler; operation(s): GetAllOnlyModuleTreeAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetModuleChildInversResponseDTO: Id (int), ModuleName (string), SubModuleUrl (string?), DisplayName (string?), IsLeafNode (bool?), URLPath (string?), ImageIconWeb (string?), ImageIconMobile (string?), ItemPriority (int?), Children (List&lt;GetModuleChildInversResponseDTO&gt;)</para>
         /// <para>Angular function(s): ParentModuleApi.getModuleHeaders (app/core/services/parent-module-api.ts:32).</para>
         /// <para>Angular purpose: retrieves module headers.</para>
         /// <para>Integrated UI page(s): /app/modules/sub-modules; /app/modules/module-operations; /app/modules</para>

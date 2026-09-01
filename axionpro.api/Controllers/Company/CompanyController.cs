@@ -8,9 +8,9 @@
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.Verify;
- 
+
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
- 
+
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -33,24 +33,25 @@ public class CompanyController : ControllerBase
         _mediator = mediator;
         _logger = logger;  // Logger service ko inject karna
     }
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: GET /api/company/{}/{}.</para>
-    //     /// </remarks>
-    //
-    //
-    //     [HttpGet("{firstname}/{lastname}")]
-    //    // [Authorize]
-    //     public async Task<IActionResult> Get(string firstname, string lastname)
-    //     {
-    //         _logger.LogInfo("Company is created");
-    //         return Ok();
-    //     }
-    #endregion
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves data.</para>
+        /// <para>Handler flow: No application request/handler class was statically resolved from the controller action.</para>
+        /// <para>Response DTO property analysis: No concrete response DTO properties were statically resolved from the request/handler declaration.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/company/{}/{}.</para>
+        /// </remarks>
+
+
+        [HttpGet("{firstname}/{lastname}")]
+       // [Authorize]
+        public async Task<IActionResult> Get(string firstname, string lastname)
+        {
+            _logger.LogInfo("Company is created");
+            return Ok();
+        }
 
 }

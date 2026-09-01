@@ -34,28 +34,29 @@ namespace axionpro.api.Controllers.Module
         }
 
         #region Create Module
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: POST /api/commonmodule/add.</para>
-        //         /// </remarks>
-        //
-        //         [HttpPost("add")]
-        //         public async Task<IActionResult> AddModule([FromBody] CreateCommonModuleRequestDTO? requestDto)
-        //         {
-        //
-        //
-        //             var command = new CreateCommonModuleCommand(requestDto);
-        //             var result = await _mediator.Send(command);
-        //
-        //
-        //             return Ok(result);
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: creates common module.</para>
+                /// <para>Handler flow: CreateCommonModuleCommand is processed by CreateCommonModuleCommandHandler; operation(s): AddCommonModuleAsync.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetCommonModuleResponseDTO: Id (int), ModuleName (string?), DisplayName (string?), IsModuleDisplayInUI (bool), IsActive (bool), ImageIconWeb (string?), ImageIconMobile (string?), ItemPriority (int?), Remark (string?), AddedById (long?), AddedDateTime (DateTime?), UpdatedById (long?)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: POST /api/commonmodule/add.</para>
+                /// </remarks>
+
+                [HttpPost("add")]
+                public async Task<IActionResult> AddModule([FromBody] CreateCommonModuleRequestDTO? requestDto)
+                {
+
+
+                    var command = new CreateCommonModuleCommand(requestDto);
+                    var result = await _mediator.Send(command);
+
+
+                    return Ok(result);
+                }
 
 
         #endregion

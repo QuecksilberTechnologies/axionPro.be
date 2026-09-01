@@ -52,6 +52,9 @@ namespace axionpro.api.Controllers.EmployeeType
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves all employee type.</para>
+        /// <para>Handler flow: No application request/handler class was statically resolved from the controller action.</para>
+        /// <para>Response DTO property analysis: No concrete response DTO properties were statically resolved from the request/handler declaration.</para>
         /// <para>Angular function(s): EmployeeTypesAPI.getEmployeeTypes (app/core/services/employee-types-api.ts:52).</para>
         /// <para>Angular purpose: retrieves employee types.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -105,6 +108,9 @@ namespace axionpro.api.Controllers.EmployeeType
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves employee type option.</para>
+        /// <para>Handler flow: GetEmployeeTypeOptionQuery is processed by GetEmployeeTypeOptionQueryHandler; operation(s): GetEmployeeTypesOptionAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetEmployeeTypeResponseOptionDTO: Id (int), TypeName (string?)</para>
         /// <para>Angular function(s): EmployeeTypesAPI.getEmployeeTypeOptions (app/core/services/employee-types-api.ts:59).</para>
         /// <para>Angular purpose: retrieves employee type options.</para>
         /// <para>Integrated UI page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations</para>

@@ -30,32 +30,33 @@ namespace axionpro.api.Controllers.Category
             _mediator = mediator;
             _logger = logger;
         }
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: POST /api/category/get.</para>
-        //         /// </remarks>
-        //         [HttpPost("get")]
-        //
-        //         public async Task<IActionResult> GetAllMainCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
-        //         {
-        //             _logger.LogInfo("Received  request to get categories from userId: {LoginId}" );
-        //             var command = new GetMainCategoryCommand(categoryRequestDTO);
-        //             var result = await _mediator.Send(command);
-        //             if (!result.IsSucceeded)
-        //             {
-        //                 return Unauthorized(result);
-        //             }
-        //             return Ok(result);
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves main category.</para>
+                /// <para>Handler flow: GetMainCategoryCommand is processed by GetMainCategoryCommandHandler; operation(s): GetAllMainCategoriesAsync.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); CategoryResponseDTO: Name (string), Depth (int), Tags (string), IsActive (bool)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: POST /api/category/get.</para>
+                /// </remarks>
+                [HttpPost("get")]
+
+                public async Task<IActionResult> GetAllMainCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
+                {
+                    _logger.LogInfo("Received  request to get categories from userId: {LoginId}" );
+                    var command = new GetMainCategoryCommand(categoryRequestDTO);
+                    var result = await _mediator.Send(command);
+                    if (!result.IsSucceeded)
+                    {
+                        return Unauthorized(result);
+                    }
+                    return Ok(result);
+                }
 
 
-     
+
         //public async Task<IActionResult> GetAllTenderMainCategories([FromBody] TenderCategoryRequestDTO? tenderCategoryRequestDTO)
         //{
         //    _logger.LogInfo("Received  request to get categories from userId: {LoginId}" + tenderCategoryRequestDTO.Id.ToString());
@@ -67,30 +68,31 @@ namespace axionpro.api.Controllers.Category
         //    }
         //    return Ok(result);
         //}
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: POST /api/category/getallmainchildcategory.</para>
-        //         /// </remarks>
-        //
-        //
-        //         [HttpPost("getallmainchildcategory")]
-        //         public async Task<IActionResult> GetAllMainChildCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
-        //         {
-        //             _logger.LogInfo("Received  request to get sub-categories from userId: {LoginId}" );
-        //             var command = new GetMainChildCategoryCommand(categoryRequestDTO);
-        //             var result = await _mediator.Send(command);
-        //             if (!result.IsSucceeded)
-        //             {
-        //                 return Unauthorized(result);
-        //             }
-        //             return Ok(result);
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves main child category.</para>
+                /// <para>Handler flow: GetMainChildCategoryCommand is processed by GetMainCategoryChildRequestCommandHandler; operation(s): GetAllChildCategoryByIdAsync.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); CategoryResponseDTO: Name (string), Depth (int), Tags (string), IsActive (bool)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: POST /api/category/getallmainchildcategory.</para>
+                /// </remarks>
+
+
+                [HttpPost("getallmainchildcategory")]
+                public async Task<IActionResult> GetAllMainChildCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
+                {
+                    _logger.LogInfo("Received  request to get sub-categories from userId: {LoginId}" );
+                    var command = new GetMainChildCategoryCommand(categoryRequestDTO);
+                    var result = await _mediator.Send(command);
+                    if (!result.IsSucceeded)
+                    {
+                        return Unauthorized(result);
+                    }
+                    return Ok(result);
+                }
 
 
     }

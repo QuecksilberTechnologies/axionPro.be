@@ -46,6 +46,9 @@ public sealed class CommonMenuController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves common menu.</para>
+    /// <para>Handler flow: GetCommonMenuQuery is processed by GetCommonMenuQueryHandler; operation(s): GetCommonMenuHierarchyAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); CommonMenuItemResponseDTO: ModuleId (int), ModuleName (string), DisplayName (string?), UrlPath (string?), ImageIconWeb (string?), ImageIconMobile (string?), IsLeafNode (bool), ItemPriority (int?), Children (IReadOnlyCollection&lt;CommonMenuItemResponseDTO&gt;)</para>
     /// <para>Angular function(s): CommonMenuApi.getCommonMenu (app/core/services/common-menu-api.ts:20).</para>
     /// <para>Angular purpose: retrieves common menu.</para>
     /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>

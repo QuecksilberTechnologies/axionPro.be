@@ -39,12 +39,15 @@ namespace axionpro.api.Controllers.Gender
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves gender option.</para>
+        /// <para>Handler flow: GetGenderOptionQuery is processed by GetGenderOptionQueryHandler; operation(s): GetOptionAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetGenderOptionResponseDTO: Id (int), GenderName (string)</para>
         /// <para>Angular function(s): UsersApi.getGenderOptions (app/core/services/users-api.ts:47).</para>
         /// <para>Angular purpose: retrieves gender options.</para>
         /// <para>Integrated UI page(s): /auth/register-tenant; /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit</para>
         /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); Registration (app/features/authentication/registration/registration.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
         /// </remarks>
-        [HttpGet("option")]               
+        [HttpGet("option")]
         public async Task<IActionResult> getGender([FromQuery] GetOptionRequestDTO requestDTO)
         {
             _logger.LogInformation($"Received request to get Gender : {requestDTO.UserEmployeeId}");
@@ -55,26 +58,27 @@ namespace axionpro.api.Controllers.Gender
             return Ok(result);
         }
 
-        //  ✅ Get All Gender 
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: GET /api/gender/get.</para>
-        //         /// </remarks>
-        //         [HttpGet("get")]
-        //         public async Task<IActionResult> GetAllGenderAsync([FromQuery] GetGenderRequestDTO? getGenderRequestDTO)
-        //         {
-        //             _logger.LogInformation("Fetching all LeavePolicies...");
-        //             var query = new GetAllGenderQuery(getGenderRequestDTO);
-        //             var result = await _mediator.Send(query);
-        //             return Ok(result);
-        //         }
-        #endregion
-         
+        //  ✅ Get All Gender
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves all gender.</para>
+                /// <para>Handler flow: GetAllGenderQuery is processed by GetAllGenderQueryHandler; operation(s): GetAllAsync.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetGenderResponseDTO: Id (int), GenderName (string)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: GET /api/gender/get.</para>
+                /// </remarks>
+                [HttpGet("get")]
+                public async Task<IActionResult> GetAllGenderAsync([FromQuery] GetGenderRequestDTO? getGenderRequestDTO)
+                {
+                    _logger.LogInformation("Fetching all LeavePolicies...");
+                    var query = new GetAllGenderQuery(getGenderRequestDTO);
+                    var result = await _mediator.Send(query);
+                    return Ok(result);
+                }
+
 
     }
 }

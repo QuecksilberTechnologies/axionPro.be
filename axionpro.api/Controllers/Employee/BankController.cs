@@ -46,15 +46,18 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates bank info.</para>
+        /// <para>Handler flow: CreateBankInfoCommand is processed by CreateBankInfoCommandHandler; operation(s): CreateAsync, DeleteFileAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetBankResponseDTO: Id (int), EmployeeId (string?), BankName (string?), AccountNumber (string?), AccountType (string?), IsPrimaryAccount (bool), IsInfoVerified (bool?), IFSCCode (string?), BranchName (string?), UPIId (string?), HasChequeDocUploaded (bool), FilePath (string?)</para>
         /// <para>Angular function(s): EmployeeBanksAPI.createEmployeeBank (app/core/services/employee-banks-api.ts:89).</para>
         /// <para>Angular purpose: creates employee bank.</para>
         /// <para>Integrated UI page(s): /app/profile/bank-info</para>
         /// <para>Angular UI component(s): EmployeeBankForm (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-form/employee-bank-form.ts); EmployeeBankInfo (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-info.ts)</para>
         /// </remarks>
-        [HttpPost("create")]        
+        [HttpPost("create")]
         public async Task<IActionResult> CreateBankInfo([FromForm] CreateBankRequestDTO Dto)
         {
-            
+
                 // ✅ IMEI validation
                 if (Dto == null)
                 {
@@ -69,29 +72,32 @@ namespace axionpro.api.Controllers.Employee
 
                 _logger.LogInfo("Employee-Bankinfo created successfully.");
                 return Ok(result);
-            
-           
+
+
         }
 
-    
- 
+
+
 
         /// <summary>
         /// Used-In-Angular: retrieves employee banks.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves bank info.</para>
+        /// <para>Handler flow: GetBankInfoQuery is processed by GetBankInfoQueryHandler; operation(s): GetInfoAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetBankResponseDTO: Id (int), EmployeeId (string?), BankName (string?), AccountNumber (string?), AccountType (string?), IsPrimaryAccount (bool), IsInfoVerified (bool?), IFSCCode (string?), BranchName (string?), UPIId (string?), HasChequeDocUploaded (bool), FilePath (string?)</para>
         /// <para>Angular function(s): EmployeeBanksAPI.getEmployeeBanks (app/core/services/employee-banks-api.ts:96).</para>
         /// <para>Angular purpose: retrieves employee banks.</para>
         /// <para>Integrated UI page(s): /app/profile/bank-info</para>
         /// <para>Angular UI component(s): EmployeeBankInfo (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-info.ts)</para>
         /// </remarks>
         [HttpGet("get")]
-        
-        
+
+
         public async Task<IActionResult> GetBankinfo([FromQuery] GetBankReqestDTO requestDto)
         {
-          
+
                 _logger.LogInfo("Fetching all bank.");
 
                 var command = new GetBankInfoQuery(requestDto);
@@ -100,13 +106,16 @@ namespace axionpro.api.Controllers.Employee
 
                 return Ok(result);
        }
-          
-     
+
+
         /// <summary>
         /// Used-In-Angular: deletes employee bank.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes bank info.</para>
+        /// <para>Handler flow: DeleteBankInfoQuery is processed by DeleteBankInfoQueryHandler; operation(s): GetSingleRecordAsync, DeleteAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeeBanksAPI.deleteEmployeeBank (app/core/services/employee-banks-api.ts:109).</para>
         /// <para>Angular purpose: deletes employee bank.</para>
         /// <para>Integrated UI page(s): /app/profile/bank-info</para>
@@ -114,7 +123,7 @@ namespace axionpro.api.Controllers.Employee
         /// </remarks>
         [HttpDelete("delete")]
                 public async Task<IActionResult> Delete([FromQuery] DeleteBankRequestDTO dto)
-       
+
             {
                 _logger.LogInfo($"Deleting employee bank info with Id: {dto.Id}");
 
@@ -123,7 +132,7 @@ namespace axionpro.api.Controllers.Employee
 
                 _logger.LogInfo("Employee bank info deleted successfully.");
                 return Ok(result);
-           
+
         }
 
         /// <summary>
@@ -131,6 +140,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates bank.</para>
+        /// <para>Handler flow: UpdateBankCommand is processed by UpdateBankCommandHandler; operation(s): GetSingleRecordAsync, UpdateAsync, DeleteFileAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeeBanksAPI.updateEmployeeBank (app/core/services/employee-banks-api.ts:102).</para>
         /// <para>Angular purpose: updates employee bank.</para>
         /// <para>Integrated UI page(s): /app/profile/bank-info</para>
@@ -150,9 +162,9 @@ namespace axionpro.api.Controllers.Employee
                 _logger.LogInfo("Employee updated successfully.");
                 return Ok(result);
             }
-           
+
         }
 
 
-    
+
 }

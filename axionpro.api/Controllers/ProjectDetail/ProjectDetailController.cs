@@ -34,6 +34,9 @@ public sealed class ProjectDetailController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves feature pages.</para>
+    /// <para>Handler flow: GetFeaturePagesQuery is processed by GetFeaturePagesQueryHandler; operation(s): GetActiveFeaturePagesAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); FeaturePageResponseDTO: Id (int), ModuleCode (string?), ModuleName (string), DisplayName (string?), UrlPath (string?), IconKey (string?), ParentModuleId (int?), IsLeafNode (bool), IsModuleDisplayInUI (bool), ModuleScope (short), ModuleScopeName (string), IsCommonMenu (bool)</para>
     /// <para>Angular function(s): FeaturePageApi.getFeaturePages (app/core/services/feature-page-api.ts:25).</para>
     /// <para>Angular purpose: retrieves feature pages.</para>
     /// <para>Integrated UI page(s): /auth/login</para>

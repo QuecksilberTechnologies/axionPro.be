@@ -33,6 +33,9 @@ namespace axionpro.api.Controllers.EnumTypes
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves currencies.</para>
+        /// <para>Handler flow: No application request/handler class was statically resolved from the controller action.</para>
+        /// <para>Response DTO property analysis: No concrete response DTO properties were statically resolved from the request/handler declaration.</para>
         /// <para>Angular function(s): EnumApi.getAllCurrencies (app/core/services/enum-api.ts:30).</para>
         /// <para>Angular purpose: retrieves all currencies.</para>
         /// <para>Integrated UI page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations</para>
@@ -48,13 +51,13 @@ namespace axionpro.api.Controllers.EnumTypes
             _logger.LogInfo("Fetching all currencies.");
 
             var data = CurrencyProvider.GetAll(dto.IsActive);
-          
+
 
 
             return Ok(data);
         }
-     
-        
+
+
 
     }
 }

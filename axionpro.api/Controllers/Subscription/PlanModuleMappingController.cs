@@ -39,34 +39,38 @@ public sealed class PlanModuleMappingController : ControllerBase
     #endregion
 
     #region Plan Module Mapping Endpoints
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: GET /api/planmodulemapping/options/{}.</para>
-    //     /// </remarks>
-    //
-    //     [HttpGet("options/{subscriptionPlanId:int}")]
-    //     public async Task<IActionResult> GetOptions(
-    //         int subscriptionPlanId,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new GetPlanModuleMappingOptionsQuery(subscriptionPlanId),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves plan module mapping options.</para>
+        /// <para>Handler flow: GetPlanModuleMappingOptionsQuery is processed by GetPlanModuleMappingOptionsQueryHandler; operation(s): GetNonDeletedSubscriptionPlanByIdAsync, GetEligibleModulesForPlanMappingAsync, GetActiveMappedModuleIdsAsync, Create.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); PlanModuleMappingOptionsResponseDTO: SubscriptionPlanId (int), Modules (IReadOnlyCollection&lt;PlanModuleOptionResponseDTO&gt;)</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/planmodulemapping/options/{}.</para>
+        /// </remarks>
+
+        [HttpGet("options/{subscriptionPlanId:int}")]
+        public async Task<IActionResult> GetOptions(
+            int subscriptionPlanId,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetPlanModuleMappingOptionsQuery(subscriptionPlanId),
+                cancellationToken);
+
+            return Ok(result);
+        }
 
     /// <summary>
     /// Used-In-Angular: updates plan module mapping.
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: updates plan module mapping.</para>
+    /// <para>Handler flow: SavePlanModuleMappingCommand is processed by SavePlanModuleMappingCommandHandler; operation(s): GetNonDeletedSubscriptionPlanByIdAsync, GetEligibleModulesForPlanMappingAsync, Create, SaveChangesAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); SavePlanModuleMappingResponseDTO: SubscriptionPlanId (int), SelectedModuleCount (int), AddedCount (int), ReactivatedCount (int), DeactivatedCount (int)</para>
     /// <para>Angular function(s): PlanModuleMappingApi.savePlanModuleMapping (app/core/services/plan-module-mapping-api.ts:39).</para>
     /// <para>Angular purpose: updates plan module mapping.</para>
     /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>

@@ -4,11 +4,13 @@ import path from "node:path";
 const workspace = process.cwd();
 const frontendRoot = "C:/latestAxionProUI/axionpro-app/src";
 const backendRoot = path.join(workspace, "axionpro.api", "Controllers");
+const applicationRoot = path.join(workspace, "axionpro.application");
 const reportPath = path.join(workspace, "API-Documentation-Sync-Report.md");
 const applyDocs = process.argv.includes("--apply");
 const commentUnused = process.argv.includes("--comment-unused");
+const uncommentUnused = process.argv.includes("--uncomment-unused");
 const dryRun = process.argv.includes("--dry-run");
-const applyChanges = (applyDocs || commentUnused) && !dryRun;
+const applyChanges = (applyDocs || commentUnused || uncommentUnused) && !dryRun;
 
 async function walk(directory, predicate) {
   const output = [];
@@ -393,7 +395,110 @@ function commentOutHttpAttribute(endpoint) {
   };
 }
 
-function buildMatchedDoc(endpoint, contexts, usageResolver) {
+async function restoreUnusedRegions(writeChanges) {
+  const files = await walk(backendRoot, (file) => file.endsWith("Controller.cs"));
+  let filesUpdated = 0;
+  let actionsRestored = 0;
+  for (const file of files) {
+    const raw = await fs.readFile(file, "utf8");
+    const eol = raw.includes("\r\n") ? "\r\n" : "\n";
+    let inUnusedRegion = false;
+    let changed = false;
+    const output = [];
+    for (const line of raw.split(/\r?\n/)) {
+      if (/^[ \t]*#region\s+Unused\b/.test(line)) {
+        if (inUnusedRegion) throw new Error(`Nested #region Unused found in ${file}.`);
+        inUnusedRegion = true;
+        actionsRestored++;
+        changed = true;
+        continue;
+      }
+      if (inUnusedRegion && /^[ \t]*#endregion\b/.test(line)) {
+        inUnusedRegion = false;
+        continue;
+      }
+      output.push(inUnusedRegion ? line.replace(/^([ \t]*)\/\/ ?/, "$1") : line);
+    }
+    if (inUnusedRegion) throw new Error(`Unclosed #region Unused found in ${file}.`);
+    if (changed) {
+      filesUpdated++;
+      if (writeChanges) await fs.writeFile(file, output.join(eol), "utf8");
+    }
+  }
+  return { filesUpdated, actionsRestored };
+}
+
+function declaredTypeNames(header) {
+  return unique([...header.matchAll(/\b(?<name>[A-Za-z_][\w]*(?:DTO|Dto|Response|Result))\b/g)].map((match) => match.groups.name), 16);
+}
+
+function propertySummary(properties) {
+  if (!properties?.length) return "No public properties were statically resolved.";
+  return properties.slice(0, 12).map((property) => `${property.name} (${property.type})`).join(", ");
+}
+
+async function readApplicationMetadata() {
+  const typeMap = new Map();
+  const requests = new Map();
+  const handlersByRequest = new Map();
+  const files = await walk(applicationRoot, (file) => file.endsWith(".cs"));
+  for (const file of files) {
+    const raw = await fs.readFile(file, "utf8");
+    const active = stripCommentsKeepLength(raw);
+    const declarationPattern = /\b(?:public|internal)\s+(?:(?:sealed|abstract|partial|static)\s+)*(?:class|record(?:\s+class)?|struct)\s+(?<name>[A-Za-z_][\w]*)\b/g;
+    for (const match of active.matchAll(declarationPattern)) {
+      const open = active.indexOf("{", match.index + match[0].length);
+      if (open < 0) continue;
+      const close = findClosingBrace(active, open);
+      if (close < 0) continue;
+      const name = match.groups.name;
+      const header = active.slice(match.index, open);
+      const body = active.slice(open + 1, close);
+      const properties = [];
+      const propertyPattern = /\bpublic\s+(?:required\s+)?(?<type>[A-Za-z_][\w<>,?.\[\]\s]*)\s+(?<name>[A-Za-z_][\w]*)\s*\{\s*get\s*;/g;
+      for (const property of body.matchAll(propertyPattern)) {
+        properties.push({ type: property.groups.type.replace(/\s+/g, " ").trim(), name: property.groups.name });
+      }
+      const type = { name, file: relativeTo(workspace, file), header, body, properties, responseTypes: declaredTypeNames(header) };
+      if (!typeMap.has(name)) typeMap.set(name, type);
+      if (/(?:Command|Query)$/.test(name)) requests.set(name, type);
+      if (/Handler$/.test(name)) {
+        const requestName = /IRequestHandler\s*<\s*(?<request>[A-Za-z_][\w]*)/.exec(header)?.groups?.request;
+        if (requestName && !handlersByRequest.has(requestName)) handlersByRequest.set(requestName, type);
+      }
+    }
+  }
+  return { typeMap, requests, handlersByRequest };
+}
+
+function analyzeEndpoint(endpoint, applicationMetadata) {
+  const actionBody = endpoint.raw.slice(endpoint.actionIndex, endpoint.actionEnd);
+  const requestNames = unique([...actionBody.matchAll(/\bnew\s+(?<name>[A-Za-z_][\w]*(?:Command|Query))\s*\(/g)].map((match) => match.groups.name), 4);
+  const requestName = requestNames.find((name) => applicationMetadata.requests.has(name)) ?? requestNames[0] ?? null;
+  const request = requestName ? applicationMetadata.requests.get(requestName) ?? applicationMetadata.typeMap.get(requestName) : null;
+  const handler = requestName ? applicationMetadata.handlersByRequest.get(requestName) ?? applicationMetadata.typeMap.get(`${requestName}Handler`) : null;
+  const responseTypeNames = unique([...(request?.responseTypes ?? []), ...(handler?.responseTypes ?? [])], 8)
+    .filter((name) => applicationMetadata.typeMap.has(name));
+  const responseModels = responseTypeNames.map((name) => applicationMetadata.typeMap.get(name));
+  const repositoryCalls = handler
+    ? unique([...handler.body.matchAll(/\.\s*(?<name>(?:Get|List|Find|Search|Create|Add|Update|Save|Delete|Remove|Map|Assign)[A-Za-z_\d]*)\s*\(/g)].map((match) => match.groups.name), 5)
+    : [];
+  const requestPurpose = requestName ? inferPurpose(requestName.replace(/(?:Command|Query)$/, "")) : inferPurpose(endpoint.action);
+  const handlerFlow = handler && requestName
+    ? `${requestName} is processed by ${handler.name}${repositoryCalls.length ? `; operation(s): ${repositoryCalls.join(", ")}` : ""}.`
+    : requestName
+      ? `${requestName} is dispatched from the controller; no matching handler class was statically resolved.`
+      : "No application request/handler class was statically resolved from the controller action.";
+  return {
+    purpose: requestPurpose,
+    handlerFlow,
+    responseProperties: responseModels.length
+      ? responseModels.map((model) => `${model.name}: ${propertySummary(model.properties)}`).join("; ")
+      : "No concrete response DTO properties were statically resolved from the request/handler declaration.",
+  };
+}
+
+function buildMatchedDoc(endpoint, contexts, usageResolver, analysis) {
   const functions = unique(contexts.map((context) => `${context.className}.${context.methodName} (${context.relative}:${context.line})`));
   const purposes = unique(contexts.map((context) => context.purpose));
   const components = unique(contexts.flatMap((context) => usageResolver.consumersFor(context).map((consumer) => `${consumer.className} (${consumer.relative})`)));
@@ -408,6 +513,9 @@ function buildMatchedDoc(endpoint, contexts, usageResolver) {
     `${indent}/// </summary>`,
     `${indent}/// <remarks>`,
     `${indent}/// <para>Angular usage status: Used-In-Angular.</para>`,
+    `${indent}/// <para>API endpoint purpose: ${xmlEscape(analysis.purpose)}.</para>`,
+    `${indent}/// <para>Handler flow: ${xmlEscape(analysis.handlerFlow)}</para>`,
+    `${indent}/// <para>Response DTO property analysis: ${xmlEscape(analysis.responseProperties)}</para>`,
     `${indent}/// <para>Angular function(s): ${xmlEscape(functions.join("; "))}.</para>`,
     `${indent}/// <para>Angular purpose: ${xmlEscape(purposes.join("; "))}.</para>`,
     `${indent}/// <para>Integrated UI page(s): ${xmlEscape(pageText)}</para>`,
@@ -416,7 +524,7 @@ function buildMatchedDoc(endpoint, contexts, usageResolver) {
   ].join(eol);
 }
 
-function buildNotUsedDoc(endpoint) {
+function buildNotUsedDoc(endpoint, analysis) {
   const indent = attributeIndent(endpoint);
   const eol = endpoint.raw.includes("\r\n") ? "\r\n" : "\n";
   return [
@@ -425,13 +533,16 @@ function buildNotUsedDoc(endpoint) {
     `${indent}/// </summary>`,
     `${indent}/// <remarks>`,
     `${indent}/// <para>Angular usage status: Not-Used-In-Angular.</para>`,
+    `${indent}/// <para>API endpoint purpose: ${xmlEscape(analysis.purpose)}.</para>`,
+    `${indent}/// <para>Handler flow: ${xmlEscape(analysis.handlerFlow)}</para>`,
+    `${indent}/// <para>Response DTO property analysis: ${xmlEscape(analysis.responseProperties)}</para>`,
     `${indent}/// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>`,
     `${indent}/// <para>Backend endpoint: ${xmlEscape(`${endpoint.verb} /api/${endpoint.route}`)}.</para>`,
     `${indent}/// </remarks>`,
   ].join(eol);
 }
 
-function buildReport(endpoints, angularByKey, usageResolver, componentRoutes, angularCalls) {
+function buildReport(endpoints, angularByKey, usageResolver, componentRoutes, angularCalls, endpointAnalyses) {
   const matched = endpoints.filter((endpoint) => angularByKey.has(routeKey(endpoint.verb, endpoint.route)));
   const unmatched = endpoints.length - matched.length;
   const rows = endpoints.map((endpoint) => {
@@ -441,7 +552,8 @@ function buildReport(endpoints, angularByKey, usageResolver, componentRoutes, an
     const purpose = used ? unique(contexts.map((context) => context.purpose)).join("; ") : "No active Angular match found";
     const pages = used ? unique(contexts.flatMap((context) => usageResolver.pagesFor(context))).join("; ") || "No static route resolved" : "—";
     const components = used ? unique(contexts.flatMap((context) => usageResolver.consumersFor(context).map((consumer) => consumer.className))).join("; ") || "No component resolved" : "—";
-    return `| ${used ? "Used-In-Angular" : "Not-Used-In-Angular"} | ${markdownEscape(`${endpoint.verb} /api/${endpoint.route}`)} | ${markdownEscape(`${endpoint.className}.${endpoint.action}`)} | ${markdownEscape(functions)} | ${markdownEscape(purpose)} | ${markdownEscape(pages)} | ${markdownEscape(components)} |`;
+    const analysis = endpointAnalyses.get(endpoint);
+    return `| ${used ? "Used-In-Angular" : "Not-Used-In-Angular"} | ${markdownEscape(`${endpoint.verb} /api/${endpoint.route}`)} | ${markdownEscape(`${endpoint.className}.${endpoint.action}`)} | ${markdownEscape(analysis.purpose)} | ${markdownEscape(analysis.handlerFlow)} | ${markdownEscape(analysis.responseProperties)} | ${markdownEscape(functions)} | ${markdownEscape(purpose)} | ${markdownEscape(pages)} | ${markdownEscape(components)} |`;
   });
   return [
     "# Angular UI ↔ API Controller Usage Documentation",
@@ -456,7 +568,8 @@ function buildReport(endpoints, angularByKey, usageResolver, componentRoutes, an
     "- **Not-Used-In-Angular** means no such active Angular call was found.",
     commentUnused
       ? "- Every Not-Used-In-Angular action in this report is commented in its controller inside `#region Unused`; uncommenting that region restores it."
-      : "- Not-Used-In-Angular endpoints remain available in the backend until a `--comment-unused` run is requested.",
+      : "- Not-Used-In-Angular endpoints are active in the backend; their XML documentation retains that status for the UI team.",
+    "- Endpoint purpose, handler flow, and response DTO fields are statically inferred from controller action, application request/handler declarations, and public response model properties.",
     "- UI pages are resolved statically from Angular route declarations. When that is not possible, the controller comment states this explicitly instead of guessing.",
     "",
     "## Summary",
@@ -472,21 +585,24 @@ function buildReport(endpoints, angularByKey, usageResolver, componentRoutes, an
     "",
     "## Controller documentation convention",
     "",
-    "Every controller action now has endpoint-level XML documentation. Used endpoints include Angular function, inferred UI purpose, resolved UI pages, and consuming component(s). Unused endpoints carry the exact `Not-Used-In-Angular` status.",
+    "Every controller action now has endpoint-level XML documentation. It includes Angular status, API purpose, handler flow, and statically resolved response DTO properties. Used endpoints also include Angular function, inferred UI purpose, resolved UI pages, and consuming component(s). Unused endpoints carry the exact `Not-Used-In-Angular` status.",
     commentUnused ? "Unused action source is line-commented inside a local `#region Unused`, so it can be restored without reconstructing code." : "",
     "",
     "## Complete endpoint matrix",
     "",
-    "| Angular status | Backend endpoint | Controller action | Angular function/source | Angular purpose | Integrated UI page(s) | UI component(s) |",
-    "|---|---|---|---|---|---|---|",
+    "| Angular status | Backend endpoint | Controller action | API endpoint purpose | Handler flow | Response DTO property analysis | Angular function/source | Angular purpose | Integrated UI page(s) | UI component(s) |",
+    "|---|---|---|---|---|---|---|---|---|---|",
     ...rows,
     "",
   ].join("\n");
 }
 
+const restoredUnused = uncommentUnused ? await restoreUnusedRegions(applyChanges) : { filesUpdated: 0, actionsRestored: 0 };
 const angularRecords = await readAngularFiles();
 const angularCalls = angularRecords.flatMap(extractAngularCalls);
 const endpoints = await readBackendEndpoints();
+const applicationMetadata = await readApplicationMetadata();
+const endpointAnalyses = new Map(endpoints.map((endpoint) => [endpoint, analyzeEndpoint(endpoint, applicationMetadata)]));
 const angularByKey = new Map();
 for (const call of angularCalls) {
   const key = routeKey(call.verb, call.route);
@@ -503,7 +619,8 @@ if (applyDocs) {
     const existingDoc = findXmlDocBlock(endpoint.raw, attributeBlockStart);
     const contexts = angularByKey.get(routeKey(endpoint.verb, endpoint.route)) ?? [];
     const start = existingDoc?.start ?? attributeBlockStart;
-    const replacement = contexts.length ? buildMatchedDoc(endpoint, contexts, usageResolver) : buildNotUsedDoc(endpoint);
+    const analysis = endpointAnalyses.get(endpoint);
+    const replacement = contexts.length ? buildMatchedDoc(endpoint, contexts, usageResolver, analysis) : buildNotUsedDoc(endpoint, analysis);
     if (!documentationUpdatesByFile.has(endpoint.file)) documentationUpdatesByFile.set(endpoint.file, []);
     documentationUpdatesByFile.get(endpoint.file).push({ start, end: attributeBlockStart, replacement: `${replacement}${endpoint.raw.includes("\r\n") ? "\r\n" : "\n"}` });
   }
@@ -537,7 +654,7 @@ if (commentUnused) {
   }
 }
 
-const report = buildReport(endpoints, angularByKey, usageResolver, componentRoutes, angularCalls);
+const report = buildReport(endpoints, angularByKey, usageResolver, componentRoutes, angularCalls, endpointAnalyses);
 if (applyChanges) {
   if (applyDocs) {
     for (const [file, updates] of documentationUpdatesByFile) {
@@ -558,7 +675,7 @@ if (applyChanges) {
 
 const matched = endpoints.filter((endpoint) => angularByKey.has(routeKey(endpoint.verb, endpoint.route)));
 console.log(JSON.stringify({
-  mode: commentUnused ? (applyChanges ? "comment-unused" : "comment-unused-dry-run") : applyDocs ? "apply" : "dry-run",
+  mode: uncommentUnused ? (applyChanges ? "uncomment-unused" : "uncomment-unused-dry-run") : commentUnused ? (applyChanges ? "comment-unused" : "comment-unused-dry-run") : applyDocs ? "apply" : "dry-run",
   backendEndpoints: endpoints.length,
   angularHttpCallSites: angularCalls.length,
   matchedEndpoints: matched.length,
@@ -567,5 +684,7 @@ console.log(JSON.stringify({
   matchedWithoutResolvedPage: matched.filter((endpoint) => !(angularByKey.get(routeKey(endpoint.verb, endpoint.route)) ?? []).some((context) => usageResolver.pagesFor(context).length)).length,
   fullyCommentedActions,
   selectivelyCommentedRoutes,
+  restoredUnusedActions: restoredUnused.actionsRestored,
+  restoredUnusedFiles: restoredUnused.filesUpdated,
   report: relativeTo(workspace, reportPath),
 }, null, 2));

@@ -35,12 +35,15 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates insurance.</para>
+        /// <para>Handler flow: CreateInsuranceCommand is processed by CreateInsuranceCommandHandler; operation(s): AddAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetInsurancePolicyResponseDTO: InsurancePolicyId (int), PolicyTypeId (int), PolicyTypeName (string), InsurancePolicyName (string), InsurancePolicyNumber (string), ProviderName (string?), CountryId (int?), CountryName (string?), StartDate (DateTime?), EndDate (DateTime?), AgentName (string?), AgentContactNumber (string?)</para>
         /// <para>Angular function(s): PoliciesInsuranceApi.createInsurancePolicies (app/core/services/policies-insurance-api.ts:69).</para>
         /// <para>Angular purpose: creates insurance policies.</para>
         /// <para>Integrated UI page(s): /app/policies/insurance-policies</para>
         /// <para>Angular UI component(s): UpsertInsurancePolicyDialog (app/features/policies/policies-insurance/upsert-insurance-policy-dialog/upsert-insurance-policy-dialog.ts); PoliciesInsurance (app/features/policies/policies-insurance/policies-insurance.ts)</para>
         /// </remarks>
-        [HttpPost("create")]  
+        [HttpPost("create")]
         public async Task<IActionResult> Create(
             [FromBody] CreateInsurancePolicyRequestDTO dto)
         {
@@ -50,8 +53,8 @@ namespace axionpro.api.Controllers.Insurance
                 var result = await _mediator.Send(command);
 
                 return Ok(result);
-           
-            
+
+
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
@@ -60,13 +63,16 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves all insurance.</para>
+        /// <para>Handler flow: GetAllInsuranceQuery is processed by GetAllInsuranceQueryHandler; operation(s): GetAllListAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetAlllnsurancePolicyResponseDTO: InsurancePolicyId (int), PolicyTypeId (int), InsurancePolicyName (string), InsurancePolicyId (int), PolicyTypeId (int), InsurancePolicyName (string), IsEmployeeConsumed (bool?), IsDependentConsumed (bool?), ConsumedDependentCount (int)</para>
         /// <para>Angular function(s): PoliciesInsuranceApi.getInsurancePolicyNames (app/core/services/policies-insurance-api.ts:83).</para>
         /// <para>Angular purpose: retrieves insurance policy names.</para>
         /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
         /// <para>Angular UI component(s): UpsertPolicyTypeInsuranceMapDialog (app/features/policies/policy-type-insurance-map/upsert-policy-type-insurance-map-dialog/upsert-policy-type-insurance-map-dialog.ts); PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
-        [HttpGet("get-ddl")]     
-        
+        [HttpGet("get-ddl")]
+
         public async Task<IActionResult> GetList(
             [FromQuery] GetAllInsurancePolicyRequestDTO requestDto)
         {
@@ -85,13 +91,16 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves consumed insurance list.</para>
+        /// <para>Handler flow: GetConsumedInsuranceListQuery is processed by GetConsumedInsuranceListQueryHandler; operation(s): GetAllPolicyListWithConsumedDetailsAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetAlllnsurancePolicyWithDetailsResponseDTO: InsurancePolicyId (int), PolicyTypeId (int), InsurancePolicyName (string), IsEmployeeConsumed (bool?), IsDependentConsumed (bool?), ConsumedDependentCount (int)</para>
         /// <para>Angular function(s): PoliciesInsuranceApi.getInsuranceDetails (app/core/services/policies-insurance-api.ts:103).</para>
         /// <para>Angular purpose: retrieves insurance details.</para>
         /// <para>Integrated UI page(s): /app/profile/insurance-info</para>
         /// <para>Angular UI component(s): EmployeeInsuranceForm (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-form/employee-insurance-form.ts); EmployeeInsuranceInfo (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-info.ts)</para>
         /// </remarks>
-        [HttpGet("get-detail-ddl")]     
-        
+        [HttpGet("get-detail-ddl")]
+
         public async Task<IActionResult> GetDetailList(
             [FromQuery] GetAllInsurancePolicyRequestWithEmployeeIdDTO requestDto)
         {
@@ -110,12 +119,15 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves insurance.</para>
+        /// <para>Handler flow: GetInsuranceQuery is processed by GetInsuranceListQueryHandler; operation(s): GetListAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetInsurancePolicyResponseDTO: InsurancePolicyId (int), PolicyTypeId (int), PolicyTypeName (string), InsurancePolicyName (string), InsurancePolicyNumber (string), ProviderName (string?), CountryId (int?), CountryName (string?), StartDate (DateTime?), EndDate (DateTime?), AgentName (string?), AgentContactNumber (string?)</para>
         /// <para>Angular function(s): PoliciesInsuranceApi.getInsurancePolicies (app/core/services/policies-insurance-api.ts:76).</para>
         /// <para>Angular purpose: retrieves insurance policies.</para>
         /// <para>Integrated UI page(s): /app/policies/insurance-policies</para>
         /// <para>Angular UI component(s): PoliciesInsurance (app/features/policies/policies-insurance/policies-insurance.ts)</para>
         /// </remarks>
-        [HttpGet("get-all")]        
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetList(
             [FromQuery] GetInsurancePolicyRequestDTO requestDto)
           {
@@ -132,12 +144,15 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes insurance policy.</para>
+        /// <para>Handler flow: DeleteInsurancePolicyQuery is processed by DeleteInsurancePolicyQueryHandler; operation(s): GetByIdAsync, GetByMappedByInsuranceIdAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): PoliciesInsuranceApi.deleteInsurancePolicy (app/core/services/policies-insurance-api.ts:96).</para>
         /// <para>Angular purpose: deletes insurance policy.</para>
         /// <para>Integrated UI page(s): /app/policies/insurance-policies</para>
         /// <para>Angular UI component(s): PoliciesInsurance (app/features/policies/policies-insurance/policies-insurance.ts)</para>
         /// </remarks>
-        [HttpDelete("delete")]        
+        [HttpDelete("delete")]
         public async Task<IActionResult> Delete(
             [FromQuery] DeleteInsurancePolicyRequestDTO requestDto)
         {
@@ -155,12 +170,15 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates insurance policy.</para>
+        /// <para>Handler flow: UpdateInsurancePolicyCommand is processed by UpdateInsurancePolicyCommandHandler; operation(s): GetByIdAsync, UpdateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): PoliciesInsuranceApi.updateInsurancePolicies (app/core/services/policies-insurance-api.ts:89).</para>
         /// <para>Angular purpose: updates insurance policies.</para>
         /// <para>Integrated UI page(s): /app/policies/insurance-policies</para>
         /// <para>Angular UI component(s): UpsertInsurancePolicyDialog (app/features/policies/policies-insurance/upsert-insurance-policy-dialog/upsert-insurance-policy-dialog.ts); PoliciesInsurance (app/features/policies/policies-insurance/policies-insurance.ts)</para>
         /// </remarks>
-        [HttpPut("update")]        
+        [HttpPut("update")]
         public async Task<IActionResult> Update(
             [FromBody] UpdateInsurancePolicyRequestDTO requestDto)
         {

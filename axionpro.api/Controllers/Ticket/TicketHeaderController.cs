@@ -41,59 +41,63 @@ namespace axionpro.api.Controllers.Ticket
            /// </summary>
            /// <remarks>
            /// <para>Angular usage status: Used-In-Angular.</para>
+           /// <para>API endpoint purpose: creates header.</para>
+           /// <para>Handler flow: AddHeaderCommand is processed by AddHeaderCommandHandler; operation(s): AddAsync.</para>
+           /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetHeaderResponseDTO: Id (long), HeaderName (string), TicketClassificationId (int), TicketClassificationName (string?), Description (string?), IsActive (bool)</para>
            /// <para>Angular function(s): TicketApi.addHeader (app/features/tickets/ticket-api.ts:89).</para>
            /// <para>Angular purpose: creates header.</para>
            /// <para>Integrated UI page(s): /app/tickets/headers</para>
            /// <para>Angular UI component(s): TicketHeaderManageDialog (app/features/tickets/ticket-header/ticket-header-manage-dialog/ticket-header-manage-dialog.ts); TicketHeaderComponent (app/features/tickets/ticket-header/ticket-header.ts)</para>
            /// </remarks>
-           [HttpPost("create")] 
+           [HttpPost("create")]
          public async Task<IActionResult> CreateHeader([FromBody] AddHeaderRequestDTO dto)
          {
-            
+
                _logger.LogInformation("🎯 Received request to create Ticket Header: {Data}", JsonConvert.SerializeObject(dto));
                 var result = await _mediator.Send(new AddHeaderCommand(dto));
                   return Ok(result);
-           
+
          }
 
         // ----------------------------------------------------------------------------------------------------
         // 2️⃣ READ - Get all Ticket Headers with filters
         // ----------------------------------------------------------------------------------------------------
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: GET /api/ticket/ticketheader/get-by-classification-id.</para>
-        //         /// </remarks>
-        //         [HttpGet("get-by-classification-id")]
-        //         public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetTicketHeaderByClassifyIdRequestDTO dto)
-        //         {
-        //
-        //                 _logger.LogInformation("📦 Fetching Ticket Headers with applied filters: {Filters}",
-        //                     JsonConvert.SerializeObject(dto));
-        //
-        //                 var result = await _mediator.Send(new GetHeaderByClassifyIdQuery(dto));
-        //                 _logger.LogInformation("✅ {Count} Ticket Headers fetched successfully.", result.Data?.Count ?? 0);
-        //                 return Ok(result);
-        //
-        //
-        //         }
-        #endregion
-        //[HttpGet("get-filter")]    
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves header by classify id.</para>
+                /// <para>Handler flow: GetHeaderByClassifyIdQuery is processed by GetHeaderByClassifyIdQueryHandler; operation(s): GetByClassificationIdAsync.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetHeaderResponseDTO: Id (long), HeaderName (string), TicketClassificationId (int), TicketClassificationName (string?), Description (string?), IsActive (bool)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: GET /api/ticket/ticketheader/get-by-classification-id.</para>
+                /// </remarks>
+                [HttpGet("get-by-classification-id")]
+                public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetTicketHeaderByClassifyIdRequestDTO dto)
+                {
+
+                        _logger.LogInformation("📦 Fetching Ticket Headers with applied filters: {Filters}",
+                            JsonConvert.SerializeObject(dto));
+
+                        var result = await _mediator.Send(new GetHeaderByClassifyIdQuery(dto));
+                        _logger.LogInformation("✅ {Count} Ticket Headers fetched successfully.", result.Data?.Count ?? 0);
+                        return Ok(result);
+
+
+                }
+        //[HttpGet("get-filter")]
         //public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetHeaderRequestDTO dto)
         //{
-          
+
         //        _logger.LogInformation("📦 Fetching Ticket Headers with applied filters: {Filters}",
         //            JsonConvert.SerializeObject(dto));
 
         //        var result = await _mediator.Send(new GetHeaderFilterCommand(dto));
         //        _logger.LogInformation("✅ {Count} Ticket Headers fetched successfully.", result.Data?.Count ?? 0);
         //        return Ok(result);
-           
-           
+
+
         //}
 
         // ----------------------------------------------------------------------------------------------------
@@ -104,6 +108,9 @@ namespace axionpro.api.Controllers.Ticket
           /// </summary>
           /// <remarks>
           /// <para>Angular usage status: Used-In-Angular.</para>
+          /// <para>API endpoint purpose: updates header.</para>
+          /// <para>Handler flow: UpdateHeaderCommand is processed by UpdateHeaderCommandHandler; operation(s): GetByIdForTenantAsync, Map, UpdateAsync.</para>
+          /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetHeaderResponseDTO: Id (long), HeaderName (string), TicketClassificationId (int), TicketClassificationName (string?), Description (string?), IsActive (bool)</para>
           /// <para>Angular function(s): TicketApi.updateHeader (app/features/tickets/ticket-api.ts:95).</para>
           /// <para>Angular purpose: updates header.</para>
           /// <para>Integrated UI page(s): /app/tickets/headers</para>
@@ -145,13 +152,16 @@ namespace axionpro.api.Controllers.Ticket
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes header.</para>
+        /// <para>Handler flow: DeleteHeaderCommand is processed by DeleteHeaderCommandHandler; operation(s): DeleteAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): TicketApi.deleteHeader (app/features/tickets/ticket-api.ts:101).</para>
         /// <para>Angular purpose: deletes header.</para>
         /// <para>Integrated UI page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets; /app/tickets/types</para>
         /// <para>Angular UI component(s): TicketsStore (app/features/tickets/tickets.store.ts); TicketAgents (app/features/tickets/ticket-agents/ticket-agents.ts); TicketClassificationComponent (app/features/tickets/ticket-classification/ticket-classification.ts); TicketDetailSidebar (app/features/tickets/ticket-details/ticket-detail-sidebar/ticket-detail-sidebar.ts); TicketDetailsHeader (app/features/tickets/ticket-details/ticket-details-header/ticket-details-header.ts); TicketDetails (app/features/tickets/ticket-details/ticket-details.ts); TicketHeaderComponent (app/features/tickets/ticket-header/ticket-header.ts); TicketLists (app/features/tickets/ticket-lists/ticket-lists.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]
- 
+
         public async Task<IActionResult> DeleteTicketHeader([FromBody]  DeleteHeaderRequestDTO dto)
         {
 
@@ -161,6 +171,6 @@ namespace axionpro.api.Controllers.Ticket
 
         }
 
-         
+
     }
 }

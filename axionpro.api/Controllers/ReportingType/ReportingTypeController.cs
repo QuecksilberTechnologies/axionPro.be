@@ -7,7 +7,7 @@
 
 using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.Features.ReportTypeCmd.Handlers;
- 
+
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -49,23 +49,26 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates reporting type.</para>
+        /// <para>Handler flow: CreateReportingTypeCommand is processed by CreateReportingTypeCommandHandler; operation(s): AddAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetReportingTypeResponseDTO: Id (int), TypeName (string?), Description (string?), IsActive (bool)</para>
         /// <para>Angular function(s): ReportTypeApi.addReportType (app/core/services/report-type-api.ts:32).</para>
         /// <para>Angular purpose: creates report type.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
         /// <para>Angular UI component(s): ReportTypeManageDialog (app/features/report-type/report-type-manage-dialog/report-type-manage-dialog.ts)</para>
         /// </remarks>
 
-        [HttpPost("create")]       
-        
+        [HttpPost("create")]
+
         public async Task<IActionResult> CreateReportingType([FromBody] CreateReportingTypeRequestDTO dto)
          {
-           
+
                 _logger.LogInformation("🎯 Received request to create ReportingType: {Data}", JsonConvert.SerializeObject(dto));
 
                 var result = await _mediator.Send(new CreateReportingTypeCommand(dto));
 
                 return Ok(result);
-           
+
         }
 
         #endregion
@@ -79,6 +82,9 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves all reporting type.</para>
+        /// <para>Handler flow: GetAllReportingTypeQuery is processed by GetAllReportingTypeQueryHandler.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetReportingTypeResponseDTO: Id (int), TypeName (string?), Description (string?), IsActive (bool)</para>
         /// <para>Angular function(s): ReportTypeApi.getReportTypes (app/core/services/report-type-api.ts:26).</para>
         /// <para>Angular purpose: retrieves report types.</para>
         /// <para>Integrated UI page(s): /app/report-types</para>
@@ -87,11 +93,11 @@ namespace axionpro.api.Controllers.ReportingType
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllReportingTypes([FromQuery] GetReportingTypeRequestDTO dto)
         {
-           
+
                 _logger.LogInformation("📦 Fetching all reporting types...");
                 var result = await _mediator.Send(new GetAllReportingTypeQuery(dto));
                 return Ok(result);
-          
+
         }
 
         #endregion
@@ -99,26 +105,27 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
         #region 🔹 GET reporting type BY ID
         // =============================================================================================
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: GET /api/reportingtype/get-by-id.</para>
-        //         /// </remarks>
-        //
-        //         [HttpGet("get-by-id")]
-        //         public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
-        //         {
-        //
-        //                 var result = await _mediator.Send(new GetReportingTypeByIdQuery(dto));
-        //
-        //                 return Ok(result);
-        //
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves reporting type by id.</para>
+                /// <para>Handler flow: GetReportingTypeByIdQuery is processed by GetReportingTypeByIdQueryHandler; operation(s): GetByIdAsync.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetReportingTypeResponseDTO: Id (int), TypeName (string?), Description (string?), IsActive (bool)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: GET /api/reportingtype/get-by-id.</para>
+                /// </remarks>
+
+                [HttpGet("get-by-id")]
+                public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
+                {
+
+                        var result = await _mediator.Send(new GetReportingTypeByIdQuery(dto));
+
+                        return Ok(result);
+
+                }
 
         #endregion
 
@@ -131,20 +138,23 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates reporting type.</para>
+        /// <para>Handler flow: UpdateReportingTypeCommand is processed by UpdateReportingTypeCommandHandler; operation(s): UpdateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): ReportTypeApi.updateReportType (app/core/services/report-type-api.ts:38).</para>
         /// <para>Angular purpose: updates report type.</para>
         /// <para>Integrated UI page(s): /app/report-types</para>
         /// <para>Angular UI component(s): ReportTypeManageDialog (app/features/report-type/report-type-manage-dialog/report-type-manage-dialog.ts); ReportTypeStore (app/features/report-type/report-type.store.ts); ReportTypeComponent (app/features/report-type/report-type.ts)</para>
         /// </remarks>
-        [HttpPut("update")]  
+        [HttpPut("update")]
         public async Task<IActionResult> UpdateReportingType([FromBody] UpdateReportingTypeRequestDTO dto)
         {
-            
+
                 _logger.LogInformation("🛠️ Updating ReportingType: {Data}", JsonConvert.SerializeObject(dto));
 
                 var result = await _mediator.Send(new UpdateReportingTypeCommand(dto));
               return Ok(result);
-          
+
         }
 
         #endregion
@@ -158,19 +168,22 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes reporting type.</para>
+        /// <para>Handler flow: DeleteReportingTypeCommand is processed by DeleteReportingTypeCommandHandler; operation(s): DeleteAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): ReportTypeApi.deleteReportType (app/core/services/report-type-api.ts:45).</para>
         /// <para>Angular purpose: deletes report type.</para>
         /// <para>Integrated UI page(s): /app/report-types</para>
         /// <para>Angular UI component(s): ReportTypeStore (app/features/report-type/report-type.store.ts); ReportTypeComponent (app/features/report-type/report-type.ts)</para>
         /// </remarks>
-        [HttpDelete("delete")]       
+        [HttpDelete("delete")]
         public async Task<IActionResult> DeleteReportingType([FromQuery] DeleteReportingTypeRequestDTO dto)
         {
 
                 var result = await _mediator.Send(new DeleteReportingTypeCommand(dto));
                 return Ok(result);
-           
-            
+
+
         }
 
         #endregion

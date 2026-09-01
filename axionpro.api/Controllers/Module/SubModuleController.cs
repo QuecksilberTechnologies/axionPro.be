@@ -45,6 +45,9 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates sub module.</para>
+        /// <para>Handler flow: CreateSubModuleCommand is processed by CreateSubModuleCommandHandler; operation(s): GetParentModuleForSubModuleAsync, AddSubModuleAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetSubModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
         /// <para>Angular function(s): SubModuleApi.addSubModule (app/core/services/sub-module-api.ts:41).</para>
         /// <para>Angular purpose: creates sub module.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -67,6 +70,9 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates sub module.</para>
+        /// <para>Handler flow: UpdateSubModuleCommand is processed by UpdateSubModuleCommandHandler; operation(s): GetSubModuleForUpdateAsync, GetParentModuleForSubModuleAsync, UpdateSubModuleAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetSubModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
         /// <para>Angular function(s): SubModuleApi.updateSubModule (app/core/services/sub-module-api.ts:47).</para>
         /// <para>Angular purpose: updates sub module.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -90,6 +96,9 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves sub module by id.</para>
+        /// <para>Handler flow: GetSubModuleByIdQuery is processed by GetSubModuleByIdQueryHandler; operation(s): GetSubModuleByIdAsync, FindFirst.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetSubModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
         /// <para>Angular function(s): SubModuleApi.getSubModule (app/core/services/sub-module-api.ts:35).</para>
         /// <para>Angular purpose: retrieves sub module.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -113,6 +122,9 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves sub modules.</para>
+        /// <para>Handler flow: GetSubModulesQuery is processed by GetSubModulesQueryHandler; operation(s): GetSubModulesAsync, FindFirst.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetSubModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
         /// <para>Angular function(s): SubModuleApi.getSubModules (app/core/services/sub-module-api.ts:28).</para>
         /// <para>Angular purpose: retrieves sub modules.</para>
         /// <para>Integrated UI page(s): /app/modules; /app/modules/sub-modules; /app/modules/module-operations</para>
@@ -131,36 +143,40 @@ namespace axionpro.api.Controllers.Module
 
             return Ok(result);
         }
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: GET /api/submodule/parent/{}.</para>
-        //         /// </remarks>
-        //
-        //         [HttpGet("parent/{parentModuleId:int}")]
-        //         public async Task<IActionResult> GetModulesByParent(
-        //             int parentModuleId,
-        //             [FromQuery] short moduleScope,
-        //             [FromQuery] bool? isActive,
-        //             CancellationToken cancellationToken)
-        //         {
-        //             var result = await _mediator.Send(
-        //                 new GetSubModulesByParentQuery(parentModuleId, moduleScope, isActive),
-        //                 cancellationToken);
-        //
-        //             return Ok(result);
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves sub modules by parent.</para>
+                /// <para>Handler flow: GetSubModulesByParentQuery is processed by GetSubModulesByParentQueryHandler; operation(s): GetParentModuleForSubModuleAsync, GetSubModulesAsync, FindFirst.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetSubModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: GET /api/submodule/parent/{}.</para>
+                /// </remarks>
+
+                [HttpGet("parent/{parentModuleId:int}")]
+                public async Task<IActionResult> GetModulesByParent(
+                    int parentModuleId,
+                    [FromQuery] short moduleScope,
+                    [FromQuery] bool? isActive,
+                    CancellationToken cancellationToken)
+                {
+                    var result = await _mediator.Send(
+                        new GetSubModulesByParentQuery(parentModuleId, moduleScope, isActive),
+                        cancellationToken);
+
+                    return Ok(result);
+                }
 
         /// <summary>
         /// Used-In-Angular: updates sub module status.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates sub module status.</para>
+        /// <para>Handler flow: UpdateSubModuleStatusCommand is processed by UpdateSubModuleStatusCommandHandler; operation(s): GetSubModuleForUpdateAsync, GetModuleHierarchyForOperationActivationAsync, GetParentModuleForSubModuleAsync, GetModuleOperationMappingsForStatusUpdateAsync, GetNonDeletedByModuleIdsAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetSubModuleResponseDTO: Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), URLPath (string?), ParentModuleId (int?), IsLeafNode (bool?), IsModuleDisplayInUI (bool), IsCommonMenu (bool), ModuleScope (short), IsActive (bool), ImageIconWeb (string?)</para>
         /// <para>Angular function(s): SubModuleApi.setSubModuleStatus (app/core/services/sub-module-api.ts:53).</para>
         /// <para>Angular purpose: updates sub module status.</para>
         /// <para>Integrated UI page(s): /app/modules/sub-modules</para>

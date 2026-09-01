@@ -42,20 +42,23 @@ namespace axionpro.api.Controllers.Location
         {
             _mediator = mediator;
             _logger = logger;
-        }  
-        
-       
+        }
+
+
         /// <summary>
         /// Used-In-Angular: retrieves countries.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves country.</para>
+        /// <para>Handler flow: GetCountryQuery is processed by GetCountryQueryHandler; operation(s): GetCountryOptionAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetCountryOptionResponseDTO: Id (int), CountryName (string), CountryCode (string), STDCode (string), IsActive (bool?)</para>
         /// <para>Angular function(s): LocationsApi.getCountries (app/core/services/locations-api.ts:63).</para>
         /// <para>Angular purpose: retrieves countries.</para>
         /// <para>Integrated UI page(s): /auth/register-tenant; /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit</para>
         /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); Registration (app/features/authentication/registration/registration.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
         /// </remarks>
-        [HttpGet("country/option")] 
+        [HttpGet("country/option")]
         public async Task<IActionResult> getCountry([FromQuery] GetCountryOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get Country : {requestDTO.UserEmployeeId}");
@@ -69,17 +72,20 @@ namespace axionpro.api.Controllers.Location
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves state.</para>
+        /// <para>Handler flow: GetStateQuery is processed by GetStateQueryHandler; operation(s): GetStateOptionAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetStateOptionResponseDTO: Id (int), CountryId (int), CountryCode (string), StateName (string), STDCode (string), IsActive (bool?)</para>
         /// <para>Angular function(s): LocationsApi.getStates (app/core/services/locations-api.ts:70).</para>
         /// <para>Angular purpose: retrieves states.</para>
         /// <para>Integrated UI page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations</para>
         /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); EmployeeContactForm (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-form/employee-contact-form.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
         /// </remarks>
-        [HttpGet("State/option")]   
+        [HttpGet("State/option")]
         public async Task<IActionResult> getState([FromQuery] GetStateOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get State : {requestDTO.UserEmployeeId}");
             var command = new GetStateQuery(requestDTO);
-            var result = await _mediator.Send(command);         
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
         /// <summary>
@@ -87,17 +93,20 @@ namespace axionpro.api.Controllers.Location
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves district.</para>
+        /// <para>Handler flow: GetDistrictQuery is processed by GetDistrictQueryHandler; operation(s): GetDistrictOptionAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetDistrictOptionResponseDTO: Id (int), StateId (int), CountryCode (string), STDCode (string), DistrictName (string), IsActive (bool?)</para>
         /// <para>Angular function(s): LocationsApi.getDistricts (app/core/services/locations-api.ts:77).</para>
         /// <para>Angular purpose: retrieves districts.</para>
         /// <para>Integrated UI page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations</para>
         /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); EmployeeContactForm (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-form/employee-contact-form.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
         /// </remarks>
-        [HttpGet("District/option")]         
+        [HttpGet("District/option")]
         public async Task<IActionResult> getDistrict([FromQuery] GetDistrictOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get District : {requestDTO.UserEmployeeId}");
             var command = new GetDistrictQuery(requestDTO);
-            var result = await _mediator.Send(command);          
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
     }

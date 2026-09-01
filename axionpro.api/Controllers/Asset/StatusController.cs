@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 namespace axionpro.api.Controllers.Asset
 {
     /// <summary>
-    /// Controller to manage all Asset Status related operations 
+    /// Controller to manage all Asset Status related operations
     /// for Tenant Admins (Add, Update, Delete, GetAll).
     /// </summary>
     [ApiController]
@@ -36,12 +36,15 @@ namespace axionpro.api.Controllers.Asset
 
         #region Tenant Admin - Asset Status CRUD
 
- 
+
         /// <summary>
         /// Used-In-Angular: retrieves assets status.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves all asset status.</para>
+        /// <para>Handler flow: GetAllAssetStatusCommand is processed by GetAllStatusCommandHandler; operation(s): GetAllAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetStatusResponseDTO: Id (long), TenantId (long?), IsActive (bool?), StatusName (string?), ColorKey (string?), Description (string?), AddedById (long?), UpdateById (long?), UpdatedDateTime (DateTime?), AddedDateTime (DateTime?)</para>
         /// <para>Angular function(s): AssetStatusApi.fetchAssetsStatus (app/core/services/asset-status-api.ts:35).</para>
         /// <para>Angular purpose: retrieves assets status.</para>
         /// <para>Integrated UI page(s): /app/assets/asset-status; /app/assets/list</para>
@@ -61,6 +64,9 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates status.</para>
+        /// <para>Handler flow: AddStatusCommand is processed by AddStatusCommandHandler; operation(s): CreateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetStatusResponseDTO: Id (long), TenantId (long?), IsActive (bool?), StatusName (string?), ColorKey (string?), Description (string?), AddedById (long?), UpdateById (long?), UpdatedDateTime (DateTime?), AddedDateTime (DateTime?)</para>
         /// <para>Angular function(s): AssetStatusApi.createAssetStatus (app/core/services/asset-status-api.ts:28).</para>
         /// <para>Angular purpose: creates asset status.</para>
         /// <para>Integrated UI page(s): /app/assets/asset-status</para>
@@ -81,6 +87,9 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates status.</para>
+        /// <para>Handler flow: UpdateStatusCommand is processed by UpdateStatusCommandHandler; operation(s): GetByIdForTenantAsync, Map, UpdateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): AssetStatusApi.updateAssetStatus (app/core/services/asset-status-api.ts:41).</para>
         /// <para>Angular purpose: updates asset status.</para>
         /// <para>Integrated UI page(s): /app/assets/asset-status</para>
@@ -89,12 +98,12 @@ namespace axionpro.api.Controllers.Asset
         [HttpPut("update")]
         public async Task<IActionResult> UpdateAssetStatus( [FromBody] UpdateStatusRequestDTO request)
         {
-             
+
                 _logger.LogInfo($"Update request received for Asset Status ID: {request.Id}");
                 var command = new UpdateStatusCommand(request);
                 var result = await _mediator.Send(command);
                 return Ok(result);
-           
+
         }
 
         /// <summary>
@@ -102,23 +111,26 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes status.</para>
+        /// <para>Handler flow: DeleteStatusCommand is processed by DeleteStatusCommandHandler; operation(s): DeleteAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): AssetStatusApi.deleteAssetStatus (app/core/services/asset-status-api.ts:48).</para>
         /// <para>Angular purpose: deletes asset status.</para>
         /// <para>Integrated UI page(s): /app/assets/asset-status</para>
         /// <para>Angular UI component(s): AssetStatusStore (app/features/assets-management/asset-status/asset-status.store.ts); AssetStatusComponent (app/features/assets-management/asset-status/asset-status.ts)</para>
         /// </remarks>
-        [HttpDelete("delete")]    
-        
+        [HttpDelete("delete")]
+
         public async Task<IActionResult> DeleteAssetStatus([FromQuery] DeleteStatusReqestDTO request)
         {
-           
+
                 _logger.LogInfo($"Delete Asset Status request received for ID: {request.Id}");
                 var command = new DeleteStatusCommand(request);
                 var result = await _mediator.Send(command);
                 return Ok(result);
-           
+
         }
-    
+
         #endregion
     }
 }

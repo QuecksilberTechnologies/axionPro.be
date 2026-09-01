@@ -45,6 +45,9 @@ public sealed class NewLoginController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: performs the Angular function new login.</para>
+    /// <para>Handler flow: NewLoginCommand is processed by NewLoginCommandHandler; operation(s): GetByLoginIdAsync, GetNewLoginBootstrapAsync, GetValidateTenantPlan, GetEmployeeRolesWithDetailsByIdAsync, GetActiveKeyByTenantIdAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); NewLoginResponseDTO: UserType (string), AccessToken (string), RefreshToken (string), AccessTokenExpiresAtUtc (DateTime), RefreshTokenExpiresAtUtc (DateTime), User (NewLoginUserContextDTO?), HostUser (NewLoginHostUserContextDTO?), HostRole (NewLoginHostRoleDTO?)</para>
     /// <para>Angular function(s): AuthApi.login (app/core/services/auth-api.ts:162).</para>
     /// <para>Angular purpose: authenticates the user.</para>
     /// <para>Integrated UI page(s): /auth/login</para>

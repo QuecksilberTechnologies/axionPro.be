@@ -44,12 +44,15 @@ namespace axionpro.api.Controllers.Role
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates role.</para>
+        /// <para>Handler flow: UpdateRoleCommand is processed by UpdateRoleCommandHandler; operation(s): GetByIdForTenantAsync, UpdateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): RolesApi.updateRole (app/core/services/roles-api.ts:125).</para>
         /// <para>Angular purpose: updates role.</para>
         /// <para>Integrated UI page(s): /app/roles</para>
         /// <para>Angular UI component(s): RoleDialog (app/features/roles/role-dialog/role-dialog.ts); RolesList (app/features/roles/roles-list/roles-list.ts)</para>
         /// </remarks>
-        [HttpPut("update")]        
+        [HttpPut("update")]
         // [Authorize]
         public async Task<IActionResult> UpdateRole([FromBody] UpdateRoleRequestDTO updateRoleDTO)
         {
@@ -63,12 +66,15 @@ namespace axionpro.api.Controllers.Role
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves role option.</para>
+        /// <para>Handler flow: GetRoleOptionQuery is processed by GetRoleOptionQueryHandler; operation(s): GetOptionAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetRoleOptionResponseDTO: Id (int), RoleType (int?), RoleName (string?), IsActive (bool)</para>
         /// <para>Angular function(s): RolesApi.getRoleOptions (app/core/services/roles-api.ts:119).</para>
         /// <para>Angular purpose: retrieves role options.</para>
         /// <para>Integrated UI page(s): /app/tickets/types; /app/employees; /app/profile/basic-info</para>
         /// <para>Angular UI component(s): RolePopup (app/features/employees/role-popup/role-popup.ts); TicketTypeManageDialog (app/features/tickets/ticket-type/ticket-type-manage-dialog/ticket-type-manage-dialog.ts); EmployeeManageDialog (app/shared/components/employee/employee-manage-dialog/employee-manage-dialog.ts); EmployeeRoleCell (app/features/employees/employee-role-cell/employee-role-cell.ts); TicketTypeComponent (app/features/tickets/ticket-type/ticket-type.ts); Employees (app/features/employees/employees.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts)</para>
         /// </remarks>
-        [HttpGet("option")]      
+        [HttpGet("option")]
         public async Task<IActionResult> getRole([FromQuery] GetRoleOptionRequestDTO requestDTO)
         {
             _logger.LogInfo("Received request to get role options.");
@@ -84,12 +90,15 @@ namespace axionpro.api.Controllers.Role
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates role.</para>
+        /// <para>Handler flow: CreateRoleCommand is processed by CreateRoleCommandHandler; operation(s): CreateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetRoleResponseDTO: Id (int), RoleName (string), RoleType (int), RoleTypeName (string?), IsActive (bool), Remark (string?)</para>
         /// <para>Angular function(s): RolesApi.addRole (app/core/services/roles-api.ts:105).</para>
         /// <para>Angular purpose: creates role.</para>
         /// <para>Integrated UI page(s): /app/roles</para>
         /// <para>Angular UI component(s): RoleDialog (app/features/roles/role-dialog/role-dialog.ts); RolesList (app/features/roles/roles-list/roles-list.ts)</para>
         /// </remarks>
-        [HttpPost("add")]        
+        [HttpPost("add")]
         // [Authorize]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequestDTO createRoleDTO)
         {
@@ -104,15 +113,18 @@ namespace axionpro.api.Controllers.Role
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves role.</para>
+        /// <para>Handler flow: GetRoleQuery is processed by GetRoleQueryHandler; operation(s): GetAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetRoleResponseDTO: Id (int), RoleName (string), RoleType (int), RoleTypeName (string?), IsActive (bool), Remark (string?)</para>
         /// <para>Angular function(s): RolesApi.getRoles (app/core/services/roles-api.ts:112).</para>
         /// <para>Angular purpose: retrieves roles.</para>
         /// <para>Integrated UI page(s): /app/roles; /app/roles/permissions/:roleId; /app/employees; /app/profile/basic-info</para>
         /// <para>Angular UI component(s): RolePermissionsStore (app/features/roles/role-permissions/role-permissions.store.ts); RolesList (app/features/roles/roles-list/roles-list.ts); EmployeeManageDialog (app/shared/components/employee/employee-manage-dialog/employee-manage-dialog.ts); RolePermissions (app/features/roles/role-permissions/role-permissions.ts); Employees (app/features/employees/employees.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts)</para>
         /// </remarks>
-        [HttpGet("get")]      
-        
+        [HttpGet("get")]
+
         public async Task<IActionResult> GetAllRoles([FromQuery] GetRoleRequestDTO? roleRequestDTO)
-        {            
+        {
 
             var query = new GetRoleQuery(roleRequestDTO);
             var result = await _mediator.Send(query);
@@ -124,14 +136,17 @@ namespace axionpro.api.Controllers.Role
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes role.</para>
+        /// <para>Handler flow: DeleteRoleQuery is processed by DeleteRoleQueryHandler; operation(s): DeleteAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): RolesApi.deleteRole (app/core/services/roles-api.ts:132).</para>
         /// <para>Angular purpose: deletes role.</para>
         /// <para>Integrated UI page(s): /app/roles</para>
         /// <para>Angular UI component(s): RolesList (app/features/roles/roles-list/roles-list.ts)</para>
         /// </remarks>
-        [HttpDelete("delete")] 
+        [HttpDelete("delete")]
         public async Task<IActionResult> DeleteRole([FromQuery] DeleteRoleRequestDTO deleteRole)
-        {         
+        {
 
             var command = new DeleteRoleQuery(deleteRole);
             var result = await _mediator.Send(command);

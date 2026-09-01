@@ -26,34 +26,35 @@ namespace axionpro.api.Controllers.Entity
             _mediator = mediator;
             _logger = logger;
         }
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: GET /api/entity/get.</para>
-        //         /// </remarks>
-        //         [HttpGet("get")]
-        //         public IActionResult GetStaticEntityNames([FromQuery] GetEntityNameRequestDTO dTO)
-        //         {
-        //             var entities = new List<GetEntityNameResponseDTO>
-        //            {
-        //         new GetEntityNameResponseDTO { Id = 1, Name = "Employee" },
-        //         new GetEntityNameResponseDTO { Id = 2, Name = "EmployeeBankDetail" },
-        //         new GetEntityNameResponseDTO { Id = 3, Name = "EmployeeExperience" },
-        //         new GetEntityNameResponseDTO { Id = 4, Name = "EmployeeFamily" },
-        //         new GetEntityNameResponseDTO { Id = 5, Name = "EmployeePersonalDetail" },
-        //         new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeEducation" },
-        //         new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeDependent" },
-        //         new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeInsurance" },
-        //         new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeContact" }
-        //            };
-        //
-        //             return Ok(ApiResponse<List<GetEntityNameResponseDTO>>.Success(entities));
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves static entity names.</para>
+                /// <para>Handler flow: No application request/handler class was statically resolved from the controller action.</para>
+                /// <para>Response DTO property analysis: No concrete response DTO properties were statically resolved from the request/handler declaration.</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: GET /api/entity/get.</para>
+                /// </remarks>
+                [HttpGet("get")]
+                public IActionResult GetStaticEntityNames([FromQuery] GetEntityNameRequestDTO dTO)
+                {
+                    var entities = new List<GetEntityNameResponseDTO>
+                   {
+                new GetEntityNameResponseDTO { Id = 1, Name = "Employee" },
+                new GetEntityNameResponseDTO { Id = 2, Name = "EmployeeBankDetail" },
+                new GetEntityNameResponseDTO { Id = 3, Name = "EmployeeExperience" },
+                new GetEntityNameResponseDTO { Id = 4, Name = "EmployeeFamily" },
+                new GetEntityNameResponseDTO { Id = 5, Name = "EmployeePersonalDetail" },
+                new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeEducation" },
+                new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeDependent" },
+                new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeInsurance" },
+                new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeContact" }
+                   };
+
+                    return Ok(ApiResponse<List<GetEntityNameResponseDTO>>.Success(entities));
+                }
 
     }
 }

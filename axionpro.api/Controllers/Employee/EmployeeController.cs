@@ -48,6 +48,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates base employee info.</para>
+        /// <para>Handler flow: CreateBaseEmployeeInfoCommand is processed by CreateBaseEmployeeInfoCommandHandler; operation(s): GetEmployeeIdByUserLogin, GetRoleAsync, CreateEmployeeAsync, AddMinutes.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetBaseEmployeeResponseDTO: Id (string?), EmployementCode (string?), LastName (string?), MiddleName (string?), FirstName (string?), GenderId (int), DesignationName (string?), DepartmentName (string?), EmergencyContactPerson (string?), EmergencyContactNumber (string?), BloodGroup (string?), MobileNumber (string?)</para>
         /// <para>Angular function(s): EmployeesApi.createEmployee (app/core/services/employee-api.ts:95).</para>
         /// <para>Angular purpose: creates employee.</para>
         /// <para>Integrated UI page(s): /app/employees; /app/profile/basic-info</para>
@@ -72,14 +75,17 @@ namespace axionpro.api.Controllers.Employee
 
                 _logger.LogInfo("Employee created successfully.");
                 return Ok(result);
-           
-           
+
+
         }
         /// <summary>
         /// Used-In-Angular: updates profile images.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates profile image.</para>
+        /// <para>Handler flow: UpdateProfileImageCommand is processed by UpdateIdentityInfoCommandHandler; operation(s): DeleteFileAsync, UpdateProfileImage.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeeBasicAPI.updateProfileImages (app/core/services/employee-basic-api.ts:180).</para>
         /// <para>Angular purpose: updates profile images.</para>
         /// <para>Integrated UI page(s): /app/profile</para>
@@ -91,14 +97,14 @@ namespace axionpro.api.Controllers.Employee
         [HttpPost("profile/pic/update")]
         public async Task<IActionResult> UpdateProfieImage([FromForm] UpdateEmployeeImageRequestDTO requestDto)
         {
-            
+
                 _logger.LogInfo("Update image.");
 
                 var command = new UpdateProfileImageCommand(requestDto);
-                var result = await _mediator.Send(command);                 
+                var result = await _mediator.Send(command);
                 return Ok(result);
-           
-            
+
+
         }
 
         /// <summary>
@@ -106,23 +112,26 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves employee image.</para>
+        /// <para>Handler flow: GetEmployeeImageQuery is processed by GetEmployeeImageQueryHandler; operation(s): GetImage, GetFileUrl.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetEmployeeImageReponseDTO: EmployeeId (string?), Id (long), FileName (string?), FilePath (string?), IsActive (bool), IsPrimary (bool), HasImageUploaded (bool), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeeBasicAPI.getProfileImages (app/core/services/employee-basic-api.ts:174).</para>
         /// <para>Angular purpose: retrieves profile images.</para>
         /// <para>Integrated UI page(s): /app/profile</para>
         /// <para>Angular UI component(s): ProfileSummary (app/shared/components/profile/profile-summary/profile-summary.ts); EmployeeProfile (app/features/user-menu/employee-profile/employee-profile.ts)</para>
         /// </remarks>
         [Authorize]
-        [HttpGet("Image/get")]     
+        [HttpGet("Image/get")]
         public async Task<IActionResult> GetAllEmployeeImage([FromQuery] GetEmployeeImageRequestDTO requestDto)
         {
-            
+
                 _logger.LogInfo("Fetching all employees.");
 
                 var command = new GetEmployeeImageQuery(requestDto);
                 var result = await _mediator.Send(command);
                 return Ok(result);
-           
-           
+
+
         }
 
         /// <summary>
@@ -130,6 +139,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates editable status.</para>
+        /// <para>Handler flow: UpdateEditableStatusCommand is processed by BankEditableStatusCommandUpdateHandler; operation(s): GetByIdAsync, UpdateEditStatus.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): ProfileAccessApi.updateEditStatus (app/core/services/profile-access-api.ts:50).</para>
         /// <para>Angular purpose: updates edit status.</para>
         /// <para>Integrated UI page(s): /app/profile/bank-info; /app/profile/basic-info; /app/profile/contact-info; /app/profile/dependent-info; /app/profile/education-info; /app/profile/experience-info; /app/profile/identity-info; /app/profile/insurance-info</para>
@@ -154,6 +166,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates verification status.</para>
+        /// <para>Handler flow: UpdateVerificationStatusCommand is processed by BankVerificationStatusUpdateCommandHandler; operation(s): GetByIdAsync, UpdateVerificationStatus.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): ProfileAccessApi.updateVerificationStatus (app/core/services/profile-access-api.ts:44).</para>
         /// <para>Angular purpose: updates verification status.</para>
         /// <para>Integrated UI page(s): /app/profile/bank-info; /app/profile/basic-info; /app/profile/contact-info; /app/profile/dependent-info; /app/profile/education-info; /app/profile/experience-info; /app/profile/identity-info; /app/profile/insurance-info</para>
@@ -162,7 +177,7 @@ namespace axionpro.api.Controllers.Employee
         [HttpPost("update-verification-status")]
         public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO_ dto)
         {
-            
+
 
             var command = new UpdateVerificationStatusCommand(dto);
             var result = await _mediator.Send(command);
@@ -175,6 +190,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates section bulk.</para>
+        /// <para>Handler flow: UpdateSectionBulkCommand is processed by UpdateSectionBulkCommandHandler; operation(s): UpdateSectionVerifyStatusAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeesApi.updateBulk (app/core/services/employee-api.ts:128).</para>
         /// <para>Angular purpose: updates bulk.</para>
         /// <para>Integrated UI page(s): /app/employees</para>
@@ -191,40 +209,44 @@ namespace axionpro.api.Controllers.Employee
             return Ok(result);
         }
 
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: POST /api/employee/reset-password.</para>
-        //         /// </remarks>
-        //         [Authorize]
-        //         [HttpPost("reset-password")]
-        //         public async Task<IActionResult> ResetEmployeePassword(
-        //             [FromBody] ResetEmployeePasswordRequestDTO requestDto)
-        //         {
-        //             if (requestDto is null)
-        //             {
-        //                 throw new axionpro.application.Exceptions.ValidationErrorException(
-        //                     axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
-        //             }
-        //
-        //             _logger.LogInfo("Received authorized Tenant Employee password-reset request.");
-        //
-        //             var command = new ResetPasswordCommand(requestDto);
-        //             var result = await _mediator.Send(command);
-        //
-        //             return Ok(result);
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: performs the Angular function reset password.</para>
+                /// <para>Handler flow: ResetPasswordCommand is processed by ResetPasswordCommandHandler; operation(s): GetByIdAsync, UpdatePassword.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: POST /api/employee/reset-password.</para>
+                /// </remarks>
+                [Authorize]
+                [HttpPost("reset-password")]
+                public async Task<IActionResult> ResetEmployeePassword(
+                    [FromBody] ResetEmployeePasswordRequestDTO requestDto)
+                {
+                    if (requestDto is null)
+                    {
+                        throw new axionpro.application.Exceptions.ValidationErrorException(
+                            axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
+                    }
+
+                    _logger.LogInfo("Received authorized Tenant Employee password-reset request.");
+
+                    var command = new ResetPasswordCommand(requestDto);
+                    var result = await _mediator.Send(command);
+
+                    return Ok(result);
+                }
 
         /// <summary>
         /// Used-In-Angular: retrieves all percentage.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves employee profile status.</para>
+        /// <para>Handler flow: GetEmployeeProfileStatusQuery is processed by GetEmployeeProfileStatusQueryHandler; operation(s): GetEmployeeCompletionAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); CompletionSectionDTO: SectionName (string?), CompletionPercent (double?), IsInfoVerified (bool?), IsEditAllowed (bool?), IsSectionCreate (bool)</para>
         /// <para>Angular function(s): EmployeesApi.getAllPercentage (app/core/services/employee-api.ts:122).</para>
         /// <para>Angular purpose: retrieves all percentage.</para>
         /// <para>Integrated UI page(s): /app/employees</para>
@@ -236,7 +258,7 @@ namespace axionpro.api.Controllers.Employee
             [FromQuery] string employeeId,
             [FromQuery] axionpro.application.DTOs.BaseDTO.PermissionRequestDTO permissionRequest)
         {
-           
+
                 if (string.IsNullOrWhiteSpace(employeeId))
                 {
                     _logger.LogInfo("Invalid EmployeeId received.");
@@ -252,8 +274,8 @@ namespace axionpro.api.Controllers.Employee
                 _logger.LogInfo("Employee percentage fetched successfully.");
 
                 return Ok(result);
-           
-           
+
+
         }
 
 
@@ -262,6 +284,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves base employee info.</para>
+        /// <para>Handler flow: GetBaseEmployeeInfoQuery is processed by GetBaseEmployeeInfoQueryHandler; operation(s): GetInfo.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetBaseEmployeeResponseDTO: Id (string?), EmployementCode (string?), LastName (string?), MiddleName (string?), FirstName (string?), GenderId (int), DesignationName (string?), DepartmentName (string?), EmergencyContactPerson (string?), EmergencyContactNumber (string?), BloodGroup (string?), MobileNumber (string?)</para>
         /// <para>Angular function(s): EmployeeBasicAPI.getEmployeeBasics (app/core/services/employee-basic-api.ts:136).</para>
         /// <para>Angular purpose: retrieves employee basics.</para>
         /// <para>Integrated UI page(s): /app/profile/basic-info; /app/profile/identity-info; /app/employees/permissions/:employeeId</para>
@@ -271,7 +296,7 @@ namespace axionpro.api.Controllers.Employee
         [HttpGet("get")]
         public async Task<IActionResult> GetEmployee([FromQuery] GetBaseEmployeeRequestDTO requestDto)
         {
-            
+
                 _logger.LogInfo("Fetching all employees.");
 
                 var command = new GetBaseEmployeeInfoQuery(requestDto);
@@ -279,14 +304,17 @@ namespace axionpro.api.Controllers.Employee
 
 
                 return Ok(result);
-          
-           
+
+
         }
         /// <summary>
         /// Used-In-Angular: retrieves employee summary.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves employee summary.</para>
+        /// <para>Handler flow: GetEmployeeSummaryQuery is processed by GetEmployeeSummaryQueryHandler.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeesApi.getEmployeeSummary (app/core/services/employee-api.ts:142).</para>
         /// <para>Angular purpose: retrieves employee summary.</para>
         /// <para>Integrated UI page(s): /app/employees</para>
@@ -317,6 +345,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves employee profile summary.</para>
+        /// <para>Handler flow: GetEmployeeProfileSummaryQuery is processed by GetEmployeeProfileSummaryQueryHandler.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeeBasicAPI.fetchProfileSummary (app/core/services/employee-basic-api.ts:158); EmployeeBasicAPI.getProfileSummary (app/core/services/employee-basic-api.ts:187).</para>
         /// <para>Angular purpose: retrieves profile summary.</para>
         /// <para>Integrated UI page(s): /app/profile/basic-info; /app/profile</para>
@@ -326,22 +357,25 @@ namespace axionpro.api.Controllers.Employee
         [HttpGet("get-profile-summary")]
         public async Task<IActionResult> GetEmployeeProfileSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
         {
-           
+
                 _logger.LogInfo("Fetching all employees.");
                 var command = new GetEmployeeProfileSummaryQuery(requestDto);
                 var result = await _mediator.Send(command);
 
-             
+
 
                 return Ok(result);
-           
-           
+
+
         }
         /// <summary>
         /// Used-In-Angular: retrieves all employees.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves all employee info.</para>
+        /// <para>Handler flow: GetAllEmployeeInfoQuery is processed by GetAllEmployeeInfoQueryHandler; operation(s): GetAllInfo.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetAllEmployeeInfoResponseDTO: EmployeeId (string?), EmployementCode (string?), LastName (string?), MiddleName (string?), FirstName (string?), GenderId (int), GenderName (string?), CountryId (int), CountryCode (string?), MobileNumber (string?), Nationality (string), DateOfBirth (string?)</para>
         /// <para>Angular function(s): EmployeesApi.getAllEmployees (app/core/services/employee-api.ts:102).</para>
         /// <para>Angular purpose: retrieves all employees.</para>
         /// <para>Integrated UI page(s): /app/assets/list; /app/employees</para>
@@ -351,14 +385,14 @@ namespace axionpro.api.Controllers.Employee
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllEmployee([FromQuery] GetAllEmployeeInfoRequestDTO requestDto)
         {
-            
+
                 _logger.LogInfo("Fetching all employees.");
 
                 var command = new GetAllEmployeeInfoQuery(requestDto);
                 var result = await _mediator.Send(command);
                 return Ok(result);
-           
-            
+
+
         }
 
         /// <summary>
@@ -366,6 +400,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes employee.</para>
+        /// <para>Handler flow: DeleteEmployeeQuery is processed by DeleteBaseEmployeeInfoQueryHandler; operation(s): GetByIdAsync, DeleteAllAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeesApi.deleteEmployee (app/core/services/employee-api.ts:115).</para>
         /// <para>Angular purpose: deletes employee.</para>
         /// <para>Integrated UI page(s): /app/employees</para>
@@ -375,20 +412,23 @@ namespace axionpro.api.Controllers.Employee
         [HttpDelete("delete-all")]
         public async Task<IActionResult> Delete([FromQuery] DeleteBaseEmployeeRequestDTO dto)
         {
-            
+
                 _logger.LogInfo($"Deleting employee with Id: {dto.EmployeeId}");
                 var command = new DeleteEmployeeQuery(dto);
                 var result = await _mediator.Send(command);
 
                 _logger.LogInfo("Employee deleted successfully.");
                 return Ok(result);
-            
+
         }
         /// <summary>
         /// Used-In-Angular: updates employee update status.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: performs the Angular function activate all employee.</para>
+        /// <para>Handler flow: ActivateAllEmployeeQuery is processed by ActivateEmployeeInfoQueryHandler; operation(s): GetByIdAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeesApi.updateEmployeeUpdateStatus (app/core/services/employee-api.ts:135).</para>
         /// <para>Angular purpose: updates employee update status.</para>
         /// <para>Integrated UI page(s): /app/employees</para>
@@ -398,8 +438,8 @@ namespace axionpro.api.Controllers.Employee
         [HttpPut("update-status")]
         public async Task<IActionResult> UpdateEmployeeStatus(
             [FromQuery] ActivateAllEmployeeRequestDTO dto)
-       
-            {             
+
+            {
             _logger.LogInfo(
                     $"Updating employee active status. EmployeeId: {dto.EmployeeId}, IsActive: {dto.IsActive}");
 
@@ -409,8 +449,8 @@ namespace axionpro.api.Controllers.Employee
                     $"Employee {(dto.IsActive ? "activated" : "deactivated")} successfully.");
 
                 return Ok(result);
-          
-           
+
+
         }
 
         /// <summary>
@@ -421,6 +461,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates employee.</para>
+        /// <para>Handler flow: UpdateEmployeeCommand is processed by UpdateBaseEmployeeCommandHandler; operation(s): GetByIdAsync, UpdateEmployeeAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeesApi.updateEmployee (app/core/services/employee-api.ts:108); EmployeeBasicAPI.updateEmployeeBasics (app/core/services/employee-basic-api.ts:142).</para>
         /// <para>Angular purpose: updates employee; updates employee basics.</para>
         /// <para>Integrated UI page(s): /app/employees; /app/profile/basic-info</para>
@@ -430,7 +473,7 @@ namespace axionpro.api.Controllers.Employee
         [HttpPost("update")]
         public async Task<IActionResult> Update([FromBody] UpdateEmployeeRequestDTO dto)
         {
-           
+
                 _logger.LogInfo($"Updating employee record. EmployeeId: {dto.EmployeeId}");
 
                 var command = new UpdateEmployeeCommand(dto);
@@ -438,8 +481,8 @@ namespace axionpro.api.Controllers.Employee
 
                 _logger.LogInfo("Employee updated successfully.");
                 return Ok(result);
-            
-            
+
+
         }
         /// <summary>
         // Updates employee details.
@@ -449,6 +492,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates base employee by admin.</para>
+        /// <para>Handler flow: UpdateBaseEmployeeByAdminCommand is processed by UpdateBaseEmployeeByAdminCommandHandler; operation(s): GetByIdAsync, UpdateEmployeeAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): EmployeeBasicAPI.updateEmployeeOfficialBasics (app/core/services/employee-basic-api.ts:150).</para>
         /// <para>Angular purpose: updates employee official basics.</para>
         /// <para>Integrated UI page(s): /app/employees; /app/profile/basic-info</para>
@@ -456,17 +502,17 @@ namespace axionpro.api.Controllers.Employee
         /// </remarks>
         [Authorize]
         [HttpPost("official/update")]
-        
+
         public async Task<IActionResult> OfficialUpdate([FromBody] UpdateEmployeeRequestOfficialDTO dto)
         {
-            
+
                 _logger.LogInfo($"Updating employee record. EmployeeId: {dto.EmployeeId}");
 
                 var command = new UpdateBaseEmployeeByAdminCommand(dto);
                 var result = await _mediator.Send(command);
-            
+
             return Ok(result);
-          
+
         }
     }
 }

@@ -31,11 +31,15 @@ public sealed class NavigationController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the authenticated user's lightweight, permission-filtered navigation hierarchy.
+    /// Not-Used-In-Angular.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves my navigation menu.</para>
+    /// <para>Handler flow: GetMyNavigationMenuQuery is processed by GetMyNavigationMenuQueryHandler; operation(s): GetTenantNavigationMenuAsync, GetHostNavigationMenuAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); NavigationMenuResponseDTO: UserType (string), Items (IReadOnlyCollection&lt;NavigationMenuItemResponseDTO&gt;)</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
     /// <para>Backend endpoint: GET /api/navigation/my-menu.</para>
-    /// <para>For Tenant users, navigation is resolved from the tenant entitlement snapshot and the user's effective role permissions.</para>
     /// </remarks>
     [HttpGet("my-menu")]
     public async Task<IActionResult> GetMyMenu(CancellationToken cancellationToken)

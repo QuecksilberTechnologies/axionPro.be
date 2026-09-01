@@ -45,6 +45,9 @@ public sealed class HostAccessController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves host access.</para>
+    /// <para>Handler flow: GetHostAccessQuery is processed by GetHostAccessQueryHandler; operation(s): GetByIdAsync, GetHostUserPermissionsAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); HostAccessResponseDTO: Modules (IReadOnlyCollection&lt;HostAccessModuleResponseDTO&gt;)</para>
     /// <para>Angular function(s): AccessBootstrapApi.getHostBootstrap (app/core/services/access-bootstrap-api.ts:28).</para>
     /// <para>Angular purpose: retrieves host bootstrap.</para>
     /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>

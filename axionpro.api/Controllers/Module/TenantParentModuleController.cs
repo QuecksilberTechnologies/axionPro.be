@@ -42,104 +42,108 @@ public sealed class TenantParentModuleController : ControllerBase
     #endregion
 
     #region Tenant Parent Module Queries
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: GET /api/tenantparentmodule/get-module-headers.</para>
-    //     /// </remarks>
-    //
-    //     [HttpGet("get-module-headers")]
-    //     [ProducesResponseType(StatusCodes.Status200OK)]
-    //     public async Task<IActionResult> GetModuleHeaders(
-    //         [FromQuery] TenantParentModuleHeaderRequestDTO requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new GetTenantParentModuleHeadersQuery(requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: GET /api/tenantparentmodule/list.</para>
-    //     /// </remarks>
-    //
-    //     [HttpGet("list")]
-    //     [ProducesResponseType(StatusCodes.Status200OK)]
-    //     public async Task<IActionResult> GetModules(
-    //         [FromQuery] TenantParentModuleListRequestDTO requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new GetTenantParentModulesQuery(requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: GET /api/tenantparentmodule/{}.</para>
-    //     /// </remarks>
-    //
-    //     [HttpGet("{id:int}")]
-    //     [ProducesResponseType(StatusCodes.Status200OK)]
-    //     public async Task<IActionResult> GetModuleById(
-    //         int id,
-    //         [FromQuery] TenantParentModuleByIdRequestDTO requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new GetTenantParentModuleByIdQuery(id, requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves tenant parent module headers.</para>
+        /// <para>Handler flow: GetTenantParentModuleHeadersQuery is processed by GetTenantParentModuleHeadersQueryHandler; operation(s): GetHeaderTreeAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantParentModuleResponseDTO: TenantId (string), Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), UrlPath (string?), ImageIconWeb (string?), ImageIconMobile (string?), ItemPriority (int?), ParentModuleId (int?), IsLeafNode (bool?), IsEnabled (bool)</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/tenantparentmodule/get-module-headers.</para>
+        /// </remarks>
+
+        [HttpGet("get-module-headers")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetModuleHeaders(
+            [FromQuery] TenantParentModuleHeaderRequestDTO requestDTO,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetTenantParentModuleHeadersQuery(requestDTO),
+                cancellationToken);
+
+            return Ok(result);
+        }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves tenant parent modules.</para>
+        /// <para>Handler flow: GetTenantParentModulesQuery is processed by GetTenantParentModulesQueryHandler; operation(s): GetPagedMainParentHeadersAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantParentModuleResponseDTO: TenantId (string), Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), UrlPath (string?), ImageIconWeb (string?), ImageIconMobile (string?), ItemPriority (int?), ParentModuleId (int?), IsLeafNode (bool?), IsEnabled (bool)</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/tenantparentmodule/list.</para>
+        /// </remarks>
+
+        [HttpGet("list")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetModules(
+            [FromQuery] TenantParentModuleListRequestDTO requestDTO,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetTenantParentModulesQuery(requestDTO),
+                cancellationToken);
+
+            return Ok(result);
+        }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves tenant parent module by id.</para>
+        /// <para>Handler flow: GetTenantParentModuleByIdQuery is processed by GetTenantParentModuleByIdQueryHandler; operation(s): GetHeaderByModuleIdAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantParentModuleResponseDTO: TenantId (string), Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), UrlPath (string?), ImageIconWeb (string?), ImageIconMobile (string?), ItemPriority (int?), ParentModuleId (int?), IsLeafNode (bool?), IsEnabled (bool)</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/tenantparentmodule/{}.</para>
+        /// </remarks>
+
+        [HttpGet("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetModuleById(
+            int id,
+            [FromQuery] TenantParentModuleByIdRequestDTO requestDTO,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetTenantParentModuleByIdQuery(id, requestDTO),
+                cancellationToken);
+
+            return Ok(result);
+        }
 
     #endregion
 
     #region Tenant Parent Module Status
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: PATCH /api/tenantparentmodule/{}/status.</para>
-    //     /// </remarks>
-    //
-    //     [HttpPatch("{id:int}/status")]
-    //     [ProducesResponseType(StatusCodes.Status200OK)]
-    //     public async Task<IActionResult> UpdateModuleStatus(
-    //         int id,
-    //         [FromBody] UpdateTenantParentModuleStatusRequestDTO requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new UpdateTenantParentModuleStatusCommand(id, requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates tenant parent module status.</para>
+        /// <para>Handler flow: UpdateTenantParentModuleStatusCommand is processed by UpdateTenantParentModuleStatusCommandHandler; operation(s): SaveChangesAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantParentModuleResponseDTO: TenantId (string), Id (int), ModuleCode (string?), ModuleName (string?), DisplayName (string?), UrlPath (string?), ImageIconWeb (string?), ImageIconMobile (string?), ItemPriority (int?), ParentModuleId (int?), IsLeafNode (bool?), IsEnabled (bool)</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: PATCH /api/tenantparentmodule/{}/status.</para>
+        /// </remarks>
+
+        [HttpPatch("{id:int}/status")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateModuleStatus(
+            int id,
+            [FromBody] UpdateTenantParentModuleStatusRequestDTO requestDTO,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new UpdateTenantParentModuleStatusCommand(id, requestDTO),
+                cancellationToken);
+
+            return Ok(result);
+        }
 
     #endregion
 }

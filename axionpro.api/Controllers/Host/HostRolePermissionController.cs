@@ -47,6 +47,9 @@ public class HostRolePermissionController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves host role module permissions.</para>
+    /// <para>Handler flow: GetHostRoleModulePermissionsQuery is processed by GetHostRoleModulePermissionsQueryHandler; operation(s): GetByIdAsync, GetAllModuleOperationMappingsAsync, GetHostUserPermissionsAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetHostRoleModulePermissionsResponseDTO: HostRoleId (long), HostRoleName (string), Modules (List&lt;HostRoleModulePermissionsModuleResponseDTO&gt;)</para>
     /// <para>Angular function(s): HostApi.getHostRoleModulePermissions (app/core/services/host-api.ts:125).</para>
     /// <para>Angular purpose: retrieves host role module permissions.</para>
     /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>
@@ -69,6 +72,9 @@ public class HostRolePermissionController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: updates host role module permissions.</para>
+    /// <para>Handler flow: SaveHostRoleModulePermissionsCommand is processed by SaveHostRoleModulePermissionsCommandHandler; operation(s): GetByIdAsync, GetAllModuleOperationMappingsAsync, GetByHostRoleIdAsync, SaveChangesAsync.</para>
+    /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
     /// <para>Angular function(s): HostApi.saveHostRoleModulePermissions (app/core/services/host-api.ts:140).</para>
     /// <para>Angular purpose: updates host role module permissions.</para>
     /// <para>Integrated UI page(s): /app/host-roles/permissions/:hostRoleId</para>

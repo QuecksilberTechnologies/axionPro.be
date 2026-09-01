@@ -40,6 +40,9 @@ namespace axionpro.api.Controllers.Designation
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves designation.</para>
+        /// <para>Handler flow: GetDesignationQuery is processed by GetDesignationQueryHandler; operation(s): GetAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetDesignationResponseDTO: Id (int), DepartmentId (int), DepartmentName (string?), DesignationName (string?), Description (string?), IsActive (bool)</para>
         /// <para>Angular function(s): DesignationsApi.getDesignations (app/core/services/designations-api.ts:65).</para>
         /// <para>Angular purpose: retrieves designations.</para>
         /// <para>Integrated UI page(s): /app/designations; /app/departments; /app/employees; /app/profile/basic-info</para>
@@ -55,42 +58,46 @@ namespace axionpro.api.Controllers.Designation
 
             return Ok(result);
         }
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: POST /api/designation/department/group/get.</para>
-        //         /// </remarks>
-        //         [HttpPost("Department/Group/get")]
-        //
-        //
-        //
-        //         public async Task<IActionResult> GetAllDepartmentAsyc([FromBody] GetDepartmentRequestDTO designationRequestDTO)
-        //         {
-        //             _logger.LogInfo($"Received request to get tenant from tenantId: {designationRequestDTO.Id}");
-        //
-        //             var command = new GetDepartmentQuery(designationRequestDTO);
-        //             var result = await _mediator.Send(command);
-        //
-        //             return Ok(result);
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves department.</para>
+                /// <para>Handler flow: GetDepartmentQuery is processed by GetDepartmentQueryHandler; operation(s): GetAsync.</para>
+                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetDepartmentResponseDTO: Id (int), DepartmentName (string), IsActive (bool), Description (string?), Remark (string?)</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: POST /api/designation/department/group/get.</para>
+                /// </remarks>
+                [HttpPost("Department/Group/get")]
+
+
+
+                public async Task<IActionResult> GetAllDepartmentAsyc([FromBody] GetDepartmentRequestDTO designationRequestDTO)
+                {
+                    _logger.LogInfo($"Received request to get tenant from tenantId: {designationRequestDTO.Id}");
+
+                    var command = new GetDepartmentQuery(designationRequestDTO);
+                    var result = await _mediator.Send(command);
+
+                    return Ok(result);
+                }
 
         /// <summary>
         /// Used-In-Angular: retrieves designation options.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves designation option.</para>
+        /// <para>Handler flow: GetDesignationOptionQuery is processed by GetDesignationOptionQueryHandler; operation(s): GetOptionAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetDesignationOptionResponseDTO: Id (int), DepartmentId (int), DesignationName (string?)</para>
         /// <para>Angular function(s): DesignationsApi.getDesignationOptions (app/core/services/designations-api.ts:72).</para>
         /// <para>Angular purpose: retrieves designation options.</para>
         /// <para>Integrated UI page(s): /app/employees; /app/departments; /app/profile/basic-info</para>
         /// <para>Angular UI component(s): EmployeesStore (app/features/employees/employees.store.ts); DepartmentFilter (app/shared/components/department/department-filter/department-filter.ts); EmployeeFilter (app/shared/components/employee/employee-filter/employee-filter.ts); EmployeeManageDialog (app/shared/components/employee/employee-manage-dialog/employee-manage-dialog.ts); Employees (app/features/employees/employees.ts); Departments (app/features/departments/departments.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts)</para>
         /// </remarks>
-        [HttpGet("option")]      
-        
+        [HttpGet("option")]
+
         public async Task<IActionResult> getDesignation([FromQuery] GetDesignationOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get designation options for DepartmentId: {requestDTO.DepartmentId}");
@@ -106,13 +113,16 @@ namespace axionpro.api.Controllers.Designation
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates designation.</para>
+        /// <para>Handler flow: CreateDesignationCommand is processed by CreateDesignationCommandHandler; operation(s): CreateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetDesignationResponseDTO: Id (int), DepartmentId (int), DepartmentName (string?), DesignationName (string?), Description (string?), IsActive (bool)</para>
         /// <para>Angular function(s): DesignationsApi.addDesignation (app/core/services/designations-api.ts:58).</para>
         /// <para>Angular purpose: creates designation.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
         /// <para>Angular UI component(s): DesignationManageDialog (app/features/designations/designation-manage-dialog/designation-manage-dialog.ts)</para>
         /// </remarks>
-        [HttpPost("add")]       
-        
+        [HttpPost("add")]
+
         public async Task<IActionResult> CreateDesignation([FromBody] CreateDesignationRequestDTO dTO)
         {
             if (dTO == null)
@@ -134,12 +144,15 @@ namespace axionpro.api.Controllers.Designation
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes designation.</para>
+        /// <para>Handler flow: DeleteDesignationQuery is processed by DeleteDesignationQueryHandler; operation(s): DeleteDesignationAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): DesignationsApi.deleteDesignation (app/core/services/designations-api.ts:85).</para>
         /// <para>Angular purpose: deletes designation.</para>
         /// <para>Integrated UI page(s): /app/designations</para>
         /// <para>Angular UI component(s): DesignationsStore (app/features/designations/designations.store.ts); Designations (app/features/designations/designations.ts)</para>
         /// </remarks>
-        [HttpDelete("delete")]       
+        [HttpDelete("delete")]
         public async Task<IActionResult> Delete([FromQuery] DeleteDesignationRequestDTO dTO)
         {
             if (dTO == null)
@@ -161,18 +174,21 @@ namespace axionpro.api.Controllers.Designation
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates designation.</para>
+        /// <para>Handler flow: UpdateDesignationCommand is processed by UpdateDesignationCommandHandler; operation(s): GetByIdForTenantAsync, UpdateDesignationAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): DesignationsApi.updateDesignation (app/core/services/designations-api.ts:78).</para>
         /// <para>Angular purpose: updates designation.</para>
         /// <para>Integrated UI page(s): /app/designations</para>
         /// <para>Angular UI component(s): DesignationManageDialog (app/features/designations/designation-manage-dialog/designation-manage-dialog.ts); DesignationsStore (app/features/designations/designations.store.ts); Designations (app/features/designations/designations.ts)</para>
         /// </remarks>
-        [HttpPut("update")]       
+        [HttpPut("update")]
         public async Task<IActionResult> UpdateDesignation([FromBody] UpdateDesignationRequestDTO updateDesignationDTO)
         {
             _logger.LogInfo("Received request for update designation: " + updateDesignationDTO.ToString());
             var command = new UpdateDesignationCommand(updateDesignationDTO);
             var result = await _mediator.Send(command);
-           
+
             return Ok(result);
         }
     }

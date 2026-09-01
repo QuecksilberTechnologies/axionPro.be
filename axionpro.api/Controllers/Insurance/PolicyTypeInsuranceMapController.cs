@@ -36,67 +36,74 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: creates policy type insurance mapping.</para>
+        /// <para>Handler flow: CreatePolicyTypeInsuranceMappingCommand is processed by CreatePolicyTypeInsuranceMappingCommandHandler; operation(s): AddAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetPolicyTypeInsuranceMappingResponseDTO: Id (int), PolicyTypeId (int), InsurancePolicyId (int?), InsurancePolicyName (string?), InsurancePolicyNumber (string?), ProviderName (string?), PolicyName (string?), IsActive (bool)</para>
         /// <para>Angular function(s): PolicyTypeInsuranceMapApi.mapPolicyTypeInsurance (app/core/services/policy-type-insurance-map-api.ts:88).</para>
         /// <para>Angular purpose: assigns or maps policy type insurance.</para>
         /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
         /// <para>Angular UI component(s): UpsertPolicyTypeInsuranceMapDialog (app/features/policies/policy-type-insurance-map/upsert-policy-type-insurance-map-dialog/upsert-policy-type-insurance-map-dialog.ts); PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
-        [HttpPost("map")]     
-        
+        [HttpPost("map")]
+
         public async Task<IActionResult> Create(
             [FromBody] CreatePolicyTypeInsuranceMappingRequetDTO dto)
-        {         
-           
+        {
+
                 _logger.LogInfo("Create insurance policy started.");
 
                 var command = new CreatePolicyTypeInsuranceMappingCommand(dto);
                 var result = await _mediator.Send(command);
 
                 return Ok(result);
-                     
+
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
-        #region Unused
-        //         /// <summary>
-        //         /// Not-Used-In-Angular.
-        //         /// </summary>
-        //         /// <remarks>
-        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        //         /// <para>Backend endpoint: GET /api/policytypeinsurancemap/get-all-map-insurance.</para>
-        //         /// </remarks>
-        //         [HttpGet("get-all-map-insurance")]
-        //
-        //         public async Task<IActionResult> GetList( [FromQuery] GetInsuranceForEmployeeDDLRequestDTO  requestDto)
-        //           {
-        //             _logger.LogInfo("Fetching mapped insurance policy list.");
-        //
-        //             var query = new GetAllInsuranceForEmployee(requestDto);
-        //             var result = await _mediator.Send(query);
-        //
-        //             return Ok(result);
-        //         }
-        #endregion
+                /// <summary>
+                /// Not-Used-In-Angular.
+                /// </summary>
+                /// <remarks>
+                /// <para>Angular usage status: Not-Used-In-Angular.</para>
+                /// <para>API endpoint purpose: retrieves list.</para>
+                /// <para>Handler flow: No application request/handler class was statically resolved from the controller action.</para>
+                /// <para>Response DTO property analysis: No concrete response DTO properties were statically resolved from the request/handler declaration.</para>
+                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+                /// <para>Backend endpoint: GET /api/policytypeinsurancemap/get-all-map-insurance.</para>
+                /// </remarks>
+                [HttpGet("get-all-map-insurance")]
+
+                public async Task<IActionResult> GetList( [FromQuery] GetInsuranceForEmployeeDDLRequestDTO  requestDto)
+                  {
+                    _logger.LogInfo("Fetching mapped insurance policy list.");
+
+                    var query = new GetAllInsuranceForEmployee(requestDto);
+                    var result = await _mediator.Send(query);
+
+                    return Ok(result);
+                }
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
         /// Used-In-Angular: retrieves policy type insurance maps.
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves policy insurance request.</para>
+        /// <para>Handler flow: GetPolicyInsuranceRequestCommand is processed by GetPolicyTypeInsuranceMappingQueryHandler; operation(s): GetListAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetPolicyTypeInsuranceMappingResponseDTO: Id (int), PolicyTypeId (int), InsurancePolicyId (int?), InsurancePolicyName (string?), InsurancePolicyNumber (string?), ProviderName (string?), PolicyName (string?), IsActive (bool)</para>
         /// <para>Angular function(s): PolicyTypeInsuranceMapApi.getPolicyTypeInsuranceMaps (app/core/services/policy-type-insurance-map-api.ts:63).</para>
         /// <para>Angular purpose: retrieves policy type insurance maps.</para>
         /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
         /// <para>Angular UI component(s): PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
         [HttpGet("get-all")]
-               
+
         public async Task<IActionResult> GetList( [FromQuery] GetPolicyTypeInsuranceMappingRequestDTO requestDto)
           {
             _logger.LogInfo("Fetching mapped insurance policy list.");
 
             var query = new GetPolicyInsuranceRequestCommand(requestDto);
-            var result = await _mediator.Send(query);         
+            var result = await _mediator.Send(query);
 
             return Ok(result);
         }
@@ -106,18 +113,21 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: retrieves policy insurance detail request.</para>
+        /// <para>Handler flow: GetPolicyInsuranceDetailRequestCommand is processed by GetPolicyTypeInsuranceMappingDetailQueryHandler; operation(s): GetMapInsuranceDetailAsync, GetFileUrl.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetPolicyTypeInsuranceMapDetailsResponseDTO: Id (int), PolicyTypeId (int), InsuranceTypeId (int), MaxChildAllowed (int), MaxSpouseAllowed (int), PolicyName (string), InsuranceTypeName (string), FileName (string), FilePath (string), Description (string?), IsActive (bool), ParentsAllowed (bool)</para>
         /// <para>Angular function(s): PolicyTypeInsuranceMapApi.getPolicyTypeInsuranceMapDetails (app/core/services/policy-type-insurance-map-api.ts:73).</para>
         /// <para>Angular purpose: retrieves policy type insurance map details.</para>
         /// <para>Integrated UI page(s): /app/policies</para>
         /// <para>Angular UI component(s): PolicyTypeMapDetail (app/features/policies/policy-types/policy-type-map-detail/policy-type-map-detail.ts); PolicyTypes (app/features/policies/policy-types/policy-types.ts)</para>
         /// </remarks>
         [HttpGet("get-details")]
-        
+
         public async Task<IActionResult> GetDetailList( [FromQuery] GetPolicyTypeInsuranceMapDetailsRequestDTO requestDto)
           {
             _logger.LogInfo("Fetching mapped insurance policy list.");
             var query = new GetPolicyInsuranceDetailRequestCommand(requestDto);
-            var result = await _mediator.Send(query);   
+            var result = await _mediator.Send(query);
             return Ok(result);
         }
         // 🔹 DELETE POLICY INSURANCE MAPPING
@@ -126,12 +136,15 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes policy type insurance.</para>
+        /// <para>Handler flow: DeletePolicyTypeInsuranceQuery is processed by DeletePolicyTypeInsuranceMappingQueryHandler; operation(s): GetByIdAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): PolicyTypeInsuranceMapApi.deletePolicyTypeInsuranceMap (app/core/services/policy-type-insurance-map-api.ts:107).</para>
         /// <para>Angular purpose: deletes policy type insurance map.</para>
         /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
         /// <para>Angular UI component(s): PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
-        [HttpDelete("delete")]        
+        [HttpDelete("delete")]
         public async Task<IActionResult> Delete(
             [FromQuery] DeletePolicyTypeInsuranceMappingRequestDTO requestDto)        {
             _logger.LogInfo("Deleting insurance policy.");
@@ -146,12 +159,15 @@ namespace axionpro.api.Controllers.Insurance
         /// </summary>
         /// <remarks>
         /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: updates policy type insurance mapping.</para>
+        /// <para>Handler flow: UpdatePolicyTypeInsuranceMappingCommand is processed by UpdatePolicyTypeInsuranceMappingCommandHandler; operation(s): GetByIdAsync, UpdateAsync.</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
         /// <para>Angular function(s): PolicyTypeInsuranceMapApi.updatePolicyTypeInsuranceMap (app/core/services/policy-type-insurance-map-api.ts:96).</para>
         /// <para>Angular purpose: updates policy type insurance map.</para>
         /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
         /// <para>Angular UI component(s): UpsertPolicyTypeInsuranceMapDialog (app/features/policies/policy-type-insurance-map/upsert-policy-type-insurance-map-dialog/upsert-policy-type-insurance-map-dialog.ts); PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
-        [HttpPut("update")]    
+        [HttpPut("update")]
         public async Task<IActionResult> Update(
             [FromBody] UpdatePolicyTypeInsuranceMappingRequestDTO requestDto)
         {

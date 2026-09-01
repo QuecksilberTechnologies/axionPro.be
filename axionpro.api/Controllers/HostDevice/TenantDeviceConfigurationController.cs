@@ -24,6 +24,9 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: creates tenant device configuration.</para>
+    /// <para>Handler flow: CreateTenantDeviceConfigurationCommand is processed by CreateTenantDeviceConfigurationCommandHandler; operation(s): AddAsync, SaveChangesAsync, GetByIdAsync.</para>
+    /// <para>Response DTO property analysis: CreateTenantDeviceConfigurationRequestDTO: No public properties were statically resolved.; ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantDeviceConfigurationResponseDTO: TenantId (string), Id (long), TenantDeviceId (long), IpAddress (string?), MacAddress (string?), DevicePort (int?), CommunicationType (DeviceCommunicationType?), ServerHost (string?), ServerPort (int?), ServerPath (string?), ServerUrl (string?), PushMode (string?)</para>
     /// <para>Angular function(s): TenantDeviceConfigurationApi.addTenantDeviceConfiguration (app/core/services/tenant-device-configuration-api.ts:57).</para>
     /// <para>Angular purpose: creates tenant device configuration.</para>
     /// <para>Integrated UI page(s): /app/tenant-device-configurations/new; /app/tenant-device-configurations/:tenantDeviceConfigurationId/edit</para>
@@ -41,6 +44,9 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves tenant device configuration by id.</para>
+    /// <para>Handler flow: GetTenantDeviceConfigurationByIdQuery is processed by GetTenantDeviceConfigurationByIdQueryHandler; operation(s): GetByIdAsync.</para>
+    /// <para>Response DTO property analysis: TenantDeviceAccessRequestDTO: TenantId (string?); ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantDeviceConfigurationResponseDTO: TenantId (string), Id (long), TenantDeviceId (long), IpAddress (string?), MacAddress (string?), DevicePort (int?), CommunicationType (DeviceCommunicationType?), ServerHost (string?), ServerPort (int?), ServerPath (string?), ServerUrl (string?), PushMode (string?)</para>
     /// <para>Angular function(s): TenantDeviceConfigurationApi.getTenantDeviceConfiguration (app/core/services/tenant-device-configuration-api.ts:45).</para>
     /// <para>Angular purpose: retrieves tenant device configuration.</para>
     /// <para>Integrated UI page(s): /app/tenant-device-configurations/new; /app/tenant-device-configurations/:tenantDeviceConfigurationId/edit</para>
@@ -58,6 +64,9 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: retrieves all tenant device configurations.</para>
+    /// <para>Handler flow: GetAllTenantDeviceConfigurationsQuery is processed by GetAllTenantDeviceConfigurationsQueryHandler; operation(s): GetPagedAsync, GetHostPagedAsync.</para>
+    /// <para>Response DTO property analysis: GetTenantDeviceConfigurationListRequestDTO: Search (string?), TenantDeviceId (long?), CommunicationType (DeviceCommunicationType?), IsEnrollmentEnabled (bool?), PageNumber (int), PageSize (int); ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantDeviceConfigurationResponseDTO: TenantId (string), Id (long), TenantDeviceId (long), IpAddress (string?), MacAddress (string?), DevicePort (int?), CommunicationType (DeviceCommunicationType?), ServerHost (string?), ServerPort (int?), ServerPath (string?), ServerUrl (string?), PushMode (string?)</para>
     /// <para>Angular function(s): TenantDeviceConfigurationApi.getTenantDeviceConfigurations (app/core/services/tenant-device-configuration-api.ts:29).</para>
     /// <para>Angular purpose: retrieves tenant device configurations.</para>
     /// <para>Integrated UI page(s): /app/tenant-device-configurations</para>
@@ -75,6 +84,9 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: updates tenant device configuration.</para>
+    /// <para>Handler flow: UpdateTenantDeviceConfigurationCommand is processed by UpdateTenantDeviceConfigurationCommandHandler; operation(s): GetForUpdateAsync, Map, SaveChangesAsync, GetByIdAsync.</para>
+    /// <para>Response DTO property analysis: UpdateTenantDeviceConfigurationRequestDTO: Id (long); ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantDeviceConfigurationResponseDTO: TenantId (string), Id (long), TenantDeviceId (long), IpAddress (string?), MacAddress (string?), DevicePort (int?), CommunicationType (DeviceCommunicationType?), ServerHost (string?), ServerPort (int?), ServerPath (string?), ServerUrl (string?), PushMode (string?)</para>
     /// <para>Angular function(s): TenantDeviceConfigurationApi.updateTenantDeviceConfiguration (app/core/services/tenant-device-configuration-api.ts:66).</para>
     /// <para>Angular purpose: updates tenant device configuration.</para>
     /// <para>Integrated UI page(s): /app/tenant-device-configurations/new; /app/tenant-device-configurations/:tenantDeviceConfigurationId/edit</para>
@@ -92,6 +104,9 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     /// </summary>
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>API endpoint purpose: deletes tenant device configuration.</para>
+    /// <para>Handler flow: DeleteTenantDeviceConfigurationCommand is processed by DeleteTenantDeviceConfigurationCommandHandler; operation(s): GetForUpdateAsync, Remove, SaveChangesAsync.</para>
+    /// <para>Response DTO property analysis: TenantDeviceAccessRequestDTO: TenantId (string?); ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
     /// <para>Angular function(s): TenantDeviceConfigurationApi.deleteTenantDeviceConfiguration (app/core/services/tenant-device-configuration-api.ts:77).</para>
     /// <para>Angular purpose: deletes tenant device configuration.</para>
     /// <para>Integrated UI page(s): /app/tenant-device-configurations</para>

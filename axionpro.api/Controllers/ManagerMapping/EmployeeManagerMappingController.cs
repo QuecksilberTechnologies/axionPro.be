@@ -10,7 +10,7 @@ using axionpro.application.DTOS.EmployeeManagerMappings;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace axionpro.api.Controllers.ManagerMapping   
+namespace axionpro.api.Controllers.ManagerMapping
 {
     [Route("api/[controller]")]
     [ApiController]
