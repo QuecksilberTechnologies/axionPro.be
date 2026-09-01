@@ -291,12 +291,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         /// </summary>
         private static void RedactEmployeeListPersonalData(GetAllEmployeeInfoResponseDTO employee)
         {
-            employee.EmployementCode = AppConstants.ResponseValues.Restricted;
-            employee.DateOfBirth = AppConstants.ResponseValues.Restricted;
-            employee.DateOfOnBoarding = AppConstants.ResponseValues.Restricted;
-            employee.Nationality = AppConstants.ResponseValues.Restricted;
-            employee.CountryCode = AppConstants.ResponseValues.Restricted;
-            employee.EmergencyContactPerson = AppConstants.ResponseValues.Restricted;
+            employee.EmployementCode = AppConstants.ResponseValues.WithheldEmployeeField;
+            employee.DateOfBirth = AppConstants.ResponseValues.WithheldEmployeeField;
+            employee.DateOfOnBoarding = AppConstants.ResponseValues.WithheldEmployeeField;
+            employee.Nationality = AppConstants.ResponseValues.WithheldEmployeeField;
+            employee.CountryCode = AppConstants.ResponseValues.WithheldEmployeeField;
+            employee.EmergencyContactPerson = AppConstants.ResponseValues.WithheldEmployeeField;
             employee.CompletionPercentage = null;
             employee.HasImagePicUploaded = null;
         }
@@ -321,7 +321,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 return employee;
             }
 
-            employee.EmployeeCode = AppConstants.ResponseValues.Restricted;
+            employee.EmployeeCode = AppConstants.ResponseValues.WithheldEmployeeField;
             return employee;
         }
 

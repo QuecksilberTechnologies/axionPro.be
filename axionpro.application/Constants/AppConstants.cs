@@ -34,7 +34,20 @@ namespace axionpro.application.Constants
         /// </summary>
         public static class ResponseValues
         {
+            /// <summary>
+            /// Controls the representation of withheld Employee text fields across all
+            /// role-based response projections. Set this one value to <see langword="true"/>
+            /// to return <c>Restricted</c>; leave it <see langword="false"/> to return null.
+            /// </summary>
+            public const bool UseRestrictedEmployeeFieldPlaceholder = false;
+
             public const string Restricted = "Restricted";
+
+            /// <summary>
+            /// Gets the configured value for any Employee text field withheld by privacy rules.
+            /// </summary>
+            public static string? WithheldEmployeeField =>
+                UseRestrictedEmployeeFieldPlaceholder ? Restricted : null;
         }
 
         #endregion
