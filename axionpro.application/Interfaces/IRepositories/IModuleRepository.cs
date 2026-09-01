@@ -130,6 +130,9 @@ namespace axionpro.application.Interfaces.IRepositories
 
         Task<Module?> GetModuleByIdAsync(long moduleId);
 
+        /// <summary>Retrieves a Module by identifier without filtering its master active state.</summary>
+        Task<Module?> GetModuleByIdIncludingInactiveAsync(long moduleId);
+
         #region ModuleOperation Mapping CRUD
 
         /// <summary>

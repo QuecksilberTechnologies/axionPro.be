@@ -22,6 +22,15 @@ namespace axionpro.application.Interfaces.ICommonRequest
         Task<string?> GetActiveModuleCodeAsync(int moduleId);
 
         /// <summary>
+        /// Resolves a Module code by identifier regardless of its current master active state.
+        /// Tenant entitlement snapshots use this only to bind a request to its expected module;
+        /// authorization remains with the tenant permission stored procedure.
+        /// </summary>
+        /// <param name="moduleId">The Module identifier supplied by the request.</param>
+        /// <returns>The module code, or <see langword="null"/> when the module does not exist.</returns>
+        Task<string?> GetModuleCodeAsync(int moduleId);
+
+        /// <summary>
         /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
         /// </summary>
         /// <returns>The validated tenant request context.</returns>

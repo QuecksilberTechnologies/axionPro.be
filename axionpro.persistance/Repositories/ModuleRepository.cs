@@ -209,6 +209,22 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        /// <inheritdoc />
+        public async Task<Module?> GetModuleByIdIncludingInactiveAsync(long moduleId)
+        {
+            try
+            {
+                return await _context.Modules
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(module => module.Id == moduleId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resolving Module code for ID {ModuleId}", moduleId);
+                return null;
+            }
+        }
+
         #region Authenticated Navigation Queries
 
         /// <inheritdoc />

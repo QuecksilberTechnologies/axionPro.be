@@ -139,31 +139,33 @@ FROM axionpro."RoleModuleAndPermission" rep
 INNER JOIN "RoleIdTable" rid
     ON rid."RoleId" = rep."RoleId"
 
-LEFT JOIN axionpro."TenantEnabledModule" tem
+INNER JOIN axionpro."TenantEnabledModule" tem
     ON tem."TenantId" = p_tenantid
     AND tem."ModuleId" = rep."ModuleId"
     AND tem."IsEnabled" = true
 
+INNER JOIN axionpro."TenantEnabledOperation" teo
+    ON teo."TenantId" = p_tenantid
+    AND teo."ModuleId" = rep."ModuleId"
+    AND teo."OperationId" = rep."OperationId"
+    AND teo."IsEnabled" = true
+    AND COALESCE(teo."IsOperationUsed", false) = true
+
 LEFT JOIN axionpro."Module" m
     ON m."Id" = rep."ModuleId"
-    AND m."IsActive" = true
 
 LEFT JOIN axionpro."Module" sm
     ON sm."Id" = m."ParentModuleId"
-    AND sm."IsActive" = true
 
 LEFT JOIN axionpro."Module" mm
     ON mm."Id" = sm."ParentModuleId"
-    AND mm."IsActive" = true
 
 LEFT JOIN axionpro."Operation" op
     ON op."Id" = rep."OperationId"
-    AND op."IsActive" = true
 
 LEFT JOIN axionpro."ModuleOperationMapping" mom
     ON mom."ModuleId" = rep."ModuleId"
     AND mom."OperationId" = rep."OperationId"
-    AND mom."IsActive" = true
 
 LEFT JOIN axionpro."DataViewStructure" dvs
     ON dvs."Id" = mom."DataViewStructureId"

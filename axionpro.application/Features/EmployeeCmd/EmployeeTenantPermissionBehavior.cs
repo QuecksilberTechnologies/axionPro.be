@@ -65,15 +65,15 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
             throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
 
-        var activeModuleCode = await commonRequestService
-            .GetActiveModuleCodeAsync(permissionRequest.ModuleId);
-        if (!string.Equals(activeModuleCode, expectedModuleCode, StringComparison.OrdinalIgnoreCase))
+        var moduleCode = await commonRequestService
+            .GetModuleCodeAsync(permissionRequest.ModuleId);
+        if (!string.Equals(moduleCode, expectedModuleCode, StringComparison.OrdinalIgnoreCase))
         {
             logger.LogWarning(
-                "Employee module-code mismatch for {EmployeeRequest}. ModuleId: {ModuleId}, ActiveModuleCode: {ActiveModuleCode}, ExpectedModuleCode: {ExpectedModuleCode}",
+                "Employee module-code mismatch for {EmployeeRequest}. ModuleId: {ModuleId}, ModuleCode: {ModuleCode}, ExpectedModuleCode: {ExpectedModuleCode}",
                 typeof(TRequest).Name,
                 permissionRequest.ModuleId,
-                activeModuleCode,
+                moduleCode,
                 expectedModuleCode);
             throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }

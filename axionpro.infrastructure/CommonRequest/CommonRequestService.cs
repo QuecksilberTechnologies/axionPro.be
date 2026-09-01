@@ -62,6 +62,24 @@ namespace axionpro.infrastructure.CommonRequest
         }
 
         /// <summary>
+        /// Resolves a master Module code without applying the master activity filter. Existing
+        /// tenant entitlements remain valid after a Host retires a master module; the caller's
+        /// tenant permission check remains responsible for access approval.
+        /// </summary>
+        public async Task<string?> GetModuleCodeAsync(int moduleId)
+        {
+            if (moduleId <= 0)
+            {
+                return null;
+            }
+
+            var module = await _uow.ModuleRepository.GetModuleByIdIncludingInactiveAsync(moduleId);
+            return string.IsNullOrWhiteSpace(module?.ModuleCode)
+                ? null
+                : module.ModuleCode.Trim();
+        }
+
+        /// <summary>
         /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
         /// </summary>
         /// <returns>The validated tenant request context.</returns>

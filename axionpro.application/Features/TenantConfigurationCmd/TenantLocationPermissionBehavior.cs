@@ -114,18 +114,18 @@ public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var activeModuleCode = await commonRequestService
-            .GetActiveModuleCodeAsync(permissionRequest.ModuleId);
-        if (string.Equals(activeModuleCode, "TENANT_LOCATIONS", StringComparison.OrdinalIgnoreCase))
+        var moduleCode = await commonRequestService
+            .GetModuleCodeAsync(permissionRequest.ModuleId);
+        if (string.Equals(moduleCode, "TENANT_LOCATIONS", StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
         logger.LogWarning(
-            "TenantLocation module-code mismatch for {TenantLocationRequest}. ModuleId: {ModuleId}, ActiveModuleCode: {ActiveModuleCode}, ExpectedModuleCode: TENANT_LOCATIONS",
+            "TenantLocation module-code mismatch for {TenantLocationRequest}. ModuleId: {ModuleId}, ModuleCode: {ModuleCode}, ExpectedModuleCode: TENANT_LOCATIONS",
             typeof(TRequest).Name,
             permissionRequest.ModuleId,
-            activeModuleCode);
+            moduleCode);
         throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
     }
 

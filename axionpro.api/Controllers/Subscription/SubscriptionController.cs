@@ -61,100 +61,62 @@ public class SubscriptionController : ControllerBase
 
         return Ok(result);
     }
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: POST /api/subscription/get-all-host-subscription-plans.</para>
-    //     /// </remarks>
-    //
-    //     [Authorize]
-    //     [HttpPost("get-all-host-subscription-plans")]
-    //     public async Task<IActionResult> GetAllHostSubscriptionPlans(
-    //         [FromBody] HostSubscriptionPlanListRequestDTO? requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new GetHostSubscriptionPlansQuery(requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: GET /api/subscription/get-tenant-subscription-plan-info.</para>
-    //     /// </remarks>
-    //
-    //     [HttpGet("get-tenant-subscription-plan-info")]
-    //     public async Task<IActionResult> GetTenantSubscriptionPlanInfo(
-    //         [FromQuery] TenantSubscriptionPlanRequestDTO requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new GetTenantSubscriptionPlanQuery(requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: GET /api/subscription/get-all-tenant-accessible-modules.</para>
-    //     /// </remarks>
-    //
-    //     [HttpGet("get-all-tenant-accessible-modules")]
-    //     public async Task<IActionResult> GetAllTenantAccessibleModules(
-    //         [FromQuery] PlanModuleMappingRequestDTO requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new GetSubscriptionPlanModulesQuery(requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
+    /// <summary>Retrieves subscription plans for the authenticated Host user.</summary>
+    [Authorize]
+    [HttpPost("get-all-host-subscription-plans")]
+    public async Task<IActionResult> GetAllHostSubscriptionPlans(
+        [FromBody] HostSubscriptionPlanListRequestDTO? requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetHostSubscriptionPlansQuery(requestDTO),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>Retrieves the current subscription plan information for a tenant.</summary>
+    [HttpGet("get-tenant-subscription-plan-info")]
+    public async Task<IActionResult> GetTenantSubscriptionPlanInfo(
+        [FromQuery] TenantSubscriptionPlanRequestDTO requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetTenantSubscriptionPlanQuery(requestDTO),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>Retrieves modules accessible through a subscription plan.</summary>
+    [HttpGet("get-all-tenant-accessible-modules")]
+    public async Task<IActionResult> GetAllTenantAccessibleModules(
+        [FromQuery] PlanModuleMappingRequestDTO requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetSubscriptionPlanModulesQuery(requestDTO),
+            cancellationToken);
+
+        return Ok(result);
+    }
 
     #endregion
 
     #region Subscription Plan Commands
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: POST /api/subscription/add.</para>
-    //     /// </remarks>
-    //
-    //     [Authorize]
-    //     [HttpPost("add")]
-    //     public async Task<IActionResult> CreateSubscription(
-    //         [FromBody] CreateSubscriptionRequestDTO requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new CreateSubscriptionPlanCommand(requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
+    /// <summary>Creates a subscription plan for the authenticated Host user.</summary>
+    [Authorize]
+    [HttpPost("add")]
+    public async Task<IActionResult> CreateSubscription(
+        [FromBody] CreateSubscriptionRequestDTO requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new CreateSubscriptionPlanCommand(requestDTO),
+            cancellationToken);
+
+        return Ok(result);
+    }
 
     /// <summary>
     /// Used-In-Angular: updates subscription plan.
@@ -179,29 +141,19 @@ public class SubscriptionController : ControllerBase
 
         return Ok(result);
     }
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: POST /api/subscription/delete-subscription-plan.</para>
-    //     /// </remarks>
-    //
-    //     [Authorize]
-    //     [HttpPost("delete-subscription-plan")]
-    //     public async Task<IActionResult> DeleteSubscriptionPlan(
-    //         [FromBody] DeleteSubscriptionPlanRequestDTO requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new DeleteSubscriptionPlanCommand(requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
+    /// <summary>Soft deletes a subscription plan for the authenticated Host user.</summary>
+    [Authorize]
+    [HttpPost("delete-subscription-plan")]
+    public async Task<IActionResult> DeleteSubscriptionPlan(
+        [FromBody] DeleteSubscriptionPlanRequestDTO requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new DeleteSubscriptionPlanCommand(requestDTO),
+            cancellationToken);
+
+        return Ok(result);
+    }
 
     #endregion
 }
