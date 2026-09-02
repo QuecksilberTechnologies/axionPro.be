@@ -6,7 +6,6 @@
 // ================================================================
 
 using axionpro.application.DTOs.Role;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -91,9 +90,6 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
             }
 
-            var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
-            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
-
             if (request.DTO.Id <= 0 || string.IsNullOrWhiteSpace(request.DTO.RoleName))
                 throw new ValidationErrorException("A valid role identifier and name are required.");
 
@@ -103,6 +99,24 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 cancellationToken);
             if (entity == null)
                 throw new ApiException("Role not found.", 404);
+
+            // Inactive assignments and permissions are still dependencies: both
+            // can be reactivated. Only soft-deleted rows are safe to ignore.
+            if (entity.IsActive && request.DTO.IsActive == false &&
+                await _unitOfWork.RoleRepository.HasNonDeletedDependenciesAsync(
+                    entity.Id,
+                    tenantId,
+                    cancellationToken))
+            {
+                _logger.LogWarning(
+                    "Role deactivation blocked because dependent UserRole or RoleModuleAndPermission records exist. RoleId: {RoleId}, TenantId: {TenantId}",
+                    entity.Id,
+                    tenantId);
+
+                throw new ConflictException(
+                    AppConstants.ErrorMessages.RoleHasDependencies,
+                    AppConstants.ErrorCodes.RoleHasDependencies);
+            }
 
             entity.RoleName = request.DTO.RoleName.Trim();
             entity.RoleType = request.DTO.RoleType;

@@ -6,7 +6,6 @@
 // ================================================================
 
 using axionpro.application.DTOs.Department;
-using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Department;
 using axionpro.application.Features.DepartmentCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -141,7 +140,7 @@ namespace axionpro.api.Controllers.Department
         /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
         /// </remarks>
         [HttpGet("option")]
-        public async Task<IActionResult> getDepartment([FromQuery] GetOptionRequestDTO requestDTO)
+        public async Task<IActionResult> getDepartment([FromQuery] GetDepartmentOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get Department : {requestDTO.UserEmployeeId}");
 

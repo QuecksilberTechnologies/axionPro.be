@@ -7,7 +7,6 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Department;
 using axionpro.application.Exceptions;
@@ -175,43 +174,6 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 throw new UnauthorizedAccessException(
                     AppConstants.ErrorMessages.Unauthorized);
             }
-
-            #endregion
-
-            #region Runtime Permission Validation
-
-            /*
-             * Runtime authorization is resolved from the database.
-             *
-             * The PostgreSQL function performs:
-             *
-             * 1. Current Primary Role validation.
-             * 2. JWT Primary Role vs current Primary Role comparison.
-             * 3. Current active Primary + Secondary UserRole resolution.
-             * 4. RoleModuleAndPermission lookup.
-             * 5. Department + Add permission decision.
-             *
-             * Therefore the stale RoleId stored in an old JWT is never used
-             * as the final authorization source.
-             */
-            var permissionResult =
-                await _unitOfWork
-                    .StoreProcedureRepository
-                    .CheckTenantEmployeePermissionAsync(
-                        tenantId,
-                        userEmployeeId,
-                        tokenRoleId,
-                        request.DTO.ModuleId,
-                        request.DTO.OperationId,
-                        cancellationToken);
-
-            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
-            _logger.LogInformation(
-                "Department create permission granted. TenantId: {TenantId}, EmployeeId: {EmployeeId}, CurrentPrimaryRoleId: {CurrentPrimaryRoleId}, GrantedRoleId: {GrantedRoleId}",
-                tenantId,
-                userEmployeeId,
-                permissionResult.CurrentPrimaryRoleId,
-                permissionResult.GrantedRoleId);
 
             #endregion
 

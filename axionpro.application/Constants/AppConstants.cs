@@ -22,6 +22,9 @@ namespace axionpro.application.Constants
             public const string Forbidden = "FORBIDDEN";
             public const string NotFound = "NOT_FOUND";
             public const string Conflict = "CONFLICT";
+            public const string RoleHasDependencies = "ROLE_HAS_DEPENDENCIES";
+            public const string DepartmentHasEmployeeDependencies = "DEPARTMENT_HAS_EMPLOYEE_DEPENDENCIES";
+            public const string DesignationHasEmployeeDependencies = "DESIGNATION_HAS_EMPLOYEE_DEPENDENCIES";
             public const string InternalServerError = "INTERNAL_SERVER_ERROR";
         }
 
@@ -136,9 +139,9 @@ namespace axionpro.application.Constants
             public const string DuplicateTenantDeviceSerialNumber = "A live tenant device already uses this serial number.";
             public const string DuplicateTenantDeviceCode = "A live tenant device already uses this device code for the selected tenant.";
             public const string DuplicateTenantDeviceAssetTag = "A live tenant device already uses this asset tag for the selected tenant.";
-            public const string RoleHasDependencies = "The role cannot be deleted because it is assigned to an employee or has module-operation permissions. Remove or soft-delete all role dependencies first.";
-            public const string DepartmentHasEmployees = "The department cannot be deleted because it is assigned to one or more employees. Remove or soft-delete all dependent employees first.";
-            public const string DesignationHasEmployees = "The designation cannot be deleted because it is assigned to one or more employees. Remove or soft-delete all dependent employees first.";
+            public const string RoleHasDependencies = "The role cannot be deactivated or deleted because it is assigned to an employee or has module-operation permissions. Remove or soft-delete all role dependencies first.";
+            public const string DepartmentHasEmployees = "The department cannot be deactivated or deleted because it is assigned to one or more employees. Remove or soft-delete all dependent employees first.";
+            public const string DesignationHasEmployees = "The designation cannot be deactivated or deleted because it is assigned to one or more employees. Remove or soft-delete all dependent employees first.";
             public const string InvalidDeviceManagementTenant = "The selected tenant is unavailable or inactive.";
             public const string InvalidDeviceManagementTenantLocation = "The selected tenant location is unavailable or inactive.";
             public const string TenantLocationDoesNotBelongToTenant = "The selected tenant location does not belong to the selected tenant.";

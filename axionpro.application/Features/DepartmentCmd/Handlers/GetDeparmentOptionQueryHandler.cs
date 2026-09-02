@@ -5,7 +5,6 @@
 // Purpose : Retrieves active department options using trusted tenant context.
 // ================================================================
 
-using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Department;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -22,12 +21,12 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
     /// </summary>
     public class GetDepartmentOptionQuery : IRequest<ApiResponse<List<GetDepartmentOptionResponse>>>
     {
-        public GetOptionRequestDTO OptionDTO { get; }
+        public GetDepartmentOptionRequestDTO OptionDTO { get; }
 
         /// <summary>
         /// Initializes the option query.
         /// </summary>
-        public GetDepartmentOptionQuery(GetOptionRequestDTO optionDTO)
+        public GetDepartmentOptionQuery(GetDepartmentOptionRequestDTO optionDTO)
         {
             OptionDTO = optionDTO;
         }

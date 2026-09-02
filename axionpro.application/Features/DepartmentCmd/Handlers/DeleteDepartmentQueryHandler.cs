@@ -5,7 +5,6 @@
 // Purpose : Soft deletes a tenant-scoped department using trusted request context.
 // ================================================================
 
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Department;
 using axionpro.application.Exceptions;
@@ -110,24 +109,6 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
             #endregion
 
-            #region Runtime Permission Validation
-
-            // Current database role assignments are authoritative so a stale
-            // JWT role cannot authorize a department deletion.
-            var permissionResult =
-                await _unitOfWork.StoreProcedureRepository
-                    .CheckTenantEmployeePermissionAsync(
-                        tenantId,
-                        userEmployeeId,
-                        tokenRoleId,
-                        request.DTO.ModuleId,
-                        request.DTO.OperationId,
-                        cancellationToken);
-
-            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
-
-            #endregion
-
             if (request.DTO.Id <= 0)
                 throw new ValidationErrorException(
                     AppConstants.ErrorMessages.InvalidIdentifier);
@@ -147,7 +128,9 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     request.DTO.Id,
                     tenantId);
 
-                throw new ConflictException(AppConstants.ErrorMessages.DepartmentHasEmployees);
+                throw new ConflictException(
+                    AppConstants.ErrorMessages.DepartmentHasEmployees,
+                    AppConstants.ErrorCodes.DepartmentHasEmployeeDependencies);
             }
 
             var isDeleted = await _unitOfWork.DepartmentRepository.DeleteAsync(

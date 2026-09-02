@@ -82,6 +82,9 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Gets a designation projection by identifier.
         /// </summary>
-        Task<GetSingleDesignationResponseDTO?> GetByIdAsync(GetSingleDesignationRequestDTO dto);
+        Task<GetSingleDesignationResponseDTO?> GetByIdAsync(
+            GetSingleDesignationRequestDTO dto,
+            long tenantId,
+            CancellationToken cancellationToken = default);
     }
 }

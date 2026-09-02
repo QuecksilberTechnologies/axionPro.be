@@ -34,10 +34,7 @@ namespace axionpro.infrastructure.MailService
 
         }
 
-        public Task<bool> SendEmailAsync(string toEmail, string subject, string body, string token, long? TenantId)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         public Task<bool> SendOtpEmailAsync(string toEmail, string subject, string body, long? TenantId, string otp)
         {

@@ -5,7 +5,6 @@
 // Purpose : Updates tenant-scoped designations using trusted request context.
 // ================================================================
 
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.Exceptions;
@@ -109,24 +108,6 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
 
             #endregion
 
-            #region Runtime Permission Validation
-
-            // Current database role assignments are authoritative so a stale
-            // JWT role cannot authorize a designation update.
-            var permissionResult =
-                await _unitOfWork.StoreProcedureRepository
-                    .CheckTenantEmployeePermissionAsync(
-                        tenantId,
-                        userEmployeeId,
-                        tokenRoleId,
-                        request.DTO.ModuleId,
-                        request.DTO.OperationId,
-                        cancellationToken);
-
-            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
-
-            #endregion
-
             if (request.DTO.Id <= 0)
                 throw new ValidationErrorException(
                     AppConstants.ErrorMessages.InvalidIdentifier);
@@ -138,6 +119,24 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             if (entity == null)
                 throw new NotFoundException(
                     AppConstants.ErrorMessages.ResourceNotFound);
+
+            // Inactive employees remain a dependency because they can later be
+            // reactivated. Only employees already soft deleted are ignored.
+            if (entity.IsActive && request.DTO.IsActive == false &&
+                await _unitOfWork.DesignationRepository.HasNonDeletedEmployeesAsync(
+                    entity.Id,
+                    tenantId,
+                    cancellationToken))
+            {
+                _logger.LogWarning(
+                    "Designation deactivation blocked because non-soft-deleted employees are assigned. DesignationId: {DesignationId}, TenantId: {TenantId}",
+                    entity.Id,
+                    tenantId);
+
+                throw new ConflictException(
+                    AppConstants.ErrorMessages.DesignationHasEmployees,
+                    AppConstants.ErrorCodes.DesignationHasEmployeeDependencies);
+            }
 
             if (!string.IsNullOrWhiteSpace(request.DTO.DesignationName))
                 entity.DesignationName = request.DTO.DesignationName.Trim();

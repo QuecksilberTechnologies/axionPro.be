@@ -5,12 +5,14 @@
 // Purpose : Defines the request model for assigning module operations to a role.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOs.RoleModulePermission
 {
     /// <summary>
     /// Defines client-editable role permission assignments.
     /// </summary>
-    public class CreateModuleOperationRolePermissionsRequestDTO
+    public class CreateModuleOperationRolePermissionsRequestDTO : PermissionRequestDTO
     {
         public int RoleId { get; set; }
 

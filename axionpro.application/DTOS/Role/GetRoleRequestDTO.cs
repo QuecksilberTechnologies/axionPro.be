@@ -13,7 +13,7 @@ namespace axionpro.application.DTOs.Role
     /// <summary>
     /// Defines client-editable filtering and paging criteria for role queries.
     /// </summary>
-    public class GetRoleRequestDTO : BaseRequest
+    public class GetRoleRequestDTO : PermissionPagedRequestDTO
     {
         public int Id { get; set; }
         public int RoleType { get; set; }

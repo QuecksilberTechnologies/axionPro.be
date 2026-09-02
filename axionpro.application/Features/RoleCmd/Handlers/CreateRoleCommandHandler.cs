@@ -6,7 +6,6 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Exceptions;
@@ -95,9 +94,6 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 _logger.LogWarning("Invalid Tenant authorization context while creating Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
                 throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
             }
-
-            var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
-            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
             var roleName = request.DTO.RoleName?.Trim();
             if (string.IsNullOrWhiteSpace(roleName))

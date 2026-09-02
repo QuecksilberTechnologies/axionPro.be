@@ -12,7 +12,7 @@ namespace axionpro.application.DTOs.Department
     /// <summary>
     /// Represents filters and paging inputs for a department listing request.
     /// </summary>
-    public class GetDepartmentRequestDTO : BaseRequest
+    public class GetDepartmentRequestDTO : PermissionPagedRequestDTO
     {
         public string? DepartmentName { get; set; } = string.Empty;
         public bool? IsActive { get; set; }

@@ -310,13 +310,20 @@ namespace axionpro.persistance.Repositories
         /// <summary>
         /// Gets a designation projection by identifier.
         /// </summary>
-        public async Task<GetSingleDesignationResponseDTO?> GetByIdAsync(GetSingleDesignationRequestDTO dto)
+        public async Task<GetSingleDesignationResponseDTO?> GetByIdAsync(
+            GetSingleDesignationRequestDTO dto,
+            long tenantId,
+            CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(dto);
 
             var designation = await _context.Designations
                 .AsNoTracking()
-                .FirstOrDefaultAsync(item => item.Id == dto.Id && item.IsSoftDeleted != true);
+                .FirstOrDefaultAsync(
+                    item => item.Id == dto.Id &&
+                            item.TenantId == tenantId &&
+                            item.IsSoftDeleted != true,
+                    cancellationToken);
 
             return designation == null
                 ? null

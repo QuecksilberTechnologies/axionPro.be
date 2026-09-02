@@ -7,7 +7,9 @@
 
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Designation;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -48,6 +50,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICommonRequestService _commonRequestService;
         private readonly ILogger<GetDesignationByIdQueryHandler> _logger;
 
         #endregion
@@ -61,9 +64,11 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         /// <param name="logger">The logger used for contextual success and not-found diagnostics.</param>
         public GetDesignationByIdQueryHandler(
             IUnitOfWork unitOfWork,
+            ICommonRequestService commonRequestService,
             ILogger<GetDesignationByIdQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
+            _commonRequestService = commonRequestService;
             _logger = logger;
         }
 
@@ -89,7 +94,17 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                     axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
             }
 
-            var designation = await _unitOfWork.DesignationRepository.GetByIdAsync(request.Dto);
+            var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
+            if (!validation.Success || validation.TenantId <= 0)
+            {
+                throw new UnauthorizedAccessException(
+                    validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            var designation = await _unitOfWork.DesignationRepository.GetByIdAsync(
+                request.Dto,
+                validation.TenantId,
+                cancellationToken);
 
             if (designation == null)
             {

@@ -90,9 +90,21 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
+            var role = await _unitOfWork.RoleRepository.GetByIdForTenantAsync(
+                request.DTO.RoleId,
+                validation.TenantId,
+                cancellationToken);
+            if (role == null)
+            {
+                throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
+            }
+
             var permissions = await _unitOfWork
                 .UserRolesPermissionOnModuleRepository
-                .GetByRoleIdAsync(request.DTO.RoleId);
+                .GetByRoleIdAsync(
+                    request.DTO.RoleId,
+                    validation.TenantId,
+                    cancellationToken);
 
             _logger.LogInformation(
                 "Retrieved {Count} role permissions for tenant {TenantId}, role {RoleId}.",

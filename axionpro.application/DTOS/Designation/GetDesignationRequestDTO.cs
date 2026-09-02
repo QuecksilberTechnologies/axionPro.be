@@ -12,7 +12,7 @@ namespace axionpro.application.DTOs.Designation
     /// <summary>
     /// Represents filters and paging inputs for designation projections.
     /// </summary>
-    public class GetDesignationRequestDTO : BaseRequest
+    public class GetDesignationRequestDTO : PermissionPagedRequestDTO
     {
         public int DepartmentId { get; set; }
         public string? DesignationName { get; set; }

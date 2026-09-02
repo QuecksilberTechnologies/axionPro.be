@@ -22,6 +22,7 @@ namespace axionpro.application.Interfaces.IRepositories
         /// </summary>
         Task<GetSingleDepartmentResponseDTO?> GetByIdAsync(
             GetSingleDepartmentRequestDTO dto,
+            long tenantId,
             CancellationToken cancellationToken = default);
 
         /// <summary>

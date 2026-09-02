@@ -37,7 +37,10 @@ namespace axionpro.application.Interfaces.IRepositories
         /// Determines whether a Role still has non-soft-deleted employee assignments or module-operation permissions.
         /// Inactive dependent rows are intentionally included because they may be reactivated later.
         /// </summary>
-        Task<bool> HasNonDeletedDependenciesAsync(int roleId, CancellationToken cancellationToken = default);
+        Task<bool> HasNonDeletedDependenciesAsync(
+            int roleId,
+            long tenantId,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Persists a prepared tenant role entity.

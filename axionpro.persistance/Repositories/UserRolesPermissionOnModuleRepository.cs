@@ -565,7 +565,10 @@ namespace axionpro.persistance.Repositories
         // =====================================================
         // 1️⃣ GET BY ROLE ID
         // =====================================================
-        public async Task<List<RoleModuleAndPermission>> GetByRoleIdAsync(int roleId)
+        public async Task<List<RoleModuleAndPermission>> GetByRoleIdAsync(
+            int roleId,
+            long tenantId,
+            CancellationToken cancellationToken = default)
         {
             try
             {
@@ -575,9 +578,10 @@ namespace axionpro.persistance.Repositories
                     .AsNoTracking() //  performance
                     .Where(x =>
                         x.RoleId == roleId &&
+                        x.Role.TenantId == tenantId &&
                         x.IsActive ==true &&
                         (x.IsSoftDeleted != true))
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 _logger.LogInformation("✅ Permissions fetched: {Count}", data.Count);
 

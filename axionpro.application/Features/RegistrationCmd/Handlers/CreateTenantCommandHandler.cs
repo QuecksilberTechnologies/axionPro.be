@@ -48,13 +48,13 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
     /// </summary>
     public class CreateTenantCommandHandler : IRequestHandler<CreateTenantCommand, ApiResponse<TenantCreateResponseDTO>>
     {
+        private const int TenantOnboardingLinkExpiryMinutes = 30;
+
         private readonly IEmailService _emailService;
         private readonly IStoreProcedureRepository _commonRepository;
-        private readonly ITenantRepository _tenantRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreateTenantCommandHandler> _logger;
-        private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IEncryptionService _encryptionService;
         private readonly ITokenService _tokenService;
         private readonly IPasswordService _passwordService;
@@ -64,9 +64,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
         private readonly ICommonRequestService _commonRequestService;
 
         public CreateTenantCommandHandler(
-            ITenantRepository tenantRepository,
             ITokenService tokenService,
-            IRefreshTokenRepository refreshTokenRepository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
             ILogger<CreateTenantCommandHandler> logger,
@@ -79,9 +77,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             IOptions<EmailConfig> emailConfig,
             ICommonRequestService commonRequestService)
         {
-            _tenantRepository = tenantRepository;
             _tokenService = tokenService;
-            _refreshTokenRepository = refreshTokenRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -689,18 +685,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // STEP 19 : Create tenant email config
                 // =====================================================
                 await _unitOfWork.TenantEmailConfigRepository.InsertEmailConfigAsync(
-                    new TenantEmailConfig
-                    {
-                        TenantId = newTenantId,
-                        SmtpHost = onboardingRequest?.EmailConfiguration.SmtpHost ?? ConstantValues.DefaultSmtpHost,
-                        SmtpPort = onboardingRequest?.EmailConfiguration.SmtpPort ?? ConstantValues.DefaultSmtpPort,
-                        SmtpUsername = onboardingRequest?.EmailConfiguration.SmtpUsername ?? ConstantValues.DefaultSmtpUserName,
-                        SmtpPasswordEncrypted = onboardingRequest?.EmailConfiguration.SmtpPasswordEncrypted ?? _emailConfig.Secret,
-                        FromEmail = onboardingRequest?.EmailConfiguration.FromEmail ?? ConstantValues.DefaultFromEmail,
-                        FromName = onboardingRequest?.EmailConfiguration.FromName ?? ConstantValues.DefaultFromName,
-                        IsActive = onboardingRequest?.EmailConfiguration.IsActive ?? true,
-                        SecrateKey = onboardingRequest?.EmailConfiguration.SecrateKey ?? _emailConfig.Secret
-                    });
+                    BuildTenantEmailConfiguration(newTenantId, onboardingRequest));
 
                 // =====================================================
                 // STEP 20 : Create role permission mapping
@@ -732,64 +717,39 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     FullName = employee.FirstName,
                     TokenPurpose = _idEncoderService.EncodeId_int(ConstantValues.SetPassword, ""),
                     IssuedAt = DateTime.UtcNow,
-                    Expiry = DateTime.UtcNow.AddMinutes(30),
+                    Expiry = DateTime.UtcNow.AddMinutes(TenantOnboardingLinkExpiryMinutes),
                     IsFirstLogin = true,
                     ClientType = "Web"
                 };
 
                 // =====================================================
-                // STEP 23 : Generate token
+                // STEP 24 : Generate a valid onboarding token before committing.
                 // =====================================================
                 string token = await _tokenService.GenerateTenantToken(getTokenInfoDTO);
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    _logger.LogError(
+                        "Tenant onboarding token generation failed | TenantId={TenantId}",
+                        newTenantId);
+                    await SafeRollbackAsync();
+                    return Fail("Tenant onboarding link could not be generated.");
+                }
 
                 // =====================================================
-                // STEP 24 : Commit transaction
+                // STEP 25 : Commit the Tenant aggregate before attempting external SMTP work.
                 // =====================================================
                 await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
                 // =====================================================
-                // STEP 25 : Send email after commit
+                // STEP 26 : Send email after commit. A mail failure must not undo a valid Tenant.
                 // =====================================================
-                bool emailSent = false;
+                var emailSent = await SendTenantWelcomeEmailAsync(
+                    newTenantId,
+                    employee.OfficialEmail!,
+                    employee.FirstName,
+                    token);
 
-                try
-                {
-                    string baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
-
-                    await _emailService.SendTemplatedEmailAsync(
-                        ConstantValues.WelcomeEmail,
-                        employee.OfficialEmail!,
-                        newTenantId,
-                        new Dictionary<string, string>
-                        {
-                            ["UserName"] = employee.FirstName ?? string.Empty,
-                            ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}",
-                            ["LinkExpiryMinutes"] = "30"
-                        });
-
-                    emailSent = true;
-
-                    _logger.LogInformation(
-                        "Welcome email sent successfully | TenantId={TenantId}",
-                        newTenantId);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Email send failed after tenant creation | TenantId={TenantId}", newTenantId);
-                }
-
-                return new ApiResponse<TenantCreateResponseDTO>
-                {
-                    IsSucceeded = true,
-                    Message = emailSent
-                        ? "Employee created successfully. Please check your email and set password."
-                        : "Tenant created successfully, but welcome email could not be sent.",
-                    Data = new TenantCreateResponseDTO
-                    {
-                        Success = true,
-                        EmailSent = emailSent
-                    }
-                };
+                return CreateSuccessResponse(emailSent);
             }
             catch (Exception ex)
             {
@@ -820,6 +780,115 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 {
                     Success = false,
                     EmailSent = false
+                }
+            };
+        }
+
+        private TenantEmailConfig BuildTenantEmailConfiguration(
+            long tenantId,
+            INewTenantOnboardingConfiguration? onboardingRequest)
+        {
+            var emailConfiguration = onboardingRequest?.EmailConfiguration;
+            var smtpPassword = GetConfiguredValue(
+                emailConfiguration?.SmtpPasswordEncrypted,
+                _emailConfig.Secret);
+
+            return new TenantEmailConfig
+            {
+                TenantId = tenantId,
+                SmtpHost = GetConfiguredValue(
+                    emailConfiguration?.SmtpHost,
+                    ConstantValues.DefaultSmtpHost),
+                SmtpPort = emailConfiguration?.SmtpPort ?? ConstantValues.DefaultSmtpPort,
+                SmtpUsername = GetConfiguredValue(
+                    emailConfiguration?.SmtpUsername,
+                    GetConfiguredValue(_emailConfig.SMTPUserName, ConstantValues.DefaultSmtpUserName)),
+                SmtpPasswordEncrypted = smtpPassword,
+                FromEmail = GetConfiguredValue(
+                    emailConfiguration?.FromEmail,
+                    ConstantValues.DefaultFromEmail),
+                FromName = GetConfiguredValue(
+                    emailConfiguration?.FromName,
+                    ConstantValues.DefaultFromName),
+                IsActive = emailConfiguration?.IsActive ?? true,
+                SecrateKey = GetConfiguredValue(emailConfiguration?.SecrateKey, smtpPassword)
+            };
+        }
+
+        private static string? GetConfiguredValue(string? suppliedValue, string? fallbackValue)
+        {
+            return string.IsNullOrWhiteSpace(suppliedValue)
+                ? fallbackValue
+                : suppliedValue.Trim();
+        }
+
+        private async Task<bool> SendTenantWelcomeEmailAsync(
+            long tenantId,
+            string recipientEmail,
+            string? recipientName,
+            string token)
+        {
+            var baseUrl = _configuration["FrontEndWebURL:BaseUrl"]?.Trim();
+            if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out _))
+            {
+                _logger.LogError(
+                    "Tenant welcome email was not sent because FrontEndWebURL:BaseUrl is invalid | TenantId={TenantId}",
+                    tenantId);
+                return false;
+            }
+
+            var verificationUrl = $"{baseUrl.TrimEnd('/')}/auth/set-password?token={Uri.EscapeDataString(token)}";
+
+            try
+            {
+                var emailSent = await _emailService.SendTemplatedEmailAsync(
+                    ConstantValues.WelcomeEmail,
+                    recipientEmail,
+                    tenantId,
+                    new Dictionary<string, string>
+                    {
+                        ["UserName"] = recipientName ?? string.Empty,
+                        ["VerificationUrl"] = verificationUrl,
+                        ["LinkExpiryMinutes"] = TenantOnboardingLinkExpiryMinutes.ToString()
+                    });
+
+                if (emailSent)
+                {
+                    _logger.LogInformation(
+                        "Tenant welcome email accepted by SMTP | TenantId={TenantId}",
+                        tenantId);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Tenant welcome email was not accepted by SMTP | TenantId={TenantId}",
+                        tenantId);
+                }
+
+                return emailSent;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Tenant welcome email dispatch failed after Tenant creation | TenantId={TenantId}",
+                    tenantId);
+                return false;
+            }
+        }
+
+        private static ApiResponse<TenantCreateResponseDTO> CreateSuccessResponse(bool emailSent)
+        {
+            return new ApiResponse<TenantCreateResponseDTO>
+            {
+                IsSucceeded = true,
+                Message = emailSent
+                    ? "Tenant created successfully. Please check your email and set password."
+                    : "Tenant created successfully, but welcome email could not be sent.",
+                Data = new TenantCreateResponseDTO
+                {
+                    Success = true,
+                    EmailSent = emailSent
                 }
             };
         }

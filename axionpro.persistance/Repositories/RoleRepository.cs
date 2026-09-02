@@ -417,14 +417,15 @@ public class RoleRepository : IRoleRepository
     /// </summary>
     public Task<bool> HasNonDeletedDependenciesAsync(
         int roleId,
+        long tenantId,
         CancellationToken cancellationToken = default)
     {
         return _context.Roles
             .AsNoTracking()
-            .Where(role => role.Id == roleId)
+            .Where(role => role.Id == roleId && role.TenantId == tenantId)
             .AnyAsync(
                 role => role.UserRole.Any(userRole => userRole.IsSoftDeleted != true) ||
-                        role.RoleModuleAndPermission.Any(permission => !permission.IsSoftDeleted),
+                        role.RoleModuleAndPermission.Any(permission => permission.IsSoftDeleted != true),
                 cancellationToken);
     }
 

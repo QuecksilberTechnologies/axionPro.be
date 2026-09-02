@@ -44,6 +44,7 @@ namespace axionpro.persistance.Repositories
 
         public async Task<GetSingleDepartmentResponseDTO?> GetByIdAsync(
             GetSingleDepartmentRequestDTO dto,
+            long tenantId,
             CancellationToken cancellationToken = default)
         {
             try
@@ -58,6 +59,7 @@ namespace axionpro.persistance.Repositories
                     .AsNoTracking()
                     .FirstOrDefaultAsync(
                         d => d.Id == dto.Id &&
+                             d.TenantId == tenantId &&
                              d.IsSoftDeleted != true &&
                              d.IsActive == true,
                         cancellationToken);

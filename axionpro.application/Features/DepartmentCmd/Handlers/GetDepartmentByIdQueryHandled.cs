@@ -7,7 +7,9 @@
 
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Department;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -48,6 +50,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICommonRequestService _commonRequestService;
         private readonly ILogger<GetDepartmentByIdQueryHandled> _logger;
 
         #endregion
@@ -61,9 +64,11 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         /// <param name="logger">The logger used for contextual success and not-found diagnostics.</param>
         public GetDepartmentByIdQueryHandled(
             IUnitOfWork unitOfWork,
+            ICommonRequestService commonRequestService,
             ILogger<GetDepartmentByIdQueryHandled> logger)
         {
             _unitOfWork = unitOfWork;
+            _commonRequestService = commonRequestService;
             _logger = logger;
         }
 
@@ -87,8 +92,16 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
             }
 
+            var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
+            if (!validation.Success || validation.TenantId <= 0)
+            {
+                throw new UnauthorizedAccessException(
+                    validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+            }
+
             var department = await _unitOfWork.DepartmentRepository.GetByIdAsync(
                 request.Dto,
+                validation.TenantId,
                 cancellationToken);
 
             if (department == null)

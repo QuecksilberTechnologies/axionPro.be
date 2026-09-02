@@ -5,7 +5,6 @@
 // Purpose : Soft deletes tenant-scoped designations using trusted request context.
 // ================================================================
 
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.Exceptions;
@@ -109,24 +108,6 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
 
             #endregion
 
-            #region Runtime Permission Validation
-
-            // Current database role assignments are authoritative so a stale
-            // JWT role cannot authorize a designation deletion.
-            var permissionResult =
-                await _unitOfWork.StoreProcedureRepository
-                    .CheckTenantEmployeePermissionAsync(
-                        tenantId,
-                        userEmployeeId,
-                        tokenRoleId,
-                        request.DTO.ModuleId,
-                        request.DTO.OperationId,
-                        cancellationToken);
-
-            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
-
-            #endregion
-
             if (request.DTO.Id <= 0)
                 throw new ValidationErrorException(
                     AppConstants.ErrorMessages.InvalidIdentifier);
@@ -146,7 +127,9 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                     request.DTO.Id,
                     tenantId);
 
-                throw new ConflictException(AppConstants.ErrorMessages.DesignationHasEmployees);
+                throw new ConflictException(
+                    AppConstants.ErrorMessages.DesignationHasEmployees,
+                    AppConstants.ErrorCodes.DesignationHasEmployeeDependencies);
             }
 
             var deleted = await _unitOfWork.DesignationRepository.DeleteDesignationAsync(

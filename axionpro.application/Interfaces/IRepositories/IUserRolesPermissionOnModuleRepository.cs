@@ -23,7 +23,10 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<List<TenantEnabledModule>> GetAllTenantEnabledModulesWithOperationsAsync(long? TenantId);
         Task<List<GetModuleOperationRolePermissionsResponseDTO>> GetTenantModulesOperationRolePermissionResponses(GetTenantModuleOperationRolePermissionsRequestDTO request);
 
-        Task<List<RoleModuleAndPermission>> GetByRoleIdAsync(int roleId);
+        Task<List<RoleModuleAndPermission>> GetByRoleIdAsync(
+            int roleId,
+            long tenantId,
+            CancellationToken cancellationToken = default);
 
         Task BulkDeleteAsync(List<RoleModuleAndPermission> list);
 

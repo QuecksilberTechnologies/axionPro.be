@@ -19,8 +19,9 @@ namespace axionpro.application.Exceptions
         /// Initializes a new instance of the <see cref="ConflictException"/> class.
         /// </summary>
         /// <param name="message">The safe public conflict message.</param>
-        public ConflictException(string message)
-            : base(AppConstants.ErrorCodes.Conflict, message, (int)HttpStatusCode.Conflict)
+        /// <param name="errorCode">An optional stable code for a specific business dependency.</param>
+        public ConflictException(string message, string? errorCode = null)
+            : base(errorCode ?? AppConstants.ErrorCodes.Conflict, message, (int)HttpStatusCode.Conflict)
         {
         }
     }

@@ -6,7 +6,6 @@
 // ================================================================
 
 using axionpro.application.DTOs.Role;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -91,16 +90,20 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
             }
 
-            var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
-            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
-
             if (request.DTO.Id <= 0)
                 throw new ValidationErrorException("Invalid role identifier.");
+
+            var role = await _unitOfWork.RoleRepository.GetByIdForTenantAsync(
+                request.DTO.Id,
+                tenantId,
+                cancellationToken);
+            if (role == null)
+                throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
 
             // An inactive assignment or permission can be reactivated later, so only a
             // soft-deleted dependency is safe to ignore when deleting the Role.
             var hasDependencies = await _unitOfWork.RoleRepository
-                .HasNonDeletedDependenciesAsync(request.DTO.Id, cancellationToken);
+                .HasNonDeletedDependenciesAsync(request.DTO.Id, tenantId, cancellationToken);
 
             if (hasDependencies)
             {
@@ -109,7 +112,9 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                     request.DTO.Id,
                     tenantId);
 
-                throw new ConflictException(AppConstants.ErrorMessages.RoleHasDependencies);
+                throw new ConflictException(
+                    AppConstants.ErrorMessages.RoleHasDependencies,
+                    AppConstants.ErrorCodes.RoleHasDependencies);
             }
 
             var deleted = await _unitOfWork.RoleRepository.DeleteAsync(

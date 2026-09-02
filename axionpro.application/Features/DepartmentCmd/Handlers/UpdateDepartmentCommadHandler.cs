@@ -5,7 +5,6 @@
 // Purpose : Updates a tenant-scoped department using trusted request context.
 // ================================================================
 
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Department;
 using axionpro.application.Exceptions;
@@ -110,24 +109,6 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
             #endregion
 
-            #region Runtime Permission Validation
-
-            // Current database role assignments are authoritative so a stale
-            // JWT role cannot authorize a department update.
-            var permissionResult =
-                await _unitOfWork.StoreProcedureRepository
-                    .CheckTenantEmployeePermissionAsync(
-                        tenantId,
-                        userEmployeeId,
-                        tokenRoleId,
-                        request.DTO.ModuleId,
-                        request.DTO.OperationId,
-                        cancellationToken);
-
-            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
-
-            #endregion
-
             if (request.DTO.Id <= 0)
                 throw new ValidationErrorException(
                     AppConstants.ErrorMessages.InvalidIdentifier);
@@ -145,6 +126,24 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             if (department == null)
                 throw new NotFoundException(
                     AppConstants.ErrorMessages.ResourceNotFound);
+
+            // Inactive employees remain a dependency because they can later be
+            // reactivated. Only employees already soft deleted are ignored.
+            if (department.IsActive && request.DTO.IsActive == false &&
+                await _unitOfWork.DepartmentRepository.HasNonDeletedEmployeesAsync(
+                    department.Id,
+                    tenantId,
+                    cancellationToken))
+            {
+                _logger.LogWarning(
+                    "Department deactivation blocked because non-soft-deleted employees are assigned. DepartmentId: {DepartmentId}, TenantId: {TenantId}",
+                    department.Id,
+                    tenantId);
+
+                throw new ConflictException(
+                    AppConstants.ErrorMessages.DepartmentHasEmployees,
+                    AppConstants.ErrorCodes.DepartmentHasEmployeeDependencies);
+            }
 
             // Apply client-editable fields and server-controlled audit values.
             department.DepartmentName = request.DTO.DepartmentName.Trim();

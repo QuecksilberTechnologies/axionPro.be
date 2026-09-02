@@ -6,7 +6,6 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.Exceptions;
@@ -112,24 +111,6 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 throw new UnauthorizedAccessException(
                     AppConstants.ErrorMessages.Unauthorized);
             }
-
-            #endregion
-
-            #region Runtime Permission Validation
-
-            // Current database role assignments are authoritative so a stale
-            // JWT role cannot authorize a designation create operation.
-            var permissionResult =
-                await _unitOfWork.StoreProcedureRepository
-                    .CheckTenantEmployeePermissionAsync(
-                        tenantId,
-                        userEmployeeId,
-                        tokenRoleId,
-                        request.DTO.ModuleId,
-                        request.DTO.OperationId,
-                        cancellationToken);
-
-            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
             #endregion
 
