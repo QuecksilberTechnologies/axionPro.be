@@ -85,14 +85,6 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<bool> IsTenantCodeInUseAsync(string tenantCode, long excludedTenantId, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves the legitimate onboarding credential and Employee required by the existing Tenant welcome-email flow.
-        /// </summary>
-        /// <param name="tenantId">The Tenant identifier.</param>
-        /// <param name="cancellationToken">The token used to observe cancellation.</param>
-        /// <returns>The onboarding credential with its Employee, or <see langword="null"/> when unavailable.</returns>
-        Task<LoginCredential?> GetTenantOnboardingCredentialAsync(long tenantId, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Stages a Host-managed Tenant update prepared by the handler.
         /// </summary>
         /// <param name="tenant">The tracked Tenant entity with validated editable changes.</param>

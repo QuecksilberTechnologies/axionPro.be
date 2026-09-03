@@ -329,9 +329,16 @@ namespace axionpro.persistance.Repositories
         /// <returns>The Tenant entity, or <see langword="null"/> when unavailable.</returns>
         public Task<Tenant?> GetHostManagedTenantByIdAsync(long tenantId, CancellationToken cancellationToken = default)
         {
-            return _context.Tenants.FirstOrDefaultAsync(
-                tenant => tenant.Id == tenantId && tenant.IsSoftDeleted != true,
-                cancellationToken);
+            return _context.Tenants
+                .Include(tenant => tenant.Employee.Where(employee =>
+                    employee.TenantId == tenantId &&
+                    !employee.IsSoftDeleted))
+                .ThenInclude(employee => employee.LoginCredential.Where(credential =>
+                    credential.TenantId == tenantId &&
+                    credential.IsSoftDeleted != true))
+                .FirstOrDefaultAsync(
+                    tenant => tenant.Id == tenantId && tenant.IsSoftDeleted != true,
+                    cancellationToken);
         }
 
         /// <summary>
@@ -592,27 +599,6 @@ namespace axionpro.persistance.Repositories
                         tenant.IsSoftDeleted != true &&
                         tenant.TenantCode == tenantCode,
                     cancellationToken);
-        }
-
-        /// <summary>
-        /// Retrieves the legitimate onboarding credential and Employee required by the existing Tenant welcome-email flow.
-        /// </summary>
-        /// <param name="tenantId">The Tenant identifier.</param>
-        /// <param name="cancellationToken">The token used to observe cancellation.</param>
-        /// <returns>The onboarding credential with its Employee, or <see langword="null"/> when unavailable.</returns>
-        public Task<LoginCredential?> GetTenantOnboardingCredentialAsync(
-            long tenantId,
-            CancellationToken cancellationToken = default)
-        {
-            return _context.LoginCredentials
-                .AsNoTracking()
-                .Include(credential => credential.Employee)
-                .Where(credential =>
-                    credential.TenantId == tenantId &&
-                    credential.IsOnboard &&
-                    credential.IsSoftDeleted != true)
-                .OrderBy(credential => credential.Id)
-                .FirstOrDefaultAsync(cancellationToken);
         }
 
         /// <summary>

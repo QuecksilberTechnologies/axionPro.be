@@ -149,10 +149,24 @@ public sealed class ResendTenantVerificationCommandHandler
             throw new ConflictException(AppConstants.ErrorMessages.TenantAlreadyVerified);
         }
 
-        var onboardingCredential = await _unitOfWork.TenantRepository
-            .GetTenantOnboardingCredentialAsync(tenant.Id, cancellationToken);
+        var tenantLoginCredential = tenant.Employee
+            .SelectMany(employee => employee.LoginCredential)
+            .Where(credential =>
+                credential.TenantId == tenant.Id &&
+                credential.LoginId == tenant.TenantEmail &&
+                credential.IsSoftDeleted != true)
+            .OrderBy(credential => credential.Id)
+            .FirstOrDefault();
 
-        if (onboardingCredential?.Employee is null)
+        if (tenantLoginCredential is null)
+        {
+            throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
+        }
+
+        var onboardingEmployee = tenant.Employee
+            .FirstOrDefault(employee => employee.Id == tenantLoginCredential.EmployeeId);
+
+        if (onboardingEmployee is null)
         {
             throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
         }
@@ -160,10 +174,10 @@ public sealed class ResendTenantVerificationCommandHandler
         // Reuse the initial Tenant set-password token format, expiration, URL, and welcome template.
         var tokenInfo = new GetTokenInfoDTO
         {
-            EmployeeId = _idEncoderService.EncodeId_long(onboardingCredential.EmployeeId, null),
+            EmployeeId = _idEncoderService.EncodeId_long(tenantLoginCredential.EmployeeId, null),
             TenantId = _idEncoderService.EncodeId_long(tenant.Id, null),
             Email = tenant.TenantEmail,
-            FullName = onboardingCredential.Employee.FirstName ?? tenant.ContactPersonName ?? string.Empty,
+            FullName = onboardingEmployee.FirstName ?? tenant.ContactPersonName ?? string.Empty,
             TokenPurpose = _idEncoderService.EncodeId_int(ConstantValues.SetPassword, string.Empty),
             IssuedAt = DateTime.UtcNow,
             Expiry = DateTime.UtcNow.AddMinutes(30),
@@ -196,6 +210,14 @@ public sealed class ResendTenantVerificationCommandHandler
             throw new ApiException(
                 AppConstants.ErrorMessages.InternalServerError,
                 (int)HttpStatusCode.InternalServerError);
+        }
+
+        // A Tenant which has not verified must remain in the pending-onboarding state.
+        // This also repairs legacy records that were created with the opposite value.
+        if (tenantLoginCredential.IsOnboard)
+        {
+            tenantLoginCredential.IsOnboard = false;
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         return ApiResponse<bool>.Success(

@@ -296,7 +296,7 @@ public class TenantController : ControllerBase
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
     /// <para>API endpoint purpose: performs the Angular function resend tenant verification.</para>
-    /// <para>Handler flow: ResendTenantVerificationCommand is processed by ResendTenantVerificationCommandHandler; operation(s): GetHostManagedTenantByIdAsync, GetTenantOnboardingCredentialAsync, AddMinutes.</para>
+    /// <para>Handler flow: ResendTenantVerificationCommand is processed by ResendTenantVerificationCommandHandler; operation(s): GetHostManagedTenantByIdAsync, AddMinutes.</para>
     /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?)</para>
     /// <para>Angular function(s): TenantsApi.resendVerificationEmail (app/core/services/tenants-api.ts:208).</para>
     /// <para>Angular purpose: performs the Angular function resend verification email.</para>

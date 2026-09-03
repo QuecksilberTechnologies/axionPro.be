@@ -104,7 +104,7 @@ public sealed class GetAllTenantsQueryHandler
 
     private HostTenantResponseDTO MapTenant(Tenant tenant, string tenantEncryptionKey)
     {
-        var onboardingCredential = tenant.Employee
+        var tenantLoginCredential = tenant.Employee
             .Where(employee =>
                 employee.TenantId == tenant.Id &&
                 !employee.IsSoftDeleted)
@@ -121,11 +121,11 @@ public sealed class GetAllTenantsQueryHandler
             tenant.Id,
             tenantEncryptionKey,
             _idEncoderService);
-        response.IsVerified = onboardingCredential?.IsOnboard ?? false;
-        response.EmployeeId = onboardingCredential is null
+        response.IsVerified = tenantLoginCredential?.IsOnboard ?? false;
+        response.EmployeeId = tenantLoginCredential is null
             ? string.Empty
             : _idEncoderService.EncodeId_long(
-                onboardingCredential.EmployeeId,
+                tenantLoginCredential.EmployeeId,
                 EncryptionSanitizer.SuperSanitize(tenantEncryptionKey));
 
         return response;
