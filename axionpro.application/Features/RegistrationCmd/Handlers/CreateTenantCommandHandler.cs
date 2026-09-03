@@ -98,14 +98,18 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 ?? throw new ArgumentNullException(nameof(request.TenantCreateRequestDTO));
             var onboardingRequest = dto as INewTenantOnboardingConfiguration;
 
-            // Central validation permits the current Super Admin directly and requires a current
-            // Host-role module-operation permission for every other Host user.
-            await HostRuntimePermissionValidator.ValidateAsync(
-                _commonRequestService,
-                _commonRepository,
-                dto.ModuleId,
-                dto.OperationId,
-                cancellationToken);
+            // The public registration endpoint has no authenticated request context. Only the
+            // Host-side onboarding bridge carries the extended configuration and must validate
+            // the caller's current Host module-operation permission.
+            if (onboardingRequest is not null)
+            {
+                await HostRuntimePermissionValidator.ValidateAsync(
+                    _commonRequestService,
+                    _commonRepository,
+                    dto.ModuleId,
+                    dto.OperationId,
+                    cancellationToken);
+            }
 
             try
             {
