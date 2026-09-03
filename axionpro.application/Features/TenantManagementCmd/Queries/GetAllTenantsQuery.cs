@@ -5,8 +5,10 @@
 // Purpose : Defines the Host-side query contract for Tenant management records.
 // ================================================================
 
+using AutoMapper;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -51,21 +53,25 @@ public sealed class GetAllTenantsQueryHandler
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICommonRequestService _commonRequestService;
     private readonly IIdEncoderService _idEncoderService;
+    private readonly IMapper _mapper;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetAllTenantsQueryHandler"/> class.
     /// </summary>
     /// <param name="unitOfWork">Provides Tenant and stored-function persistence operations.</param>
     /// <param name="commonRequestService">Validates the trusted Host request context.</param>
-    /// <param name="encryptionService">Protects Tenant identifiers at the API boundary.</param>
+    /// <param name="idEncoderService">Protects Tenant and Employee identifiers at the API boundary.</param>
+    /// <param name="mapper">Maps the Host Tenant entity to its response projection.</param>
     public GetAllTenantsQueryHandler(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IIdEncoderService idEncoderService)
+        IIdEncoderService idEncoderService,
+        IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _commonRequestService = commonRequestService;
         _idEncoderService = idEncoderService;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -96,20 +102,34 @@ public sealed class GetAllTenantsQueryHandler
             "Tenants retrieved successfully.");
     }
 
-    private HostTenantResponseDTO MapTenant(Tenant tenant, string tenantEncryptionKey) =>
-        new()
-        {
-            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _idEncoderService),
-            CompanyName = tenant.CompanyName,
-            TenantCode = tenant.TenantCode,
-            CompanyEmailDomain = tenant.CompanyEmailDomain,
-            TenantEmail = tenant.TenantEmail,
-            ContactPersonName = tenant.ContactPersonName,
-            ContactNumber = tenant.ContactNumber,
-            CountryId = tenant.CountryId,
-            IsVerified = tenant.IsVerified,
-            IsActive = tenant.IsActive
-        };
+    private HostTenantResponseDTO MapTenant(Tenant tenant, string tenantEncryptionKey)
+    {
+        var onboardingCredential = tenant.Employee
+            .Where(employee =>
+                employee.TenantId == tenant.Id &&
+                !employee.IsSoftDeleted)
+            .SelectMany(employee => employee.LoginCredential)
+            .Where(credential =>
+                credential.TenantId == tenant.Id &&
+                credential.IsOnboard &&
+                credential.IsSoftDeleted != true)
+            .OrderBy(credential => credential.Id)
+            .FirstOrDefault();
+
+        var response = _mapper.Map<HostTenantResponseDTO>(tenant);
+        response.Id = HostTenantIdentifierProtector.Encrypt(
+            tenant.Id,
+            tenantEncryptionKey,
+            _idEncoderService);
+        response.IsVerified = onboardingCredential?.IsOnboard ?? false;
+        response.EmployeeId = onboardingCredential is null
+            ? string.Empty
+            : _idEncoderService.EncodeId_long(
+                onboardingCredential.EmployeeId,
+                EncryptionSanitizer.SuperSanitize(tenantEncryptionKey));
+
+        return response;
+    }
 }
 
 #endregion

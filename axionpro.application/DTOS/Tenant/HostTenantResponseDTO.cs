@@ -18,6 +18,11 @@ public sealed class HostTenantResponseDTO
     public string Id { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the encrypted onboarding Employee identifier when the Tenant has a valid onboarding credential.
+    /// </summary>
+    public string EmployeeId { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the Tenant company name.
     /// </summary>
     public string CompanyName { get; set; } = string.Empty;

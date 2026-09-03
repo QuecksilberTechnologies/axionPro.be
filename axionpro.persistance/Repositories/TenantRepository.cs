@@ -268,6 +268,10 @@ namespace axionpro.persistance.Repositories
             var pageSize = request.PageSize is > 0 and <= 100 ? request.PageSize : 10;
             var query = _context.Tenants
                 .AsNoTracking()
+                .Include(tenant => tenant.Employee.Where(employee => !employee.IsSoftDeleted))
+                    .ThenInclude(employee => employee.LoginCredential.Where(credential =>
+                        credential.IsOnboard &&
+                        credential.IsSoftDeleted != true))
                 .Where(tenant => tenant.IsSoftDeleted != true);
 
             if (request.IsActive.HasValue)
@@ -277,7 +281,19 @@ namespace axionpro.persistance.Repositories
 
             if (request.IsVerified.HasValue)
             {
-                query = query.Where(tenant => tenant.IsVerified == request.IsVerified.Value);
+                query = request.IsVerified.Value
+                    ? query.Where(tenant => tenant.Employee.Any(employee =>
+                        !employee.IsSoftDeleted &&
+                        employee.LoginCredential.Any(credential =>
+                            credential.TenantId == tenant.Id &&
+                            credential.IsOnboard &&
+                            credential.IsSoftDeleted != true)))
+                    : query.Where(tenant => !tenant.Employee.Any(employee =>
+                        !employee.IsSoftDeleted &&
+                        employee.LoginCredential.Any(credential =>
+                            credential.TenantId == tenant.Id &&
+                            credential.IsOnboard &&
+                            credential.IsSoftDeleted != true)));
             }
 
             if (!string.IsNullOrWhiteSpace(request.SearchKeyword))

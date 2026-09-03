@@ -1124,6 +1124,9 @@ namespace axionpro.application.Mappings
 
             CreateMap<Tenant, DTOs.Tenant.TenantRequestDTO>().ReverseMap();
             CreateMap<TenantResponseDTO, Tenant>().ReverseMap();
+            CreateMap<Tenant, HostTenantResponseDTO>()
+                .ForMember(destination => destination.Id, options => options.Ignore())
+                .ForMember(destination => destination.EmployeeId, options => options.Ignore());
 
             CreateMap<SubscriptionPlan, SubscriptionPlanResponseDTO>()
                .ForMember(dest => dest.Modules, opt => opt.MapFrom(src => src.PlanModuleMapping
