@@ -5,17 +5,16 @@
 // Purpose : Creates password-reset links and delegates failures to middleware.
 // ================================================================
 
-using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Token;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IHashed;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -38,45 +37,32 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
     public class GetNewLoginPasswordURLCommandHandler
         : IRequestHandler<GetNewLoginPasswordURLCommand, ApiResponse<GetNewPasswordLinkResponseDTO>>
     {
+        private const int PasswordResetLinkExpiryMinutes = 30;
+
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<GetNewLoginPasswordURLCommandHandler> _logger;
         private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
-        private readonly IFileStorageService _fileStorageService;
         private readonly ICommonRequestService _commonRequestService;
-        private readonly IPasswordService _passwordService;
+        private readonly IEmailService _emailService;
 
         public GetNewLoginPasswordURLCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
             ILogger<GetNewLoginPasswordURLCommandHandler> logger,
             ITokenService tokenService,
-            IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService,
             IIdEncoderService idEncoderService,
             ICommonRequestService commonRequestService,
-            IPasswordService passwordService,
-            IFileStorageService fileStorageService)
+            IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _tokenService = tokenService;
-            _permissionService = permissionService;
             _config = config;
-            _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
-            _passwordService = passwordService;
-            _fileStorageService = fileStorageService;
+            _emailService = emailService;
         }
 
         public async Task<ApiResponse<GetNewPasswordLinkResponseDTO>> Handle(
@@ -127,18 +113,62 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     FullName = emp.FirstName ?? "",
                     TokenPurpose = _idEncoderService.EncodeId_int(ConstantValues.SetPassword, ""),
                     IssuedAt = DateTime.UtcNow,
-                    Expiry = DateTime.UtcNow.AddMinutes(30),
+                    Expiry = DateTime.UtcNow.AddMinutes(PasswordResetLinkExpiryMinutes),
                     IsFirstLogin = false,
                     ClientType = "Web"
                 };
 
                 // 5️⃣ Generate token
-                var token = _tokenService.GenerateTenantToken(tokenInfo);
+                var token = await _tokenService.GenerateTenantToken(tokenInfo);
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    throw new ApiException(
+                        AppConstants.ErrorCodes.InternalServerError,
+                        AppConstants.ErrorMessages.InternalServerError,
+                        StatusCodes.Status500InternalServerError);
+                }
 
                 // 6️⃣ Build URL
-                var baseUrl = _config["FrontEndWebURL:BaseUrl"] ?? string.Empty;
+                var baseUrl = _config["FrontEndWebURL:BaseUrl"]?.Trim();
+                if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out _))
+                {
+                    _logger.LogError("Password reset email was not sent because FrontEndWebURL:BaseUrl is invalid.");
+                    throw new ApiException(
+                        AppConstants.ErrorCodes.InternalServerError,
+                        AppConstants.ErrorMessages.InternalServerError,
+                        StatusCodes.Status500InternalServerError);
+                }
 
-                var resetUrl = $"{baseUrl}/auth/set-password?token={token.Result}";
+                var resetUrl = $"{baseUrl.TrimEnd('/')}/auth/set-password?token={Uri.EscapeDataString(token)}";
+
+                var emailSent = await _emailService.SendTemplatedEmailAsync(
+                    ConstantValues.WelcomeEmail,
+                    dto.UserLoginId,
+                    emp.TenantId,
+                    new Dictionary<string, string>
+                    {
+                        ["UserName"] = emp.FirstName ?? string.Empty,
+                        ["VerificationUrl"] = resetUrl,
+                        ["LinkExpiryMinutes"] = PasswordResetLinkExpiryMinutes.ToString()
+                    });
+
+                if (!emailSent)
+                {
+                    _logger.LogWarning(
+                        "Password reset email was not accepted by SMTP | EmployeeId={EmployeeId} | TenantId={TenantId}",
+                        emp.Id,
+                        emp.TenantId);
+
+                    throw new ApiException(
+                        AppConstants.ErrorCodes.EmailDeliveryFailed,
+                        AppConstants.ErrorMessages.PasswordResetEmailNotSent,
+                        StatusCodes.Status503ServiceUnavailable);
+                }
+
+                _logger.LogInformation(
+                    "Password reset email accepted by SMTP | EmployeeId={EmployeeId} | TenantId={TenantId}",
+                    emp.Id,
+                    emp.TenantId);
                                
                 var response = new GetNewPasswordLinkResponseDTO
                 {

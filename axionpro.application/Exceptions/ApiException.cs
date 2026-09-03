@@ -41,7 +41,7 @@ namespace axionpro.application.Exceptions
         /// <param name="errorCode">The stable application error code.</param>
         /// <param name="message">The safe message to return to the client.</param>
         /// <param name="statusCode">The HTTP status code for the error.</param>
-        protected ApiException(string errorCode, string message, int statusCode)
+        public ApiException(string errorCode, string message, int statusCode)
             : base(message)
         {
             ErrorCode = errorCode;

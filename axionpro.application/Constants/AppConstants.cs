@@ -26,6 +26,7 @@ namespace axionpro.application.Constants
             public const string DepartmentHasEmployeeDependencies = "DEPARTMENT_HAS_EMPLOYEE_DEPENDENCIES";
             public const string DesignationHasEmployeeDependencies = "DESIGNATION_HAS_EMPLOYEE_DEPENDENCIES";
             public const string InternalServerError = "INTERNAL_SERVER_ERROR";
+            public const string EmailDeliveryFailed = "EMAIL_DELIVERY_FAILED";
         }
 
         #endregion
@@ -69,6 +70,7 @@ namespace axionpro.application.Constants
             public const string ResourceNotFound = "The requested resource was not found.";
             public const string ResourceConflict = "The request conflicts with the current resource state.";
             public const string InternalServerError = "Something went wrong. Please try again.";
+            public const string PasswordResetEmailNotSent = "The password reset email could not be sent. Please try again.";
             public const string RequiredDataMissing = "Required data is missing.";
             public const string ValidationFailed = "The request failed validation.";
 
