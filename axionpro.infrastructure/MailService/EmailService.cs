@@ -1,13 +1,9 @@
 ﻿using axionpro.application.Common.Helpers;
-using axionpro.application.Constants;
-using axionpro.application.DTOS.Configruations;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IRepositories;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MimeKit;
 using System.Net.Sockets;
 
@@ -20,18 +16,14 @@ namespace axionpro.infrastructure.MailService
         private readonly IEmailTemplateRepository _templateRepo;
         private readonly ILogger<EmailService> _logger;
 
-        private readonly EmailConfig _emailConfig;
         public EmailService(
             ITenantEmailConfigRepository configRepo,
             IEmailTemplateRepository templateRepo,
-            ILogger<EmailService> logger, IOptions<EmailConfig> emailConfig)
+            ILogger<EmailService> logger)
         {
             _configRepo = configRepo;
             _templateRepo = templateRepo;
             _logger = logger;
-
-            _emailConfig = emailConfig.Value;
-
         }
 
        
@@ -66,6 +58,33 @@ namespace axionpro.infrastructure.MailService
                     return false;
                 }
 
+                // Use the tenant's database configuration only.  Trim incidental
+                // whitespace (including copied zero-width/BOM characters) before SMTP use.
+                var smtpHost = CleanDatabaseValue(configDb.SmtpHost);
+                var smtpPort = configDb.SmtpPort.GetValueOrDefault();
+                var smtpUsername = CleanDatabaseValue(configDb.SmtpUsername);
+                var smtpSecret = CleanDatabaseValue(configDb.SecrateKey);
+                var fromName = CleanDatabaseValue(configDb.FromName);
+                var fromEmail = CleanDatabaseValue(configDb.FromEmail);
+                var recipientEmail = CleanDatabaseValue(toEmail);
+
+                if (smtpHost is null || smtpUsername is null || smtpSecret is null ||
+                    fromName is null || fromEmail is null || recipientEmail is null ||
+                    smtpPort < 1 || smtpPort > 65535)
+                {
+                    _logger.LogWarning(
+                        "SMTP configuration is incomplete or invalid | TenantId={TenantId} | HasHost={HasHost} | Port={Port} | HasUsername={HasUsername} | HasSecret={HasSecret} | HasFromName={HasFromName} | HasFromEmail={HasFromEmail} | HasRecipient={HasRecipient}",
+                        tenantId,
+                        smtpHost is not null,
+                        smtpPort,
+                        smtpUsername is not null,
+                        smtpSecret is not null,
+                        fromName is not null,
+                        fromEmail is not null,
+                        recipientEmail is not null);
+                    return false;
+                }
+
                 var tenantConfigInfo = configDb.Tenant;
 
                 // 3️⃣ Prepare placeholders
@@ -97,11 +116,11 @@ namespace axionpro.infrastructure.MailService
                 var message = new MimeMessage();
 
                 message.From.Add(new MailboxAddress(
-                    configDb.FromName ?? ConstantValues.DefaultFromName,
-                    configDb.FromEmail ?? ConstantValues.DefaultFromEmail
+                    fromName,
+                    fromEmail
                 ));
 
-                message.To.Add(MailboxAddress.Parse(toEmail));
+                message.To.Add(MailboxAddress.Parse(recipientEmail));
 
                 message.Subject = subject;
 
@@ -115,13 +134,13 @@ namespace axionpro.infrastructure.MailService
                 smtp.Timeout = 20000;
 
                 await smtp.ConnectAsync(
-                    configDb.SmtpHost,
-                    configDb.SmtpPort ?? 2525,
+                    smtpHost,
+                    smtpPort,
                     SecureSocketOptions.StartTls);
 
                 await smtp.AuthenticateAsync(
-                    configDb.SmtpUsername,
-                    configDb.SecrateKey);
+                    smtpUsername,
+                    smtpSecret);
 
                 await smtp.SendAsync(message);
 
@@ -159,6 +178,15 @@ namespace axionpro.infrastructure.MailService
 
                 return false;
             }
+        }
+
+        private static string? CleanDatabaseValue(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            var cleanedValue = value.Trim().Trim('\u200B', '\uFEFF');
+            return string.IsNullOrWhiteSpace(cleanedValue) ? null : cleanedValue;
         }
 
         public static async Task CheckSmtpPorts()
