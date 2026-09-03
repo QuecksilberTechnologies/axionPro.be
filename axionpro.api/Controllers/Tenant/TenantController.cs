@@ -71,7 +71,7 @@ public class TenantController : ControllerBase
     /// <para>Integrated UI page(s): /auth/register-tenant</para>
     /// <para>Angular UI component(s): Registration (app/features/authentication/registration/registration.ts)</para>
     /// </remarks>
-    [Authorize]
+    [AllowAnonymous]
     [HttpPost("create-tenant")]
     public async Task<IActionResult> TenantCreation([FromBody] application.DTOs.Registration.TenantCreateRequestDTO tenantCreateRequestDTO)
     {
