@@ -24,8 +24,14 @@
     -----
     - This removes database rows only. It does not remove physical files from
       object storage/local disk referenced by ticket or employee attachments.
-    - Shared/global records such as Country, Operation, HostRole, and
-      SubscriptionPlan are deliberately not deleted.
+    - Host records, HostRole, Operation, SubscriptionPlan and other host/shared
+      configuration are deliberately preserved.
+    - With ReplaceLocationReferenceData = FALSE (the safe default), India and
+      China are upserted with one capital-level city per state/region while
+      existing global country rules and other country data remain untouched.
+    - Replacing the entire Country/State/City catalog requires
+      ReplaceLocationReferenceData = TRUE. It is fail-safe and aborts if any
+      remaining non-tenant Country/State/City dependent data is detected.
 */
 
 BEGIN;
@@ -34,13 +40,101 @@ CREATE TEMP TABLE tenant_cleanup_config
 (
     "TenantId" bigint NULL,
     "ClearAllTenants" boolean NOT NULL,
-    "ExecuteCleanup" boolean NOT NULL
+    "ExecuteCleanup" boolean NOT NULL,
+    "ReplaceLocationReferenceData" boolean NOT NULL
 ) ON COMMIT DROP;
 
 -- CHANGE ONLY THIS LINE.
--- All tenants: (NULL, TRUE, FALSE). One tenant: (54, FALSE, FALSE).
-INSERT INTO tenant_cleanup_config ("TenantId", "ClearAllTenants", "ExecuteCleanup")
-VALUES (NULL, TRUE, FALSE);
+-- All tenants: (NULL, TRUE, FALSE, FALSE). One tenant: (54, FALSE, FALSE, FALSE).
+-- Run once with ExecuteCleanup = FALSE. After reviewing the preview and taking
+-- a backup, change only ExecuteCleanup to TRUE and run this whole file.
+INSERT INTO tenant_cleanup_config
+    ("TenantId", "ClearAllTenants", "ExecuteCleanup", "ReplaceLocationReferenceData")
+VALUES (NULL, TRUE, FALSE, FALSE);
+
+-- Intentionally a compact reference catalog: every India state/UT and China
+-- province/region/municipality receives one capital-level city. It is not a
+-- full city directory; add more cities later through the location master API.
+CREATE TEMP TABLE location_reference_seed
+(
+    "SortOrder" integer PRIMARY KEY,
+    "CountryCode" character varying(10) NOT NULL,
+    "StateName" character varying(100) NOT NULL,
+    "CityName" character varying(100) NOT NULL
+) ON COMMIT DROP;
+
+INSERT INTO location_reference_seed ("SortOrder", "CountryCode", "StateName", "CityName")
+VALUES
+    (1,  'IN', 'Andhra Pradesh', 'Amaravati'),
+    (2,  'IN', 'Arunachal Pradesh', 'Itanagar'),
+    (3,  'IN', 'Assam', 'Dispur'),
+    (4,  'IN', 'Bihar', 'Patna'),
+    (5,  'IN', 'Chhattisgarh', 'Raipur'),
+    (6,  'IN', 'Goa', 'Panaji'),
+    (7,  'IN', 'Gujarat', 'Gandhinagar'),
+    (8,  'IN', 'Haryana', 'Chandigarh'),
+    (9,  'IN', 'Himachal Pradesh', 'Shimla'),
+    (10, 'IN', 'Jharkhand', 'Ranchi'),
+    (11, 'IN', 'Karnataka', 'Bengaluru'),
+    (12, 'IN', 'Kerala', 'Thiruvananthapuram'),
+    (13, 'IN', 'Madhya Pradesh', 'Bhopal'),
+    (14, 'IN', 'Maharashtra', 'Mumbai'),
+    (15, 'IN', 'Manipur', 'Imphal'),
+    (16, 'IN', 'Meghalaya', 'Shillong'),
+    (17, 'IN', 'Mizoram', 'Aizawl'),
+    (18, 'IN', 'Nagaland', 'Kohima'),
+    (19, 'IN', 'Odisha', 'Bhubaneswar'),
+    (20, 'IN', 'Punjab', 'Chandigarh'),
+    (21, 'IN', 'Rajasthan', 'Jaipur'),
+    (22, 'IN', 'Sikkim', 'Gangtok'),
+    (23, 'IN', 'Tamil Nadu', 'Chennai'),
+    (24, 'IN', 'Telangana', 'Hyderabad'),
+    (25, 'IN', 'Tripura', 'Agartala'),
+    (26, 'IN', 'Uttar Pradesh', 'Lucknow'),
+    (27, 'IN', 'Uttarakhand', 'Dehradun'),
+    (28, 'IN', 'West Bengal', 'Kolkata'),
+    (29, 'IN', 'Andaman and Nicobar Islands', 'Port Blair'),
+    (30, 'IN', 'Chandigarh', 'Chandigarh'),
+    (31, 'IN', 'Dadra and Nagar Haveli and Daman and Diu', 'Daman'),
+    (32, 'IN', 'Delhi', 'New Delhi'),
+    (33, 'IN', 'Jammu and Kashmir', 'Srinagar'),
+    (34, 'IN', 'Ladakh', 'Leh'),
+    (35, 'IN', 'Lakshadweep', 'Kavaratti'),
+    (36, 'IN', 'Puducherry', 'Puducherry'),
+    (37, 'CN', 'Anhui', 'Hefei'),
+    (38, 'CN', 'Beijing', 'Beijing'),
+    (39, 'CN', 'Chongqing', 'Chongqing'),
+    (40, 'CN', 'Fujian', 'Fuzhou'),
+    (41, 'CN', 'Gansu', 'Lanzhou'),
+    (42, 'CN', 'Guangdong', 'Guangzhou'),
+    (43, 'CN', 'Guangxi', 'Nanning'),
+    (44, 'CN', 'Guizhou', 'Guiyang'),
+    (45, 'CN', 'Hainan', 'Haikou'),
+    (46, 'CN', 'Hebei', 'Shijiazhuang'),
+    (47, 'CN', 'Heilongjiang', 'Harbin'),
+    (48, 'CN', 'Henan', 'Zhengzhou'),
+    (49, 'CN', 'Hubei', 'Wuhan'),
+    (50, 'CN', 'Hunan', 'Changsha'),
+    (51, 'CN', 'Inner Mongolia', 'Hohhot'),
+    (52, 'CN', 'Jiangsu', 'Nanjing'),
+    (53, 'CN', 'Jiangxi', 'Nanchang'),
+    (54, 'CN', 'Jilin', 'Changchun'),
+    (55, 'CN', 'Liaoning', 'Shenyang'),
+    (56, 'CN', 'Macao', 'Macao'),
+    (57, 'CN', 'Ningxia', 'Yinchuan'),
+    (58, 'CN', 'Qinghai', 'Xining'),
+    (59, 'CN', 'Shaanxi', 'Xi''an'),
+    (60, 'CN', 'Shandong', 'Jinan'),
+    (61, 'CN', 'Shanghai', 'Shanghai'),
+    (62, 'CN', 'Shanxi', 'Taiyuan'),
+    (63, 'CN', 'Sichuan', 'Chengdu'),
+    (64, 'CN', 'Tianjin', 'Tianjin'),
+    (65, 'CN', 'Tibet', 'Lhasa'),
+    (66, 'CN', 'Xinjiang', 'Urumqi'),
+    (67, 'CN', 'Yunnan', 'Kunming'),
+    (68, 'CN', 'Zhejiang', 'Hangzhou'),
+    (69, 'CN', 'Hong Kong', 'Hong Kong'),
+    (70, 'CN', 'Taiwan', 'Taipei');
 
 DO
 $$
@@ -48,13 +142,16 @@ DECLARE
     v_tenant_id bigint;
     v_clear_all_tenants boolean;
     v_execute_cleanup boolean;
+    v_replace_location_reference_data boolean;
     v_count bigint;
     v_tenant_count bigint;
     v_dependency record;
     v_sequence record;
+    v_reference_table text;
+    v_reference_sequence text;
 BEGIN
-    SELECT "TenantId", "ClearAllTenants", "ExecuteCleanup"
-    INTO v_tenant_id, v_clear_all_tenants, v_execute_cleanup
+    SELECT "TenantId", "ClearAllTenants", "ExecuteCleanup", "ReplaceLocationReferenceData"
+    INTO v_tenant_id, v_clear_all_tenants, v_execute_cleanup, v_replace_location_reference_data
     FROM pg_temp.tenant_cleanup_config;
 
     IF NOT v_clear_all_tenants AND (v_tenant_id IS NULL OR v_tenant_id <= 0) THEN
@@ -176,7 +273,16 @@ BEGIN
          (
              SELECT td."Id" FROM axionpro."TenantDevice" td
              WHERE td."TenantId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_scope)
-         )));
+         ))),
+    ('Reference', 'Country', 'Id', (SELECT COUNT(*) FROM axionpro."Country")),
+    ('Reference', 'State', 'Id', (SELECT COUNT(*) FROM axionpro."State")),
+    ('Reference', 'City', 'Id', (SELECT COUNT(*) FROM axionpro."City")),
+    ('Reference', 'District', 'Id', (SELECT COUNT(*) FROM axionpro."District")),
+    ('Reference', 'CountryIdentityRule', 'Id', (SELECT COUNT(*) FROM axionpro."CountryIdentityRule")),
+    ('Reference', 'CountryStatutoryRule', 'Id', (SELECT COUNT(*) FROM axionpro."CountryStatutoryRule")),
+    ('Reference', 'StatutoryType', 'Id', (SELECT COUNT(*) FROM axionpro."StatutoryType")),
+    ('Reference', 'TaxSystemMaster', 'Id', (SELECT COUNT(*) FROM axionpro."TaxSystemMaster")),
+    ('Reference', 'TaxRegimeMaster', 'Id', (SELECT COUNT(*) FROM axionpro."TaxRegimeMaster"));
 
     -- This remains empty in preview mode and is populated only after a
     -- successful actual cleanup followed by a safe sequence reset.
@@ -586,7 +692,206 @@ BEGIN
     END LOOP;
 
     ---------------------------------------------------------------------------
-    -- 4. Reset auto-generated IDs for empty tenant-dependent tables.
+    -- 4. Rebuild the location-reference catalog only after every tenant row
+    --    has gone. The guard prevents a host/non-tenant row from being removed
+    --    merely because it uses CountryId, StateId or CityId.
+    ---------------------------------------------------------------------------
+    IF v_replace_location_reference_data THEN
+        FOR v_dependency IN
+            SELECT unnest(ARRAY[
+                'Tenant', 'Employee', 'TenantLocation', 'ComplianceRule',
+                'EmployeeTaxProfile', 'InsurancePolicy', 'SalaryComponentMaster',
+                'TaxRule', 'TaxSlab'
+            ]) AS table_name
+        LOOP
+            EXECUTE format('SELECT COUNT(*) FROM axionpro.%I', v_dependency.table_name)
+            INTO v_count;
+
+            IF v_count > 0 THEN
+                RAISE EXCEPTION
+                    'Location reference reset stopped: axionpro.% still has % row(s). No changes will be committed.',
+                    v_dependency.table_name,
+                    v_count;
+            END IF;
+        END LOOP;
+
+        -- Reject new country/state/city FK tables that are not explicitly
+        -- handled below. This keeps future schema changes fail-safe.
+        FOR v_dependency IN
+            SELECT DISTINCT source.relname AS table_name
+            FROM pg_constraint fk
+            JOIN pg_class target ON target.oid = fk.confrelid
+            JOIN pg_namespace target_schema ON target_schema.oid = target.relnamespace
+            JOIN pg_class source ON source.oid = fk.conrelid
+            JOIN pg_namespace source_schema ON source_schema.oid = source.relnamespace
+            WHERE fk.contype = 'f'
+              AND target_schema.nspname = 'axionpro'
+              AND source_schema.nspname = 'axionpro'
+              AND target.relname IN ('Country', 'State', 'City')
+              AND source.relname NOT IN
+              (
+                  'City', 'State', 'District', 'CountryIdentityRule',
+                  'CountryStatutoryRule', 'StatutoryType', 'TaxSystemMaster',
+                  'TaxRegimeMaster', 'TenantLocation', 'ComplianceRule',
+                  'Employee', 'EmployeeTaxProfile', 'InsurancePolicy',
+                  'SalaryComponentMaster', 'TaxRule', 'TaxSlab'
+              )
+        LOOP
+            EXECUTE format('SELECT COUNT(*) FROM axionpro.%I', v_dependency.table_name)
+            INTO v_count;
+
+            IF v_count > 0 THEN
+                RAISE EXCEPTION
+                    'Location reference reset stopped: unhandled Country/State/City dependency axionpro.% has % row(s).',
+                    v_dependency.table_name,
+                    v_count;
+            END IF;
+        END LOOP;
+
+        DELETE FROM axionpro."TaxRegimeMaster";
+        DELETE FROM axionpro."CountryStatutoryRule";
+        DELETE FROM axionpro."CountryIdentityRule";
+        DELETE FROM axionpro."District";
+        DELETE FROM axionpro."City";
+        DELETE FROM axionpro."TaxSystemMaster";
+        DELETE FROM axionpro."StatutoryType";
+        DELETE FROM axionpro."State";
+        DELETE FROM axionpro."Country";
+
+        FOREACH v_reference_table IN ARRAY ARRAY[
+            'Country', 'State', 'City', 'District', 'CountryIdentityRule',
+            'CountryStatutoryRule', 'StatutoryType', 'TaxSystemMaster',
+            'TaxRegimeMaster'
+        ]
+        LOOP
+            SELECT pg_get_serial_sequence(format('axionpro.%I', v_reference_table), 'Id')
+            INTO v_reference_sequence;
+
+            IF v_reference_sequence IS NOT NULL THEN
+                EXECUTE format('ALTER SEQUENCE %s RESTART WITH 1', v_reference_sequence);
+            END IF;
+        END LOOP;
+
+        INSERT INTO axionpro."Country" ("CountryName", "CountryCode", "STDCode", "IsActive")
+        VALUES
+            ('India', 'IN', '+91', TRUE),
+            ('China', 'CN', '+86', TRUE);
+
+        INSERT INTO axionpro."State" ("CountryId", "StateName", "IsActive")
+        SELECT country."Id", seed."StateName", TRUE
+        FROM pg_temp.location_reference_seed seed
+        JOIN axionpro."Country" country ON country."CountryCode" = seed."CountryCode"
+        ORDER BY seed."SortOrder";
+
+        INSERT INTO axionpro."City" ("StateId", "CityName", "IsActive")
+        SELECT state."Id", seed."CityName", TRUE
+        FROM pg_temp.location_reference_seed seed
+        JOIN axionpro."Country" country ON country."CountryCode" = seed."CountryCode"
+        JOIN axionpro."State" state
+          ON state."CountryId" = country."Id"
+         AND state."StateName" = seed."StateName"
+        ORDER BY seed."SortOrder";
+
+        IF (SELECT COUNT(*) FROM axionpro."Country") <> 2
+           OR (SELECT COUNT(*) FROM axionpro."State") <> (SELECT COUNT(*) FROM pg_temp.location_reference_seed)
+           OR (SELECT COUNT(*) FROM axionpro."City") <> (SELECT COUNT(*) FROM pg_temp.location_reference_seed) THEN
+            RAISE EXCEPTION 'Location reference seed validation failed. No changes will be committed.';
+        END IF;
+    ELSE
+        -- Safe production path: do not remove reference data that can be used
+        -- by host/global compliance configuration. Ensure the India/China
+        -- catalog exists and is active, adding only missing rows.
+        -- A prior manual reset can leave an identity sequence behind existing
+        -- rows. Synchronize it before any seed insert to prevent PK collisions.
+        FOREACH v_reference_table IN ARRAY ARRAY['Country', 'State', 'City']
+        LOOP
+            SELECT pg_get_serial_sequence(format('axionpro.%I', v_reference_table), 'Id')
+            INTO v_reference_sequence;
+
+            IF v_reference_sequence IS NOT NULL THEN
+                EXECUTE format(
+                    'SELECT setval(%L::regclass, COALESCE(MAX("Id"), 1), COUNT(*) > 0) FROM axionpro.%I',
+                    v_reference_sequence,
+                    v_reference_table);
+            END IF;
+        END LOOP;
+
+        UPDATE axionpro."Country"
+        SET "CountryName" = CASE "CountryCode"
+                                WHEN 'IN' THEN 'India'
+                                WHEN 'CN' THEN 'China'
+                            END,
+            "STDCode" = CASE "CountryCode"
+                            WHEN 'IN' THEN '+91'
+                            WHEN 'CN' THEN '+86'
+                         END,
+            "IsActive" = TRUE
+        WHERE "CountryCode" IN ('IN', 'CN');
+
+        INSERT INTO axionpro."Country" ("CountryName", "CountryCode", "STDCode", "IsActive")
+        SELECT source."CountryName", source."CountryCode", source."STDCode", TRUE
+        FROM
+        (
+            VALUES
+                ('India'::character varying(100), 'IN'::character varying(10), '+91'::character varying(10)),
+                ('China'::character varying(100), 'CN'::character varying(10), '+86'::character varying(10))
+        ) AS source("CountryName", "CountryCode", "STDCode")
+        WHERE NOT EXISTS
+        (
+            SELECT 1
+            FROM axionpro."Country" country
+            WHERE country."CountryCode" = source."CountryCode"
+        );
+
+        UPDATE axionpro."State" state
+        SET "IsActive" = TRUE
+        FROM pg_temp.location_reference_seed seed
+        JOIN axionpro."Country" country ON country."CountryCode" = seed."CountryCode"
+        WHERE state."CountryId" = country."Id"
+          AND state."StateName" = seed."StateName";
+
+        INSERT INTO axionpro."State" ("CountryId", "StateName", "IsActive")
+        SELECT country."Id", seed."StateName", TRUE
+        FROM pg_temp.location_reference_seed seed
+        JOIN axionpro."Country" country ON country."CountryCode" = seed."CountryCode"
+        WHERE NOT EXISTS
+        (
+            SELECT 1
+            FROM axionpro."State" state
+            WHERE state."CountryId" = country."Id"
+              AND state."StateName" = seed."StateName"
+        )
+        ORDER BY seed."SortOrder";
+
+        UPDATE axionpro."City" city
+        SET "IsActive" = TRUE
+        FROM pg_temp.location_reference_seed seed
+        JOIN axionpro."Country" country ON country."CountryCode" = seed."CountryCode"
+        JOIN axionpro."State" state
+          ON state."CountryId" = country."Id"
+         AND state."StateName" = seed."StateName"
+        WHERE city."StateId" = state."Id"
+          AND city."CityName" = seed."CityName";
+
+        INSERT INTO axionpro."City" ("StateId", "CityName", "IsActive")
+        SELECT state."Id", seed."CityName", TRUE
+        FROM pg_temp.location_reference_seed seed
+        JOIN axionpro."Country" country ON country."CountryCode" = seed."CountryCode"
+        JOIN axionpro."State" state
+          ON state."CountryId" = country."Id"
+         AND state."StateName" = seed."StateName"
+        WHERE NOT EXISTS
+        (
+            SELECT 1
+            FROM axionpro."City" city
+            WHERE city."StateId" = state."Id"
+              AND city."CityName" = seed."CityName"
+        )
+        ORDER BY seed."SortOrder";
+    END IF;
+
+    ---------------------------------------------------------------------------
+    -- 5. Reset auto-generated IDs for empty tenant-dependent tables.
     --    Shared/host tables that still contain records are skipped so their
     --    next IDs cannot collide with existing primary keys.
     ---------------------------------------------------------------------------

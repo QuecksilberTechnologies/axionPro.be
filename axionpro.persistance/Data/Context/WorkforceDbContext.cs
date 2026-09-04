@@ -267,6 +267,8 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<IdentityCategoryDocument> IdentityCategoryDocuments { get; set; }
         public virtual DbSet<Tenant> Tenants { get; set; }
 
+        public virtual DbSet<DefaultEmailConfig> DefaultEmailConfigs { get; set; }
+
         public virtual DbSet<TenantDevice> TenantDevices { get; set; }
 
         public virtual DbSet<TenantDeviceConfiguration> TenantDeviceConfigurations { get; set; }
@@ -2820,6 +2822,29 @@ namespace axionpro.persistance.Data.Context
             entity.HasOne(d => d.Tenant).WithMany(p => p.TenantEmailConfig)
                 .HasForeignKey(d => d.TenantId)
                 .HasConstraintName("FK_TenantEmailConfig_Tenant");
+        });
+
+        modelBuilder.Entity<DefaultEmailConfig>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_DefaultEmailConfig");
+
+            entity.ToTable("DefaultEmailConfig", "axionpro");
+
+            entity.HasIndex(e => e.ConfigName).IsUnique().HasDatabaseName("UX_DefaultEmailConfig_ConfigName");
+            entity.HasIndex(e => e.IsDefault)
+                .IsUnique()
+                .HasFilter("\"IsDefault\" = true")
+                .HasDatabaseName("UX_DefaultEmailConfig_OneDefault");
+
+            entity.Property(e => e.ConfigName).HasMaxLength(100);
+            entity.Property(e => e.SmtpHost).HasMaxLength(200);
+            entity.Property(e => e.SmtpUsername).HasMaxLength(200);
+            entity.Property(e => e.SmtpPasswordEncrypted).HasMaxLength(500);
+            entity.Property(e => e.FromEmail).HasMaxLength(200);
+            entity.Property(e => e.FromName).HasMaxLength(100);
+            entity.Property(e => e.IsDefault).HasDefaultValue(false);
+            entity.Property(e => e.SecrateKey).HasMaxLength(500);
+            entity.Property(e => e.CreatedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
         modelBuilder.Entity<TenantEnabledModule>(entity =>

@@ -520,6 +520,31 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
                 else
                     _logger.LogWarning("Failed to update LoginCredential for LoginId: {LoginId}", loginRequest.LoginId);
 
+                // A successfully authenticated Tenant user has completed the
+                // onboarding sign-in. Persist the state with the same audit
+                // values received for this login; Host users never reach this path.
+                user.MacAddress = loginRequest.MacAddress;
+                user.IpAddressLocal = loginRequest.IpAddressLocal;
+                user.IpAddressPublic = loginRequest.IpAddressPublic;
+                user.Latitude = loginRequest.Latitude;
+                user.Longitude = loginRequest.Longitude;
+                user.LoginDevice = loginRequest.LoginDevice;
+                user.IsOnboard = true;
+                user.UpdatedById = empId;
+                user.UpdatedDateTime = DateTime.UtcNow;
+
+                if (!await _unitOfWork.UserLoginRepository.UpdateLoginMetadataAsync(user, cancellationToken))
+                {
+                    _logger.LogError(
+                        "Could not persist onboarding completion for LoginCredentialId: {LoginCredentialId}",
+                        user.Id);
+                    throw new axionpro.application.Exceptions.ApiException(
+                        AppConstants.ErrorMessages.InternalServerError,
+                        (int)System.Net.HttpStatusCode.InternalServerError);
+                }
+
+                employeeInfo.IsOnboard = true;
+
                 //  Step 10: Fetch Permissions
 
                 //  var permissionList = new List<List<RoleModulePermission>> { rolePermissions };

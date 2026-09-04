@@ -1,73 +1,121 @@
-﻿using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.persistance.Repositories
+namespace axionpro.persistance.Repositories;
+
+public sealed class TenantEmailConfigRepository(
+    WorkforceDbContext context,
+    ILogger<TenantEmailConfigRepository> logger) : ITenantEmailConfigRepository
 {
-    public class TenantEmailConfigRepository : ITenantEmailConfigRepository
+    public Task<TenantEmailConfig?> GetActiveEmailConfigAsync(long? tenantId) =>
+        context.TenantEmailConfigs
+            .Include(configuration => configuration.Tenant)
+                .ThenInclude(tenant => tenant.TenantProfile)
+            .AsNoTracking()
+            .Where(configuration => configuration.TenantId == tenantId && configuration.IsActive)
+            .OrderBy(configuration => configuration.Id)
+            .FirstOrDefaultAsync();
+
+    public async Task<TenantEmailConfig?> InsertEmailConfigAsync(TenantEmailConfig? config)
     {
-        private readonly WorkforceDbContext _context;
-        private readonly ILogger<TenantEmailConfigRepository> _logger;
-
-        public TenantEmailConfigRepository(WorkforceDbContext context, ILogger<TenantEmailConfigRepository> logger)
+        if (config is null)
         {
-            _context = context;
-            _logger = logger;
+            return null;
         }
 
-        public async Task<TenantEmailConfig?> GetActiveEmailConfigAsync(long? tenantId)
+        await context.TenantEmailConfigs.AddAsync(config);
+        logger.LogInformation("Tenant email configuration added to DbContext for TenantId: {TenantId}", config.TenantId);
+        return config;
+    }
+
+    public async Task<TenantEmailConfig?> UpdateEmailConfigAsync(TenantEmailConfig? config)
+    {
+        if (config is null)
         {
-            return await _context.TenantEmailConfigs
-                .Include(x => x.Tenant)          // 🔥 YAHI LINE IMPORTANT HAI
-                .Include(x => x.Tenant.TenantProfile) // logo etc ke liye
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x =>
-                    x.TenantId == tenantId &&
-                    x.IsActive == true);
+            return null;
         }
 
-        
-        public async Task<TenantEmailConfig?> InsertEmailConfigAsync(TenantEmailConfig? config)
+        var existing = await context.TenantEmailConfigs
+            .FirstOrDefaultAsync(configuration => configuration.Id == config.Id);
+        if (existing is null)
         {
-            if (config == null)
-                return null;
-
-            await _context.TenantEmailConfigs.AddAsync(config);
-
-            _logger.LogInformation("Tenant email config added to DbContext for TenantId: {TenantId}", config.TenantId);
-
-            return config;
+            return null;
         }
 
-        public async Task<TenantEmailConfig?> UpdateEmailConfigAsync(TenantEmailConfig? config)
+        existing.SmtpHost = config.SmtpHost;
+        existing.SmtpPort = config.SmtpPort;
+        existing.SmtpUsername = config.SmtpUsername;
+        existing.SmtpPasswordEncrypted = config.SmtpPasswordEncrypted;
+        existing.FromEmail = config.FromEmail;
+        existing.FromName = config.FromName;
+        existing.IsActive = config.IsActive;
+        if (!string.IsNullOrWhiteSpace(config.SecrateKey))
         {
-            if (config == null)
-                return null;
+            existing.SecrateKey = config.SecrateKey;
+        }
 
-            var existing = await _context.TenantEmailConfigs
-                .FirstOrDefaultAsync(x => x.Id == config.Id);
+        logger.LogInformation("Tenant email configuration updated in DbContext for Id: {TenantEmailConfigId}", config.Id);
+        return existing;
+    }
 
-            if (existing == null)
-                return null;
+    public Task<TenantEmailConfig?> GetByIdAsync(
+        long tenantId,
+        int id,
+        CancellationToken cancellationToken = default) =>
+        context.TenantEmailConfigs
+            .Include(configuration => configuration.Tenant)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                configuration => configuration.TenantId == tenantId && configuration.Id == id,
+                cancellationToken);
 
-            existing.SmtpHost = config.SmtpHost;
-            existing.SmtpPort = config.SmtpPort;
-            existing.SmtpUsername = config.SmtpUsername;
-            existing.SmtpPasswordEncrypted = config.SmtpPasswordEncrypted;
-            existing.FromEmail = config.FromEmail;
-            existing.FromName = config.FromName;
-            existing.IsActive = config.IsActive;
-            if (!string.IsNullOrWhiteSpace(config.SecrateKey))
-            {
-                existing.SecrateKey = config.SecrateKey;
-            }
+    public Task<TenantEmailConfig?> GetForUpdateAsync(
+        long tenantId,
+        int id,
+        CancellationToken cancellationToken = default) =>
+        context.TenantEmailConfigs.FirstOrDefaultAsync(
+            configuration => configuration.TenantId == tenantId && configuration.Id == id,
+            cancellationToken);
 
-            _logger.LogInformation("Tenant email config updated in DbContext for Id: {Id}", config.Id);
+    public async Task<IReadOnlyList<TenantEmailConfig>> GetAllAsync(
+        long tenantId,
+        CancellationToken cancellationToken = default) =>
+        await context.TenantEmailConfigs
+            .Include(configuration => configuration.Tenant)
+            .AsNoTracking()
+            .Where(configuration => configuration.TenantId == tenantId)
+            .OrderByDescending(configuration => configuration.IsActive)
+            .ThenBy(configuration => configuration.Id)
+            .ToListAsync(cancellationToken);
 
-            return existing;
+    public async Task DeactivateOtherActiveAsync(
+        long tenantId,
+        int? excludedId,
+        CancellationToken cancellationToken = default)
+    {
+        var configurations = context.TenantEmailConfigs.Where(configuration =>
+            configuration.TenantId == tenantId &&
+            configuration.IsActive &&
+            (!excludedId.HasValue || configuration.Id != excludedId.Value));
+
+        var affected = await configurations.ExecuteUpdateAsync(
+            setters => setters.SetProperty(configuration => configuration.IsActive, false),
+            cancellationToken);
+
+        if (affected > 0)
+        {
+            logger.LogInformation(
+                "Deactivated {TenantEmailConfigCount} previous active SMTP configuration(s) for TenantId: {TenantId}",
+                affected,
+                tenantId);
         }
     }
 
+    public async Task AddAsync(TenantEmailConfig configuration, CancellationToken cancellationToken = default) =>
+        await context.TenantEmailConfigs.AddAsync(configuration, cancellationToken);
+
+    public void Remove(TenantEmailConfig configuration) => context.TenantEmailConfigs.Remove(configuration);
 }

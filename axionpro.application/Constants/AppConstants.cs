@@ -138,6 +138,16 @@ namespace axionpro.application.Constants
             public const string TenantDeviceConfigurationNotFound = "The requested tenant device configuration was not found.";
             public const string TenantDeviceConfigurationAlreadyExists = "This tenant device already has a configuration.";
             public const string TenantDeviceConfigurationInUse = "Delete the tenant device configuration before deleting the tenant device.";
+            public const string DefaultEmailConfigNotFound = "The requested default email configuration was not found.";
+            public const string DuplicateDefaultEmailConfigName = "A default email configuration with this name already exists.";
+            public const string DefaultEmailConfigMustRemainActive = "At least one active email configuration is required for Tenant registration.";
+            public const string ActiveDefaultEmailConfigCannotBeDeleted = "Activate a replacement default email configuration before deleting the current active configuration.";
+            public const string DefaultEmailConfigMustBeActiveToSetDefault = "Only an active default email configuration can be marked as the registration default.";
+            public const string DefaultEmailConfigCannotClearDefault = "The current registration default cannot be unset directly. Mark another active email configuration as default first.";
+            public const string DefaultEmailConfigDefaultRequired = "At least one active registration default email configuration is required before Tenant registration.";
+            public const string DefaultEmailConfigMustBeInactiveToDelete = "Deactivate this email configuration before deleting it.";
+            public const string TenantEmailConfigNotFound = "The requested tenant email configuration was not found.";
+            public const string TenantEmailConfigMustBeInactiveToDelete = "Deactivate this tenant email configuration before deleting it.";
             public const string DuplicateTenantDeviceSerialNumber = "A live tenant device already uses this serial number.";
             public const string DuplicateTenantDeviceCode = "A live tenant device already uses this device code for the selected tenant.";
             public const string DuplicateTenantDeviceAssetTag = "A live tenant device already uses this asset tag for the selected tenant.";
@@ -322,6 +332,14 @@ namespace axionpro.application.Constants
             public const string TenantDeviceConfigurationUpdated = "Tenant device configuration updated successfully.";
             public const string TenantDeviceConfigurationDeleted = "Tenant device configuration deleted successfully.";
             public const string TenantDeviceConfigurationRetrieved = "Tenant device configurations retrieved successfully.";
+            public const string DefaultEmailConfigCreated = "Default email configuration created successfully.";
+            public const string DefaultEmailConfigUpdated = "Default email configuration updated successfully.";
+            public const string DefaultEmailConfigDeleted = "Default email configuration deleted successfully.";
+            public const string DefaultEmailConfigRetrieved = "Default email configuration retrieved successfully.";
+            public const string TenantEmailConfigCreated = "Tenant email configuration created successfully.";
+            public const string TenantEmailConfigUpdated = "Tenant email configuration updated successfully.";
+            public const string TenantEmailConfigDeleted = "Tenant email configuration deleted successfully.";
+            public const string TenantEmailConfigRetrieved = "Tenant email configurations retrieved successfully.";
         }
 
         #endregion
@@ -417,25 +435,6 @@ namespace axionpro.application.Constants
             Personal = 1,
             Official = 2
         }
-        // ==============================
-        // Default SMTP (Brevo Fallback)
-        // ==============================
-
-
-        public const string DefaultSmtpHost = "smtp-relay.brevo.com";
-        public const int DefaultSmtpPort = 2525;
-
-        public const string DefaultSmtpUserName = "a4e423001@smtp-brevo.com";
-
-        public const bool DefaultSmtpEnableSsl = true;
-
-        // ==============================
-        // Email Defaults
-        // ==============================
-
-        public const string DefaultFromEmail = "hr@quecksilber.in";
-        public const string DefaultFromName = "AxionPro HRMS";
-
         public const string TenantFolder = "tenants";
         public const string EmployeeFolder = "employees";
         public const string ProfileFolder = "profile";

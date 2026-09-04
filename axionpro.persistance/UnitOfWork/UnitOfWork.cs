@@ -63,6 +63,7 @@ public class UnitOfWork : IUnitOfWork
     private IPolicyTypeRepository? _policyTypeRepository;
     private IPolicyTypeDocumentRepository? _companyPolicyDocumentRepository;
     private ITenantEmailConfigRepository? _tenantEmailConfigRepository;
+    private IDefaultEmailConfigRepository? _defaultEmailConfigRepository;
     private IHolidayCalandarRepository? _holidayCalandarRepository;
     private ITenantModuleConfigurationRepository? _tenantModuleConfigurationRepository;
     private ITenantParentModuleRepository? _tenantParentModuleRepository;
@@ -403,6 +404,11 @@ public class UnitOfWork : IUnitOfWork
 
     public ITenantEmailConfigRepository TenantEmailConfigRepository =>
         _tenantEmailConfigRepository ??= new TenantEmailConfigRepository(_context, _loggerFactory.CreateLogger<TenantEmailConfigRepository>());
+
+    public IDefaultEmailConfigRepository DefaultEmailConfigRepository =>
+        _defaultEmailConfigRepository ??= new DefaultEmailConfigRepository(
+            _context,
+            _loggerFactory.CreateLogger<DefaultEmailConfigRepository>());
 
     public IDesignationRepository DesignationRepository =>
         _designationRepository ??= new DesignationRepository(_context, _loggerFactory.CreateLogger<DesignationRepository>(), _mapper);

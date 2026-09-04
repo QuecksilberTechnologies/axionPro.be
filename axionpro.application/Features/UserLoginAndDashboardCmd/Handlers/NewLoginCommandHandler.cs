@@ -290,6 +290,7 @@ public sealed class NewLoginCommandHandler : IRequestHandler<NewLoginCommand, Ap
         loginCredential.Latitude = request.Latitude;
         loginCredential.Longitude = request.Longitude;
         loginCredential.LoginDevice = request.LoginDevice;
+        loginCredential.IsOnboard = true;
         loginCredential.UpdatedById = bootstrap.EmployeeId;
         loginCredential.UpdatedDateTime = DateTime.UtcNow;
 
@@ -302,6 +303,7 @@ public sealed class NewLoginCommandHandler : IRequestHandler<NewLoginCommand, Ap
 
         // Build the compact login response without loading navigation or permission data.
         var user = _mapper.Map<NewLoginUserContextDTO>(bootstrap);
+        user.IsOnboard = true;
         user.EmployeeId = _idEncoderService.EncodeId_long(bootstrap.EmployeeId, trustedTenantKey);
         user.TenantId = _idEncoderService.EncodeId_long(bootstrap.TenantId, trustedTenantKey);
         user.FullName = BuildFullName(bootstrap);

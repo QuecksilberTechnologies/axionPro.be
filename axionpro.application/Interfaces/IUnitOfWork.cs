@@ -19,6 +19,7 @@ namespace axionpro.application.Interfaces
         IModuleRepository ModuleRepository { get; }
         IEmployeeLeaveRepository EmployeeLeaveRepository { get; }
         ITenantEmailConfigRepository TenantEmailConfigRepository { get; }
+        IDefaultEmailConfigRepository DefaultEmailConfigRepository { get; }
         ITenantEmployeeCodePatternRepository TenantEmployeeCodePatternRepository { get; }
         IInsuranceRepository InsuranceRepository { get; }
         IPolicyTypeInsuranceMappingRepository PolicyTypeInsuranceMappingRepository { get; }

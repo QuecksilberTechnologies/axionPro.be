@@ -11,7 +11,6 @@ using axionpro.application.Common.SeedData;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Tenant;
-using axionpro.application.DTOS.Configruations;
 using axionpro.application.DTOS.Token;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -25,7 +24,6 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
 
 namespace axionpro.application.Features.RegistrationCmd.Handlers
@@ -60,7 +58,6 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
         private readonly IPasswordService _passwordService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly IConfiguration _configuration;
-        private readonly EmailConfig _emailConfig;
         private readonly ICommonRequestService _commonRequestService;
 
         public CreateTenantCommandHandler(
@@ -74,7 +71,6 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             IEncryptionService encryptionService,
             IIdEncoderService idEncoderService,
             IConfiguration configuration,
-            IOptions<EmailConfig> emailConfig,
             ICommonRequestService commonRequestService)
         {
             _tokenService = tokenService;
@@ -87,7 +83,6 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _configuration = configuration;
-            _emailConfig = emailConfig.Value;
             _commonRequestService = commonRequestService;
         }
 
@@ -165,6 +160,13 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     return Fail(AppConstants.ErrorMessages.SubscriptionPlanNotFound);
 
                 #endregion
+
+                var defaultEmailConfiguration = await GetActiveHostEmailConfigurationAsync(cancellationToken);
+
+                if (defaultEmailConfiguration is null)
+                {
+                    return Fail("An active default email configuration is required before tenant registration.");
+                }
 
                 // =====================================================
                 // STEP 3 : Prepare root entity
@@ -686,10 +688,16 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 await _unitOfWork.TenantRepository.AddTenantProfileAsync(tenantProfile);
 
                 // =====================================================
-                // STEP 19 : Create tenant email config
+                // STEP 19 : Create tenant email config only when the caller
+                // explicitly supplied SMTP data. The Host configuration still
+                // sends the welcome email, but must never be copied into a
+                // TenantEmailConfig row merely because the request omitted it.
                 // =====================================================
-                await _unitOfWork.TenantEmailConfigRepository.InsertEmailConfigAsync(
-                    BuildTenantEmailConfiguration(newTenantId, onboardingRequest));
+                if (HasTenantEmailConfiguration(onboardingRequest?.EmailConfiguration))
+                {
+                    await _unitOfWork.TenantEmailConfigRepository.InsertEmailConfigAsync(
+                        BuildTenantEmailConfiguration(newTenantId, defaultEmailConfiguration, onboardingRequest));
+                }
 
                 // =====================================================
                 // STEP 20 : Create role permission mapping
@@ -788,36 +796,60 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             };
         }
 
-        private TenantEmailConfig BuildTenantEmailConfiguration(
+        private static TenantEmailConfig BuildTenantEmailConfiguration(
             long tenantId,
+            DefaultEmailConfig defaultEmailConfiguration,
             INewTenantOnboardingConfiguration? onboardingRequest)
         {
             var emailConfiguration = onboardingRequest?.EmailConfiguration;
             var smtpPassword = GetConfiguredValue(
                 emailConfiguration?.SmtpPasswordEncrypted,
-                _emailConfig.Secret);
+                defaultEmailConfiguration.SmtpPasswordEncrypted);
 
             return new TenantEmailConfig
             {
                 TenantId = tenantId,
                 SmtpHost = GetConfiguredValue(
                     emailConfiguration?.SmtpHost,
-                    ConstantValues.DefaultSmtpHost),
-                SmtpPort = emailConfiguration?.SmtpPort ?? ConstantValues.DefaultSmtpPort,
+                    defaultEmailConfiguration.SmtpHost),
+                SmtpPort = emailConfiguration?.SmtpPort ?? defaultEmailConfiguration.SmtpPort,
                 SmtpUsername = GetConfiguredValue(
                     emailConfiguration?.SmtpUsername,
-                    GetConfiguredValue(_emailConfig.SMTPUserName, ConstantValues.DefaultSmtpUserName)),
+                    defaultEmailConfiguration.SmtpUsername),
                 SmtpPasswordEncrypted = smtpPassword,
                 FromEmail = GetConfiguredValue(
                     emailConfiguration?.FromEmail,
-                    ConstantValues.DefaultFromEmail),
+                    defaultEmailConfiguration.FromEmail),
                 FromName = GetConfiguredValue(
                     emailConfiguration?.FromName,
-                    ConstantValues.DefaultFromName),
-                IsActive = emailConfiguration?.IsActive ?? true,
-                SecrateKey = GetConfiguredValue(emailConfiguration?.SecrateKey, smtpPassword)
+                    defaultEmailConfiguration.FromName),
+                IsActive = emailConfiguration?.IsActive ?? defaultEmailConfiguration.IsActive,
+                SecrateKey = GetConfiguredValue(
+                    emailConfiguration?.SecrateKey,
+                    GetConfiguredValue(defaultEmailConfiguration.SecrateKey, smtpPassword))
             };
         }
+
+        private static bool HasTenantEmailConfiguration(
+            NewTenantEmailConfigurationRequestDTO? emailConfiguration) =>
+            emailConfiguration is not null &&
+            (!string.IsNullOrWhiteSpace(emailConfiguration.SmtpHost) ||
+             emailConfiguration.SmtpPort.HasValue ||
+             !string.IsNullOrWhiteSpace(emailConfiguration.SmtpUsername) ||
+             !string.IsNullOrWhiteSpace(emailConfiguration.SmtpPasswordEncrypted) ||
+             !string.IsNullOrWhiteSpace(emailConfiguration.FromEmail) ||
+             !string.IsNullOrWhiteSpace(emailConfiguration.FromName) ||
+             !string.IsNullOrWhiteSpace(emailConfiguration.SecrateKey));
+
+        /// <summary>
+        /// Resolves the Host SMTP configuration selected for registration.
+        /// The repository applies both IsActive and IsDefault filters, so a
+        /// self-registration flow never chooses an arbitrary Host record.
+        /// </summary>
+        private Task<DefaultEmailConfig?> GetActiveHostEmailConfigurationAsync(
+            CancellationToken cancellationToken) =>
+            _unitOfWork.DefaultEmailConfigRepository
+                .GetActiveDefaultEmailConfigAsync(cancellationToken);
 
         private static string? GetConfiguredValue(string? suppliedValue, string? fallbackValue)
         {
@@ -845,7 +877,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
             try
             {
-                var emailSent = await _emailService.SendTemplatedEmailAsync(
+                var emailSent = await _emailService.SendTemplatedEmailUsingHostConfigAsync(
                     ConstantValues.WelcomeEmail,
                     recipientEmail,
                     tenantId,

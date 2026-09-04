@@ -64,5 +64,5 @@ internal sealed class NewTenantCreationBridgeRequestDTO : TenantCreateRequestDTO
 {
     public NewTenantProfileRequestDTO Profile { get; set; } = new();
     public NewTenantLocationRequestDTO InitialLocation { get; set; } = new();
-    public NewTenantEmailConfigurationRequestDTO EmailConfiguration { get; set; } = new();
+    public NewTenantEmailConfigurationRequestDTO? EmailConfiguration { get; set; }
 }

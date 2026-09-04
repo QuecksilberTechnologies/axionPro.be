@@ -9,6 +9,7 @@ using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Client;
 using axionpro.application.DTOs.Department;
+using axionpro.application.DTOs.DefaultEmailConfig;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOs.EmailTemplate;
 using axionpro.application.DTOs.Employee;
@@ -61,6 +62,7 @@ using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.DTOS.UserRoles;
 using axionpro.application.DTOS.TenantConfiguration;
+using axionpro.application.DTOS.Configruations;
 using axionpro.application.Features.TickeAllCmd.Classification;
 using axionpro.domain.Entity;
 using FluentValidation;
@@ -87,6 +89,21 @@ namespace axionpro.application.Mappings
 
         public MappingProfile()
         {
+            CreateMap<DefaultEmailConfig, DefaultEmailConfigResponseDTO>()
+                .ForMember(destination => destination.HasSmtpPassword,
+                    options => options.MapFrom(source =>
+                        !string.IsNullOrWhiteSpace(source.SecrateKey) ||
+                        !string.IsNullOrWhiteSpace(source.SmtpPasswordEncrypted)));
+
+            CreateMap<TenantEmailConfig, TenantEmailConfigResponseDTO>()
+                .ForMember(destination => destination.TenantId, options => options.Ignore())
+                .ForMember(destination => destination.TenantName,
+                    options => options.MapFrom(source => source.Tenant != null ? source.Tenant.CompanyName : null))
+                .ForMember(destination => destination.HasSmtpPassword,
+                    options => options.MapFrom(source =>
+                        !string.IsNullOrWhiteSpace(source.SecrateKey) ||
+                        !string.IsNullOrWhiteSpace(source.SmtpPasswordEncrypted)));
+
 
             #region Host Device Management Mappings
 

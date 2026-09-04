@@ -118,6 +118,7 @@ namespace axionpro.persistance
             services.AddScoped<ITenantRepository, TenantRepository>();
             services.AddScoped<ILocationRepository, LocationRepository>();
             services.AddScoped<ITenantEmailConfigRepository, TenantEmailConfigRepository>();
+            services.AddScoped<IDefaultEmailConfigRepository, DefaultEmailConfigRepository>();
             services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
             services.AddScoped<ITenantSubscriptionRepository, TenantSubscriptionRepository>();
             services.AddScoped<IPlanModuleMappingRepository, PlanModuleMappingRepository>();

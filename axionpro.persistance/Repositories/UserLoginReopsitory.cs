@@ -174,13 +174,15 @@ namespace axionpro.persistance.Repositories
                 return false;
             }
 
-            // Persist only request metadata; password and credential ownership remain unchanged.
+            // Persist only successful-login metadata and onboarding state; password
+            // and credential ownership remain unchanged.
             persistedCredential.MacAddress = loginCredential.MacAddress;
             persistedCredential.IpAddressLocal = loginCredential.IpAddressLocal;
             persistedCredential.IpAddressPublic = loginCredential.IpAddressPublic;
             persistedCredential.Latitude = loginCredential.Latitude;
             persistedCredential.Longitude = loginCredential.Longitude;
             persistedCredential.LoginDevice = loginCredential.LoginDevice;
+            persistedCredential.IsOnboard = true;
             persistedCredential.UpdatedById = loginCredential.UpdatedById;
             persistedCredential.UpdatedDateTime = loginCredential.UpdatedDateTime;
 
