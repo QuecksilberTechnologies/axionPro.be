@@ -24,8 +24,8 @@ public sealed class LoginRouteTests : PlaywrightTest
 
         _browser = await Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
-            // Use the machine's Edge installation so Visual Studio does not depend on a separate Playwright browser cache.
-            Channel = "msedge",
+            // Use the Chromium revision that matches the installed Playwright package.
+            // This avoids protocol crashes caused by an arbitrary machine Edge version.
             Headless = TestSettings.Headless
         });
 

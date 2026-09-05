@@ -4,7 +4,6 @@
 // Role    : CEO
 // Purpose : Defines supported Host-managed device-model types used by DeviceMaster.
 // ================================================================
-
 namespace axionpro.domain.Entity;
 
 /// <summary>Identifies the primary functional type of a device model in the Host-managed catalog.</summary>
@@ -26,21 +25,4 @@ public enum DeviceType : short
     AccessControl = 7,
     /// <summary>Device type not represented by the standard categories.</summary>
     Other = 8
-}
-
-/// <summary>Identifies the communication channel used by a physical Tenant device.</summary>
-public enum DeviceCommunicationType : short
-{
-    /// <summary>HTTP communication.</summary>
-    Http = 1,
-    /// <summary>HTTPS communication.</summary>
-    Https = 2,
-    /// <summary>WebSocket communication.</summary>
-    WebSocket = 3,
-    /// <summary>TCP communication.</summary>
-    Tcp = 4,
-    /// <summary>Cloud API communication.</summary>
-    CloudApi = 5,
-    /// <summary>Push SDK communication.</summary>
-    PushSdk = 6
 }

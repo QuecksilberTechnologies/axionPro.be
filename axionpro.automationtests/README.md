@@ -1,12 +1,13 @@
 # AxionPro automated API + UI tests
 
-This project runs API tests directly with Playwright and opens Chromium for UI tests. It uses NUnit, so every test appears in Visual Studio **Test Explorer**.
+This project runs API tests directly and opens Playwright-managed Chromium for UI tests. It uses NUnit, so every test appears in Visual Studio **Test Explorer**.
 
 ## What is already covered
 
 - API: Swagger document is available.
 - API: public `ClientInfo/detect-device` response contains the automation browser identity.
 - API: authenticated navigation rejects a request without a token.
+- API: a permission-aware Tenant Email Configuration CRUD flow (create, read, list, update, delete, and cleanup).
 - UI: the Angular login route loads in Chromium.
 
 The UI test is deliberately skipped until a frontend address is supplied. That keeps `Run All` safe when the frontend is not running or is located outside this repository.
@@ -15,7 +16,11 @@ The UI test is deliberately skipped until a frontend address is supplied. That k
 
 1. Open `AxionPro.sln` in Visual Studio and allow NuGet restore to finish.
 2. Build the `axionpro.automationtests` project once.
-3. The UI test uses the Microsoft Edge browser already installed on this Windows machine, so no separate Playwright browser download is required.
+3. Install the browser revision matched to the project once:
+
+```powershell
+pwsh .\axionpro.automationtests\bin\Debug\net10.0\playwright.ps1 install chromium
+```
 
 ## First run in Visual Studio
 
@@ -38,6 +43,9 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter 
 
 # Entire suite
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj
+
+# Tenant Email Configuration CRUD only
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=TenantEmailConfig"
 ```
 
 ## Configuration and secrets
@@ -50,7 +58,17 @@ $env:AXIONPRO_TEST_WEB_BASE_URL = "http://localhost:4200"
 $env:AXIONPRO_TEST_HEADLESS = "false"
 ```
 
-Do not place user passwords, JWTs, or production credentials in `automationsettings.json`. Add authenticated business-flow tests only after a dedicated test account and test database are available.
+The Tenant Email Configuration CRUD test intentionally needs a dedicated Tenant Admin test account. Set these only in the terminal session that runs the test; do not save them in a file:
+
+```powershell
+$env:AXIONPRO_TEST_LOGIN_ID = "tenant-admin@example.test"
+$env:AXIONPRO_TEST_LOGIN_PASSWORD = "your-test-password"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=TenantEmailConfig"
+```
+
+Before this test can run, apply `database-scripts/CreateTenantEmailConfigModule.sql` to the intended **non-production** database, enable `TENANT_EMAIL_CONFIG` plus its CRUD operations for that tenant through the normal plan-entitlement synchronization, and assign Create, View, Update, and Delete to the test account's role. The test creates an **inactive** SMTP configuration and always deletes it, so it cannot replace the tenant's active mail configuration.
+
+Do not place user passwords, JWTs, or production credentials in `automationsettings.json`.
 
 ## Artifacts when a UI test fails
 

@@ -208,7 +208,8 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.HasConfiguration, o => o.MapFrom(s => s.TenantDeviceConfiguration != null));
 
             CreateMap<CreateTenantDeviceConfigurationRequestDTO, TenantDeviceConfiguration>()
-                .ForMember(d => d.CommunicationType, o => o.MapFrom(s => s.CommunicationType.HasValue ? (short?)s.CommunicationType.Value : null))
+                .ForMember(d => d.MqttTransport, o => o.MapFrom(s => s.MqttTransport.HasValue ? (short?)s.MqttTransport.Value : null))
+                .ForMember(d => d.CommunicationType, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore())
                 .ForMember(d => d.AddedDateTime, o => o.Ignore())
@@ -223,7 +224,8 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.TenantDevice, o => o.Ignore());
 
             CreateMap<UpdateTenantDeviceConfigurationRequestDTO, TenantDeviceConfiguration>()
-                .ForMember(d => d.CommunicationType, o => o.MapFrom(s => s.CommunicationType.HasValue ? (short?)s.CommunicationType.Value : null))
+                .ForMember(d => d.MqttTransport, o => o.MapFrom(s => s.MqttTransport.HasValue ? (short?)s.MqttTransport.Value : null))
+                .ForMember(d => d.CommunicationType, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore())
                 .ForMember(d => d.AddedDateTime, o => o.Ignore())
@@ -239,7 +241,7 @@ namespace axionpro.application.Mappings
 
             CreateMap<TenantDeviceConfiguration, TenantDeviceConfigurationResponseDTO>()
                 .ForMember(d => d.TenantId, o => o.Ignore())
-                .ForMember(d => d.CommunicationType, o => o.MapFrom(s => s.CommunicationType.HasValue ? (DeviceCommunicationType?)s.CommunicationType.Value : null))
+                .ForMember(d => d.MqttTransport, o => o.MapFrom(s => s.MqttTransport.HasValue ? (DeviceCommunicationProtocol?)s.MqttTransport.Value : null))
                 .ForMember(d => d.DeviceCode, o => o.MapFrom(s => s.TenantDevice != null ? s.TenantDevice.DeviceCode : null))
                 .ForMember(d => d.DeviceName, o => o.MapFrom(s => s.TenantDevice != null ? s.TenantDevice.DeviceName : null))
                 .ForMember(d => d.DeviceMasterName, o => o.MapFrom(s => s.TenantDevice != null && s.TenantDevice.DeviceMaster != null ? s.TenantDevice.DeviceMaster.DeviceName : null))

@@ -204,7 +204,7 @@ public sealed class TenantDeviceConfigurationRepository(WorkforceDbContext conte
             query = query.Where(x => (x.IpAddress != null && EF.Functions.ILike(x.IpAddress, term)) || (x.MacAddress != null && EF.Functions.ILike(x.MacAddress, term)) || (x.ServerHost != null && EF.Functions.ILike(x.ServerHost, term)) || (x.ServerUrl != null && EF.Functions.ILike(x.ServerUrl, term)) || EF.Functions.ILike(x.TenantDevice.DeviceCode, term) || (x.TenantDevice.DeviceName != null && EF.Functions.ILike(x.TenantDevice.DeviceName, term)));
         }
         if (filter.TenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.TenantDeviceId.Value);
-        if (filter.CommunicationType.HasValue) query = query.Where(x => x.CommunicationType == (short)filter.CommunicationType.Value);
+        if (filter.MqttTransport.HasValue) query = query.Where(x => x.MqttTransport == (short)filter.MqttTransport.Value);
         if (filter.IsEnrollmentEnabled.HasValue) query = query.Where(x => x.IsEnrollmentEnabled == filter.IsEnrollmentEnabled.Value);
         var totalCount = await query.CountAsync(cancellationToken);
         var data = await query.OrderByDescending(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
@@ -222,7 +222,7 @@ public sealed class TenantDeviceConfigurationRepository(WorkforceDbContext conte
             query = query.Where(x => (x.IpAddress != null && EF.Functions.ILike(x.IpAddress, term)) || (x.MacAddress != null && EF.Functions.ILike(x.MacAddress, term)) || (x.ServerHost != null && EF.Functions.ILike(x.ServerHost, term)) || (x.ServerUrl != null && EF.Functions.ILike(x.ServerUrl, term)) || EF.Functions.ILike(x.TenantDevice.DeviceCode, term) || (x.TenantDevice.DeviceName != null && EF.Functions.ILike(x.TenantDevice.DeviceName, term)));
         }
         if (filter.TenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.TenantDeviceId.Value);
-        if (filter.CommunicationType.HasValue) query = query.Where(x => x.CommunicationType == (short)filter.CommunicationType.Value);
+        if (filter.MqttTransport.HasValue) query = query.Where(x => x.MqttTransport == (short)filter.MqttTransport.Value);
         if (filter.IsEnrollmentEnabled.HasValue) query = query.Where(x => x.IsEnrollmentEnabled == filter.IsEnrollmentEnabled.Value);
         var totalCount = await query.CountAsync(cancellationToken);
         var data = await query.OrderByDescending(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);

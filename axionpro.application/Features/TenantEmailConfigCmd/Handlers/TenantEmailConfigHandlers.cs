@@ -57,7 +57,15 @@ public sealed class GetAllTenantEmailConfigsQuery(TenantEmailConfigAccessRequest
 
 #region Shared access
 
-public sealed record TenantEmailConfigAccessScope(long TenantId, string TenantEncryptionKey);
+/// <summary>
+/// Carries both the caller-facing key used to protect Tenant identifiers and
+/// the Tenant-owned key used to encrypt SMTP secrets at rest. Host callers
+/// have a distinct caller key, so the two must never be conflated.
+/// </summary>
+public sealed record TenantEmailConfigAccessScope(
+    long TenantId,
+    string TenantIdentifierProtectionKey,
+    string SmtpPasswordEncryptionKey);
 
 /// <summary>Resolves the Tenant boundary from the authenticated Host or Tenant principal.</summary>
 public abstract class TenantEmailConfigAccessHandlerBase(
@@ -94,7 +102,7 @@ public abstract class TenantEmailConfigAccessHandlerBase(
         var response = mapper.Map<TenantEmailConfigResponseDTO>(configuration);
         response.TenantId = HostTenantIdentifierProtector.Encrypt(
             configuration.TenantId,
-            scope.TenantEncryptionKey,
+            scope.TenantIdentifierProtectionKey,
             idEncoderService);
         return response;
     }
@@ -114,7 +122,17 @@ public abstract class TenantEmailConfigAccessHandlerBase(
             throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
         }
 
-        return new TenantEmailConfigAccessScope(tenantId, hostContext.TenantEncryptionKey);
+        var tenantEncryptionKey = await UnitOfWork.TenantEncryptionKeyRepository
+            .GetActiveKeyByTenantIdAsync(tenantId, cancellationToken);
+        if (tenantEncryptionKey is null || string.IsNullOrWhiteSpace(tenantEncryptionKey.EncryptionKey))
+        {
+            throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
+        }
+
+        return new TenantEmailConfigAccessScope(
+            tenantId,
+            hostContext.TenantEncryptionKey,
+            tenantEncryptionKey.EncryptionKey);
     }
 
     private async Task<TenantEmailConfigAccessScope> ResolveTenantEmployeeScopeAsync(
@@ -132,6 +150,7 @@ public abstract class TenantEmailConfigAccessHandlerBase(
 
         return new TenantEmailConfigAccessScope(
             tenantContext.TenantId,
+            tenantContext.Claims.TenantEncriptionKey,
             tenantContext.Claims.TenantEncriptionKey);
     }
 }
@@ -144,6 +163,7 @@ public sealed class CreateTenantEmailConfigCommandHandler(
     IUnitOfWork unitOfWork,
     ICommonRequestService commonRequestService,
     IIdEncoderService idEncoderService,
+    IEncryptionService encryptionService,
     IMapper mapper,
     ILogger<CreateTenantEmailConfigCommandHandler> logger)
     : TenantEmailConfigAccessHandlerBase(unitOfWork, commonRequestService, idEncoderService),
@@ -166,7 +186,10 @@ public sealed class CreateTenantEmailConfigCommandHandler(
                     .DeactivateOtherActiveAsync(scope.TenantId, null, cancellationToken);
             }
 
-            var configuration = values.ToEntity(scope.TenantId);
+            var configuration = values.ToEntity(
+                scope.TenantId,
+                encryptionService,
+                scope.SmtpPasswordEncryptionKey);
             await UnitOfWork.TenantEmailConfigRepository.AddAsync(configuration, cancellationToken);
             await UnitOfWork.SaveChangesAsync(cancellationToken);
             await UnitOfWork.CommitTransactionAsync(cancellationToken);
@@ -188,6 +211,7 @@ public sealed class UpdateTenantEmailConfigCommandHandler(
     IUnitOfWork unitOfWork,
     ICommonRequestService commonRequestService,
     IIdEncoderService idEncoderService,
+    IEncryptionService encryptionService,
     IMapper mapper,
     ILogger<UpdateTenantEmailConfigCommandHandler> logger)
     : TenantEmailConfigAccessHandlerBase(unitOfWork, commonRequestService, idEncoderService),
@@ -207,7 +231,7 @@ public sealed class UpdateTenantEmailConfigCommandHandler(
         var configuration = await UnitOfWork.TenantEmailConfigRepository
             .GetForUpdateAsync(scope.TenantId, dto.Id, cancellationToken)
             ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantEmailConfigNotFound);
-        var values = TenantEmailConfigInput.Normalize(dto, configuration);
+        var values = TenantEmailConfigInput.Normalize(dto);
 
         await UnitOfWork.BeginTransactionAsync(cancellationToken);
         try
@@ -218,7 +242,10 @@ public sealed class UpdateTenantEmailConfigCommandHandler(
                     .DeactivateOtherActiveAsync(scope.TenantId, configuration.Id, cancellationToken);
             }
 
-            values.ApplyTo(configuration);
+            values.ApplyTo(
+                configuration,
+                encryptionService,
+                scope.SmtpPasswordEncryptionKey);
             await UnitOfWork.SaveChangesAsync(cancellationToken);
             await UnitOfWork.CommitTransactionAsync(cancellationToken);
 
@@ -323,50 +350,75 @@ internal sealed record TenantEmailConfigInput(
     string SmtpHost,
     int SmtpPort,
     string SmtpUsername,
-    string SmtpPassword,
+    string? SmtpPassword,
     string FromEmail,
     string FromName,
     bool IsActive)
 {
     public static TenantEmailConfigInput Normalize(CreateTenantEmailConfigRequestDTO dto) =>
-        Create(dto.SmtpHost, dto.SmtpPort, dto.SmtpUsername, dto.SmtpPassword, dto.FromEmail, dto.FromName, dto.IsActive);
-
-    public static TenantEmailConfigInput Normalize(
-        UpdateTenantEmailConfigRequestDTO dto,
-        TenantEmailConfig existing) =>
         Create(
             dto.SmtpHost,
             dto.SmtpPort,
             dto.SmtpUsername,
-            string.IsNullOrWhiteSpace(dto.SmtpPassword)
-                ? !string.IsNullOrWhiteSpace(existing.SecrateKey)
-                    ? existing.SecrateKey
-                    : existing.SmtpPasswordEncrypted
-                : dto.SmtpPassword,
+            dto.SmtpPassword,
             dto.FromEmail,
             dto.FromName,
-            dto.IsActive);
+            dto.IsActive,
+            requireSmtpPassword: true);
 
-    public TenantEmailConfig ToEntity(long tenantId) => new()
+    public static TenantEmailConfigInput Normalize(UpdateTenantEmailConfigRequestDTO dto) =>
+        Create(
+            dto.SmtpHost,
+            dto.SmtpPort,
+            dto.SmtpUsername,
+            dto.SmtpPassword,
+            dto.FromEmail,
+            dto.FromName,
+            dto.IsActive,
+            requireSmtpPassword: false);
+
+    public TenantEmailConfig ToEntity(
+        long tenantId,
+        IEncryptionService encryptionService,
+        string tenantEncryptionKey) => new()
     {
         TenantId = tenantId,
         SmtpHost = SmtpHost,
         SmtpPort = SmtpPort,
         SmtpUsername = SmtpUsername,
-        SmtpPasswordEncrypted = SmtpPassword,
-        SecrateKey = SmtpPassword,
+        SmtpPasswordEncrypted = EncryptSmtpPassword(encryptionService, tenantEncryptionKey, SmtpPassword!),
+        SecrateKey = null,
         FromEmail = FromEmail,
         FromName = FromName,
         IsActive = IsActive
     };
 
-    public void ApplyTo(TenantEmailConfig entity)
+    public void ApplyTo(
+        TenantEmailConfig entity,
+        IEncryptionService encryptionService,
+        string tenantEncryptionKey)
     {
         entity.SmtpHost = SmtpHost;
         entity.SmtpPort = SmtpPort;
         entity.SmtpUsername = SmtpUsername;
-        entity.SmtpPasswordEncrypted = SmtpPassword;
-        entity.SecrateKey = SmtpPassword;
+        if (!string.IsNullOrWhiteSpace(SmtpPassword))
+        {
+            entity.SmtpPasswordEncrypted = EncryptSmtpPassword(
+                encryptionService,
+                tenantEncryptionKey,
+                SmtpPassword);
+            entity.SecrateKey = null;
+        }
+        else if (!string.IsNullOrWhiteSpace(entity.SecrateKey))
+        {
+            // Upgrade a legacy record on its next edit without ever returning the
+            // plaintext password to the caller.
+            entity.SmtpPasswordEncrypted = EncryptSmtpPassword(
+                encryptionService,
+                tenantEncryptionKey,
+                entity.SecrateKey);
+            entity.SecrateKey = null;
+        }
         entity.FromEmail = FromEmail;
         entity.FromName = FromName;
         entity.IsActive = IsActive;
@@ -379,11 +431,14 @@ internal sealed record TenantEmailConfigInput(
         string? smtpPassword,
         string? fromEmail,
         string? fromName,
-        bool isActive)
+        bool isActive,
+        bool requireSmtpPassword)
     {
         var normalizedHost = RequireAndTrim(smtpHost, 200);
         var normalizedUsername = RequireAndTrim(smtpUsername, 200);
-        var normalizedPassword = RequireAndTrim(smtpPassword, 100);
+        var normalizedPassword = requireSmtpPassword
+            ? RequireAndTrim(smtpPassword, 100)
+            : NormalizeOptional(smtpPassword, 100);
         var normalizedFromEmail = RequireAndTrim(fromEmail, 200);
         var normalizedFromName = RequireAndTrim(fromName, 100);
 
@@ -406,6 +461,19 @@ internal sealed record TenantEmailConfigInput(
             isActive);
     }
 
+    private static string EncryptSmtpPassword(
+        IEncryptionService encryptionService,
+        string tenantEncryptionKey,
+        string smtpPassword)
+    {
+        if (string.IsNullOrWhiteSpace(tenantEncryptionKey))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        }
+
+        return encryptionService.Encrypt(smtpPassword, tenantEncryptionKey);
+    }
+
     private static string RequireAndTrim(string? value, int maximumLength)
     {
         var normalized = value?.Trim().Trim('\u200B', '\uFEFF');
@@ -416,6 +484,9 @@ internal sealed record TenantEmailConfigInput(
 
         return normalized;
     }
+
+    private static string? NormalizeOptional(string? value, int maximumLength) =>
+        string.IsNullOrWhiteSpace(value) ? null : RequireAndTrim(value, maximumLength);
 
     private static bool IsValidEmail(string email)
     {

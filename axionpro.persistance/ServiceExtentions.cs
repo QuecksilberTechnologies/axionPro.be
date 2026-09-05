@@ -1,5 +1,6 @@
 ﻿using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IContext;
+using axionpro.application.Interfaces.IDeviceCommunication;
 using axionpro.application.Interfaces.IRealTimeNotification;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
@@ -152,11 +153,14 @@ namespace axionpro.persistance
             services.AddScoped<IAttendancePolicyRepository, AttendancePolicyRepository>();
             services.AddScoped<IEmployeeLocationAssignmentRepository, EmployeeLocationAssignmentRepository>();
             services.AddScoped<IEmployeeDeviceEnrollmentRepository, EmployeeDeviceEnrollmentRepository>();
+            services.AddScoped<IEmployeeEnrollmentAtDeviceRepository, EmployeeEnrollmentAtDeviceRepository>();
             services.AddScoped<IEmployeeWorkArrangementRepository, EmployeeWorkArrangementRepository>();
             services.AddScoped<IEmployeeWorkPatternRepository, EmployeeWorkPatternRepository>();
             services.AddScoped<IEmployeeWorkModeOverrideRequestRepository, EmployeeWorkModeOverrideRequestRepository>();
             services.AddScoped<IDeviceMasterRepository, DeviceMasterRepository>();
             services.AddScoped<ITenantDeviceRepository, TenantDeviceRepository>();
+            services.AddScoped<IDeviceCommandSubmissionService, DeviceCommandRepository>();
+            services.AddScoped<IDeviceCommandDispatchStore, DeviceCommandRepository>();
             services.AddScoped<IEmployeeBankRepository, EmployeeBankRepository>();
             services.AddScoped<IEmployeeContactRepository, EmployeeContactRepository>();
             services.AddScoped<IEmployeeIdentityRepository, EmployeeIdentityRepository>();

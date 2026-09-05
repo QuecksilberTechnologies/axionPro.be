@@ -252,7 +252,13 @@ public partial class TenantDeviceConfiguration
     public string? IpAddress { get; set; }
     public string? MacAddress { get; set; }
     public int? DevicePort { get; set; }
+    /// <summary>
+    /// Legacy connection transport retained only so existing HTTP device configuration
+    /// values are not reinterpreted by the MQTT/MQTTS production stack.
+    /// </summary>
     public short? CommunicationType { get; set; }
+    /// <summary>MQTT/MQTTS transport selected for the new device-command infrastructure.</summary>
+    public short? MqttTransport { get; set; }
     public string? ServerHost { get; set; }
     public int? ServerPort { get; set; }
     public string? ServerPath { get; set; }

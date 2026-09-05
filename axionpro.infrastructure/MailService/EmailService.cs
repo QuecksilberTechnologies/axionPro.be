@@ -1,5 +1,6 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.Interfaces.IEmail;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using MailKit.Net.Smtp;
@@ -22,17 +23,23 @@ public sealed class EmailService : IEmailService
     private readonly ITenantEmailConfigRepository _tenantEmailConfigRepository;
     private readonly IDefaultEmailConfigRepository _defaultEmailConfigRepository;
     private readonly IEmailTemplateRepository _templateRepository;
+    private readonly ITenantKeyResolver _tenantKeyResolver;
+    private readonly IEncryptionService _encryptionService;
     private readonly ILogger<EmailService> _logger;
 
     public EmailService(
         ITenantEmailConfigRepository tenantEmailConfigRepository,
         IDefaultEmailConfigRepository defaultEmailConfigRepository,
         IEmailTemplateRepository templateRepository,
+        ITenantKeyResolver tenantKeyResolver,
+        IEncryptionService encryptionService,
         ILogger<EmailService> logger)
     {
         _tenantEmailConfigRepository = tenantEmailConfigRepository;
         _defaultEmailConfigRepository = defaultEmailConfigRepository;
         _templateRepository = templateRepository;
+        _tenantKeyResolver = tenantKeyResolver;
+        _encryptionService = encryptionService;
         _logger = logger;
     }
 
@@ -179,6 +186,7 @@ public sealed class EmailService : IEmailService
         }
 
         var tenantContext = TenantEmailTemplateContext.From(tenantConfiguration);
+        var tenantSmtpPassword = await ResolveTenantSmtpPasswordAsync(tenantConfiguration);
 
         if (!preferHostEmailConfiguration)
         {
@@ -186,8 +194,7 @@ public sealed class EmailService : IEmailService
                 tenantConfiguration?.SmtpHost,
                 tenantConfiguration?.SmtpPort,
                 tenantConfiguration?.SmtpUsername,
-                tenantConfiguration?.SecrateKey,
-                tenantConfiguration?.SmtpPasswordEncrypted,
+                tenantSmtpPassword,
                 tenantConfiguration?.FromName,
                 tenantConfiguration?.FromEmail,
                 tenantContext,
@@ -208,7 +215,6 @@ public sealed class EmailService : IEmailService
             hostConfiguration?.SmtpHost,
             hostConfiguration?.SmtpPort,
             hostConfiguration?.SmtpUsername,
-            hostConfiguration?.SecrateKey,
             hostConfiguration?.SmtpPasswordEncrypted,
             hostConfiguration?.FromName,
             hostConfiguration?.FromEmail,
@@ -237,8 +243,7 @@ public sealed class EmailService : IEmailService
         string? smtpHost,
         int? smtpPort,
         string? smtpUsername,
-        string? smtpSecret,
-        string? encryptedSmtpPassword,
+        string? smtpPassword,
         string? fromName,
         string? fromEmail,
         TenantEmailTemplateContext tenantContext,
@@ -246,7 +251,7 @@ public sealed class EmailService : IEmailService
     {
         var cleanedHost = CleanDatabaseValue(smtpHost);
         var cleanedUsername = CleanDatabaseValue(smtpUsername);
-        var cleanedSecret = CleanDatabaseValue(smtpSecret) ?? CleanDatabaseValue(encryptedSmtpPassword);
+        var cleanedSecret = CleanDatabaseValue(smtpPassword);
         var cleanedFromName = CleanDatabaseValue(fromName);
         var cleanedFromEmail = CleanDatabaseValue(fromEmail);
         var port = smtpPort.GetValueOrDefault();
@@ -266,6 +271,45 @@ public sealed class EmailService : IEmailService
             cleanedFromEmail,
             tenantContext,
             source);
+    }
+
+    private async Task<string?> ResolveTenantSmtpPasswordAsync(TenantEmailConfig? configuration)
+    {
+        if (configuration is null)
+        {
+            return null;
+        }
+
+        // Records created before this change stored the raw password in SecrateKey.
+        // Keep sending mail for them until an edit migrates the value to ciphertext.
+        var legacyPlaintext = CleanDatabaseValue(configuration.SecrateKey);
+        if (legacyPlaintext is not null)
+        {
+            _logger.LogWarning(
+                "Tenant SMTP configuration {TenantEmailConfigId} still uses legacy plaintext password storage and should be resaved.",
+                configuration.Id);
+            return legacyPlaintext;
+        }
+
+        var ciphertext = CleanDatabaseValue(configuration.SmtpPasswordEncrypted);
+        if (ciphertext is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var tenantEncryptionKey = await _tenantKeyResolver.ResolveAsync(configuration.TenantId);
+            return CleanDatabaseValue(_encryptionService.Decrypt(ciphertext, tenantEncryptionKey));
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(
+                exception,
+                "Unable to decrypt the Tenant SMTP password for configuration {TenantEmailConfigId}.",
+                configuration.Id);
+            return null;
+        }
     }
 
     private static Dictionary<string, string> BuildPlaceholders(

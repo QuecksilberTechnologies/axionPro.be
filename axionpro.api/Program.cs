@@ -221,7 +221,6 @@ try
 
     // WebSocket support
     app.UseWebSockets();
-    app.UseMiddleware<WebSocketMiddleware>();
 
     // Tenant context
     app.UseMiddleware<TenantContextMiddleware>();

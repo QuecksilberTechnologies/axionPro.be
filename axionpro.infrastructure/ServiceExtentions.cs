@@ -1,6 +1,5 @@
 ﻿using axionpro.application.Interfaces.ICacheService;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IDeviceServices;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
@@ -14,7 +13,7 @@ using axionpro.application.Interfaces.ITokenService;
 using axionpro.infrastructure.BackgroundJob;
 using axionpro.infrastructure.CacheMemory;
 using axionpro.infrastructure.CommonRequest;
-using axionpro.infrastructure.DeviceServices;
+using axionpro.infrastructure.DeviceCommunication.Mqtt;
 using axionpro.infrastructure.EncryptionService;
 using axionpro.infrastructure.FileStoringService;
 using axionpro.infrastructure.Logging;
@@ -36,7 +35,18 @@ namespace axionpro.infrastructure
         {
             // Register background service
              services.AddHostedService<CommonBackgroundService>();  // ✅ This is mandatory
-              services.AddMemoryCache();
+             services.AddMemoryCache();
+
+            // One shared broker client serves every Tenant and device. Broker credentials are
+            // bound from secure application/environment configuration, not Tenant settings.
+            services.AddOptions<AxionProMqttOptions>()
+                .Bind(configuration.GetSection(AxionProMqttOptions.SectionName));
+            services.AddSingleton<DeviceMqttMessageRouter>();
+            services.AddSingleton<AxionProMqttClient>();
+            services.AddSingleton<IAxionProMqttPublisher>(serviceProvider =>
+                serviceProvider.GetRequiredService<AxionProMqttClient>());
+            services.AddHostedService<AxionProMqttHostedService>();
+            services.AddHostedService<DeviceCommandDispatcherWorker>();
 
             // Register repositories & services
 
@@ -63,12 +73,6 @@ namespace axionpro.infrastructure
             services.AddScoped<ICacheService, CacheService>();
             services.AddScoped<ITenantKeyCache, TenantKeyMemoryCache>();
             services.AddScoped<ITenantKeyResolver, TenantKeyResolver>();
-
-            services.AddSingleton<DeviceConnectionManager>();  // 🔥 Global connection store
-            services.AddScoped<DeviceMessageHandler>();        // 🔥 Message processing
-            services.AddScoped<WebSocketHandler>();            // 🔥 Socket handling
-            services.AddScoped<IDeviceService, DeviceService>(); // 🔥 Command push
-
 
         }
     }

@@ -670,7 +670,14 @@ internal static class TenantDeviceConfigurationValidation
 {
     internal static void Validate(TenantDeviceConfigurationRequestDTO? dto)
     {
-        if (dto is null || dto.TenantDeviceId <= 0 || (dto.CommunicationType.HasValue && !Enum.IsDefined(dto.CommunicationType.Value)) || (dto.DevicePort.HasValue && dto.DevicePort <= 0) || (dto.ServerPort.HasValue && dto.ServerPort <= 0) || (dto.HeartbeatIntervalSeconds.HasValue && dto.HeartbeatIntervalSeconds <= 0))
+        if (dto is null ||
+            dto.TenantDeviceId <= 0 ||
+            !dto.MqttTransport.HasValue ||
+            !Enum.IsDefined(dto.MqttTransport.Value) ||
+            dto.MqttTransport.Value is not DeviceCommunicationProtocol.Mqtt and not DeviceCommunicationProtocol.Mqtts ||
+            (dto.DevicePort.HasValue && dto.DevicePort <= 0) ||
+            (dto.ServerPort.HasValue && dto.ServerPort <= 0) ||
+            (dto.HeartbeatIntervalSeconds.HasValue && dto.HeartbeatIntervalSeconds <= 0))
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
         }
@@ -680,10 +687,41 @@ internal static class TenantDeviceConfigurationValidation
             try
             {
                 using var document = JsonDocument.Parse(dto.Configuration);
+                EnsureNoPlainCredentialMaterial(document.RootElement);
             }
             catch (JsonException)
             {
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+            }
+        }
+    }
+
+    private static void EnsureNoPlainCredentialMaterial(JsonElement element)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                if (property.Name.Contains("password", StringComparison.OrdinalIgnoreCase) ||
+                    property.Name.Contains("secret", StringComparison.OrdinalIgnoreCase) ||
+                    property.Name.Contains("credential", StringComparison.OrdinalIgnoreCase) ||
+                    property.Name.Contains("apikey", StringComparison.OrdinalIgnoreCase) ||
+                    property.Name.Contains("token", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new ValidationErrorException("Device credentials must be stored only in the encrypted DeviceCredential record.");
+                }
+
+                EnsureNoPlainCredentialMaterial(property.Value);
+            }
+
+            return;
+        }
+
+        if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+            {
+                EnsureNoPlainCredentialMaterial(item);
             }
         }
     }

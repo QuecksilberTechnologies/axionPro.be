@@ -99,11 +99,14 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<DayCombination> DayCombinations { get; set; }
 
         public virtual DbSet<Department> Departments { get; set; }
-        public virtual DbSet<DeviceCommandMaster> DeviceCommandMasters { get; set; }
 
-        public virtual DbSet<DeviceCommandQueue> DeviceCommandQueues { get; set; }
+        public virtual DbSet<DeviceCommand> DeviceCommands { get; set; }
 
-        public virtual DbSet<DeviceLogRaw> DeviceLogRaws { get; set; }
+        public virtual DbSet<DeviceCommandResponse> DeviceCommandResponses { get; set; }
+
+        public virtual DbSet<DeviceMessageLog> DeviceMessageLogs { get; set; }
+
+        public virtual DbSet<DeviceCredential> DeviceCredentials { get; set; }
 
         public virtual DbSet<DeviceMaster> DeviceMasters { get; set; }
 
@@ -1022,56 +1025,91 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_Designation_Tenant");
         });
 
-        modelBuilder.Entity<DeviceCommandMaster>(entity =>
+        modelBuilder.Entity<DeviceCommand>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("DeviceCommandMaster_pkey");
+            entity.ToTable("DeviceCommand", "axionpro");
+            entity.HasKey(e => e.Id).HasName("PK_DeviceCommand");
+            entity.HasIndex(e => e.InternalTrackingId, "UX_DeviceCommand_InternalTrackingId").IsUnique();
+            entity.HasIndex(e => new { e.Status, e.NextAttemptDateTime, e.AddedDateTime }, "IX_DeviceCommand_Dispatch");
+            entity.HasIndex(e => new { e.DeviceSerialNumber, e.AddedDateTime }, "IX_DeviceCommand_DeviceSerial_Order");
+            entity.HasIndex(e => e.TenantId, "IX_DeviceCommand_TenantId");
+            entity.HasIndex(e => e.TenantLocationId, "IX_DeviceCommand_TenantLocationId");
+            entity.HasIndex(e => e.DeviceSerialNumber, "UX_DeviceCommand_OneOutstandingSerial")
+                .IsUnique()
+                .HasFilter("\"Status\" IN (2, 3, 6)");
+            entity.Property(e => e.DeviceSerialNumber).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.CommandName).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.RequestPayload).HasColumnType("jsonb").IsRequired();
+            entity.Property(e => e.MatchCriteria).HasColumnType("jsonb").IsRequired();
+            entity.Property(e => e.Status).HasDefaultValue((short)DeviceCommandStatus.Queued);
+            entity.Property(e => e.ResponseMode).HasDefaultValue((short)DeviceCommandResponseMode.Required);
+            entity.Property(e => e.AccessLevel).HasDefaultValue((short)DeviceCommandAccessLevel.HostOnly);
+            entity.Property(e => e.AttemptCount).HasDefaultValue(0);
+            entity.Property(e => e.MaxAttempts).HasDefaultValue(3);
+            entity.Property(e => e.FailureReason).HasMaxLength(2000);
+            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(e => e.Tenant).WithMany().HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceCommand_Tenant");
+            entity.HasOne(e => e.TenantDevice).WithMany().HasForeignKey(e => e.TenantDeviceId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceCommand_TenantDevice");
+            entity.HasOne(e => e.TenantLocation).WithMany().HasForeignKey(e => e.TenantLocationId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceCommand_TenantLocation");
+        });
 
-            entity.ToTable("DeviceCommandMaster", "axionpro");
+        modelBuilder.Entity<DeviceCommandResponse>(entity =>
+        {
+            entity.ToTable("DeviceCommandResponse", "axionpro");
+            entity.HasKey(e => e.Id).HasName("PK_DeviceCommandResponse");
+            entity.HasIndex(e => e.DeviceCommandId, "UX_DeviceCommandResponse_DeviceCommand")
+                .IsUnique().HasFilter("\"DeviceCommandId\" IS NOT NULL");
+            entity.HasIndex(e => new { e.TenantDeviceId, e.ReceivedDateTime }, "IX_DeviceCommandResponse_TenantDevice_Received");
+            entity.Property(e => e.DeviceSerialNumber).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.ResponseCommandName).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.FailureReason).HasMaxLength(2000);
+            entity.Property(e => e.ResponsePayload).HasColumnType("text").IsRequired();
+            entity.Property(e => e.ReceivedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(e => e.DeviceCommand).WithMany(e => e.DeviceCommandResponses).HasForeignKey(e => e.DeviceCommandId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceCommandResponse_DeviceCommand");
+            entity.HasOne(e => e.Tenant).WithMany().HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceCommandResponse_Tenant");
+            entity.HasOne(e => e.TenantDevice).WithMany().HasForeignKey(e => e.TenantDeviceId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceCommandResponse_TenantDevice");
+        });
 
-            entity.HasIndex(e => e.CommandName, "UQ_DeviceCommandMaster_CommandName").IsUnique();
+        modelBuilder.Entity<DeviceMessageLog>(entity =>
+        {
+            entity.ToTable("DeviceMessageLog", "axionpro");
+            entity.HasKey(e => e.Id).HasName("PK_DeviceMessageLog");
+            entity.HasIndex(e => new { e.TenantDeviceId, e.OccurredDateTime }, "IX_DeviceMessageLog_TenantDevice_Occurred");
+            entity.HasIndex(e => new { e.Topic, e.PayloadHash }, "IX_DeviceMessageLog_Topic_PayloadHash");
+            entity.Property(e => e.DeviceSerialNumber).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Topic).HasMaxLength(300).IsRequired();
+            entity.Property(e => e.PayloadHash).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.RawPayload).HasColumnType("text").IsRequired();
+            entity.Property(e => e.Direction).HasDefaultValue((short)DeviceMessageDirection.Inbound);
+            entity.Property(e => e.QualityOfService).HasDefaultValue(1);
+            entity.Property(e => e.IsDuplicateDelivery).HasDefaultValue(false);
+            entity.Property(e => e.OccurredDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(e => e.Tenant).WithMany().HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceMessageLog_Tenant");
+            entity.HasOne(e => e.TenantDevice).WithMany().HasForeignKey(e => e.TenantDeviceId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceMessageLog_TenantDevice");
+        });
 
-            entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"DeviceCommandMaster_Id_seq\"'::regclass)");
-            entity.Property(e => e.CommandName).HasMaxLength(50);
-            entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.Description).HasMaxLength(255);
+        modelBuilder.Entity<DeviceCredential>(entity =>
+        {
+            entity.ToTable("DeviceCredential", "axionpro");
+            entity.HasKey(e => e.Id).HasName("PK_DeviceCredential");
+            entity.HasIndex(e => new { e.TenantDeviceId, e.CredentialType }, "UX_DeviceCredential_ActiveType")
+                .IsUnique().HasFilter("\"IsActive\" = true");
+            entity.Property(e => e.UserName).HasMaxLength(300);
+            entity.Property(e => e.SecretEncrypted).HasColumnType("text");
+            entity.Property(e => e.CertificateReference).HasMaxLength(1000);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-        });
-
-        modelBuilder.Entity<DeviceCommandQueue>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("DeviceCommandQueue_pkey");
-
-            entity.ToTable("DeviceCommandQueue", "axionpro");
-
-            entity.HasIndex(e => e.Status, "IX_DeviceCommandQueue_Status");
-
-            entity.HasIndex(e => new { e.TenantId, e.DeviceId }, "IX_DeviceCommandQueue_Tenant_Device");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"DeviceCommandQueue_Id_seq\"'::regclass)");
-            entity.Property(e => e.CommandName).HasMaxLength(50);
-            entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.DeviceSn).HasMaxLength(50);
-            entity.Property(e => e.RetryCount).HasDefaultValue(0);
-            entity.Property(e => e.Status).HasDefaultValue(0);
-
-            entity.Ignore(d => d.Device);
-        });
-
-        modelBuilder.Entity<DeviceLogRaw>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("DeviceLogRaw_pkey");
-
-            entity.ToTable("DeviceLogRaw", "axionpro");
-
-            entity.HasIndex(e => e.IsProcessed, "IX_DeviceLogRaw_Processed");
-
-            entity.HasIndex(e => new { e.TenantId, e.DeviceSn }, "IX_DeviceLogRaw_Tenant_Device");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"DeviceLogRaw_Id_seq\"'::regclass)");
-            entity.Property(e => e.CommandName).HasMaxLength(50);
-            entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.DeviceSn).HasMaxLength(50);
-            entity.Property(e => e.IsProcessed).HasDefaultValue(false);
+            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(e => e.TenantDevice).WithMany().HasForeignKey(e => e.TenantDeviceId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceCredential_TenantDevice");
         });
 
         modelBuilder.Entity<DeviceMaster>(entity =>
@@ -3660,9 +3698,10 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("TenantDeviceConfiguration", "axionpro");
                 entity.HasIndex(e => e.TenantDeviceId, "UX_TenantDeviceConfiguration_TenantDeviceId").IsUnique();
                 entity.HasIndex(e => e.LastHeartbeatDateTime, "IX_TenantDeviceConfiguration_LastHeartbeatDateTime");
-                entity.Property(e => e.IpAddress).HasMaxLength(45);
-                entity.Property(e => e.MacAddress).HasMaxLength(50);
-                entity.Property(e => e.ServerHost).HasMaxLength(300);
+                  entity.Property(e => e.IpAddress).HasMaxLength(45);
+                  entity.Property(e => e.MacAddress).HasMaxLength(50);
+                  entity.Property(e => e.MqttTransport);
+                  entity.Property(e => e.ServerHost).HasMaxLength(300);
                 entity.Property(e => e.ServerPath).HasMaxLength(300);
                 entity.Property(e => e.ServerUrl).HasMaxLength(500);
                 entity.Property(e => e.PushMode).HasMaxLength(100);

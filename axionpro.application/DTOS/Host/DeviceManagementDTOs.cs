@@ -238,7 +238,8 @@ public class TenantDeviceConfigurationRequestDTO : TenantDeviceAccessRequestDTO
     public string? IpAddress { get; set; }
     public string? MacAddress { get; set; }
     public int? DevicePort { get; set; }
-    public DeviceCommunicationType? CommunicationType { get; set; }
+    /// <summary>MQTT/MQTTS transport selected for this V1 device configuration.</summary>
+    public DeviceCommunicationProtocol? MqttTransport { get; set; }
     public string? ServerHost { get; set; }
     public int? ServerPort { get; set; }
     public string? ServerPath { get; set; }
@@ -266,7 +267,7 @@ public sealed class GetTenantDeviceConfigurationListRequestDTO : TenantDeviceAcc
 {
     public string? Search { get; set; }
     public long? TenantDeviceId { get; set; }
-    public DeviceCommunicationType? CommunicationType { get; set; }
+    public DeviceCommunicationProtocol? MqttTransport { get; set; }
     public bool? IsEnrollmentEnabled { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
@@ -281,7 +282,7 @@ public sealed class TenantDeviceConfigurationResponseDTO
     public string? IpAddress { get; set; }
     public string? MacAddress { get; set; }
     public int? DevicePort { get; set; }
-    public DeviceCommunicationType? CommunicationType { get; set; }
+    public DeviceCommunicationProtocol? MqttTransport { get; set; }
     public string? ServerHost { get; set; }
     public int? ServerPort { get; set; }
     public string? ServerPath { get; set; }

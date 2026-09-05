@@ -398,6 +398,21 @@ BEGIN
     WHERE "TenantDeviceId" IN
           (SELECT "Id" FROM axionpro."TenantDevice" WHERE "TenantId" = v_tenant_id);
 
+    -- MQTT device-command replacement tables must be removed before TenantDevice.
+    -- DeviceCredential remains encrypted at rest and is removed with its Tenant device.
+    DELETE FROM axionpro."DeviceCommandResponse"
+    WHERE "TenantId" = v_tenant_id
+       OR "TenantDeviceId" IN
+          (SELECT "Id" FROM axionpro."TenantDevice" WHERE "TenantId" = v_tenant_id);
+    DELETE FROM axionpro."DeviceMessageLog"
+    WHERE "TenantId" = v_tenant_id
+       OR "TenantDeviceId" IN
+          (SELECT "Id" FROM axionpro."TenantDevice" WHERE "TenantId" = v_tenant_id);
+    DELETE FROM axionpro."DeviceCommand" WHERE "TenantId" = v_tenant_id;
+    DELETE FROM axionpro."DeviceCredential"
+    WHERE "TenantDeviceId" IN
+          (SELECT "Id" FROM axionpro."TenantDevice" WHERE "TenantId" = v_tenant_id);
+
     DELETE FROM axionpro."PayrollEmployeeDetail"
     WHERE "PayrollEmployeeId" IN
           (SELECT "Id" FROM axionpro."PayrollEmployee"
@@ -661,8 +676,6 @@ BEGIN
 
     DELETE FROM axionpro."ApprovalWorkflow" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."ComplianceRule" WHERE "TenantId" = v_tenant_id;
-    DELETE FROM axionpro."DeviceCommandQueue" WHERE "TenantId" = v_tenant_id;
-    DELETE FROM axionpro."DeviceLogRaw" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."EmailsLog" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."EmployeeCodePattern" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."RequestType" WHERE "TenantId" = v_tenant_id;
