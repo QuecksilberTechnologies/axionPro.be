@@ -83,6 +83,13 @@ public sealed class UpdateTenantDeviceConfigurationCommand(UpdateTenantDeviceCon
     public UpdateTenantDeviceConfigurationRequestDTO DTO { get; } = dto;
 }
 
+/// <summary>Rotates the opaque HTTPS bearer URL for one configured Tenant device.</summary>
+public sealed class RotateTenantDeviceHttpsIngressTokenCommand(RotateTenantDeviceHttpsIngressTokenRequestDTO dto)
+    : IRequest<ApiResponse<TenantDeviceHttpsIngressEndpointResponseDTO>>
+{
+    public RotateTenantDeviceHttpsIngressTokenRequestDTO DTO { get; } = dto;
+}
+
 /// <summary>Hard deletes the separate connection configuration for a Tenant device.</summary>
 public sealed class DeleteTenantDeviceConfigurationCommand(long id, TenantDeviceAccessRequestDTO accessRequest) : IRequest<ApiResponse<bool>>
 {
@@ -561,6 +568,11 @@ public sealed class UpdateTenantDeviceConfigurationCommandHandler : TenantDevice
 
         _mapper.Map(request.DTO, entity);
         TenantDeviceConfigurationValidation.ApplyNormalizedValues(entity, request.DTO);
+        if (entity.CommandTransport != (short)DeviceCommunicationProtocol.Https)
+        {
+            // A stale token must never remain usable after a transport change.
+            entity.HttpsIngressTokenHash = null;
+        }
         entity.UpdatedById = scope.ActorId;
         entity.UpdatedDateTime = DateTime.UtcNow;
         await UnitOfWork.SaveChangesAsync(cancellationToken);
@@ -568,6 +580,69 @@ public sealed class UpdateTenantDeviceConfigurationCommandHandler : TenantDevice
         var stored = await UnitOfWork.TenantDeviceConfigurationRepository.GetByIdAsync(scope.TenantId, entity.Id, cancellationToken)
             ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceConfigurationNotFound);
         return ApiResponse<TenantDeviceConfigurationResponseDTO>.Success(MapConfigurationResponse(_mapper, stored, scope), AppConstants.SuccessMessages.TenantDeviceConfigurationUpdated);
+    }
+}
+
+/// <summary>
+/// Generates a new opaque device-gateway URL exactly once. Only its SHA-256 hash
+/// is retained, so a later configuration read cannot disclose the bearer token.
+/// </summary>
+public sealed class RotateTenantDeviceHttpsIngressTokenCommandHandler : TenantDeviceAccessHandlerBase,
+    IRequestHandler<RotateTenantDeviceHttpsIngressTokenCommand, ApiResponse<TenantDeviceHttpsIngressEndpointResponseDTO>>
+{
+    public RotateTenantDeviceHttpsIngressTokenCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICommonRequestService commonRequestService,
+        IIdEncoderService idEncoderService,
+        ILogger<TenantConfigurationHandlerBase> tenantLogger)
+        : base(unitOfWork, commonRequestService, idEncoderService, tenantLogger) { }
+
+    /// <inheritdoc />
+    public async Task<ApiResponse<TenantDeviceHttpsIngressEndpointResponseDTO>> Handle(
+        RotateTenantDeviceHttpsIngressTokenCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.DTO is null || request.DTO.TenantDeviceConfigurationId <= 0)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        var scope = await ResolveTenantScopeAsync(request.DTO, cancellationToken);
+        var configuration = await UnitOfWork.TenantDeviceConfigurationRepository.GetForUpdateAsync(
+                scope.TenantId,
+                request.DTO.TenantDeviceConfigurationId,
+                cancellationToken)
+            ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceConfigurationNotFound);
+
+        var transport = configuration.CommandTransport ?? configuration.MqttTransport;
+        if (transport != (short)DeviceCommunicationProtocol.Https ||
+            !DeviceHttpsGatewaySecurity.IsValidGatewayPath(configuration.ServerPath) ||
+            !Uri.TryCreate(configuration.ServerUrl, UriKind.Absolute, out var serverUri) ||
+            !string.Equals(serverUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ValidationErrorException("Configure this device for HTTPS polling before generating its gateway URL.");
+        }
+
+        var deviceMaster = await UnitOfWork.DeviceMasterRepository.GetByIdAsync(
+            configuration.TenantDevice.DeviceMasterId,
+            cancellationToken);
+        if (deviceMaster is null || !deviceMaster.IsActive || deviceMaster.IsSoftDeleted || !deviceMaster.SupportsHttps)
+        {
+            throw new ValidationErrorException("The selected device model does not support HTTPS polling.");
+        }
+
+        var ingressToken = DeviceHttpsGatewaySecurity.GenerateIngressToken();
+        configuration.HttpsIngressTokenHash = DeviceHttpsGatewaySecurity.HashIngressToken(ingressToken);
+        configuration.UpdatedById = scope.ActorId;
+        configuration.UpdatedDateTime = DateTime.UtcNow;
+        await UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Never log the generated URL or token. The caller receives it once and
+        // must install it into the device's Server Domain Name field immediately.
+        var gatewayUrl = $"{configuration.ServerUrl!.TrimEnd('/')}{DeviceHttpsGatewaySecurity.RoutePrefix}/{ingressToken}";
+        return ApiResponse<TenantDeviceHttpsIngressEndpointResponseDTO>.Success(
+            new TenantDeviceHttpsIngressEndpointResponseDTO { GatewayUrl = gatewayUrl },
+            "HTTPS device gateway URL generated. It will not be shown again.");
     }
 }
 
@@ -670,11 +745,11 @@ internal static class TenantDeviceConfigurationValidation
 {
     internal static void Validate(TenantDeviceConfigurationRequestDTO? dto)
     {
+        var transport = ResolveTransport(dto);
         if (dto is null ||
             dto.TenantDeviceId <= 0 ||
-            !dto.MqttTransport.HasValue ||
-            !Enum.IsDefined(dto.MqttTransport.Value) ||
-            dto.MqttTransport.Value is not DeviceCommunicationProtocol.Mqtt and not DeviceCommunicationProtocol.Mqtts ||
+            !transport.HasValue ||
+            !Enum.IsDefined(transport.Value) ||
             (dto.DevicePort.HasValue && dto.DevicePort <= 0) ||
             (dto.ServerPort.HasValue && dto.ServerPort <= 0) ||
             (dto.HeartbeatIntervalSeconds.HasValue && dto.HeartbeatIntervalSeconds <= 0))
@@ -694,6 +769,41 @@ internal static class TenantDeviceConfigurationValidation
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
         }
+
+        if (transport == DeviceCommunicationProtocol.Https)
+        {
+            if (!Uri.TryCreate(dto.ServerUrl, UriKind.Absolute, out var serverUri) ||
+                !string.Equals(serverUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+                !DeviceHttpsGatewaySecurity.IsValidGatewayPath(dto.ServerPath) ||
+                dto.ServerPort is not null and not 443 ||
+                dto.HeartbeatIntervalSeconds is < 10 or > 3600)
+            {
+                throw new ValidationErrorException(
+                    "HTTPS polling requires an absolute HTTPS ServerUrl, the /device-gateway path, port 443, and a 10–3600 second heartbeat.");
+            }
+        }
+    }
+
+    private static DeviceCommunicationProtocol? ResolveTransport(TenantDeviceConfigurationRequestDTO? dto)
+    {
+        if (dto is null)
+        {
+            return null;
+        }
+
+        if (dto.CommandTransport.HasValue && dto.MqttTransport.HasValue &&
+            dto.CommandTransport.Value != dto.MqttTransport.Value)
+        {
+            throw new ValidationErrorException("Send either CommandTransport or the legacy MqttTransport value, not conflicting values.");
+        }
+
+        if (dto.MqttTransport.HasValue &&
+            dto.MqttTransport.Value is not DeviceCommunicationProtocol.Mqtt and not DeviceCommunicationProtocol.Mqtts)
+        {
+            throw new ValidationErrorException("The legacy MqttTransport field accepts only MQTT or MQTTS. Use CommandTransport for HTTPS or WebSocket.");
+        }
+
+        return dto.CommandTransport ?? dto.MqttTransport;
     }
 
     private static void EnsureNoPlainCredentialMaterial(JsonElement element)

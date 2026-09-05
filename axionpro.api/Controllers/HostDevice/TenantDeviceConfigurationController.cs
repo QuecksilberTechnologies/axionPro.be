@@ -100,6 +100,16 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     }
 
     /// <summary>
+    /// Generates a one-time opaque HTTPS device gateway URL. The caller must copy
+    /// it to the physical device immediately; later reads intentionally omit it.
+    /// </summary>
+    [HttpPost("rotate-https-ingress-token")]
+    public async Task<IActionResult> RotateHttpsIngressToken(
+        [FromBody] RotateTenantDeviceHttpsIngressTokenRequestDTO dto,
+        CancellationToken cancellationToken) =>
+        Ok(await mediator.Send(new RotateTenantDeviceHttpsIngressTokenCommand(dto), cancellationToken));
+
+    /// <summary>
     /// Used-In-Angular: deletes tenant device configuration.
     /// </summary>
     /// <remarks>

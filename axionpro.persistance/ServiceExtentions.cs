@@ -161,6 +161,7 @@ namespace axionpro.persistance
             services.AddScoped<ITenantDeviceRepository, TenantDeviceRepository>();
             services.AddScoped<IDeviceCommandSubmissionService, DeviceCommandRepository>();
             services.AddScoped<IDeviceCommandDispatchStore, DeviceCommandRepository>();
+            services.AddScoped<IDeviceHttpsPollingService, DeviceCommandRepository>();
             services.AddScoped<IEmployeeBankRepository, EmployeeBankRepository>();
             services.AddScoped<IEmployeeContactRepository, EmployeeContactRepository>();
             services.AddScoped<IEmployeeIdentityRepository, EmployeeIdentityRepository>();

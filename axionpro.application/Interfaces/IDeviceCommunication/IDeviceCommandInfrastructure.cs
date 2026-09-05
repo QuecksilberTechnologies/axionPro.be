@@ -1,5 +1,5 @@
 // ================================================================
-// Purpose : Application contracts for the durable MQTT device-command pipeline.
+// Purpose : Application contracts for the durable device-command pipeline.
 // ================================================================
 
 using axionpro.domain.Entity;
@@ -43,6 +43,22 @@ public sealed record DeviceMqttInboundMessage(
     bool IsProtocolIdentityValid,
     DateTime ReceivedDateTime);
 
+/// <summary>
+/// Carries a raw device-initiated HTTPS poll. The bearer token lives only in the
+/// device URL; the payload serial is still verified against its server mapping.
+/// </summary>
+public sealed record DeviceHttpsPollingRequest(
+    string IngressToken,
+    string Payload,
+    DateTime ReceivedDateTime);
+
+/// <summary>Represents the raw JSON response returned to a validated HTTPS device poll.</summary>
+public sealed record DeviceHttpsPollingResponse(bool IsAccepted, string ResponsePayload)
+{
+    /// <summary>Returns the deliberately non-descriptive result used for rejected device traffic.</summary>
+    public static DeviceHttpsPollingResponse Rejected { get; } = new(false, string.Empty);
+}
+
 /// <summary>Submits a validated command into the durable per-device queue.</summary>
 public interface IDeviceCommandSubmissionService
 {
@@ -51,10 +67,18 @@ public interface IDeviceCommandSubmissionService
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>Coordinates queue acquisition, MQTT audit, retry, and protocol-aware response handling.</summary>
+/// <summary>Coordinates generic transport queue acquisition, audit, retry, and protocol-aware response handling.</summary>
 public interface IDeviceCommandDispatchStore
 {
-    Task<DeviceCommandDispatch?> TryAcquireNextAsync(CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Acquires one command only when its configured transport belongs to the
+    /// supplied adapter set. This prevents one transport worker from dispatching
+    /// another transport's command.
+    /// </summary>
+    Task<DeviceCommandDispatch?> TryAcquireNextAsync(
+        IReadOnlyCollection<DeviceCommunicationProtocol> transports,
+        long? tenantDeviceId = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Moves expired response-waiting commands to their next durable retry or final failure state.</summary>
     Task RecoverExpiredResponseDeadlinesAsync(CancellationToken cancellationToken = default);
@@ -73,4 +97,15 @@ public interface IDeviceCommandDispatchStore
         CancellationToken cancellationToken = default);
 
     Task RecordInboundAsync(DeviceMqttInboundMessage message, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Handles the HTTPS polling transport. It never opens a connection to a
+/// device IP address; the physical device always initiates the request.
+/// </summary>
+public interface IDeviceHttpsPollingService
+{
+    Task<DeviceHttpsPollingResponse> ProcessAsync(
+        DeviceHttpsPollingRequest request,
+        CancellationToken cancellationToken = default);
 }

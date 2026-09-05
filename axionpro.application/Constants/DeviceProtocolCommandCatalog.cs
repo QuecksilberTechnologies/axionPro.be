@@ -1,5 +1,5 @@
 // ================================================================
-// Purpose : Defines command-specific MQTT protocol policy. Internal command
+// Purpose : Defines command-specific device protocol policy. Internal command
 //           tracking is never added to device JSON payloads.
 // ================================================================
 
@@ -17,8 +17,8 @@ public sealed record DeviceProtocolCommandDefinition(
     IReadOnlyList<string> ResponseMatchFields);
 
 /// <summary>
-/// Catalogues vendor commands confirmed in the MQTT Postman collection. Unknown
-/// commands are rejected rather than being forwarded to a physical device.
+/// Catalogues vendor commands confirmed from the vendor protocol material. Unknown
+/// commands are rejected rather than being forwarded through any physical-device transport.
 /// </summary>
 public static class DeviceProtocolCommandCatalog
 {
@@ -31,7 +31,7 @@ public static class DeviceProtocolCommandCatalog
         var normalized = Normalize(commandName);
         return Definitions.TryGetValue(normalized, out var definition)
             ? definition
-            : throw new ValidationErrorException("The requested device command is not part of the supported MQTT protocol catalog.");
+            : throw new ValidationErrorException("The requested device command is not part of the supported device protocol catalog.");
     }
 
     /// <summary>Normalizes and validates a command payload without mutating vendor JSON.</summary>

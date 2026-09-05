@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Net;
 using System.Text;
+using System.Threading.RateLimiting;
 
 try
 {
@@ -131,6 +132,23 @@ try
 
     builder.Services.AddControllers();
 
+    // Device gateway traffic is anonymous only at the JWT layer; each request is
+    // subsequently authenticated by an opaque per-device route token. The limit
+    // keeps brute-force and payload-flood attempts away from persistence.
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.AddPolicy("device-gateway", context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 120,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                    AutoReplenishment = true
+                }));
+    });
+
     // ============================
     // CORS
     // ============================
@@ -227,6 +245,7 @@ try
 
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseRateLimiter();
 
     app.MapControllers();
     app.MapAxionProSignalR();

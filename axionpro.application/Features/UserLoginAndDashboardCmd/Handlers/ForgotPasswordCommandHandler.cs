@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using axionpro.application.Common.Helpers;
+using axionpro.application.Constants;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEmail;
@@ -161,7 +162,7 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
                 long? TenantId = empInfo.TenantId;
 
                 // 📩 Get Template from DB
-                var emailTemplate = await _unitOfWork.EmailTemplateRepository.GetTemplateByCodeAsync("FORGOT_PASSWORD");
+                var emailTemplate = await _unitOfWork.EmailTemplateRepository.GetTemplateByCodeAsync(ConstantValues.ForgotPasswordEmail);
                 if (emailTemplate == null)
                 {
                     _logger.LogError("Email template 'FORGOT_PASSWORD' not found.");

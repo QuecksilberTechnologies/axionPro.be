@@ -1,5 +1,5 @@
 // ================================================================
-// Purpose : Persists the MQTT/MQTTS command queue and protocol audit. The
+// Purpose : Persists the transport-neutral command queue and protocol audit. The
 //           database, not client-supplied tenant data, resolves every device.
 // ================================================================
 
@@ -16,11 +16,11 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories;
 
-/// <summary>Provides durable command submission, dispatch coordination, and idempotent response completion.</summary>
+/// <summary>Provides durable command submission, transport dispatch coordination, and idempotent response completion.</summary>
 public sealed class DeviceCommandRepository(
     WorkforceDbContext context,
     ILogger<DeviceCommandRepository> logger)
-    : IDeviceCommandSubmissionService, IDeviceCommandDispatchStore
+    : IDeviceCommandSubmissionService, IDeviceCommandDispatchStore, IDeviceHttpsPollingService
 {
     private static readonly short Queued = (short)DeviceCommandStatus.Queued;
     private static readonly short Publishing = (short)DeviceCommandStatus.Publishing;
@@ -47,6 +47,7 @@ public sealed class DeviceCommandRepository(
             ?? throw new NotFoundException("The requested Tenant device was not found.");
 
         ValidateTarget(tenantDevice, definition);
+        EnsurePayloadSerialDoesNotConflict(payload, tenantDevice.DeviceMaster.SNo);
 
         var now = DateTime.UtcNow;
         var command = new DeviceCommand
@@ -84,8 +85,17 @@ public sealed class DeviceCommandRepository(
     }
 
     /// <inheritdoc />
-    public async Task<DeviceCommandDispatch?> TryAcquireNextAsync(CancellationToken cancellationToken = default)
+    public async Task<DeviceCommandDispatch?> TryAcquireNextAsync(
+        IReadOnlyCollection<DeviceCommunicationProtocol> transports,
+        long? tenantDeviceId = null,
+        CancellationToken cancellationToken = default)
     {
+        if (transports.Count == 0)
+        {
+            return null;
+        }
+
+        var transportCodes = transports.Select(transport => (short)transport).Distinct().ToArray();
         var now = DateTime.UtcNow;
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         try
@@ -93,8 +103,12 @@ public sealed class DeviceCommandRepository(
             var activeStatuses = new[] { Publishing, AwaitingResponse, RetryScheduled };
             var candidate = await context.DeviceCommands
                 .Where(command =>
+                    (!tenantDeviceId.HasValue || command.TenantDeviceId == tenantDeviceId.Value) &&
                     (command.Status == Queued ||
                      (command.Status == RetryScheduled && command.NextAttemptDateTime <= now)) &&
+                    context.TenantDeviceConfigurations.Any(configuration =>
+                        configuration.TenantDeviceId == command.TenantDeviceId &&
+                        transportCodes.Contains(configuration.CommandTransport ?? configuration.MqttTransport ?? 0)) &&
                     !context.DeviceCommands.Any(other =>
                         other.DeviceSerialNumber == command.DeviceSerialNumber &&
                         other.Id != command.Id &&
@@ -269,6 +283,103 @@ public sealed class DeviceCommandRepository(
     }
 
     /// <inheritdoc />
+    public async Task<DeviceHttpsPollingResponse> ProcessAsync(
+        DeviceHttpsPollingRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (!DeviceHttpsGatewaySecurity.IsValidIngressToken(request.IngressToken) ||
+            string.IsNullOrWhiteSpace(request.Payload))
+        {
+            return DeviceHttpsPollingResponse.Rejected;
+        }
+
+        JsonDocument document;
+        try
+        {
+            document = JsonDocument.Parse(request.Payload);
+        }
+        catch (JsonException)
+        {
+            return DeviceHttpsPollingResponse.Rejected;
+        }
+
+        using (document)
+        {
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("sn", out var serialProperty) ||
+                serialProperty.ValueKind != JsonValueKind.String)
+            {
+                return DeviceHttpsPollingResponse.Rejected;
+            }
+
+            var serialNumber = serialProperty.GetString()?.Trim();
+            if (string.IsNullOrWhiteSpace(serialNumber) || serialNumber.Length > 100)
+            {
+                return DeviceHttpsPollingResponse.Rejected;
+            }
+
+            var tokenHash = DeviceHttpsGatewaySecurity.HashIngressToken(request.IngressToken);
+            var devices = await context.TenantDevices
+                .Include(device => device.DeviceMaster)
+                .Include(device => device.TenantDeviceConfiguration)
+                .Where(device =>
+                    device.IsActive && !device.IsSoftDeleted &&
+                    device.DeviceMaster.IsActive && !device.DeviceMaster.IsSoftDeleted &&
+                    device.DeviceMaster.SupportsHttps &&
+                    device.TenantDeviceConfiguration != null &&
+                    (device.TenantDeviceConfiguration.CommandTransport ?? device.TenantDeviceConfiguration.MqttTransport) ==
+                        (short)DeviceCommunicationProtocol.Https &&
+                    device.TenantDeviceConfiguration.HttpsIngressTokenHash == tokenHash)
+                .Take(2)
+                .ToListAsync(cancellationToken);
+
+            var device = devices.Count == 1 ? devices[0] : null;
+            if (device is null ||
+                !string.Equals(device.DeviceMaster.SNo.Trim(), serialNumber, StringComparison.Ordinal))
+            {
+                return DeviceHttpsPollingResponse.Rejected;
+            }
+
+            // A device request never executes its own cmd value. It is only audited,
+            // matched to a prior AxionPro command response, and then receives the next
+            // server-owned queue item in this same outbound HTTPS response.
+            await RecordInboundAsync(
+                new DeviceMqttInboundMessage(
+                    "https",
+                    serialNumber,
+                    request.Payload,
+                    QualityOfService: 0,
+                    IsDuplicateDelivery: false,
+                    IsProtocolIdentityValid: true,
+                    ReceivedDateTime: request.ReceivedDateTime),
+                cancellationToken);
+
+            var configuration = device.TenantDeviceConfiguration!;
+            configuration.LastHeartbeatDateTime = request.ReceivedDateTime;
+            configuration.LastSuccessfulConnectionDateTime = request.ReceivedDateTime;
+            configuration.LastConnectionError = null;
+            configuration.UpdatedDateTime = request.ReceivedDateTime;
+            await context.SaveChangesAsync(cancellationToken);
+
+            var dispatch = await TryAcquireNextAsync(
+                new[] { DeviceCommunicationProtocol.Https },
+                device.Id,
+                cancellationToken);
+            if (dispatch is not null)
+            {
+                await MarkPublishedAsync(dispatch, "https", qualityOfService: 0, request.ReceivedDateTime, cancellationToken);
+                return new DeviceHttpsPollingResponse(true, dispatch.Payload);
+            }
+
+            return new DeviceHttpsPollingResponse(
+                true,
+                BuildHttpsAcknowledgement(root, serialNumber, configuration.HeartbeatIntervalSeconds ?? 15));
+        }
+    }
+
+    /// <inheritdoc />
     public async Task RecordInboundAsync(DeviceMqttInboundMessage message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
@@ -423,16 +534,28 @@ public sealed class DeviceCommandRepository(
             throw new ConflictException("The requested Tenant device is not active.");
         }
 
-        var protocol = tenantDevice.TenantDeviceConfiguration?.MqttTransport;
-        if (protocol is not (short)DeviceCommunicationProtocol.Mqtt and not (short)DeviceCommunicationProtocol.Mqtts)
+        var transportCode = tenantDevice.TenantDeviceConfiguration?.CommandTransport
+            ?? tenantDevice.TenantDeviceConfiguration?.MqttTransport;
+        if (!transportCode.HasValue || !Enum.IsDefined((DeviceCommunicationProtocol)transportCode.Value))
         {
-            throw new ValidationErrorException("The Tenant device must have an MQTT or MQTTS configuration before a command can be queued.");
+            throw new ValidationErrorException("The Tenant device must have a valid command transport configuration before a command can be queued.");
         }
 
-        if (protocol == (short)DeviceCommunicationProtocol.Mqtt && !tenantDevice.DeviceMaster.SupportsMqtt ||
-            protocol == (short)DeviceCommunicationProtocol.Mqtts && !tenantDevice.DeviceMaster.SupportsMqtts)
+        var transport = (DeviceCommunicationProtocol)transportCode.Value;
+        if (!SupportsTransport(tenantDevice.DeviceMaster, transport))
         {
-            throw new ValidationErrorException("The selected device model does not support its configured MQTT transport.");
+            throw new ValidationErrorException("The selected device model does not support its configured command transport.");
+        }
+
+        if (transport is not (DeviceCommunicationProtocol.Mqtt or DeviceCommunicationProtocol.Mqtts or DeviceCommunicationProtocol.Https))
+        {
+            throw new ValidationErrorException("The selected command transport does not yet have an enabled AxionPro transport adapter.");
+        }
+
+        if (transport == DeviceCommunicationProtocol.Https &&
+            string.IsNullOrWhiteSpace(tenantDevice.TenantDeviceConfiguration?.HttpsIngressTokenHash))
+        {
+            throw new ValidationErrorException("Generate the HTTPS device gateway URL before queueing a command for this device.");
         }
 
         if (definition.AccessLevel == DeviceCommandAccessLevel.TenantAccessControlPermission &&
@@ -440,6 +563,45 @@ public sealed class DeviceCommandRepository(
         {
             throw new ValidationErrorException("The requested door-control command requires an access-control device.");
         }
+    }
+
+    private static bool SupportsTransport(DeviceMaster deviceMaster, DeviceCommunicationProtocol transport) => transport switch
+    {
+        DeviceCommunicationProtocol.Mqtt => deviceMaster.SupportsMqtt,
+        DeviceCommunicationProtocol.Mqtts => deviceMaster.SupportsMqtts,
+        DeviceCommunicationProtocol.Http => deviceMaster.SupportsHttp,
+        DeviceCommunicationProtocol.Https => deviceMaster.SupportsHttps,
+        DeviceCommunicationProtocol.WebSocket or DeviceCommunicationProtocol.WebSocketSecure => deviceMaster.SupportsWebSocket,
+        _ => false
+    };
+
+    private static void EnsurePayloadSerialDoesNotConflict(string payload, string deviceSerialNumber)
+    {
+        using var document = JsonDocument.Parse(payload);
+        if (document.RootElement.TryGetProperty("sn", out var serialProperty) &&
+            serialProperty.ValueKind == JsonValueKind.String &&
+            !string.Equals(serialProperty.GetString()?.Trim(), deviceSerialNumber.Trim(), StringComparison.Ordinal))
+        {
+            throw new ValidationErrorException("The command payload serial number does not match the selected Tenant device.");
+        }
+    }
+
+    private static string BuildHttpsAcknowledgement(JsonElement request, string serialNumber, int heartbeatIntervalSeconds)
+    {
+        var responseCommand = request.TryGetProperty("cmd", out var commandProperty) &&
+                              commandProperty.ValueKind == JsonValueKind.String
+            ? commandProperty.GetString()?.Trim()
+            : request.TryGetProperty("ret", out var responseProperty) && responseProperty.ValueKind == JsonValueKind.String
+                ? responseProperty.GetString()?.Trim()
+                : DeviceCommands.CheckLive;
+
+        return JsonSerializer.Serialize(new
+        {
+            ret = string.IsNullOrWhiteSpace(responseCommand) ? DeviceCommands.CheckLive : responseCommand,
+            sn = serialNumber,
+            result = true,
+            tryseconds = Math.Clamp(heartbeatIntervalSeconds, 10, 3600)
+        });
     }
 
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();

@@ -238,8 +238,13 @@ public class TenantDeviceConfigurationRequestDTO : TenantDeviceAccessRequestDTO
     public string? IpAddress { get; set; }
     public string? MacAddress { get; set; }
     public int? DevicePort { get; set; }
-    /// <summary>MQTT/MQTTS transport selected for this V1 device configuration.</summary>
+    /// <summary>
+    /// Legacy MQTT-only field. Existing UI clients may send it; new clients must
+    /// use <see cref="CommandTransport"/> instead.
+    /// </summary>
     public DeviceCommunicationProtocol? MqttTransport { get; set; }
+    /// <summary>Generic transport selected for command dispatch and inbound device traffic.</summary>
+    public DeviceCommunicationProtocol? CommandTransport { get; set; }
     public string? ServerHost { get; set; }
     public int? ServerPort { get; set; }
     public string? ServerPath { get; set; }
@@ -262,12 +267,29 @@ public sealed class UpdateTenantDeviceConfigurationRequestDTO : TenantDeviceConf
     public long Id { get; set; }
 }
 
+/// <summary>
+/// Requests a new one-time HTTPS device-gateway address. This endpoint is
+/// authenticated and the returned bearer URL must be installed on the device
+/// immediately; it is never returned by configuration read APIs.
+/// </summary>
+public sealed class RotateTenantDeviceHttpsIngressTokenRequestDTO : TenantDeviceAccessRequestDTO
+{
+    public long TenantDeviceConfigurationId { get; set; }
+}
+
+/// <summary>Contains the one-time HTTPS gateway URL to copy to the physical device.</summary>
+public sealed class TenantDeviceHttpsIngressEndpointResponseDTO
+{
+    public string GatewayUrl { get; set; } = string.Empty;
+}
+
 /// <summary>Supplies paging and optional filters for Tenant device configurations.</summary>
 public sealed class GetTenantDeviceConfigurationListRequestDTO : TenantDeviceAccessRequestDTO
 {
     public string? Search { get; set; }
     public long? TenantDeviceId { get; set; }
     public DeviceCommunicationProtocol? MqttTransport { get; set; }
+    public DeviceCommunicationProtocol? CommandTransport { get; set; }
     public bool? IsEnrollmentEnabled { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
@@ -283,6 +305,7 @@ public sealed class TenantDeviceConfigurationResponseDTO
     public string? MacAddress { get; set; }
     public int? DevicePort { get; set; }
     public DeviceCommunicationProtocol? MqttTransport { get; set; }
+    public DeviceCommunicationProtocol? CommandTransport { get; set; }
     public string? ServerHost { get; set; }
     public int? ServerPort { get; set; }
     public string? ServerPath { get; set; }

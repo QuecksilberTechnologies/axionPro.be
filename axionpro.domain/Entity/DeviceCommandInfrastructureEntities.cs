@@ -1,6 +1,6 @@
 // ================================================================
 // Purpose : Durable command, response, raw-message audit, and encrypted
-//           device-credential records for the MQTT/MQTTS device stack.
+//           device-credential records for the transport-neutral device stack.
 // ================================================================
 
 namespace axionpro.domain.Entity;
@@ -54,7 +54,7 @@ public partial class DeviceCommandResponse
     public virtual TenantDevice? TenantDevice { get; set; }
 }
 
-/// <summary>Stores every raw inbound or outbound MQTT payload for diagnostic audit.</summary>
+/// <summary>Stores every raw inbound or outbound device payload for diagnostic audit.</summary>
 public partial class DeviceMessageLog
 {
     public long Id { get; set; }

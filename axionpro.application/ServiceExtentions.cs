@@ -24,6 +24,7 @@ namespace axionpro.application
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.TenantEmailConfigCmd.TenantEmailConfigPermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.EmailTemplateCmd.EmailTemplatePermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.DeviceCommandCmd.DeviceCommandPermissionBehavior<,>));
+            services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.DeviceCommandCmd.DeviceHttpsGatewaySecurityBehavior<,>));
            
 
             services.AddAutoMapper(typeof(MappingProfile).Assembly);

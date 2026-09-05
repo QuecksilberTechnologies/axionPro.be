@@ -517,6 +517,10 @@ namespace axionpro.application.Constants
 
         #region Email Templates
         public static readonly string WelcomeEmail = "WELCOME_EMAIL";
+        public static readonly string ForgotPasswordEmail = "FORGOT_PASSWORD";
+        public static readonly string BirthdayWishEmail = "BIRTHDAY_WISH";
+        public static readonly string LeaveApprovalEmail = "LEAVE_APPROVAL";
+        public static readonly string AccountVerificationEmail = "ACCOUNT_VERIFICATION";
         #endregion
 
         //   public static readonly DateOnly SystemOnlyTodaysDate= DateOnly.MaxValue;

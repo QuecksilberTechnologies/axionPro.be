@@ -4,6 +4,7 @@
 // ================================================================
 
 using axionpro.application.Interfaces.IDeviceCommunication;
+using axionpro.domain.Entity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -33,7 +34,9 @@ public sealed class DeviceCommandDispatcherWorker(
                     continue;
                 }
 
-                var dispatch = await queueStore.TryAcquireNextAsync(stoppingToken);
+                var dispatch = await queueStore.TryAcquireNextAsync(
+                    new[] { DeviceCommunicationProtocol.Mqtt, DeviceCommunicationProtocol.Mqtts },
+                    cancellationToken: stoppingToken);
                 if (dispatch is null)
                 {
                     continue;

@@ -1,17 +1,32 @@
 // ================================================================
-// Purpose : Defines the MQTT/MQTTS-only device communication lifecycle.
+// Purpose : Defines the durable device communication lifecycle.
 // ================================================================
 
 namespace axionpro.domain.Entity;
 
-/// <summary>Identifies the supported V1 transport for a Tenant device.</summary>
+/// <summary>Identifies the transport that carries a Tenant device command.</summary>
 public enum DeviceCommunicationProtocol : short
 {
     /// <summary>MQTT over TCP.</summary>
     Mqtt = 1,
 
     /// <summary>MQTT over TLS.</summary>
-    Mqtts = 2
+    Mqtts = 2,
+
+    /// <summary>Device-initiated HTTP polling. It is retained for LAN-only legacy devices.</summary>
+    Http = 3,
+
+    /// <summary>
+    /// Device-initiated HTTPS polling. The device opens an outbound TLS connection
+    /// and receives at most one queued command in the HTTP response.
+    /// </summary>
+    Https = 4,
+
+    /// <summary>Unencrypted WebSocket. It is retained for LAN-only legacy devices.</summary>
+    WebSocket = 5,
+
+    /// <summary>WebSocket over TLS for an authenticated long-lived device connection.</summary>
+    WebSocketSecure = 6
 }
 
 /// <summary>Represents the durable server-side state of a device command.</summary>
@@ -42,7 +57,7 @@ public enum DeviceCommandAccessLevel : short
     HostOnly = 3
 }
 
-/// <summary>Identifies the direction of a raw MQTT protocol message.</summary>
+/// <summary>Identifies the direction of a raw device-protocol message.</summary>
 public enum DeviceMessageDirection : short
 {
     Inbound = 1,

@@ -208,7 +208,16 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.HasConfiguration, o => o.MapFrom(s => s.TenantDeviceConfiguration != null));
 
             CreateMap<CreateTenantDeviceConfigurationRequestDTO, TenantDeviceConfiguration>()
-                .ForMember(d => d.MqttTransport, o => o.MapFrom(s => s.MqttTransport.HasValue ? (short?)s.MqttTransport.Value : null))
+                .ForMember(d => d.MqttTransport, o => o.MapFrom(s =>
+                    s.MqttTransport.HasValue &&
+                    (s.MqttTransport.Value == DeviceCommunicationProtocol.Mqtt ||
+                     s.MqttTransport.Value == DeviceCommunicationProtocol.Mqtts)
+                        ? (short?)s.MqttTransport.Value : null))
+                .ForMember(d => d.CommandTransport, o => o.MapFrom(s =>
+                    s.CommandTransport.HasValue
+                        ? (short?)s.CommandTransport.Value
+                        : s.MqttTransport.HasValue ? (short?)s.MqttTransport.Value : null))
+                .ForMember(d => d.HttpsIngressTokenHash, o => o.Ignore())
                 .ForMember(d => d.CommunicationType, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore())
@@ -224,7 +233,16 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.TenantDevice, o => o.Ignore());
 
             CreateMap<UpdateTenantDeviceConfigurationRequestDTO, TenantDeviceConfiguration>()
-                .ForMember(d => d.MqttTransport, o => o.MapFrom(s => s.MqttTransport.HasValue ? (short?)s.MqttTransport.Value : null))
+                .ForMember(d => d.MqttTransport, o => o.MapFrom(s =>
+                    s.MqttTransport.HasValue &&
+                    (s.MqttTransport.Value == DeviceCommunicationProtocol.Mqtt ||
+                     s.MqttTransport.Value == DeviceCommunicationProtocol.Mqtts)
+                        ? (short?)s.MqttTransport.Value : null))
+                .ForMember(d => d.CommandTransport, o => o.MapFrom(s =>
+                    s.CommandTransport.HasValue
+                        ? (short?)s.CommandTransport.Value
+                        : s.MqttTransport.HasValue ? (short?)s.MqttTransport.Value : null))
+                .ForMember(d => d.HttpsIngressTokenHash, o => o.Ignore())
                 .ForMember(d => d.CommunicationType, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore())
@@ -242,6 +260,10 @@ namespace axionpro.application.Mappings
             CreateMap<TenantDeviceConfiguration, TenantDeviceConfigurationResponseDTO>()
                 .ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.MqttTransport, o => o.MapFrom(s => s.MqttTransport.HasValue ? (DeviceCommunicationProtocol?)s.MqttTransport.Value : null))
+                .ForMember(d => d.CommandTransport, o => o.MapFrom(s =>
+                    s.CommandTransport.HasValue
+                        ? (DeviceCommunicationProtocol?)s.CommandTransport.Value
+                        : s.MqttTransport.HasValue ? (DeviceCommunicationProtocol?)s.MqttTransport.Value : null))
                 .ForMember(d => d.DeviceCode, o => o.MapFrom(s => s.TenantDevice != null ? s.TenantDevice.DeviceCode : null))
                 .ForMember(d => d.DeviceName, o => o.MapFrom(s => s.TenantDevice != null ? s.TenantDevice.DeviceName : null))
                 .ForMember(d => d.DeviceMasterName, o => o.MapFrom(s => s.TenantDevice != null && s.TenantDevice.DeviceMaster != null ? s.TenantDevice.DeviceMaster.DeviceName : null))

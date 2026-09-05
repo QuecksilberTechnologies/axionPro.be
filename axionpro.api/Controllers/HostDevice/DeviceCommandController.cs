@@ -1,5 +1,5 @@
 // ================================================================
-// Purpose : Exposes authenticated submission to the MQTT device command queue.
+// Purpose : Exposes authenticated submission to the transport-neutral device command queue.
 // ================================================================
 
 using axionpro.application.DTOS.Host;
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.HostDevice;
 
-/// <summary>Queues supported commands for Tenant devices through the central MQTT/MQTTS gateway.</summary>
+/// <summary>Queues supported commands for Tenant devices through their configured transport adapter.</summary>
 [Authorize]
 [ApiController]
 [Route("api/device-commands")]

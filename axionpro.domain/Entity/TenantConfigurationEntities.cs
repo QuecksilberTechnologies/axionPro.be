@@ -257,8 +257,21 @@ public partial class TenantDeviceConfiguration
     /// values are not reinterpreted by the MQTT/MQTTS production stack.
     /// </summary>
     public short? CommunicationType { get; set; }
-    /// <summary>MQTT/MQTTS transport selected for the new device-command infrastructure.</summary>
+    /// <summary>
+    /// Backward-compatible device-command transport column. Values are MQTT, MQTTS,
+    /// or device-initiated HTTPS polling.
+    /// </summary>
     public short? MqttTransport { get; set; }
+    /// <summary>
+    /// Generic command transport. New integrations use this field instead of the
+    /// MQTT-named legacy column so HTTPS and WebSocket can coexist cleanly.
+    /// </summary>
+    public short? CommandTransport { get; set; }
+    /// <summary>
+    /// SHA-256 hash of the one-time HTTPS gateway bearer token. The plaintext token
+    /// is deliberately never persisted or returned by configuration read endpoints.
+    /// </summary>
+    public string? HttpsIngressTokenHash { get; set; }
     public string? ServerHost { get; set; }
     public int? ServerPort { get; set; }
     public string? ServerPath { get; set; }

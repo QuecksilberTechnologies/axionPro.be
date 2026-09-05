@@ -19,12 +19,38 @@ END $$;
 ALTER TABLE axionpro."TenantDeviceConfiguration"
     ADD COLUMN IF NOT EXISTS "MqttTransport" smallint NULL;
 
+-- New command transports are deliberately not overloaded onto the old
+-- MQTT-named column. Existing rows continue to work through the backfill.
+ALTER TABLE axionpro."TenantDeviceConfiguration"
+    ADD COLUMN IF NOT EXISTS "CommandTransport" smallint NULL;
+
+ALTER TABLE axionpro."TenantDeviceConfiguration"
+    ADD COLUMN IF NOT EXISTS "HttpsIngressTokenHash" character varying(64) NULL;
+
 ALTER TABLE axionpro."TenantDeviceConfiguration"
     DROP CONSTRAINT IF EXISTS "CK_TenantDeviceConfiguration_MqttTransport";
 
 ALTER TABLE axionpro."TenantDeviceConfiguration"
     ADD CONSTRAINT "CK_TenantDeviceConfiguration_MqttTransport"
     CHECK ("MqttTransport" IS NULL OR "MqttTransport" IN (1, 2));
+
+ALTER TABLE axionpro."TenantDeviceConfiguration"
+    DROP CONSTRAINT IF EXISTS "CK_TenantDeviceConfiguration_CommandTransport";
+
+ALTER TABLE axionpro."TenantDeviceConfiguration"
+    ADD CONSTRAINT "CK_TenantDeviceConfiguration_CommandTransport"
+    CHECK ("CommandTransport" IS NULL OR "CommandTransport" IN (1, 2, 3, 4, 5, 6));
+
+ALTER TABLE axionpro."TenantDeviceConfiguration"
+    DROP CONSTRAINT IF EXISTS "CK_TenantDeviceConfiguration_HttpsIngressTokenHash";
+
+ALTER TABLE axionpro."TenantDeviceConfiguration"
+    ADD CONSTRAINT "CK_TenantDeviceConfiguration_HttpsIngressTokenHash"
+    CHECK ("HttpsIngressTokenHash" IS NULL OR "HttpsIngressTokenHash" ~ '^[0-9a-f]{64}$');
+
+CREATE UNIQUE INDEX IF NOT EXISTS "UX_TenantDeviceConfiguration_HttpsIngressTokenHash"
+    ON axionpro."TenantDeviceConfiguration" ("HttpsIngressTokenHash")
+    WHERE "HttpsIngressTokenHash" IS NOT NULL;
 
 CREATE TABLE axionpro."DeviceCommand"
 (
