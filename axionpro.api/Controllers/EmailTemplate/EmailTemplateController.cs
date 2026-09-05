@@ -1,85 +1,127 @@
 // ================================================================
-// Author  : Deepesh Gupta
-// Company : Quecksilber Technologies
-// Role    : CEO
-// Purpose : Coordinates HTTP requests for Email Template operations.
+// Purpose : Exposes legacy email-template delivery routes and secured Host CRUD management routes.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOs.EmailTemplate;
-using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.Features.EmailTemplateCmd.Handlers;
 using axionpro.application.Features.EmailTemplateCmd.Queries;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.ILogger;
-using axionpro.application.Wrappers;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace axionpro.api.Controllers.EmailTemplate
+namespace axionpro.api.Controllers.EmailTemplate;
+
+[ApiController]
+[Route("api/[controller]")]
+public sealed class EmailTemplateController(
+    IMediator mediator,
+    IEmailService emailService,
+    ILoggerService logger) : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class EmailTemplateController : ControllerBase
+    /// <summary>
+    /// Legacy lookup route retained for existing integrations. New Host administration should use <c>get-by-id</c> and <c>get-all</c>.
+    /// </summary>
+    [HttpGet("get-template-by-code")]
+    public async Task<IActionResult> GetTemplateByCodeAsync(
+        [FromQuery] string code,
+        CancellationToken cancellationToken)
     {
-        private readonly IMediator _mediator;
-        private readonly IEmailService _emailService;
-        private readonly ILoggerService _logger;
-        public EmailTemplateController(
-            IMediator mediator,
-            IEmailService emailService,
-            ILoggerService logger)
-        {
-            _mediator = mediator;
-            _emailService = emailService;
-            _logger = logger;
-        }
-                /// <summary>
-                /// Not-Used-In-Angular.
-                /// </summary>
-                /// <remarks>
-                /// <para>Angular usage status: Not-Used-In-Angular.</para>
-                /// <para>API endpoint purpose: retrieves email template by code.</para>
-                /// <para>Handler flow: GetEmailTemplateByCodeQuery is processed by GetEmailTemplateByCodeQueryHandler; operation(s): GetTemplateByCodeAsync.</para>
-                /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); EmailTemplateDTO: TemplateCode (string), Subject (string), Body (string), FromEmail (string), FromName (string)</para>
-                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-                /// <para>Backend endpoint: GET /api/emailtemplate/get-template-by-code.</para>
-                /// </remarks>
+        logger.LogInfo($"Getting email template for code: {code}");
+        return Ok(await mediator.Send(new GetEmailTemplateByCodeQuery(code), cancellationToken));
+    }
 
-                [HttpGet("get-template-by-code")]
-                public async Task<IActionResult> GetTemplateByCodeAsync([FromQuery] string code)
-                {
-                    _logger.LogInfo($"Getting email templates for code: {code}");
+    /// <summary>
+    /// Legacy send route retained for existing integrations. It resolves only an active template and uses the configured SMTP fallback flow.
+    /// </summary>
+    [HttpPost("send-template")]
+    public async Task<IActionResult> SendTemplatedEmail(
+        [FromBody] SendEmailTemplatRequestDTO request,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInfo($"Sending email to {request.ToEmail} using template {request.TemplateCode}");
+        await emailService.SendTemplatedEmailAsync(
+            request.TemplateCode,
+            request.ToEmail,
+            request.TenantId,
+            request.Placeholders);
 
-                    var query = new GetEmailTemplateByCodeQuery(code);
-                    var result = await _mediator.Send(query);
+        return Ok("Email sent successfully.");
+    }
 
-                    return Ok(result);
-                }
-                /// <summary>
-                /// Not-Used-In-Angular.
-                /// </summary>
-                /// <remarks>
-                /// <para>Angular usage status: Not-Used-In-Angular.</para>
-                /// <para>API endpoint purpose: performs the Angular function send templated email.</para>
-                /// <para>Handler flow: No application request/handler class was statically resolved from the controller action.</para>
-                /// <para>Response DTO property analysis: No concrete response DTO properties were statically resolved from the request/handler declaration.</para>
-                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-                /// <para>Backend endpoint: POST /api/emailtemplate/send-template.</para>
-                /// </remarks>
+    /// <summary>Creates a centrally managed template. Requires the Host create/add permission.</summary>
+    [Authorize]
+    [HttpPost("create")]
+    public async Task<IActionResult> Create(
+        [FromBody] CreateEmailTemplateRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInfo("Received email-template create request.");
+        return Ok(await mediator.Send(new CreateEmailTemplateCommand(dto), cancellationToken));
+    }
 
-                [HttpPost("send-template")]
-                public async Task<IActionResult> SendTemplatedEmail([FromBody] SendEmailTemplatRequestDTO request)
-                {
-                    _logger.LogInfo($"Sending email to {request.ToEmail} using template {request.TemplateCode}");
+    /// <summary>Returns a paged, searchable template list. Requires the Host view/read permission.</summary>
+    [Authorize]
+    [HttpGet("get-all")]
+    public async Task<IActionResult> GetAll(
+        [FromQuery] EmailTemplateListRequestDTO? filter,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInfo("Received email-template list request.");
+        return Ok(await mediator.Send(new GetAllEmailTemplatesQuery(filter), cancellationToken));
+    }
 
-                    var result = await _emailService.SendTemplatedEmailAsync(
-                        request.TemplateCode,
-                        request.ToEmail,
-                        request.TenantId,
-                        request.Placeholders
-                    );
+    /// <summary>Returns one template by identifier. Requires the Host view/read permission.</summary>
+    [Authorize]
+    [HttpGet("get-by-id/{id:int}")]
+    public async Task<IActionResult> GetById(
+        int id,
+        [FromQuery] PermissionRequestDTO? permissionRequest,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInfo($"Received email-template read request for {id}.");
+        return Ok(await mediator.Send(
+            new GetEmailTemplateByIdQuery(id, permissionRequest),
+            cancellationToken));
+    }
 
+    /// <summary>Updates template content and metadata. Requires the Host update/edit permission.</summary>
+    [Authorize]
+    [HttpPost("update")]
+    public async Task<IActionResult> Update(
+        [FromBody] UpdateEmailTemplateRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInfo($"Received email-template update request for {dto.Id}.");
+        return Ok(await mediator.Send(new UpdateEmailTemplateCommand(dto), cancellationToken));
+    }
 
-                    return Ok("Email sent successfully.");
-                }
+    /// <summary>Changes only the active state. Inactive templates cannot be used by the mail-delivery flow.</summary>
+    [Authorize]
+    [HttpPost("update-status")]
+    public async Task<IActionResult> UpdateStatus(
+        [FromBody] UpdateEmailTemplateStatusRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInfo($"Received email-template status update request for {dto.Id}.");
+        return Ok(await mediator.Send(new UpdateEmailTemplateStatusCommand(dto), cancellationToken));
+    }
+
+    /// <summary>
+    /// Deletes an inactive template that has no queued or delivered-email history. Requires the Host delete permission.
+    /// </summary>
+    [Authorize]
+    [HttpDelete("delete/{id:int}")]
+    public async Task<IActionResult> Delete(
+        int id,
+        [FromQuery] PermissionRequestDTO? permissionRequest,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInfo($"Received email-template delete request for {id}.");
+        return Ok(await mediator.Send(
+            new DeleteEmailTemplateCommand(id, permissionRequest),
+            cancellationToken));
     }
 }

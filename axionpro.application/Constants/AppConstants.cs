@@ -138,6 +138,10 @@ namespace axionpro.application.Constants
             public const string TenantDeviceConfigurationNotFound = "The requested tenant device configuration was not found.";
             public const string TenantDeviceConfigurationAlreadyExists = "This tenant device already has a configuration.";
             public const string TenantDeviceConfigurationInUse = "Delete the tenant device configuration before deleting the tenant device.";
+            public const string EmailTemplateNotFound = "The requested email template was not found.";
+            public const string DuplicateEmailTemplateCode = "An email template with this code already exists.";
+            public const string EmailTemplateMustBeInactiveToDelete = "Deactivate the email template before deleting it.";
+            public const string EmailTemplateHasDeliveryHistory = "The email template cannot be deleted because it has queued or delivered email history.";
             public const string DefaultEmailConfigNotFound = "The requested default email configuration was not found.";
             public const string DuplicateDefaultEmailConfigName = "A default email configuration with this name already exists.";
             public const string DefaultEmailConfigMustRemainActive = "At least one active email configuration is required for Tenant registration.";
@@ -332,6 +336,11 @@ namespace axionpro.application.Constants
             public const string TenantDeviceConfigurationUpdated = "Tenant device configuration updated successfully.";
             public const string TenantDeviceConfigurationDeleted = "Tenant device configuration deleted successfully.";
             public const string TenantDeviceConfigurationRetrieved = "Tenant device configurations retrieved successfully.";
+            public const string EmailTemplateCreated = "Email template created successfully.";
+            public const string EmailTemplateUpdated = "Email template updated successfully.";
+            public const string EmailTemplateStatusUpdated = "Email template status updated successfully.";
+            public const string EmailTemplateDeleted = "Email template deleted successfully.";
+            public const string EmailTemplateRetrieved = "Email templates retrieved successfully.";
             public const string DefaultEmailConfigCreated = "Default email configuration created successfully.";
             public const string DefaultEmailConfigUpdated = "Default email configuration updated successfully.";
             public const string DefaultEmailConfigDeleted = "Default email configuration deleted successfully.";

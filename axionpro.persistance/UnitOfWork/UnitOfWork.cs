@@ -328,7 +328,7 @@ public class UnitOfWork : IUnitOfWork
         _planModuleMappingRepository ??= new PlanModuleMappingRepository(_context, _loggerFactory.CreateLogger<PlanModuleMappingRepository>());
 
     public IEmailTemplateRepository EmailTemplateRepository =>
-        _emailTemplateRepository ??= new EmailTemplateRepository(_context, _loggerFactory.CreateLogger<EmailTemplateRepository>());
+        _emailTemplateRepository ??= new EmailTemplateRepository(_context);
 
     public ICandidateRegistrationRepository CandidatesRegistrationRepository =>
         _candidateRegistrationRepository ??= new CandidateRegistrationRepository(_context, _loggerFactory.CreateLogger<CandidateRegistrationRepository>());

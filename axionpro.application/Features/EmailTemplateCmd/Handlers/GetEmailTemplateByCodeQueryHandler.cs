@@ -81,7 +81,8 @@ public class GetEmailTemplateByCodeQueryHandler : IRequestHandler<GetEmailTempla
         {
             try
             {
-                EmailTemplate templates = await _unitOfWork.EmailTemplateRepository.GetTemplateByCodeAsync(request.Code);
+                EmailTemplate? templates = await _unitOfWork.EmailTemplateRepository
+                    .GetTemplateByCodeAsync(request.Code, cancellationToken);
 
                 if (templates == null)
                 {

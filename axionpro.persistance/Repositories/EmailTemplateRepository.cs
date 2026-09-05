@@ -1,59 +1,116 @@
-﻿using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.DTOs.EmailTemplate;
+using axionpro.application.DTOS.Pagination;
+using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Logging;
 
-namespace axionpro.persistance.Repositories
+namespace axionpro.persistance.Repositories;
+
+/// <summary>
+/// Persists centrally managed email templates and protects delivery history from unsafe deletion.
+/// </summary>
+public sealed class EmailTemplateRepository(WorkforceDbContext context) : IEmailTemplateRepository
 {
-    public class EmailTemplateRepository : IEmailTemplateRepository
+    public Task<EmailTemplate?> GetTemplateByCodeAsync(
+        string templateCode,
+        CancellationToken cancellationToken = default)
     {
-        private readonly WorkforceDbContext _context;
-        private readonly ILogger<EmailTemplateRepository> _logger;
-         
-        public EmailTemplateRepository(WorkforceDbContext context, ILogger<EmailTemplateRepository> logger    )
+        if (string.IsNullOrWhiteSpace(templateCode))
         {
-            _context = context;
-            _logger = logger;
-          
+            return Task.FromResult<EmailTemplate?>(null);
         }
 
-        public async Task<EmailTemplate?> GetTemplateByCodeAsync(string templateCode)
-        {
-            try
-            {
-                
-                return await _context.EmailTemplates
-                    .Where(t => t.TemplateCode == templateCode && t.IsActive)
-                    .OrderByDescending(t => t.AddedDateTime)
-                    .FirstOrDefaultAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while fetching template by code: {TemplateCode}", templateCode);
-                return null;
-            }
-        }
-
-        public Task AddTemplateAsync(EmailTemplate template)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteTemplateAsync(int templateId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<EmailTemplate>> GetAllTemplatesAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateTemplateAsync(EmailTemplate template)
-        {
-            throw new NotImplementedException();
-        }
+        var normalizedCode = templateCode.Trim().ToUpperInvariant();
+        return context.EmailTemplates
+            .AsNoTracking()
+            .Where(template => template.IsActive &&
+                               template.TemplateCode != null &&
+                               template.TemplateCode.ToUpper() == normalizedCode)
+            .OrderByDescending(template => template.AddedDateTime)
+            .ThenByDescending(template => template.Id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public Task<EmailTemplate?> GetByIdAsync(int id, CancellationToken cancellationToken = default) =>
+        context.EmailTemplates
+            .AsNoTracking()
+            .FirstOrDefaultAsync(template => template.Id == id, cancellationToken);
+
+    public Task<EmailTemplate?> GetForUpdateAsync(int id, CancellationToken cancellationToken = default) =>
+        context.EmailTemplates
+            .FirstOrDefaultAsync(template => template.Id == id, cancellationToken);
+
+    public async Task<PagedResponseDTO<EmailTemplate>> GetPagedAsync(
+        EmailTemplateListRequestDTO filter,
+        CancellationToken cancellationToken = default)
+    {
+        var pageNumber = Math.Max(filter.PageNumber, 1);
+        var pageSize = Math.Clamp(filter.PageSize, 1, 100);
+        IQueryable<EmailTemplate> query = context.EmailTemplates.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var search = $"%{filter.Search.Trim()}%";
+            query = query.Where(template =>
+                EF.Functions.ILike(template.TemplateName, search) ||
+                (template.TemplateCode != null && EF.Functions.ILike(template.TemplateCode, search)) ||
+                EF.Functions.ILike(template.Subject, search) ||
+                (template.Category != null && EF.Functions.ILike(template.Category, search)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Category))
+        {
+            query = query.Where(template =>
+                template.Category != null &&
+                EF.Functions.ILike(template.Category, filter.Category.Trim()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.LanguageCode))
+        {
+            query = query.Where(template =>
+                template.LanguageCode != null &&
+                EF.Functions.ILike(template.LanguageCode, filter.LanguageCode.Trim()));
+        }
+
+        if (filter.IsActive.HasValue)
+        {
+            query = query.Where(template => template.IsActive == filter.IsActive.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var data = await query
+            .OrderByDescending(template => template.IsActive)
+            .ThenBy(template => template.TemplateName)
+            .ThenBy(template => template.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedResponseDTO<EmailTemplate>(data, totalCount, pageNumber, pageSize)
+        {
+            TotalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize))
+        };
+    }
+
+    public Task<bool> TemplateCodeExistsAsync(
+        string templateCode,
+        int? excludedId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedCode = templateCode.Trim().ToUpperInvariant();
+        return context.EmailTemplates.AnyAsync(template =>
+            template.TemplateCode != null &&
+            template.TemplateCode.ToUpper() == normalizedCode &&
+            (!excludedId.HasValue || template.Id != excludedId.Value),
+            cancellationToken);
+    }
+
+    public Task<bool> HasEmailQueueEntriesAsync(int templateId, CancellationToken cancellationToken = default) =>
+        context.EmailQueues.AnyAsync(queue => queue.TemplateId == templateId, cancellationToken);
+
+    public async Task AddAsync(EmailTemplate template, CancellationToken cancellationToken = default) =>
+        await context.EmailTemplates.AddAsync(template, cancellationToken);
+
+    public void Remove(EmailTemplate template) => context.EmailTemplates.Remove(template);
 }
