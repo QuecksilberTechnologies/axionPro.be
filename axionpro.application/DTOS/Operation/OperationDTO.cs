@@ -12,10 +12,10 @@ namespace axionpro.application.DTOs.Operation
         public string OperationName { get; set; }
         public string Remark { get; set; }
         public bool IsActive { get; set; }
-        public int AddedById { get; set; }
+        public long? AddedById { get; set; }
         public DateTime AddedDateTime { get; set; }
-        public int? UpdatedById { get; set; }
-        public DateTime? UpdateDateTime { get; set; }
+        public long? UpdatedById { get; set; }
+        public DateTime? UpdatedDateTime { get; set; }
     }
 
 }

@@ -21,7 +21,7 @@ public partial class Operation
 
     public long? UpdatedById { get; set; }
 
-    public DateTime? UpdateDateTime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
     public string? IconImage { get; set; }
 

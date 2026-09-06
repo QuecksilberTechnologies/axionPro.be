@@ -66,7 +66,7 @@ $env:AXIONPRO_TEST_LOGIN_PASSWORD = "your-test-password"
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=TenantEmailConfig"
 ```
 
-Before this test can run, apply `database-scripts/CreateTenantEmailConfigModule.sql` to the intended **non-production** database, enable `TENANT_EMAIL_CONFIG` plus its CRUD operations for that tenant through the normal plan-entitlement synchronization, and assign Create, View, Update, and Delete to the test account's role. The test creates an **inactive** SMTP configuration and always deletes it, so it cannot replace the tenant's active mail configuration.
+Before this test can run, apply `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql` to the intended **non-production** database, enable `TENANT_EMAIL_CONFIG` plus its CRUD operations for that tenant through the normal plan-entitlement synchronization, and assign Create, View, Update, and Delete to the test account's role. The test creates an **inactive** SMTP configuration and always deletes it, so it cannot replace the tenant's active mail configuration.
 
 Do not place user passwords, JWTs, or production credentials in `automationsettings.json`.
 

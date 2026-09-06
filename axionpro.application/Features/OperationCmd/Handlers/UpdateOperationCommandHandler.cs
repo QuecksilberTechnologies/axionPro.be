@@ -107,7 +107,7 @@ public class UpdateOperationCommandHandler : IRequestHandler<UpdateOperationComm
                 Operation operation = _mapper.Map<Operation>(dto);
                 operation.IsActive = dto.IsActive ?? existingOperation.IsActive;
                 operation.UpdatedById = hostUserId;
-                operation.UpdateDateTime = DateTime.UtcNow;
+                operation.UpdatedDateTime = DateTime.UtcNow;
                 List<Operation> operations = await operationRepository.UpdateOperationAsync(operation);
 
                 if (operations == null || !operations.Any())

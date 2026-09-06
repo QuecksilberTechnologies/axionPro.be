@@ -81,7 +81,7 @@ public sealed class TenantEmailConfigCrudTests
         Assert.That(
             tenantEmailConfigModule.HasValue,
             Is.True,
-            $"The test account's tenant does not expose the '{TenantEmailConfigModuleCode}' module. Apply database-scripts/CreateTenantEmailConfigModule.sql, enable the module and its CRUD operations for the tenant through plan-entitlement synchronization, and assign the operations to the account's Tenant role.");
+            $"The test account's tenant does not expose the '{TenantEmailConfigModuleCode}' module. Apply database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql, enable the module and its CRUD operations for the tenant through plan-entitlement synchronization, and assign the operations to the account's Tenant role.");
 
         var module = tenantEmailConfigModule!.Value;
         _moduleId = GetRequiredProperty(module, "Id").GetInt32();

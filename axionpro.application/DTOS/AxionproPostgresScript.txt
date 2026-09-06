@@ -684,7 +684,7 @@ CREATE TABLE axionpro."Operation" (
 	"AddedById" bigint NULL,
 	"AddedDateTime" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	"UpdatedById" bigint NULL,
-	"UpdateDateTime" timestamp NULL,
+	"UpdatedDateTime" timestamp NULL,
 	"IconImage" varchar(250)  NULL,
 	CONSTRAINT "PK__Operatio__3214EC079C437610" PRIMARY KEY ("Id")
 );

@@ -52,7 +52,7 @@ namespace axionpro.persistance.Repositories
 
             existingOperation.IsActive = false;
             existingOperation.UpdatedById = operation.UpdatedById;
-            existingOperation.UpdateDateTime = operation.UpdateDateTime;
+            existingOperation.UpdatedDateTime = operation.UpdatedDateTime;
 
             await _context.SaveChangesAsync();
 
@@ -116,9 +116,9 @@ namespace axionpro.persistance.Repositories
                     existingOperation.OperationType = operation.OperationType;
                 }
 
-                if (operation.UpdateDateTime is not null && operation.UpdateDateTime != default)
+                if (operation.UpdatedDateTime is not null && operation.UpdatedDateTime != default)
                 {
-                    existingOperation.UpdateDateTime = operation.UpdateDateTime;
+                    existingOperation.UpdatedDateTime = operation.UpdatedDateTime;
                 }
 
                 existingOperation.IsActive = operation.IsActive;

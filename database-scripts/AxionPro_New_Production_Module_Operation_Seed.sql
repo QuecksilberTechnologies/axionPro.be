@@ -1,5 +1,5 @@
 -- ============================================================================
--- AxionPro Production - Email Configuration Consolidated Setup
+-- AxionPro Production - Consolidated Module and Operation Setup
 -- Author      : Deepesh Gupta
 -- Company     : Quecksilber Technologies
 -- Role        : CEO
@@ -7,14 +7,18 @@
 -- Purpose:
 --   1. DefaultEmailConfig table create / upgrade.
 --   2. Existing active TenantEmailConfig se default SMTP seed.
---   3. Host module      : Default Email Configuration.
---   4. Tenant module    : Tenant Email Configuration.
---   5. Existing CRUD Operations ko dono modules se map karna.
---   6. Existing incomplete module records ko normalize/update karna.
+--   3. Email modules     : Host default, Host Tenant email, Tenant email,
+--                          and Host email templates.
+--   4. Device modules    : Host device setup, Tenant device setup, Host initial
+--                          provisioning, and Tenant runtime configuration.
+--   5. Employee password : Child module, dedicated Reset Password operation,
+--                          operation mapping, and inherited plan mappings.
+--   6. Existing module / operation records ko normalize/update karna.
 --   7. Identity / auto-increment sequence safely synchronize karna.
 --
 -- IMPORTANT:
 --   * SMTP password/secret hard-code nahi kiya gaya hai.
+--   * Existing role permissions are never auto-granted.
 --   * Existing production IDs ko reset/delete nahi kiya jayega.
 --   * Script re-run safe/idempotent rakhi gayi hai.
 -- ============================================================================
@@ -68,6 +72,56 @@ CREATE TABLE IF NOT EXISTS axionpro."DefaultEmailConfig"
 ALTER TABLE axionpro."DefaultEmailConfig"
 ADD COLUMN IF NOT EXISTS
     "IsDefault" BOOLEAN NOT NULL DEFAULT FALSE;
+
+
+-- ============================================================================
+-- SECTION 2A : OPERATION AUDIT COLUMN STANDARDISATION
+-- ============================================================================
+-- The original schema used "UpdateDateTime" only on Operation.  All other
+-- audit models use "UpdatedDateTime"; rename the physical column once so the
+-- database, EF entity, API DTOs, and seed script share one contract.
+DO
+$$
+DECLARE
+    legacy_column_exists BOOLEAN;
+    canonical_column_exists BOOLEAN;
+BEGIN
+    IF to_regclass('axionpro."Operation"') IS NULL THEN
+        RAISE EXCEPTION 'Required table axionpro."Operation" does not exist.';
+    END IF;
+
+    SELECT EXISTS
+    (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'axionpro'
+          AND table_name = 'Operation'
+          AND column_name = 'UpdateDateTime'
+    )
+    INTO legacy_column_exists;
+
+    SELECT EXISTS
+    (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'axionpro'
+          AND table_name = 'Operation'
+          AND column_name = 'UpdatedDateTime'
+    )
+    INTO canonical_column_exists;
+
+    IF legacy_column_exists AND canonical_column_exists THEN
+        RAISE EXCEPTION
+            'axionpro."Operation" contains both "UpdateDateTime" and "UpdatedDateTime". Resolve the duplicate columns before running this script.';
+    ELSIF legacy_column_exists THEN
+        ALTER TABLE axionpro."Operation"
+        RENAME COLUMN "UpdateDateTime" TO "UpdatedDateTime";
+    ELSIF NOT canonical_column_exists THEN
+        RAISE EXCEPTION
+            'Audit column "UpdatedDateTime" is missing from axionpro."Operation".';
+    END IF;
+END;
+$$;
 
 
 -- ============================================================================
@@ -356,7 +410,7 @@ WHERE "ConfigName" = 'DEFAULT_REGISTRATION_SMTP'
 
 -- ============================================================================
 -- SECTION 4
--- HOST MODULE : DEFAULT EMAIL CONFIGURATION
+-- HOST MODULE : PLATFORM EMAIL DEFAULTS
 -- ============================================================================
 --
 -- ModuleScope = 2
@@ -379,10 +433,10 @@ SET
     "TenantId" = NULL,
 
     "ModuleName"
-        = 'Default Email Configuration',
+        = 'Platform Email Defaults',
 
     "DisplayName"
-        = 'Default Email Configuration',
+        = 'Platform Email Defaults',
 
     "URLPath"
         = '/app/default-email-config',
@@ -409,10 +463,10 @@ SET
         = 'mail-settings',
 
     "ItemPriority"
-        = 10,
+        = 410,
 
     "Remark"
-        = 'Host-managed SMTP configuration used as the default email configuration when a new tenant is registered.',
+        = 'Host-managed default SMTP profile copied when a tenant is registered.',
 
     "UpdatedById"
         = 1,
@@ -480,9 +534,9 @@ SELECT
 
     'HOST_DEFAULT_EMAIL_CONFIG',
 
-    'Default Email Configuration',
+    'Platform Email Defaults',
 
-    'Default Email Configuration',
+    'Platform Email Defaults',
 
     '/app/default-email-config',
 
@@ -500,9 +554,9 @@ SELECT
 
     'mail-settings',
 
-    10,
+    410,
 
-    'Host-managed SMTP configuration used as the default email configuration when a new tenant is registered.',
+    'Host-managed default SMTP profile copied when a tenant is registered.',
 
     1,
 
@@ -527,7 +581,7 @@ WHERE NOT EXISTS
 
 -- ============================================================================
 -- SECTION 5
--- TENANT MODULE : TENANT EMAIL CONFIGURATION
+-- TENANT MODULE : EMAIL DELIVERY SETTINGS
 -- ============================================================================
 --
 -- ModuleScope = 1
@@ -564,10 +618,10 @@ SET
         = NULL,
 
     "ModuleName"
-        = 'Tenant Email Configuration',
+        = 'Email Delivery Settings',
 
     "DisplayName"
-        = 'Email Configuration',
+        = 'Email Settings',
 
     "URLPath"
         = '/app/tenant-email-config',
@@ -594,10 +648,10 @@ SET
         = 'mail',
 
     "ItemPriority"
-        = 10,
+        = 410,
 
     "Remark"
-        = 'Tenant-specific SMTP configuration used for transactional, notification and system email delivery.',
+        = 'Tenant-owned SMTP settings for authorised transactional and notification email delivery.',
 
     "UpdatedById"
         = 1,
@@ -663,9 +717,9 @@ SELECT
 
     'TENANT_EMAIL_CONFIG',
 
-    'Tenant Email Configuration',
+    'Email Delivery Settings',
 
-    'Email Configuration',
+    'Email Settings',
 
     '/app/tenant-email-config',
 
@@ -683,9 +737,9 @@ SELECT
 
     'mail',
 
-    10,
+    410,
 
-    'Tenant-specific SMTP configuration used for transactional, notification and system email delivery.',
+    'Tenant-owned SMTP settings for authorised transactional and notification email delivery.',
 
     1,
 
@@ -1137,6 +1191,754 @@ WHERE mapping."ModuleId"
 
 
 -- ============================================================================
+-- SECTION 8A
+-- CONSOLIDATED HOST / TENANT EMAIL AND DEVICE MODULES
+-- ============================================================================
+-- This transaction-local seed replaces the former standalone module seed files.
+-- ModuleCode is an immutable permission contract; ModuleName/DisplayName are
+-- the professional labels presented to administrators and end users.
+-- ItemPriority is ascending within each parent/scope. A negative priority is
+-- reserved for terminal Common-menu items such as Sign out.
+-- It drives module normalization and standard CRUD operation mappings.
+-- ============================================================================
+
+CREATE TEMPORARY TABLE module_seed
+(
+    "ModuleCode" CHARACTER VARYING(100) PRIMARY KEY,
+    "ModuleName" CHARACTER VARYING(200) NOT NULL,
+    "DisplayName" CHARACTER VARYING(200) NOT NULL,
+    "URLPath" CHARACTER VARYING(500) NOT NULL,
+    "IsModuleDisplayInUI" BOOLEAN NOT NULL,
+    "ImageIconWeb" CHARACTER VARYING(100) NULL,
+    "ImageIconMobile" CHARACTER VARYING(100) NULL,
+    "ModuleScope" SMALLINT NOT NULL,
+    "ItemPriority" INTEGER NOT NULL,
+    "Remark" CHARACTER VARYING(1000) NOT NULL
+)
+ON COMMIT DROP;
+
+INSERT INTO module_seed
+(
+    "ModuleCode", "ModuleName", "DisplayName", "URLPath",
+    "IsModuleDisplayInUI", "ImageIconWeb", "ImageIconMobile",
+    "ModuleScope", "ItemPriority", "Remark"
+)
+VALUES
+(
+    'HOST_DEFAULT_EMAIL_CONFIG',
+    'Platform Email Defaults',
+    'Platform Email Defaults',
+    '/app/default-email-config',
+    TRUE,
+    'bi bi-envelope-gear',
+    'mail-settings',
+    2,
+    410,
+    'Host-managed default SMTP profile copied when a tenant is registered.'
+),
+(
+    'TENANT_EMAIL_CONFIG',
+    'Email Delivery Settings',
+    'Email Settings',
+    '/app/tenant-email-config',
+    TRUE,
+    'bi bi-envelope-at',
+    'mail',
+    1,
+    410,
+    'Tenant-owned SMTP settings for authorised transactional and notification email delivery.'
+),
+(
+    'HOST_TENANT_EMAIL_CONFIG',
+    'Tenant Email Administration',
+    'Tenant Email Administration',
+    '/app/tenants/tenant-email-config',
+    TRUE,
+    'bi bi-envelope-at',
+    'mail',
+    2,
+    420,
+    'Host administration of a selected tenant''s SMTP configuration.'
+),
+(
+    'HOST_EMAIL_TEMPLATE',
+    'Email Template Library',
+    'Email Templates',
+    '/app/email-templates',
+    TRUE,
+    'bi bi-envelope',
+    'mail',
+    2,
+    430,
+    'Host-managed reusable templates for platform email communication.'
+),
+(
+    'HOST_DEVICE_SETUP',
+    'Device Catalogue',
+    'Device Catalogue',
+    '/app/device-masters',
+    TRUE,
+    'bi bi-cpu',
+    'memory',
+    2,
+    510,
+    'Host-managed device models, hardware capabilities, and supported transport profiles.'
+),
+(
+    'TENANT_DEVICE_SETUP',
+    'Installed Devices',
+    'Installed Devices',
+    '/app/tenant-devices',
+    TRUE,
+    'bi bi-hdd-network',
+    'devices',
+    1,
+    510,
+    'Tenant device installation, location assignment, activation, and lifecycle management.'
+),
+(
+    'HOST_INITIAL_DEVICE_CONFIGURATION',
+    'Device Provisioning',
+    'Device Provisioning',
+    '/app/device-masters',
+    FALSE,
+    'bi bi-router',
+    'router',
+    2,
+    520,
+    'Host-only permission for issuing one-time device bootstrap URLs from the device onboarding flow.'
+),
+(
+    'TENANT_DEVICE_CONFIGURATION',
+    'Device Connectivity',
+    'Device Connectivity',
+    '/app/tenant-device-configurations',
+    TRUE,
+    'bi bi-sliders',
+    'settings',
+    1,
+    520,
+    'Tenant-admin configuration of device connectivity, gateway rotation, heartbeat, and reboot.'
+);
+
+UPDATE axionpro."Module" module
+SET
+    "TenantId" = NULL,
+    "ModuleName" = seed."ModuleName",
+    "DisplayName" = seed."DisplayName",
+    "URLPath" = seed."URLPath",
+    "ParentModuleId" = NULL,
+    "IsLeafNode" = TRUE,
+    "IsModuleDisplayInUI" = seed."IsModuleDisplayInUI",
+    "IsCommonMenu" = FALSE,
+    "IsActive" = TRUE,
+    "ImageIconWeb" = seed."ImageIconWeb",
+    "ImageIconMobile" = seed."ImageIconMobile",
+    "ItemPriority" = seed."ItemPriority",
+    "Remark" = seed."Remark",
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP,
+    "ModuleScope" = seed."ModuleScope"
+FROM module_seed seed
+WHERE module."ModuleCode" = seed."ModuleCode";
+
+INSERT INTO axionpro."Module"
+(
+    "TenantId", "ModuleCode", "ModuleName", "DisplayName", "URLPath",
+    "ParentModuleId", "IsLeafNode", "IsModuleDisplayInUI", "IsCommonMenu",
+    "IsActive", "ImageIconWeb", "ImageIconMobile", "ItemPriority", "Remark",
+    "AddedById", "AddedDateTime", "ModuleScope"
+)
+SELECT
+    NULL,
+    seed."ModuleCode",
+    seed."ModuleName",
+    seed."DisplayName",
+    seed."URLPath",
+    NULL,
+    TRUE,
+    seed."IsModuleDisplayInUI",
+    FALSE,
+    TRUE,
+    seed."ImageIconWeb",
+    seed."ImageIconMobile",
+    seed."ItemPriority",
+    seed."Remark",
+    1,
+    CURRENT_TIMESTAMP,
+    seed."ModuleScope"
+FROM module_seed seed
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM axionpro."Module" existing
+    WHERE existing."ModuleCode" = seed."ModuleCode"
+);
+
+INSERT INTO axionpro."ModuleOperationMapping"
+(
+    "ModuleId", "OperationId", "PageURL", "IconURL", "IsCommonItem",
+    "IsOperational", "Priority", "Remark", "IsActive", "AddedById", "AddedDateTime"
+)
+SELECT
+    module."Id",
+    operation."Id",
+    module."URLPath",
+    COALESCE(NULLIF(BTRIM(operation."IconImage"), ''), module."ImageIconWeb"),
+    FALSE,
+    TRUE,
+    CASE
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read') THEN 10
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add') THEN 20
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit') THEN 30
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'delete' THEN 40
+        ELSE 99
+    END,
+    CASE
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read')
+            THEN 'View ' || module."DisplayName" || '.'
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add')
+            THEN 'Create ' || module."DisplayName" || '.'
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit')
+            THEN 'Update ' || module."DisplayName" || '.'
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'delete'
+            THEN 'Delete ' || module."DisplayName" || '.'
+        ELSE module."DisplayName" || ' permission.'
+    END,
+    TRUE,
+    1,
+    CURRENT_TIMESTAMP
+FROM axionpro."Module" module
+INNER JOIN module_seed seed
+    ON seed."ModuleCode" = module."ModuleCode"
+INNER JOIN axionpro."Operation" operation
+    ON LOWER(BTRIM(operation."OperationName")) IN
+       ('view', 'read', 'create', 'add', 'update', 'edit', 'delete')
+WHERE operation."IsActive" = TRUE
+  AND NOT EXISTS
+  (
+      SELECT 1
+      FROM axionpro."ModuleOperationMapping" existing
+      WHERE existing."ModuleId" = module."Id"
+        AND existing."OperationId" = operation."Id"
+  );
+
+UPDATE axionpro."ModuleOperationMapping" mapping
+SET
+    "PageURL" = module."URLPath",
+    "IconURL" = COALESCE(NULLIF(BTRIM(operation."IconImage"), ''), module."ImageIconWeb"),
+    "IsCommonItem" = FALSE,
+    "IsOperational" = TRUE,
+    "Priority" = CASE
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read') THEN 10
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add') THEN 20
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit') THEN 30
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'delete' THEN 40
+        ELSE 99
+    END,
+    "Remark" = CASE
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read')
+            THEN 'View ' || module."DisplayName" || '.'
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add')
+            THEN 'Create ' || module."DisplayName" || '.'
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit')
+            THEN 'Update ' || module."DisplayName" || '.'
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'delete'
+            THEN 'Delete ' || module."DisplayName" || '.'
+        ELSE module."DisplayName" || ' permission.'
+    END,
+    "IsActive" = TRUE,
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP
+FROM axionpro."Module" module,
+     module_seed seed,
+     axionpro."Operation" operation
+WHERE mapping."ModuleId" = module."Id"
+  AND seed."ModuleCode" = module."ModuleCode"
+  AND operation."Id" = mapping."OperationId"
+  AND LOWER(BTRIM(operation."OperationName")) IN
+      ('view', 'read', 'create', 'add', 'update', 'edit', 'delete');
+
+
+-- ============================================================================
+-- SECTION 8B
+-- EMPLOYEE PASSWORD MANAGEMENT MODULE, OPERATION, AND PLAN INHERITANCE
+-- ============================================================================
+-- Reset Password is a dedicated security permission. Plans inherit it only
+-- where EMP_LIST is already enabled; no role permission is granted here.
+-- ============================================================================
+
+DO
+$$
+DECLARE
+    employee_parent_count INTEGER;
+BEGIN
+    SELECT COUNT(*)
+    INTO employee_parent_count
+    FROM axionpro."Module"
+    WHERE "ModuleCode" = 'EMP_MGMT'
+      AND "ParentModuleId" IS NULL
+      AND "IsLeafNode" = FALSE
+      AND "ModuleScope" = 1;
+
+    IF employee_parent_count <> 1 THEN
+        RAISE EXCEPTION
+            'Expected exactly one Tenant-scope EMP_MGMT parent Module, found %.',
+            employee_parent_count;
+    END IF;
+END;
+$$;
+
+INSERT INTO axionpro."Module"
+(
+    "TenantId", "ModuleCode", "ModuleName", "DisplayName", "URLPath",
+    "ParentModuleId", "IsLeafNode", "IsModuleDisplayInUI", "IsCommonMenu",
+    "IsActive", "ImageIconWeb", "ImageIconMobile", "ItemPriority", "Remark",
+    "AddedById", "AddedDateTime", "ModuleScope"
+)
+SELECT
+    NULL,
+    'EMP_PASSWORD_MANAGEMENT',
+    'Employee-Password-Management',
+    'Employee Password Management',
+    '/employees/password-management',
+    parent."Id",
+    TRUE,
+    TRUE,
+    FALSE,
+    TRUE,
+    'bi bi-key',
+    'key',
+    40,
+    'Tenant-admin reset of a selected employee login password.',
+    1,
+    CURRENT_TIMESTAMP,
+    1
+FROM axionpro."Module" parent
+WHERE parent."ModuleCode" = 'EMP_MGMT'
+  AND parent."ParentModuleId" IS NULL
+  AND parent."IsLeafNode" = FALSE
+  AND parent."ModuleScope" = 1
+  AND NOT EXISTS
+  (
+      SELECT 1
+      FROM axionpro."Module" existing
+      WHERE existing."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT'
+  );
+
+UPDATE axionpro."Module" module
+SET
+    "TenantId" = NULL,
+    "ModuleName" = 'Employee-Password-Management',
+    "DisplayName" = 'Employee Password Management',
+    "URLPath" = '/employees/password-management',
+    "ParentModuleId" =
+    (
+        SELECT parent."Id"
+        FROM axionpro."Module" parent
+        WHERE parent."ModuleCode" = 'EMP_MGMT'
+          AND parent."ParentModuleId" IS NULL
+          AND parent."IsLeafNode" = FALSE
+          AND parent."ModuleScope" = 1
+    ),
+    "IsLeafNode" = TRUE,
+    "IsModuleDisplayInUI" = TRUE,
+    "IsCommonMenu" = FALSE,
+    "IsActive" = TRUE,
+    "ImageIconWeb" = 'bi bi-key',
+    "ImageIconMobile" = 'key',
+    "ItemPriority" = 40,
+    "Remark" = 'Tenant-admin reset of a selected employee login password.',
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP,
+    "ModuleScope" = 1
+WHERE module."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT';
+
+INSERT INTO axionpro."Operation"
+(
+    "OperationName", "Remark", "OperationType", "IsActive",
+    "AddedById", "AddedDateTime", "IconImage"
+)
+SELECT
+    'Reset Password',
+    'Reset the login password of a selected tenant employee',
+    4,
+    TRUE,
+    1,
+    CURRENT_TIMESTAMP,
+    'key-round'
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM axionpro."Operation"
+    WHERE LOWER(BTRIM("OperationName")) = LOWER('Reset Password')
+);
+
+UPDATE axionpro."Operation"
+SET
+    "Remark" = 'Reset the login password of a selected tenant employee',
+    "OperationType" = 4,
+    "IsActive" = TRUE,
+    "IconImage" = 'key-round',
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP
+WHERE LOWER(BTRIM("OperationName")) = LOWER('Reset Password');
+
+INSERT INTO axionpro."ModuleOperationMapping"
+(
+    "ModuleId", "OperationId", "PageURL", "IconURL", "IsCommonItem",
+    "IsOperational", "Priority", "Remark", "IsActive", "AddedById", "AddedDateTime"
+)
+SELECT
+    module."Id",
+    operation."Id",
+    '/employees/password-management',
+    'key-round',
+    FALSE,
+    TRUE,
+    10,
+    'Allow an authorized tenant administrator to reset an employee password',
+    TRUE,
+    1,
+    CURRENT_TIMESTAMP
+FROM axionpro."Module" module
+INNER JOIN axionpro."Operation" operation
+    ON LOWER(BTRIM(operation."OperationName")) = LOWER('Reset Password')
+WHERE module."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT'
+  AND module."IsLeafNode" = TRUE
+  AND module."ModuleScope" = 1
+  AND NOT EXISTS
+  (
+      SELECT 1
+      FROM axionpro."ModuleOperationMapping" existing
+      WHERE existing."ModuleId" = module."Id"
+        AND existing."OperationId" = operation."Id"
+  );
+
+UPDATE axionpro."ModuleOperationMapping" mapping
+SET
+    "PageURL" = '/employees/password-management',
+    "IconURL" = 'key-round',
+    "IsCommonItem" = FALSE,
+    "IsOperational" = TRUE,
+    "Priority" = 10,
+    "Remark" = 'Allow an authorized tenant administrator to reset an employee password',
+    "IsActive" = TRUE,
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP
+FROM axionpro."Module" module
+INNER JOIN axionpro."Operation" operation
+    ON LOWER(BTRIM(operation."OperationName")) = LOWER('Reset Password')
+WHERE mapping."ModuleId" = module."Id"
+  AND mapping."OperationId" = operation."Id"
+  AND module."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT';
+
+DO
+$$
+DECLARE
+    plan_fk_column TEXT;
+    insert_columns TEXT;
+    select_columns TEXT;
+    sql_statement TEXT;
+    employee_list_plan_count INTEGER;
+BEGIN
+    SELECT child_attribute.attname
+    INTO plan_fk_column
+    FROM pg_constraint constraint_info
+    INNER JOIN pg_class child_table
+        ON child_table.oid = constraint_info.conrelid
+    INNER JOIN pg_namespace child_namespace
+        ON child_namespace.oid = child_table.relnamespace
+    INNER JOIN pg_class parent_table
+        ON parent_table.oid = constraint_info.confrelid
+    INNER JOIN LATERAL unnest(constraint_info.conkey)
+        WITH ORDINALITY AS child_key(attribute_number, position)
+        ON TRUE
+    INNER JOIN pg_attribute child_attribute
+        ON child_attribute.attrelid = child_table.oid
+       AND child_attribute.attnum = child_key.attribute_number
+    WHERE constraint_info.contype = 'f'
+      AND child_namespace.nspname = 'axionpro'
+      AND child_table.relname = 'PlanModuleMapping'
+      AND parent_table.relname <> 'Module'
+    ORDER BY constraint_info.oid
+    LIMIT 1;
+
+    IF plan_fk_column IS NULL THEN
+        RAISE EXCEPTION
+            'Unable to discover PlanModuleMapping plan FK column.';
+    END IF;
+
+    EXECUTE format(
+        'SELECT COUNT(DISTINCT source.%I)
+         FROM axionpro."PlanModuleMapping" source
+         INNER JOIN axionpro."Module" source_module
+             ON source_module."Id" = source."ModuleId"
+         WHERE source_module."ModuleCode" = %L',
+        plan_fk_column,
+        'EMP_LIST')
+    INTO employee_list_plan_count;
+
+    IF employee_list_plan_count = 0 THEN
+        RAISE EXCEPTION
+            'No EMP_LIST PlanModuleMapping exists. Password Module was not added to any plan.';
+    END IF;
+
+    insert_columns := format('%I, %I', plan_fk_column, 'ModuleId');
+    select_columns := format('source.%I, target_module."Id"', plan_fk_column);
+
+    IF EXISTS
+    (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'axionpro'
+          AND table_name = 'PlanModuleMapping'
+          AND column_name = 'IsActive'
+    ) THEN
+        insert_columns := insert_columns || ', "IsActive"';
+        select_columns := select_columns || ', TRUE';
+    END IF;
+
+    IF EXISTS
+    (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'axionpro'
+          AND table_name = 'PlanModuleMapping'
+          AND column_name = 'AddedById'
+    ) THEN
+        insert_columns := insert_columns || ', "AddedById"';
+        select_columns := select_columns || ', 1';
+    END IF;
+
+    IF EXISTS
+    (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'axionpro'
+          AND table_name = 'PlanModuleMapping'
+          AND column_name = 'AddedDateTime'
+    ) THEN
+        insert_columns := insert_columns || ', "AddedDateTime"';
+        select_columns := select_columns || ', CURRENT_TIMESTAMP';
+    END IF;
+
+    sql_statement := format(
+        'INSERT INTO axionpro."PlanModuleMapping" (%s)
+         SELECT DISTINCT %s
+         FROM axionpro."PlanModuleMapping" source
+         INNER JOIN axionpro."Module" source_module
+             ON source_module."Id" = source."ModuleId"
+            AND source_module."ModuleCode" = %L
+         CROSS JOIN axionpro."Module" target_module
+         WHERE target_module."ModuleCode" = %L
+           AND NOT EXISTS
+           (
+               SELECT 1
+               FROM axionpro."PlanModuleMapping" existing
+               WHERE existing.%I = source.%I
+                 AND existing."ModuleId" = target_module."Id"
+           )',
+        insert_columns,
+        select_columns,
+        'EMP_LIST',
+        'EMP_PASSWORD_MANAGEMENT',
+        plan_fk_column,
+        plan_fk_column);
+
+    EXECUTE sql_statement;
+END;
+$$;
+
+
+-- ============================================================================
+-- SECTION 8C
+-- HOST TENANT LIST CREATE ACTION
+-- ============================================================================
+-- The Host Tenant List page owns its row actions.  Keep Create attached to
+-- this leaf module so Navigation/my-menu can render the action from the same
+-- permission object.  This does not grant the permission to any Host role.
+
+DO
+$$
+DECLARE
+    host_tenant_list_module_id INTEGER;
+    create_operation_id INTEGER;
+BEGIN
+    SELECT "Id"
+    INTO host_tenant_list_module_id
+    FROM axionpro."Module"
+    WHERE "ModuleCode" = 'HOST_TENANT_LIST'
+      AND "ModuleScope" = 2
+      AND "IsLeafNode" = TRUE
+    ORDER BY "Id"
+    LIMIT 1;
+
+    IF host_tenant_list_module_id IS NULL THEN
+        RAISE EXCEPTION
+            'HOST_TENANT_LIST module was not found; Create navigation mapping cannot be seeded.';
+    END IF;
+
+    SELECT "Id"
+    INTO create_operation_id
+    FROM axionpro."Operation"
+    WHERE LOWER(BTRIM("OperationName")) = 'create'
+      AND "IsActive" = TRUE
+    ORDER BY "Id"
+    LIMIT 1;
+
+    IF create_operation_id IS NULL THEN
+        RAISE EXCEPTION
+            'Active Create operation was not found; HOST_TENANT_LIST mapping cannot be seeded.';
+    END IF;
+
+    INSERT INTO axionpro."ModuleOperationMapping"
+    (
+        "ModuleId", "OperationId", "PageURL", "IconURL", "IsCommonItem",
+        "IsOperational", "Priority", "Remark", "IsActive", "AddedById", "AddedDateTime"
+    )
+    SELECT
+        module."Id",
+        operation."Id",
+        module."URLPath",
+        COALESCE(NULLIF(BTRIM(operation."IconImage"), ''), 'plus'),
+        FALSE,
+        TRUE,
+        20,
+        'Create a new tenant from the Host Tenant List.',
+        TRUE,
+        1,
+        CURRENT_TIMESTAMP
+    FROM axionpro."Module" module
+    INNER JOIN axionpro."Operation" operation
+        ON operation."Id" = create_operation_id
+    WHERE module."Id" = host_tenant_list_module_id
+      AND NOT EXISTS
+      (
+          SELECT 1
+          FROM axionpro."ModuleOperationMapping" existing
+          WHERE existing."ModuleId" = module."Id"
+            AND existing."OperationId" = operation."Id"
+      );
+
+    UPDATE axionpro."ModuleOperationMapping" mapping
+    SET
+        "PageURL" = module."URLPath",
+        "IconURL" = COALESCE(NULLIF(BTRIM(operation."IconImage"), ''), 'plus'),
+        "IsCommonItem" = FALSE,
+        "IsOperational" = TRUE,
+        "Priority" = 20,
+        "Remark" = 'Create a new tenant from the Host Tenant List.',
+        "IsActive" = TRUE,
+        "UpdatedById" = 1,
+        "UpdatedDateTime" = CURRENT_TIMESTAMP
+    FROM axionpro."Module" module
+    INNER JOIN axionpro."Operation" operation
+        ON operation."Id" = create_operation_id
+    WHERE mapping."ModuleId" = module."Id"
+      AND mapping."OperationId" = operation."Id"
+      AND module."Id" = host_tenant_list_module_id;
+END;
+$$;
+
+
+-- ============================================================================
+-- SECTION 8D
+-- CONSOLIDATED MODULE VALIDATION
+-- ============================================================================
+
+DO
+$$
+DECLARE
+    invalid_module_count INTEGER;
+    missing_crud_mapping_count INTEGER;
+    password_module_count INTEGER;
+    reset_password_operation_count INTEGER;
+    reset_password_mapping_count INTEGER;
+BEGIN
+    SELECT COUNT(*)
+    INTO invalid_module_count
+    FROM module_seed seed
+    WHERE
+    (
+        SELECT COUNT(*)
+        FROM axionpro."Module" module
+        WHERE module."ModuleCode" = seed."ModuleCode"
+    ) <> 1;
+
+    IF invalid_module_count <> 0 THEN
+        RAISE EXCEPTION
+            'Consolidated module validation failed: % seeded module code(s) did not resolve to exactly one Module row.',
+            invalid_module_count;
+    END IF;
+
+    SELECT COUNT(*)
+    INTO missing_crud_mapping_count
+    FROM module_seed seed
+    WHERE NOT EXISTS
+    (
+        SELECT 1
+        FROM axionpro."ModuleOperationMapping" mapping
+        INNER JOIN axionpro."Module" module
+            ON module."Id" = mapping."ModuleId"
+        INNER JOIN axionpro."Operation" operation
+            ON operation."Id" = mapping."OperationId"
+        WHERE module."ModuleCode" = seed."ModuleCode"
+          AND mapping."IsActive" = TRUE
+          AND operation."IsActive" = TRUE
+          AND LOWER(BTRIM(operation."OperationName")) IN
+              ('view', 'read', 'create', 'add', 'update', 'edit', 'delete')
+    );
+
+    IF missing_crud_mapping_count <> 0 THEN
+        RAISE EXCEPTION
+            'Consolidated mapping validation failed: % seeded module code(s) have no active CRUD mapping.',
+            missing_crud_mapping_count;
+    END IF;
+
+    SELECT COUNT(*)
+    INTO password_module_count
+    FROM axionpro."Module"
+    WHERE "ModuleCode" = 'EMP_PASSWORD_MANAGEMENT'
+      AND "IsLeafNode" = TRUE
+      AND "ModuleScope" = 1;
+
+    SELECT COUNT(*)
+    INTO reset_password_operation_count
+    FROM axionpro."Operation"
+    WHERE LOWER(BTRIM("OperationName")) = LOWER('Reset Password')
+      AND "IsActive" = TRUE;
+
+    SELECT COUNT(*)
+    INTO reset_password_mapping_count
+    FROM axionpro."ModuleOperationMapping" mapping
+    INNER JOIN axionpro."Module" module
+        ON module."Id" = mapping."ModuleId"
+    INNER JOIN axionpro."Operation" operation
+        ON operation."Id" = mapping."OperationId"
+    WHERE module."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT'
+      AND LOWER(BTRIM(operation."OperationName")) = LOWER('Reset Password')
+      AND mapping."IsActive" = TRUE;
+
+    IF password_module_count <> 1 THEN
+        RAISE EXCEPTION
+            'EMP_PASSWORD_MANAGEMENT module validation failed. Expected 1, found %.',
+            password_module_count;
+    END IF;
+
+    IF reset_password_operation_count <> 1 THEN
+        RAISE EXCEPTION
+            'Reset Password operation validation failed. Expected 1, found %.',
+            reset_password_operation_count;
+    END IF;
+
+    IF reset_password_mapping_count <> 1 THEN
+        RAISE EXCEPTION
+            'EMP_PASSWORD_MANAGEMENT mapping validation failed. Expected 1, found %.',
+            reset_password_mapping_count;
+    END IF;
+END;
+$$;
+
+
+-- ============================================================================
 -- SECTION 9
 -- PRODUCTION VALIDATION
 -- ============================================================================
@@ -1466,7 +2268,7 @@ ORDER BY "Id";
 
 -- ============================================================================
 -- VERIFICATION 2
--- BOTH MODULES WITH ALL CURRENT MODULE PROPERTIES
+-- CONSOLIDATED MODULES WITH ALL CURRENT MODULE PROPERTIES
 -- ============================================================================
 
 SELECT
@@ -1517,7 +2319,14 @@ WHERE "ModuleCode"
       IN
       (
           'HOST_DEFAULT_EMAIL_CONFIG',
-          'TENANT_EMAIL_CONFIG'
+          'HOST_TENANT_EMAIL_CONFIG',
+          'TENANT_EMAIL_CONFIG',
+          'HOST_EMAIL_TEMPLATE',
+          'HOST_DEVICE_SETUP',
+          'TENANT_DEVICE_SETUP',
+          'HOST_INITIAL_DEVICE_CONFIGURATION',
+          'TENANT_DEVICE_CONFIGURATION',
+          'EMP_PASSWORD_MANAGEMENT'
       )
 
 ORDER BY
@@ -1575,7 +2384,14 @@ WHERE module."ModuleCode"
       IN
       (
           'HOST_DEFAULT_EMAIL_CONFIG',
-          'TENANT_EMAIL_CONFIG'
+          'HOST_TENANT_EMAIL_CONFIG',
+          'TENANT_EMAIL_CONFIG',
+          'HOST_EMAIL_TEMPLATE',
+          'HOST_DEVICE_SETUP',
+          'TENANT_DEVICE_SETUP',
+          'HOST_INITIAL_DEVICE_CONFIGURATION',
+          'TENANT_DEVICE_CONFIGURATION',
+          'EMP_PASSWORD_MANAGEMENT'
       )
 
 ORDER BY
@@ -1587,3 +2403,31 @@ ORDER BY
     mapping."Priority",
 
     operation."OperationName";
+
+
+-- ============================================================================
+-- VERIFICATION 4
+-- EMPLOYEE PASSWORD PLAN MAPPINGS
+-- ============================================================================
+
+SELECT
+
+    plan_mapping.*,
+
+    module."ModuleCode",
+
+    module."DisplayName"
+
+FROM axionpro."PlanModuleMapping"
+    plan_mapping
+
+INNER JOIN axionpro."Module"
+    module
+
+    ON module."Id"
+       = plan_mapping."ModuleId"
+
+WHERE module."ModuleCode"
+      = 'EMP_PASSWORD_MANAGEMENT'
+
+ORDER BY plan_mapping."Id";

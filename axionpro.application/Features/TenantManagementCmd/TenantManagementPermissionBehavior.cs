@@ -43,8 +43,8 @@ public sealed class TenantManagementPermissionBehavior<TRequest, TResponse>(
             return await next();
         }
 
-        var expectedModuleCode = ResolveExpectedModuleCode();
-        if (string.IsNullOrWhiteSpace(expectedModuleCode))
+        var expectedModuleCodes = ResolveExpectedModuleCodes();
+        if (expectedModuleCodes is null || expectedModuleCodes.Length == 0)
         {
             logger.LogWarning(
                 "No Host Tenant-management module-code binding exists for request {TenantRequest}.",
@@ -74,14 +74,17 @@ public sealed class TenantManagementPermissionBehavior<TRequest, TResponse>(
 
         var activeModuleCode = await commonRequestService
             .GetActiveModuleCodeAsync(permissionRequest.ModuleId);
-        if (!string.Equals(activeModuleCode, expectedModuleCode, StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(activeModuleCode) ||
+            !Array.Exists(
+                expectedModuleCodes,
+                expectedCode => string.Equals(activeModuleCode, expectedCode, StringComparison.OrdinalIgnoreCase)))
         {
             logger.LogWarning(
-                "Host Tenant-management module-code mismatch for {TenantRequest}. ModuleId: {ModuleId}, ActiveModuleCode: {ActiveModuleCode}, ExpectedModuleCode: {ExpectedModuleCode}",
+                "Host Tenant-management module-code mismatch for {TenantRequest}. ModuleId: {ModuleId}, ActiveModuleCode: {ActiveModuleCode}, ExpectedModuleCodes: {ExpectedModuleCodes}",
                 typeof(TRequest).Name,
                 permissionRequest.ModuleId,
                 activeModuleCode,
-                expectedModuleCode);
+                string.Join(", ", expectedModuleCodes));
             throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
 
@@ -125,12 +128,14 @@ public sealed class TenantManagementPermissionBehavior<TRequest, TResponse>(
     }
 
     /// <summary>
-    /// Resolves the only Host Tenant-management leaf module allowed for each
+    /// Resolves the Host Tenant-management leaf module code(s) allowed for each
     /// request. The seeded header module is never an authorization target.
     /// </summary>
-    private static string? ResolveExpectedModuleCode() => typeof(TRequest).Name switch
+    private static string[]? ResolveExpectedModuleCodes() => typeof(TRequest).Name switch
     {
-        "CreateNewTenantCommand" => "HOST_TENANT_CREATE",
+        // Create may be initiated from the Tenant List row-action menu or from
+        // the dedicated provisioning module. Both mappings remain permission-checked.
+        "CreateNewTenantCommand" => ["HOST_TENANT_LIST", "HOST_TENANT_CREATE"],
 
         "GetAllTenantsQuery" or
         "GetTenantByIdQuery" or
@@ -142,7 +147,7 @@ public sealed class TenantManagementPermissionBehavior<TRequest, TResponse>(
         "ResendTenantVerificationCommand" or
         "DeleteHostManagedTenantCommand" or
         "ActivateTenantCommand" or
-        "DeactivateTenantCommand" => "HOST_TENANT_LIST",
+        "DeactivateTenantCommand" => ["HOST_TENANT_LIST"],
 
         _ => null
     };

@@ -43,7 +43,7 @@ namespace axionpro.api.Controllers.Operation
         /// <para>Angular usage status: Used-In-Angular.</para>
         /// <para>API endpoint purpose: retrieves all operation.</para>
         /// <para>Handler flow: GetAllOperationCommand is processed by GetAllOperationQueryHandler; operation(s): GetAllOperationAsync.</para>
-        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetOperationResponseDTO: Id (int?), OperationName (string?), Remark (string?), IsActive (bool), AddedById (long?), AddedDateTime (DateTime), UpdatedById (long?), UpdateDateTime (DateTime)</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetOperationResponseDTO: Id (int?), OperationName (string?), Remark (string?), IsActive (bool), AddedById (long?), AddedDateTime (DateTime), UpdatedById (long?), UpdatedDateTime (DateTime?)</para>
         /// <para>Angular function(s): OptionApi.getOptions (app/core/services/option-api.ts:31).</para>
         /// <para>Angular purpose: retrieves options.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -67,7 +67,7 @@ namespace axionpro.api.Controllers.Operation
         /// <para>Angular usage status: Used-In-Angular.</para>
         /// <para>API endpoint purpose: creates operation.</para>
         /// <para>Handler flow: CreateOperationCommand is processed by CreateOperationCommandHandler; operation(s): CreateOperationAsync.</para>
-        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetOperationResponseDTO: Id (int?), OperationName (string?), Remark (string?), IsActive (bool), AddedById (long?), AddedDateTime (DateTime), UpdatedById (long?), UpdateDateTime (DateTime)</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetOperationResponseDTO: Id (int?), OperationName (string?), Remark (string?), IsActive (bool), AddedById (long?), AddedDateTime (DateTime), UpdatedById (long?), UpdatedDateTime (DateTime?)</para>
         /// <para>Angular function(s): OptionApi.addOption (app/core/services/option-api.ts:37).</para>
         /// <para>Angular purpose: creates option.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
@@ -94,7 +94,7 @@ namespace axionpro.api.Controllers.Operation
         /// <para>Angular usage status: Used-In-Angular.</para>
         /// <para>API endpoint purpose: updates operation.</para>
         /// <para>Handler flow: UpdateOperationCommand is processed by UpdateOperationCommandHandler; operation(s): GetOperationByIdAsync, UpdateOperationAsync.</para>
-        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetOperationResponseDTO: Id (int?), OperationName (string?), Remark (string?), IsActive (bool), AddedById (long?), AddedDateTime (DateTime), UpdatedById (long?), UpdateDateTime (DateTime)</para>
+        /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetOperationResponseDTO: Id (int?), OperationName (string?), Remark (string?), IsActive (bool), AddedById (long?), AddedDateTime (DateTime), UpdatedById (long?), UpdatedDateTime (DateTime?)</para>
         /// <para>Angular function(s): OptionApi.updateOption (app/core/services/option-api.ts:43).</para>
         /// <para>Angular purpose: updates option.</para>
         /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>

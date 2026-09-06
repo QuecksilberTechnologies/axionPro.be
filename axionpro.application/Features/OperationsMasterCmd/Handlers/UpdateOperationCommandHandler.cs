@@ -142,7 +142,7 @@ public class UpdateOperationCommandHandler
 
         var utcNow = DateTime.UtcNow;
         operation.UpdatedById = hostUserId;
-        operation.UpdateDateTime = utcNow;
+        operation.UpdatedDateTime = utcNow;
 
         var operations = await _unitOfWork.OperationRepository
             .UpdateOperationAsync(operation);

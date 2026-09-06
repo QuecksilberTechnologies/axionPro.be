@@ -17,6 +17,6 @@ namespace axionpro.application.DTOs.Operation
         public long? AddedById { get; set; } // Nullable
         public DateTime AddedDateTime { get; set; } = DateTime.UtcNow; // Default value
         public long? UpdatedById { get; set; } // Nullable
-        public DateTime UpdateDateTime { get; set; } = DateTime.UtcNow; // Default value
+        public DateTime? UpdatedDateTime { get; set; } // Nullable
     }
 }

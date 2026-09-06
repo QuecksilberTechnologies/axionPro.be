@@ -111,7 +111,7 @@ public class CreateOperationCommandHandler
         operation.AddedById = hostUserId;
         operation.AddedDateTime = utcNow;
         operation.UpdatedById = null;
-        operation.UpdateDateTime = null;
+        operation.UpdatedDateTime = null;
 
         var operations = await _unitOfWork.OperationRepository
             .CreateOperationAsync(operation);

@@ -97,7 +97,7 @@ public class DeleteOperationCommandHandler
 
         var utcNow = DateTime.UtcNow;
         operation.UpdatedById = hostUserId;
-        operation.UpdateDateTime = utcNow;
+        operation.UpdatedDateTime = utcNow;
 
         var isDeleted = await _unitOfWork.OperationRepository
             .DeleteOperationAsync(operation);

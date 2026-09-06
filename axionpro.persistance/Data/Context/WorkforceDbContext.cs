@@ -2439,6 +2439,7 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.OperationName).HasMaxLength(200);
             entity.Property(e => e.Remark).HasMaxLength(200);
+            entity.Property(e => e.UpdatedDateTime).HasColumnName("UpdatedDateTime");
         });
 
         modelBuilder.Entity<OrganizationHolidayCalendar>(entity =>

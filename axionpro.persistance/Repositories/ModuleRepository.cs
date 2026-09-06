@@ -490,7 +490,7 @@ namespace axionpro.persistance.Repositories
         private static IReadOnlyCollection<NavigationModuleRecord> OrderNavigationModules(
             IEnumerable<NavigationModuleRecord> modules) =>
             modules
-                .OrderBy(module => module.ItemPriority)
+                .OrderBy(module => module.ItemPriority < 0 ? int.MaxValue : module.ItemPriority)
                 .ThenBy(module => module.ModuleName)
                 .ThenBy(module => module.Id)
                 .ToArray();

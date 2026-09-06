@@ -180,12 +180,40 @@ application database a long-term store of a local-device management password.
 
 ## Authorization model
 
-Two module seeds are supplied in `database-scripts/CreateDeviceConfigurationModules.sql`:
+The consolidated module seed is `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql`. It contains:
 
 - `HOST_INITIAL_DEVICE_CONFIGURATION`: issue initial bootstrap URLs only.
 - `TENANT_DEVICE_CONFIGURATION`: read/create/update/delete Tenant device
   configuration, rotate its normal gateway URL, apply runtime settings, and
   reboot.
+- `HOST_DEVICE_SETUP` and `TENANT_DEVICE_SETUP`: Host device catalogue and
+  Tenant physical-device setup, respectively.
+
+### Seeded menu metadata
+
+Module codes are stable permission contracts and are not UI labels. The seed
+uses the following administrator-facing names and routes:
+
+| Scope | Module code | UI label | Route | Priority |
+|---|---|---|---|---:|
+| Host | `HOST_DEFAULT_EMAIL_CONFIG` | Platform Email Defaults | `/app/default-email-config` | 410 |
+| Host | `HOST_TENANT_EMAIL_CONFIG` | Tenant Email Administration | `/app/tenants/tenant-email-config` | 420 |
+| Host | `HOST_EMAIL_TEMPLATE` | Email Templates | `/app/email-templates` | 430 |
+| Host | `HOST_DEVICE_SETUP` | Device Catalogue | `/app/device-masters` | 510 |
+| Host | `HOST_INITIAL_DEVICE_CONFIGURATION` | Device Provisioning | `/app/device-masters` (permission only; no duplicate menu item) | 520 |
+| Tenant | `TENANT_EMAIL_CONFIG` | Email Settings | `/app/tenant-email-config` | 410 |
+| Tenant | `TENANT_DEVICE_SETUP` | Installed Devices | `/app/tenant-devices` | 510 |
+| Tenant | `TENANT_DEVICE_CONFIGURATION` | Device Connectivity | `/app/tenant-device-configurations` | 520 |
+
+Priority is ascending within the same scope and parent. The existing Common
+menu tree treats a negative priority as terminal, so the existing Sign out
+item with priority `-1` remains last. The seed does not alter Common-menu
+rows.
+
+Each active Create/Add, View/Read, Update/Edit, and Delete mapping receives
+the module's route, the operation icon (falling back to the module icon), an
+operation priority of 10/20/30/40, and an action-specific remark. This makes
+permission administration readable without changing access grants.
 
 The code verifies the **module code**, not merely a caller-provided module ID.
 This prevents a user with permission to some unrelated module from borrowing
@@ -225,7 +253,7 @@ Run these scripts once, in order, after taking a database backup and before
 deploying the matching API build:
 
 1. `database-scripts/AddSecureInitialDeviceConfiguration.sql`
-2. `database-scripts/CreateDeviceConfigurationModules.sql`
+2. `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql`
 
 The first script adds:
 
@@ -245,7 +273,7 @@ Run only the following two files for this device feature, in the stated order:
 | Order | SQL file | Database changes |
 |---:|---|---|
 | 1 | `database-scripts/AddSecureInitialDeviceConfiguration.sql` | Adds `DeviceCommand.IsSensitivePayload`; creates `DeviceInitialProvisioning` (hashed bootstrap secret, expiry, 20-second heartbeat, connection/audit timestamps); expands existing device-credential type validation for future local-WebServer password support. |
-| 2 | `database-scripts/CreateDeviceConfigurationModules.sql` | Seeds module `HOST_INITIAL_DEVICE_CONFIGURATION` with Host scope `2`; seeds `TENANT_DEVICE_CONFIGURATION` with Tenant scope `1`; maps active Create/Add/View/Read/Update/Edit/Delete operations for both. |
+| 2 | `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql` | Consolidated idempotent seed for email, device, and employee-password modules. It includes `HOST_DEVICE_SETUP`, `TENANT_DEVICE_SETUP`, `HOST_INITIAL_DEVICE_CONFIGURATION`, and `TENANT_DEVICE_CONFIGURATION`, with active Create/Add/View/Read/Update/Edit/Delete mappings. |
 
 The module rows and operation mappings are **prepared in SQL but not yet run
 against RenderDB**. The seed deliberately does **not** grant either module to a
