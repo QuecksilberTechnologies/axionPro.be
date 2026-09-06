@@ -384,7 +384,6 @@ namespace axionpro.persistance.Repositories
                 .Select(profile => new HostTenantProfileDetailDTO
                 {
                     Id = profile.Id,
-                    Address = profile.Address,
                     LogoUrl = profile.LogoUrl,
                     ThemeColor = profile.ThemeColor,
                     BusinessType = profile.BusinessType,

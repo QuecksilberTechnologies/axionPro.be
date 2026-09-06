@@ -69,5 +69,8 @@ public enum DeviceCredentialType : short
 {
     Mqtt = 1,
     Mqtts = 2,
-    ClientCertificate = 3
+    ClientCertificate = 3,
+
+    /// <summary>Local device WebServer password, retained only encrypted when explicitly supported.</summary>
+    WebServerPassword = 4
 }

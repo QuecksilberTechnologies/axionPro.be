@@ -194,6 +194,12 @@ public sealed class TenantDeviceConfigurationRepository(WorkforceDbContext conte
         Context.TenantDeviceConfigurations.Include(x => x.TenantDevice).FirstOrDefaultAsync(x => x.Id == id && x.TenantDevice.TenantId == tenantId && !x.TenantDevice.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
+    public Task<TenantDeviceConfiguration?> GetForUpdateByTenantDeviceAsync(long tenantId, long tenantDeviceId, CancellationToken cancellationToken) =>
+        Context.TenantDeviceConfigurations.Include(x => x.TenantDevice).FirstOrDefaultAsync(
+            x => x.TenantDeviceId == tenantDeviceId && x.TenantDevice.TenantId == tenantId && !x.TenantDevice.IsSoftDeleted,
+            cancellationToken);
+
+    /// <inheritdoc />
     public async Task<PagedResponseDTO<TenantDeviceConfiguration>> GetPagedAsync(long tenantId, GetTenantDeviceConfigurationListRequestDTO filter, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);

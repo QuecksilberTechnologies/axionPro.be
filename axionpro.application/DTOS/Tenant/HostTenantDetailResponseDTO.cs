@@ -50,7 +50,6 @@ public sealed class HostTenantDetailResponseDTO
 public sealed class HostTenantProfileDetailDTO
 {
     public long Id { get; set; }
-    public string? Address { get; set; }
     public string? LogoUrl { get; set; }
     public string? ThemeColor { get; set; }
     public string? BusinessType { get; set; }

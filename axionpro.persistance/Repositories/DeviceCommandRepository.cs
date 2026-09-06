@@ -6,9 +6,12 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.IDeviceCommunication;
+using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +22,9 @@ namespace axionpro.persistance.Repositories;
 /// <summary>Provides durable command submission, transport dispatch coordination, and idempotent response completion.</summary>
 public sealed class DeviceCommandRepository(
     WorkforceDbContext context,
-    ILogger<DeviceCommandRepository> logger)
+    ILogger<DeviceCommandRepository> logger,
+    IEncryptionService encryptionService,
+    ITenantKeyResolver tenantKeyResolver)
     : IDeviceCommandSubmissionService, IDeviceCommandDispatchStore, IDeviceHttpsPollingService
 {
     private static readonly short Queued = (short)DeviceCommandStatus.Queued;
@@ -50,6 +55,16 @@ public sealed class DeviceCommandRepository(
         EnsurePayloadSerialDoesNotConflict(payload, tenantDevice.DeviceMaster.SNo);
 
         var now = DateTime.UtcNow;
+        var storedPayload = payload;
+        if (submission.ProtectPayload)
+        {
+            var tenantKey = await tenantKeyResolver.ResolveAsync(tenantDevice.TenantId);
+            storedPayload = JsonSerializer.Serialize(new
+            {
+                encryptedPayload = encryptionService.Encrypt(payload, tenantKey)
+            });
+        }
+
         var command = new DeviceCommand
         {
             InternalTrackingId = Guid.NewGuid(),
@@ -58,7 +73,8 @@ public sealed class DeviceCommandRepository(
             TenantLocationId = tenantDevice.TenantLocationId,
             DeviceSerialNumber = tenantDevice.DeviceMaster.SNo.Trim(),
             CommandName = definition.Name,
-            RequestPayload = payload,
+            RequestPayload = storedPayload,
+            IsSensitivePayload = submission.ProtectPayload,
             MatchCriteria = DeviceProtocolCommandCatalog.BuildMatchCriteria(definition, payload),
             Status = Queued,
             ResponseMode = (short)definition.ResponseMode,
@@ -129,6 +145,25 @@ public sealed class DeviceCommandRepository(
                 return null;
             }
 
+            string dispatchPayload;
+            try
+            {
+                dispatchPayload = candidate.IsSensitivePayload
+                    ? await DecryptSensitivePayloadAsync(candidate, cancellationToken)
+                    : candidate.RequestPayload;
+            }
+            catch (Exception exception)
+            {
+                candidate.Status = Failed;
+                candidate.FailureReason = "The protected device command could not be decrypted for delivery.";
+                candidate.CompletedDateTime = now;
+                candidate.UpdatedDateTime = now;
+                await context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                logger.LogError(exception, "Unable to decrypt protected DeviceCommand {DeviceCommandId}.", candidate.Id);
+                return null;
+            }
+
             candidate.Status = Publishing;
             candidate.AttemptCount++;
             candidate.NextAttemptDateTime = null;
@@ -142,7 +177,7 @@ public sealed class DeviceCommandRepository(
                 candidate.TenantDeviceId,
                 candidate.DeviceSerialNumber,
                 candidate.CommandName,
-                candidate.RequestPayload,
+                dispatchPayload,
                 (DeviceCommandResponseMode)candidate.ResponseMode,
                 candidate.AttemptCount);
         }
@@ -215,7 +250,7 @@ public sealed class DeviceCommandRepository(
             QualityOfService = qualityOfService,
             IsDuplicateDelivery = false,
             PayloadHash = Hash(command.RequestPayload),
-            RawPayload = command.RequestPayload,
+            RawPayload = RedactSensitiveJson(command.RequestPayload),
             OccurredDateTime = publishedDateTime,
             AddedDateTime = publishedDateTime
         }, cancellationToken);
@@ -261,7 +296,7 @@ public sealed class DeviceCommandRepository(
             QualityOfService = 1,
             IsDuplicateDelivery = false,
             PayloadHash = Hash(command.RequestPayload),
-            RawPayload = command.RequestPayload,
+            RawPayload = RedactSensitiveJson(command.RequestPayload),
             OccurredDateTime = failedDateTime,
             AddedDateTime = failedDateTime
         }, cancellationToken);
@@ -342,40 +377,85 @@ public sealed class DeviceCommandRepository(
                 return DeviceHttpsPollingResponse.Rejected;
             }
 
-            // A device request never executes its own cmd value. It is only audited,
-            // matched to a prior AxionPro command response, and then receives the next
-            // server-owned queue item in this same outbound HTTPS response.
-            await RecordInboundAsync(
-                new DeviceMqttInboundMessage(
-                    "https",
-                    serialNumber,
-                    request.Payload,
-                    QualityOfService: 0,
-                    IsDuplicateDelivery: false,
-                    IsProtocolIdentityValid: true,
-                    ReceivedDateTime: request.ReceivedDateTime),
+            return await ProcessValidatedHttpsDeviceAsync(
+                device,
+                root,
+                serialNumber,
+                request,
+                revokeInitialProvisioning: true,
                 cancellationToken);
+        }
+    }
 
-            var configuration = device.TenantDeviceConfiguration!;
-            configuration.LastHeartbeatDateTime = request.ReceivedDateTime;
-            configuration.LastSuccessfulConnectionDateTime = request.ReceivedDateTime;
-            configuration.LastConnectionError = null;
-            configuration.UpdatedDateTime = request.ReceivedDateTime;
-            await context.SaveChangesAsync(cancellationToken);
+    /// <inheritdoc />
+    public async Task<DeviceHttpsPollingResponse> ProcessInitialAsync(
+        long deviceMasterId,
+        string expectedSerialNumber,
+        DeviceHttpsPollingRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (deviceMasterId <= 0 || string.IsNullOrWhiteSpace(expectedSerialNumber) ||
+            string.IsNullOrWhiteSpace(request.Payload))
+        {
+            return DeviceHttpsPollingResponse.Rejected;
+        }
 
-            var dispatch = await TryAcquireNextAsync(
-                new[] { DeviceCommunicationProtocol.Https },
-                device.Id,
-                cancellationToken);
-            if (dispatch is not null)
+        JsonDocument document;
+        try
+        {
+            document = JsonDocument.Parse(request.Payload);
+        }
+        catch (JsonException)
+        {
+            return DeviceHttpsPollingResponse.Rejected;
+        }
+
+        using (document)
+        {
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("sn", out var serialProperty) ||
+                serialProperty.ValueKind != JsonValueKind.String)
             {
-                await MarkPublishedAsync(dispatch, "https", qualityOfService: 0, request.ReceivedDateTime, cancellationToken);
-                return new DeviceHttpsPollingResponse(true, dispatch.Payload);
+                return DeviceHttpsPollingResponse.Rejected;
             }
 
-            return new DeviceHttpsPollingResponse(
-                true,
-                BuildHttpsAcknowledgement(root, serialNumber, configuration.HeartbeatIntervalSeconds ?? 15));
+            var serialNumber = serialProperty.GetString()?.Trim();
+            if (string.IsNullOrWhiteSpace(serialNumber) ||
+                !string.Equals(serialNumber, expectedSerialNumber.Trim(), StringComparison.Ordinal))
+            {
+                return DeviceHttpsPollingResponse.Rejected;
+            }
+
+            var candidates = await context.TenantDevices
+                .Include(device => device.DeviceMaster)
+                .Include(device => device.TenantDeviceConfiguration)
+                .Where(device =>
+                    device.DeviceMasterId == deviceMasterId &&
+                    device.IsActive && !device.IsSoftDeleted &&
+                    device.DeviceMaster.IsActive && !device.DeviceMaster.IsSoftDeleted &&
+                    device.DeviceMaster.SupportsHttps &&
+                    device.TenantDeviceConfiguration != null &&
+                    (device.TenantDeviceConfiguration.CommandTransport ?? device.TenantDeviceConfiguration.MqttTransport) ==
+                        (short)DeviceCommunicationProtocol.Https)
+                .Take(2)
+                .ToListAsync(cancellationToken);
+
+            var device = candidates.Count == 1 ? candidates[0] : null;
+            if (device is null)
+            {
+                // The device is correctly authenticated but has not yet been
+                // assigned to a Tenant. Never reveal whether such a record exists.
+                return new DeviceHttpsPollingResponse(true, BuildHttpsAcknowledgement(root, serialNumber, 20));
+            }
+
+            return await ProcessValidatedHttpsDeviceAsync(
+                device,
+                root,
+                serialNumber,
+                request,
+                revokeInitialProvisioning: false,
+                cancellationToken);
         }
     }
 
@@ -405,7 +485,7 @@ public sealed class DeviceCommandRepository(
             QualityOfService = message.QualityOfService,
             IsDuplicateDelivery = message.IsDuplicateDelivery,
             PayloadHash = Hash(message.Payload),
-            RawPayload = message.Payload,
+            RawPayload = RedactSensitiveJson(message.Payload),
             OccurredDateTime = message.ReceivedDateTime,
             AddedDateTime = DateTime.UtcNow
         }, cancellationToken);
@@ -525,6 +605,142 @@ public sealed class DeviceCommandRepository(
             }
         }
     }
+
+    /// <summary>
+    /// Performs the shared post-authentication processing for both normal and
+    /// bootstrap HTTPS routes. The device never controls the command returned.
+    /// </summary>
+    private async Task<DeviceHttpsPollingResponse> ProcessValidatedHttpsDeviceAsync(
+        TenantDevice device,
+        JsonElement requestRoot,
+        string serialNumber,
+        DeviceHttpsPollingRequest request,
+        bool revokeInitialProvisioning,
+        CancellationToken cancellationToken)
+    {
+        await RecordInboundAsync(
+            new DeviceMqttInboundMessage(
+                "https",
+                serialNumber,
+                request.Payload,
+                QualityOfService: 0,
+                IsDuplicateDelivery: false,
+                IsProtocolIdentityValid: true,
+                ReceivedDateTime: request.ReceivedDateTime),
+            cancellationToken);
+
+        var configuration = device.TenantDeviceConfiguration!;
+        configuration.LastHeartbeatDateTime = request.ReceivedDateTime;
+        configuration.LastSuccessfulConnectionDateTime = request.ReceivedDateTime;
+        configuration.LastConnectionError = null;
+        configuration.UpdatedDateTime = request.ReceivedDateTime;
+
+        if (revokeInitialProvisioning)
+        {
+            var activeBootstrapRoutes = await context.DeviceInitialProvisionings
+                .Where(item => item.DeviceMasterId == device.DeviceMasterId && item.RevokedDateTime == null)
+                .ToListAsync(cancellationToken);
+            foreach (var bootstrapRoute in activeBootstrapRoutes)
+            {
+                bootstrapRoute.RevokedDateTime = request.ReceivedDateTime;
+            }
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        var dispatch = await TryAcquireNextAsync(
+            new[] { DeviceCommunicationProtocol.Https },
+            device.Id,
+            cancellationToken);
+        if (dispatch is not null)
+        {
+            await MarkPublishedAsync(dispatch, "https", qualityOfService: 0, request.ReceivedDateTime, cancellationToken);
+            return new DeviceHttpsPollingResponse(true, dispatch.Payload);
+        }
+
+        return new DeviceHttpsPollingResponse(
+            true,
+            BuildHttpsAcknowledgement(requestRoot, serialNumber, configuration.HeartbeatIntervalSeconds ?? 20));
+    }
+
+    /// <summary>Decrypts a command only in process, immediately before outbound delivery.</summary>
+    private async Task<string> DecryptSensitivePayloadAsync(DeviceCommand command, CancellationToken cancellationToken)
+    {
+        using var document = JsonDocument.Parse(command.RequestPayload);
+        if (document.RootElement.ValueKind != JsonValueKind.Object ||
+            !document.RootElement.TryGetProperty("encryptedPayload", out var ciphertextProperty) ||
+            ciphertextProperty.ValueKind != JsonValueKind.String ||
+            string.IsNullOrWhiteSpace(ciphertextProperty.GetString()))
+        {
+            throw new InvalidOperationException("Protected command payload has an invalid storage format.");
+        }
+
+        var tenantKey = await tenantKeyResolver.ResolveAsync(command.TenantId);
+        var payload = encryptionService.Decrypt(ciphertextProperty.GetString()!, tenantKey);
+        _ = DeviceProtocolCommandCatalog.ValidatePayload(command.CommandName, payload);
+        return payload;
+    }
+
+    /// <summary>
+    /// Removes passwords, secrets, tokens and credentials before a raw device
+    /// message reaches diagnostic audit storage. The message hash still supports
+    /// tamper/integrity investigations without retaining the secret.
+    /// </summary>
+    private static string RedactSensitiveJson(string payload)
+    {
+        try
+        {
+            var node = JsonNode.Parse(payload);
+            if (node is null)
+            {
+                return "[REDACTED_EMPTY_PAYLOAD]";
+            }
+
+            RedactNode(node);
+            return node.ToJsonString();
+        }
+        catch (JsonException)
+        {
+            return "[REDACTED_NON_JSON_PAYLOAD]";
+        }
+    }
+
+    private static void RedactNode(JsonNode node)
+    {
+        if (node is JsonObject obj)
+        {
+            foreach (var property in obj.ToList())
+            {
+                if (IsSensitivePropertyName(property.Key))
+                {
+                    obj[property.Key] = "[REDACTED]";
+                }
+                else if (property.Value is not null)
+                {
+                    RedactNode(property.Value);
+                }
+            }
+
+            return;
+        }
+
+        if (node is JsonArray array)
+        {
+            foreach (var item in array.Where(item => item is not null))
+            {
+                RedactNode(item!);
+            }
+        }
+    }
+
+    private static bool IsSensitivePropertyName(string propertyName) =>
+        propertyName.Contains("password", StringComparison.OrdinalIgnoreCase) ||
+        propertyName.Contains("pwd", StringComparison.OrdinalIgnoreCase) ||
+        propertyName.Contains("secret", StringComparison.OrdinalIgnoreCase) ||
+        propertyName.Contains("token", StringComparison.OrdinalIgnoreCase) ||
+        propertyName.Contains("credential", StringComparison.OrdinalIgnoreCase) ||
+        propertyName.Contains("apikey", StringComparison.OrdinalIgnoreCase) ||
+        propertyName.Contains("authorization", StringComparison.OrdinalIgnoreCase);
 
     private static void ValidateTarget(TenantDevice tenantDevice, DeviceProtocolCommandDefinition definition)
     {

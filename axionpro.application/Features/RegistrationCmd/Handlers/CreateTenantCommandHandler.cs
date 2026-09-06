@@ -674,7 +674,6 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 var tenantProfile = new TenantProfile
                 {
                     TenantId = newTenantId,
-                    Address = onboardingRequest?.Profile.Address,
                     LogoUrl = onboardingRequest?.Profile.LogoUrl,
                     ThemeColor = onboardingRequest?.Profile.ThemeColor,
                     BusinessType = onboardingRequest?.Profile.BusinessType,

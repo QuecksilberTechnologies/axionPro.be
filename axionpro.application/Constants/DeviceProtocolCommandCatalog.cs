@@ -128,6 +128,9 @@ public static class DeviceProtocolCommandCatalog
         ConfigureTenant(allVendorCommands, DeviceCommands.GetDeviceInfo);
         ConfigureTenant(allVendorCommands, DeviceCommands.GetTime);
         ConfigureTenant(allVendorCommands, DeviceCommands.SetTime);
+        // setdevinfo is dispatched only by the typed Tenant runtime
+        // configuration handler; the generic raw-command endpoint rejects it.
+        ConfigureTenant(allVendorCommands, DeviceCommands.SetDeviceInfo);
         ConfigureTenant(allVendorCommands, DeviceCommands.GetUserInfo, "enrollid", "backupnum");
         ConfigureTenant(
             allVendorCommands,

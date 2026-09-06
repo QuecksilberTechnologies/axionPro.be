@@ -127,6 +127,7 @@ public sealed record TenantDeviceListAccessScope(long? TenantId, string TenantEn
 /// <summary>Resolves authoritative Host or Tenant access for TenantDevice resources through the established permission flows.</summary>
 public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandlerBase
 {
+    private const string TenantDeviceConfigurationModuleCode = "TENANT_DEVICE_CONFIGURATION";
     private readonly IIdEncoderService _idEncoderService;
 
     protected TenantDeviceAccessHandlerBase(
@@ -249,6 +250,42 @@ public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandler
         }
 
         return new TenantDeviceAccessScope(tenantId, actorId, tenantValidation.Claims.TenantEncriptionKey);
+    }
+
+    /// <summary>
+    /// Resolves a Tenant-only device-configuration scope. Host users may create
+    /// the initial physical-device bootstrap, but cannot subsequently view or
+    /// change a Tenant's runtime device configuration.
+    /// </summary>
+    protected async Task<TenantDeviceAccessScope> ResolveTenantConfigurationScopeAsync(
+        TenantDeviceAccessRequestDTO accessRequest,
+        CancellationToken cancellationToken)
+    {
+        var principal = await CommonRequestService.ValidateAuthenticatedRequestAsync();
+        if (principal.UserType != LoginUserType.TenantEmployee)
+        {
+            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+        }
+
+        if (accessRequest.ModuleId <= 0 || accessRequest.OperationId <= 0 ||
+            !string.Equals(
+                await CommonRequestService.GetModuleCodeAsync(accessRequest.ModuleId),
+                TenantDeviceConfigurationModuleCode,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+        }
+
+        return await ResolveTenantEmployeeScopeAsync(accessRequest, cancellationToken);
+    }
+
+    /// <summary>Tenant-only list scope for sensitive runtime connection configuration.</summary>
+    protected async Task<TenantDeviceListAccessScope> ResolveTenantConfigurationListScopeAsync(
+        TenantDeviceAccessRequestDTO accessRequest,
+        CancellationToken cancellationToken)
+    {
+        var scope = await ResolveTenantConfigurationScopeAsync(accessRequest, cancellationToken);
+        return new TenantDeviceListAccessScope(scope.TenantId, scope.TenantEncryptionKey);
     }
 }
 
@@ -528,7 +565,7 @@ public sealed class CreateTenantDeviceConfigurationCommandHandler : TenantDevice
     /// <inheritdoc />
     public async Task<ApiResponse<TenantDeviceConfigurationResponseDTO>> Handle(CreateTenantDeviceConfigurationCommand request, CancellationToken cancellationToken)
     {
-        var scope = await ResolveTenantScopeAsync(request.DTO, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(request.DTO, cancellationToken);
         TenantDeviceConfigurationValidation.Validate(request.DTO);
         if (!await UnitOfWork.TenantDeviceConfigurationRepository.IsEligibleTenantDeviceAsync(scope.TenantId, request.DTO.TenantDeviceId, cancellationToken)) throw new ValidationErrorException(AppConstants.ErrorMessages.TenantDeviceNotFound);
         if (await UnitOfWork.TenantDeviceConfigurationRepository.ExistsForTenantDeviceAsync(scope.TenantId, request.DTO.TenantDeviceId, null, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.TenantDeviceConfigurationAlreadyExists);
@@ -557,7 +594,7 @@ public sealed class UpdateTenantDeviceConfigurationCommandHandler : TenantDevice
     /// <inheritdoc />
     public async Task<ApiResponse<TenantDeviceConfigurationResponseDTO>> Handle(UpdateTenantDeviceConfigurationCommand request, CancellationToken cancellationToken)
     {
-        var scope = await ResolveTenantScopeAsync(request.DTO, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(request.DTO, cancellationToken);
         if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         TenantDeviceConfigurationValidation.Validate(request.DTO);
 
@@ -607,7 +644,7 @@ public sealed class RotateTenantDeviceHttpsIngressTokenCommandHandler : TenantDe
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
 
-        var scope = await ResolveTenantScopeAsync(request.DTO, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(request.DTO, cancellationToken);
         var configuration = await UnitOfWork.TenantDeviceConfigurationRepository.GetForUpdateAsync(
                 scope.TenantId,
                 request.DTO.TenantDeviceConfigurationId,
@@ -655,7 +692,7 @@ public sealed class DeleteTenantDeviceConfigurationCommandHandler : TenantDevice
     /// <inheritdoc />
     public async Task<ApiResponse<bool>> Handle(DeleteTenantDeviceConfigurationCommand request, CancellationToken cancellationToken)
     {
-        var scope = await ResolveTenantScopeAsync(request.AccessRequest, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(request.AccessRequest, cancellationToken);
         var entity = await UnitOfWork.TenantDeviceConfigurationRepository.GetForUpdateAsync(scope.TenantId, request.Id, cancellationToken)
             ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceConfigurationNotFound);
         UnitOfWork.TenantDeviceConfigurationRepository.Remove(entity);
@@ -675,7 +712,7 @@ public sealed class GetTenantDeviceConfigurationByIdQueryHandler : TenantDeviceA
     /// <inheritdoc />
     public async Task<ApiResponse<TenantDeviceConfigurationResponseDTO>> Handle(GetTenantDeviceConfigurationByIdQuery request, CancellationToken cancellationToken)
     {
-        var scope = await ResolveTenantScopeAsync(request.AccessRequest, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(request.AccessRequest, cancellationToken);
         var entity = await UnitOfWork.TenantDeviceConfigurationRepository.GetByIdAsync(scope.TenantId, request.Id, cancellationToken)
             ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceConfigurationNotFound);
         return ApiResponse<TenantDeviceConfigurationResponseDTO>.Success(MapConfigurationResponse(_mapper, entity, scope), AppConstants.SuccessMessages.TenantDeviceConfigurationRetrieved);
@@ -694,10 +731,8 @@ public sealed class GetAllTenantDeviceConfigurationsQueryHandler : TenantDeviceA
     public async Task<ApiResponse<List<TenantDeviceConfigurationResponseDTO>>> Handle(GetAllTenantDeviceConfigurationsQuery request, CancellationToken cancellationToken)
     {
         var filter = request.Filter ?? new GetTenantDeviceConfigurationListRequestDTO();
-        var scope = await ResolveTenantListScopeAsync(filter, cancellationToken);
-        var page = scope.TenantId.HasValue
-            ? await UnitOfWork.TenantDeviceConfigurationRepository.GetPagedAsync(scope.TenantId.Value, filter, cancellationToken)
-            : await UnitOfWork.TenantDeviceConfigurationRepository.GetHostPagedAsync(filter, cancellationToken);
+        var scope = await ResolveTenantConfigurationListScopeAsync(filter, cancellationToken);
+        var page = await UnitOfWork.TenantDeviceConfigurationRepository.GetPagedAsync(scope.TenantId!.Value, filter, cancellationToken);
         return ApiResponse<List<TenantDeviceConfigurationResponseDTO>>.SuccessPaginated(page.Data.Select(entity => MapConfigurationResponse(_mapper, entity, scope.TenantEncryptionKey)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.TenantDeviceConfigurationRetrieved);
     }
 }

@@ -72,6 +72,8 @@ public interface ITenantDeviceConfigurationRepository
     Task<TenantDeviceConfiguration?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a tracked configuration scoped to the authenticated Tenant.</summary>
     Task<TenantDeviceConfiguration?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
+    /// <summary>Gets a tracked configuration by its physical Tenant device, scoped to the authenticated Tenant.</summary>
+    Task<TenantDeviceConfiguration?> GetForUpdateByTenantDeviceAsync(long tenantId, long tenantDeviceId, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged configuration list scoped to the authenticated Tenant.</summary>
     Task<PagedResponseDTO<TenantDeviceConfiguration>> GetPagedAsync(long tenantId, GetTenantDeviceConfigurationListRequestDTO filter, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged configuration list across all live Tenant devices for Host Admin use.</summary>

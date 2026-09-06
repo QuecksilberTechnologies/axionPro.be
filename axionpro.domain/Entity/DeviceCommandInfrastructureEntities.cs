@@ -16,6 +16,8 @@ public partial class DeviceCommand
     public string DeviceSerialNumber { get; set; } = null!;
     public string CommandName { get; set; } = null!;
     public string RequestPayload { get; set; } = null!;
+    /// <summary>True when RequestPayload contains an encrypted wrapper rather than vendor JSON.</summary>
+    public bool IsSensitivePayload { get; set; }
     public string MatchCriteria { get; set; } = "{}";
     public short Status { get; set; }
     public short ResponseMode { get; set; }

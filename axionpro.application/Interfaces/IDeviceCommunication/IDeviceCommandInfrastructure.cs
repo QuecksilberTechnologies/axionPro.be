@@ -13,7 +13,8 @@ public sealed record DeviceCommandSubmission(
     string CommandName,
     string Payload,
     long? RequestedById,
-    int MaxAttempts = 3);
+    int MaxAttempts = 3,
+    bool ProtectPayload = false);
 
 /// <summary>Returns only AxionPro internal tracking data; it is not sent to a device.</summary>
 public sealed record DeviceCommandSubmissionResult(
@@ -106,6 +107,17 @@ public interface IDeviceCommandDispatchStore
 public interface IDeviceHttpsPollingService
 {
     Task<DeviceHttpsPollingResponse> ProcessAsync(
+        DeviceHttpsPollingRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Processes a device poll authenticated by the short-lived Host bootstrap
+    /// route. This is used only until the device has been moved to its normal
+    /// Tenant gateway URL.
+    /// </summary>
+    Task<DeviceHttpsPollingResponse> ProcessInitialAsync(
+        long deviceMasterId,
+        string expectedSerialNumber,
         DeviceHttpsPollingRequest request,
         CancellationToken cancellationToken = default);
 }

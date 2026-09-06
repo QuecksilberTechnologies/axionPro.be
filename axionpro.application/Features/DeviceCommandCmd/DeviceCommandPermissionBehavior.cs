@@ -22,6 +22,41 @@ public sealed class DeviceCommandPermissionBehavior<TRequest, TResponse>(
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
+    // Device-global commands deliberately have no raw API escape hatch. Each one
+    // must gain a typed request, validation rules, and a Tenant-admin policy
+    // before it can be exposed in the product UI.
+    private static readonly HashSet<string> TypedDeviceAdministrationCommands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        DeviceCommands.CleanAdmin,
+        DeviceCommands.CleanDatabase,
+        DeviceCommands.CleanInactiveUser,
+        DeviceCommands.CleanLog,
+        DeviceCommands.CleanLogPhoto,
+        DeviceCommands.CleanUser,
+        DeviceCommands.CleanUserLock,
+        DeviceCommands.DisableDevice,
+        DeviceCommands.EnableDevice,
+        DeviceCommands.ForceOta,
+        DeviceCommands.InitializeMenu,
+        DeviceCommands.InitializeSystem,
+        DeviceCommands.Keypad,
+        DeviceCommands.Reboot,
+        DeviceCommands.SetBellTime,
+        DeviceCommands.SetCompanyName,
+        DeviceCommands.SetDepartment,
+        DeviceCommands.SetDeviceInfo,
+        DeviceCommands.SetDeviceLock,
+        DeviceCommands.SetHoliday,
+        DeviceCommands.SetOtaServer,
+        DeviceCommands.SetQuestionnaire,
+        DeviceCommands.SetScreenSaver,
+        DeviceCommands.SetShift,
+        DeviceCommands.SetTime,
+        DeviceCommands.SetVoice,
+        DeviceCommands.Upgrade,
+        DeviceCommands.WriteFile
+    };
+
     /// <inheritdoc />
     public async Task<TResponse> Handle(
         TRequest request,
@@ -35,6 +70,17 @@ public sealed class DeviceCommandPermissionBehavior<TRequest, TResponse>(
 
         var dto = deviceCommand.DTO ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
         var definition = DeviceProtocolCommandCatalog.GetRequired(dto.CommandName);
+
+        // Device-global configuration and destructive actions are typed,
+        // audited operations. They must never be submitted through this generic
+        // raw-payload endpoint; otherwise a Host caller could bypass the
+        // Tenant-admin policy and field-level validation.
+        if (TypedDeviceAdministrationCommands.Contains(definition.Name))
+        {
+            throw new ValidationErrorException(
+                "This device-administration command is not available through the generic endpoint. Use its typed Tenant device-configuration operation.");
+        }
+
         var principal = await commonRequestService.ValidateAuthenticatedRequestAsync();
 
         if (principal.UserType == LoginUserType.Host)

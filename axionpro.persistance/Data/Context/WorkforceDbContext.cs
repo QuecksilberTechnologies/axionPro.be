@@ -108,6 +108,8 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<DeviceCredential> DeviceCredentials { get; set; }
 
+        public virtual DbSet<DeviceInitialProvisioning> DeviceInitialProvisionings { get; set; }
+
         public virtual DbSet<DeviceMaster> DeviceMasters { get; set; }
 
         public virtual DbSet<EmployeeTaxProfile> EmployeeTaxProfile { get; set; }
@@ -1110,6 +1112,20 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.HasOne(e => e.TenantDevice).WithMany().HasForeignKey(e => e.TenantDeviceId)
                 .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceCredential_TenantDevice");
+        });
+
+        modelBuilder.Entity<DeviceInitialProvisioning>(entity =>
+        {
+            entity.ToTable("DeviceInitialProvisioning", "axionpro");
+            entity.HasKey(e => e.Id).HasName("PK_DeviceInitialProvisioning");
+            entity.HasIndex(e => e.IngressTokenHash, "UX_DeviceInitialProvisioning_IngressTokenHash")
+                .IsUnique();
+            entity.HasIndex(e => new { e.DeviceMasterId, e.RevokedDateTime, e.ExpiresDateTime }, "IX_DeviceInitialProvisioning_DeviceMaster_Active");
+            entity.Property(e => e.IngressTokenHash).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.HeartbeatIntervalSeconds).HasDefaultValue(20);
+            entity.Property(e => e.IssuedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(e => e.DeviceMaster).WithMany().HasForeignKey(e => e.DeviceMasterId)
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_DeviceInitialProvisioning_DeviceMaster");
         });
 
         modelBuilder.Entity<DeviceMaster>(entity =>
@@ -2963,7 +2979,6 @@ namespace axionpro.persistance.Data.Context
 
             entity.ToTable("TenantProfile", "axionpro");
 
-            entity.Property(e => e.Address).HasMaxLength(300);
             entity.Property(e => e.BusinessType).HasMaxLength(100);
             entity.Property(e => e.Industry).HasMaxLength(100);
             entity.Property(e => e.LogoUrl).HasMaxLength(255);

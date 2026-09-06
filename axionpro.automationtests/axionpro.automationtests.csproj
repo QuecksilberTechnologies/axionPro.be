@@ -23,4 +23,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\axionpro.application\axionpro.application.csproj" />
+  </ItemGroup>
+
 </Project>

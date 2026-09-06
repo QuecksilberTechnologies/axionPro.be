@@ -77,7 +77,6 @@ public sealed class NewTenantEmailConfigurationRequestDTO
 /// <summary>Defines editable values for the initial Tenant profile.</summary>
 public sealed class NewTenantProfileRequestDTO
 {
-    public string? Address { get; set; }
     public string? LogoUrl { get; set; }
     public string? ThemeColor { get; set; }
     public string? BusinessType { get; set; }

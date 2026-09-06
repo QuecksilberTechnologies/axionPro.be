@@ -246,7 +246,6 @@ public sealed class UpdateNewTenantCommandHandler
     private static bool ApplyProfile(NewTenantProfileUpdateRequestDTO dto, TenantProfile profile)
     {
         var changed = false;
-        if (dto.Address is not null) changed |= AssignValue(dto.Address.Trim(), profile.Address, value => profile.Address = value);
         if (dto.LogoUrl is not null) changed |= AssignValue(dto.LogoUrl.Trim(), profile.LogoUrl, value => profile.LogoUrl = value);
         if (dto.ThemeColor is not null) changed |= AssignValue(dto.ThemeColor.Trim(), profile.ThemeColor, value => profile.ThemeColor = value);
         if (dto.BusinessType is not null) changed |= AssignValue(dto.BusinessType.Trim(), profile.BusinessType, value => profile.BusinessType = value);
