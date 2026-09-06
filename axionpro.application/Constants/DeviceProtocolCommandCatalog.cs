@@ -22,6 +22,8 @@ public sealed record DeviceProtocolCommandDefinition(
 /// </summary>
 public static class DeviceProtocolCommandCatalog
 {
+    #region Catalog Lookup and Protocol Validation
+
     private static readonly IReadOnlyDictionary<string, DeviceProtocolCommandDefinition> Definitions =
         BuildDefinitions();
 
@@ -101,6 +103,10 @@ public static class DeviceProtocolCommandCatalog
         return true;
     }
 
+    #endregion
+
+    #region Command Definition Construction
+
     private static IReadOnlyDictionary<string, DeviceProtocolCommandDefinition> BuildDefinitions()
     {
         var allVendorCommands = typeof(DeviceCommands)
@@ -177,4 +183,6 @@ public static class DeviceProtocolCommandCatalog
     }
 
     private static string Normalize(string? value) => value?.Trim().ToLowerInvariant() ?? string.Empty;
+
+    #endregion
 }

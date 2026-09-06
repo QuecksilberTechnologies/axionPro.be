@@ -9,6 +9,8 @@ using MediatR;
 
 namespace axionpro.application.Features.DeviceCommandCmd;
 
+#region HTTPS Polling Commands and Handlers
+
 /// <summary>Represents one raw inbound HTTPS device request after controller size checks.</summary>
 public sealed record ProcessDeviceHttpsPolling(
     string IngressToken,
@@ -71,6 +73,10 @@ public sealed class ProcessInitialDeviceHttpsPollingHandler(
     }
 }
 
+#endregion
+
+#region HTTPS Gateway Security
+
 /// <summary>
 /// Fails closed before persistence when a caller does not resemble a provisioned
 /// device gateway request. The controller deliberately turns this into a 404 so
@@ -115,3 +121,5 @@ public sealed class DeviceHttpsGatewaySecurityBehavior<TRequest, TResponse>
         return next(cancellationToken);
     }
 }
+
+#endregion

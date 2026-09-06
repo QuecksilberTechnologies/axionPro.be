@@ -283,6 +283,87 @@ public sealed class TenantDeviceHttpsIngressEndpointResponseDTO
     public string GatewayUrl { get; set; } = string.Empty;
 }
 
+#region Initial Device Provisioning and Runtime Configuration
+
+/// <summary>Requests a short-lived Host-issued initial HTTPS route for an unassigned device.</summary>
+public sealed class IssueInitialDeviceBootstrapRequestDTO : PermissionRequestDTO
+{
+    /// <summary>Gets or sets the selected unassigned HTTPS-capable device identifier.</summary>
+    public long DeviceMasterId { get; set; }
+
+    /// <summary>Gets or sets the bootstrap URL lifetime in minutes. Defaults to two hours.</summary>
+    public int LifetimeMinutes { get; set; } = 120;
+}
+
+/// <summary>Contains the one-time initial URL returned to the Host provisioning user.</summary>
+public sealed class InitialDeviceBootstrapResponseDTO
+{
+    /// <summary>Gets or sets the physical device serial number.</summary>
+    public string DeviceSerialNumber { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the one-time HTTPS route to copy into the physical device.</summary>
+    public string InitialGatewayUrl { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the initial poll interval in seconds.</summary>
+    public int HeartbeatIntervalSeconds { get; set; }
+
+    /// <summary>Gets or sets the UTC expiry time for the one-time route.</summary>
+    public DateTime ExpiresDateTime { get; set; }
+}
+
+/// <summary>Supplies the approved Tenant-admin runtime settings for one configured device.</summary>
+public sealed class ApplyTenantDeviceRuntimeConfigurationRequestDTO : TenantDeviceAccessRequestDTO
+{
+    /// <summary>Gets or sets the physical Tenant device identifier.</summary>
+    public long TenantDeviceId { get; set; }
+
+    /// <summary>Gets or sets the current local WebServer password for immediate device command delivery.</summary>
+    public string CurrentWebServerPassword { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the requested device polling interval in seconds.</summary>
+    public int HeartbeatIntervalSeconds { get; set; } = 20;
+
+    /// <summary>Gets or sets the optional device volume between 0 and 15.</summary>
+    public int? Volume { get; set; }
+
+    /// <summary>Gets or sets whether the local device WebServer must be disabled after cloud verification.</summary>
+    public bool DisableLocalWebServer { get; set; } = true;
+
+    /// <summary>Gets or sets the optional replacement local WebServer password.</summary>
+    public string? NewWebServerPassword { get; set; }
+
+    /// <summary>Gets or sets whether the device should reboot after applying the queued configuration.</summary>
+    public bool RebootAfterApply { get; set; } = true;
+}
+
+/// <summary>Requests an outbound HTTPS reboot for a configured Tenant device.</summary>
+public sealed class RebootTenantDeviceRequestDTO : TenantDeviceAccessRequestDTO
+{
+    /// <summary>Gets or sets the physical Tenant device identifier.</summary>
+    public long TenantDeviceId { get; set; }
+}
+
+/// <summary>Contains durable server-side tracking identifiers for a queued runtime configuration.</summary>
+public sealed class TenantDeviceRuntimeConfigurationResponseDTO
+{
+    /// <summary>Gets or sets the queued configuration command identifier.</summary>
+    public long ConfigurationCommandId { get; set; }
+
+    /// <summary>Gets or sets the queued configuration tracking identifier.</summary>
+    public Guid ConfigurationTrackingId { get; set; }
+
+    /// <summary>Gets or sets the optional queued reboot command identifier.</summary>
+    public long? RebootCommandId { get; set; }
+
+    /// <summary>Gets or sets the optional queued reboot tracking identifier.</summary>
+    public Guid? RebootTrackingId { get; set; }
+
+    /// <summary>Gets or sets the durable command status at queue time.</summary>
+    public string Status { get; set; } = string.Empty;
+}
+
+#endregion
+
 /// <summary>Supplies paging and optional filters for Tenant device configurations.</summary>
 public sealed class GetTenantDeviceConfigurationListRequestDTO : TenantDeviceAccessRequestDTO
 {

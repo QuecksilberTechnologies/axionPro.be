@@ -2,7 +2,7 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Exposes authenticated Tenant-admin endpoints for Tenant device connection configuration.
+// Purpose : Exposes Host bootstrap plus authenticated Tenant-admin device connection configuration endpoints.
 // ================================================================
 
 using axionpro.application.DTOS.Host;
@@ -13,12 +13,58 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.HostDevice;
 
-/// <summary>Provides authenticated Tenant-admin endpoints for separate Tenant device connection configuration.</summary>
+/// <summary>Provides Host initial provisioning and authenticated Tenant-admin connection configuration endpoints.</summary>
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public sealed class TenantDeviceConfigurationController(IMediator mediator, ILogger<TenantDeviceConfigurationController> logger) : ControllerBase
 {
+    #region Initial Device Provisioning and Runtime Configuration
+
+    /// <summary>
+    /// Issues a short-lived initial HTTPS gateway URL for an unassigned physical device.
+    /// </summary>
+    /// <remarks>
+    /// Host provisioning permission is enforced by the HostDevice permission behavior.
+    /// The returned URL is shown only once and must be entered on the physical device.
+    /// </remarks>
+    [HttpPost("issue-bootstrap-url")]
+    public async Task<IActionResult> IssueBootstrapUrl(
+        [FromBody] IssueInitialDeviceBootstrapRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Received initial device bootstrap request for DeviceMaster {DeviceMasterId}.", dto.DeviceMasterId);
+        return Ok(await mediator.Send(new IssueInitialDeviceBootstrapCommand(dto), cancellationToken));
+    }
+
+    /// <summary>
+    /// Queues the approved Tenant-admin runtime settings through the device's outbound HTTPS gateway.
+    /// </summary>
+    [HttpPost("apply-runtime-configuration")]
+    public async Task<IActionResult> ApplyRuntimeConfiguration(
+        [FromBody] ApplyTenantDeviceRuntimeConfigurationRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Received runtime configuration request for TenantDevice {TenantDeviceId}.", dto.TenantDeviceId);
+        return Ok(await mediator.Send(new ApplyTenantDeviceRuntimeConfigurationCommand(dto), cancellationToken));
+    }
+
+    /// <summary>
+    /// Queues a Tenant-admin-authorized device reboot through the outbound HTTPS gateway.
+    /// </summary>
+    [HttpPost("reboot")]
+    public async Task<IActionResult> Reboot(
+        [FromBody] RebootTenantDeviceRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Received reboot request for TenantDevice {TenantDeviceId}.", dto.TenantDeviceId);
+        return Ok(await mediator.Send(new RebootTenantDeviceCommand(dto), cancellationToken));
+    }
+
+    #endregion
+
+    #region Tenant Device Configuration CRUD
+
     /// <summary>
     /// Used-In-Angular: creates tenant device configuration.
     /// </summary>
@@ -128,4 +174,6 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
         logger.LogInformation("Received TenantDeviceConfiguration delete request for {TenantDeviceConfigurationId}.", id);
         return Ok(await mediator.Send(new DeleteTenantDeviceConfigurationCommand(id, accessRequest), cancellationToken));
     }
+
+    #endregion
 }

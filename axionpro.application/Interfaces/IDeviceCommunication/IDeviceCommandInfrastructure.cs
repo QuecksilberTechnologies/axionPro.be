@@ -121,3 +121,46 @@ public interface IDeviceHttpsPollingService
         DeviceHttpsPollingRequest request,
         CancellationToken cancellationToken = default);
 }
+
+/// <summary>Issues, validates, records, and revokes short-lived initial device gateway identities.</summary>
+public interface IDeviceInitialProvisioningService
+{
+    /// <summary>Creates a short-lived initial gateway URL for an unassigned HTTPS-capable physical device.</summary>
+    Task<DeviceInitialProvisioningIssue> IssueAsync(
+        long deviceMasterId,
+        int lifetimeMinutes,
+        long issuedById,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Validates the serial-plus-token identity used by the initial device gateway.</summary>
+    Task<DeviceInitialProvisioningValidation?> ValidateAsync(
+        string deviceSerialNumber,
+        string ingressToken,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Records a successful initial device connection without disclosing the token.</summary>
+    Task RecordConnectionAsync(
+        long provisioningId,
+        DateTime connectedDateTime,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Revokes all still-active initial URLs for a physical device after normal gateway activation.</summary>
+    Task RevokeForDeviceMasterAsync(
+        long deviceMasterId,
+        DateTime revokedDateTime,
+        CancellationToken cancellationToken = default);
+}
+
+/// <summary>Contains the raw one-time URL material returned only to the Host provisioning caller.</summary>
+public sealed record DeviceInitialProvisioningIssue(
+    string DeviceSerialNumber,
+    string InitialGatewayUrl,
+    int HeartbeatIntervalSeconds,
+    DateTime ExpiresDateTime);
+
+/// <summary>Contains validated server-side initial provisioning identity data without exposing the raw token.</summary>
+public sealed record DeviceInitialProvisioningValidation(
+    long ProvisioningId,
+    long DeviceMasterId,
+    string DeviceSerialNumber,
+    int HeartbeatIntervalSeconds);

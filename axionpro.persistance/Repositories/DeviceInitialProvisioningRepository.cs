@@ -24,6 +24,8 @@ public sealed class DeviceInitialProvisioningRepository(
     private const int MinimumLifetimeMinutes = 5;
     private const int MaximumLifetimeMinutes = 24 * 60;
 
+    #region Initial Provisioning Lifecycle
+
     /// <inheritdoc />
     public async Task<DeviceInitialProvisioningIssue> IssueAsync(
         long deviceMasterId,
@@ -120,6 +122,10 @@ public sealed class DeviceInitialProvisioningRepository(
             provisioning.HeartbeatIntervalSeconds);
     }
 
+    #endregion
+
+    #region Connection Audit and Revocation
+
     /// <inheritdoc />
     public async Task RecordConnectionAsync(
         long provisioningId,
@@ -161,6 +167,10 @@ public sealed class DeviceInitialProvisioningRepository(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    #endregion
+
+    #region Deployment Configuration
+
     private string ResolvePublicBaseUrl()
     {
         var configuredUrl = configuration["DeviceGateway:PublicBaseUrl"];
@@ -174,4 +184,6 @@ public sealed class DeviceInitialProvisioningRepository(
 
         return uri.GetLeftPart(UriPartial.Authority) + uri.AbsolutePath.TrimEnd('/');
     }
+
+    #endregion
 }

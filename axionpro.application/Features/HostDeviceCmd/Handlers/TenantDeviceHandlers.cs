@@ -15,6 +15,7 @@ using axionpro.application.Exceptions;
 using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IDeviceCommunication;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -99,6 +100,34 @@ public sealed class DeleteTenantDeviceConfigurationCommand(long id, TenantDevice
 
 #endregion
 
+#region Initial Device Provisioning and Runtime Commands
+
+/// <summary>Creates a short-lived Host bootstrap URL for an unassigned HTTPS-capable device.</summary>
+public sealed class IssueInitialDeviceBootstrapCommand(IssueInitialDeviceBootstrapRequestDTO dto)
+    : IRequest<ApiResponse<InitialDeviceBootstrapResponseDTO>>
+{
+    /// <summary>Gets the Host provisioning request.</summary>
+    public IssueInitialDeviceBootstrapRequestDTO DTO { get; } = dto;
+}
+
+/// <summary>Queues approved Tenant-admin runtime device settings without accepting raw vendor JSON.</summary>
+public sealed class ApplyTenantDeviceRuntimeConfigurationCommand(ApplyTenantDeviceRuntimeConfigurationRequestDTO dto)
+    : IRequest<ApiResponse<TenantDeviceRuntimeConfigurationResponseDTO>>
+{
+    /// <summary>Gets the Tenant runtime configuration request.</summary>
+    public ApplyTenantDeviceRuntimeConfigurationRequestDTO DTO { get; } = dto;
+}
+
+/// <summary>Queues a Tenant-admin-authorized device reboot through the configured HTTPS gateway.</summary>
+public sealed class RebootTenantDeviceCommand(RebootTenantDeviceRequestDTO dto)
+    : IRequest<ApiResponse<DeviceCommandSubmissionResponseDTO>>
+{
+    /// <summary>Gets the reboot request.</summary>
+    public RebootTenantDeviceRequestDTO DTO { get; } = dto;
+}
+
+#endregion
+
 #region Tenant Device Configuration Queries
 
 /// <summary>Retrieves one Tenant device configuration.</summary>
@@ -127,7 +156,6 @@ public sealed record TenantDeviceListAccessScope(long? TenantId, string TenantEn
 /// <summary>Resolves authoritative Host or Tenant access for TenantDevice resources through the established permission flows.</summary>
 public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandlerBase
 {
-    private const string TenantDeviceConfigurationModuleCode = "TENANT_DEVICE_CONFIGURATION";
     private readonly IIdEncoderService _idEncoderService;
 
     protected TenantDeviceAccessHandlerBase(
@@ -252,39 +280,27 @@ public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandler
         return new TenantDeviceAccessScope(tenantId, actorId, tenantValidation.Claims.TenantEncriptionKey);
     }
 
-    /// <summary>
-    /// Resolves a Tenant-only device-configuration scope. Host users may create
-    /// the initial physical-device bootstrap, but cannot subsequently view or
-    /// change a Tenant's runtime device configuration.
-    /// </summary>
+    /// <summary>Resolves Tenant runtime scope after the pipeline behavior has already checked the module and operation permission.</summary>
     protected async Task<TenantDeviceAccessScope> ResolveTenantConfigurationScopeAsync(
-        TenantDeviceAccessRequestDTO accessRequest,
         CancellationToken cancellationToken)
     {
-        var principal = await CommonRequestService.ValidateAuthenticatedRequestAsync();
-        if (principal.UserType != LoginUserType.TenantEmployee)
+        var tenantValidation = await ValidateTenantDataAccessContextAsync();
+        if (string.IsNullOrWhiteSpace(tenantValidation.Claims.TenantEncriptionKey))
         {
-            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
         }
 
-        if (accessRequest.ModuleId <= 0 || accessRequest.OperationId <= 0 ||
-            !string.Equals(
-                await CommonRequestService.GetModuleCodeAsync(accessRequest.ModuleId),
-                TenantDeviceConfigurationModuleCode,
-                StringComparison.OrdinalIgnoreCase))
-        {
-            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
-        }
-
-        return await ResolveTenantEmployeeScopeAsync(accessRequest, cancellationToken);
+        return new TenantDeviceAccessScope(
+            tenantValidation.TenantId,
+            tenantValidation.LoggedInEmployeeId,
+            tenantValidation.Claims.TenantEncriptionKey);
     }
 
     /// <summary>Tenant-only list scope for sensitive runtime connection configuration.</summary>
     protected async Task<TenantDeviceListAccessScope> ResolveTenantConfigurationListScopeAsync(
-        TenantDeviceAccessRequestDTO accessRequest,
         CancellationToken cancellationToken)
     {
-        var scope = await ResolveTenantConfigurationScopeAsync(accessRequest, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(cancellationToken);
         return new TenantDeviceListAccessScope(scope.TenantId, scope.TenantEncryptionKey);
     }
 }
@@ -552,7 +568,7 @@ public sealed class GetAllTenantDevicesQueryHandler : TenantDeviceAccessHandlerB
 
 #endregion
 
-#region Tenant Device Configuration Handlers
+#region Tenant Device Configuration and Runtime Handlers
 
 /// <summary>Handles creation of a separate TenantDeviceConfiguration record.</summary>
 public sealed class CreateTenantDeviceConfigurationCommandHandler : TenantDeviceAccessHandlerBase, IRequestHandler<CreateTenantDeviceConfigurationCommand, ApiResponse<TenantDeviceConfigurationResponseDTO>>
@@ -565,7 +581,7 @@ public sealed class CreateTenantDeviceConfigurationCommandHandler : TenantDevice
     /// <inheritdoc />
     public async Task<ApiResponse<TenantDeviceConfigurationResponseDTO>> Handle(CreateTenantDeviceConfigurationCommand request, CancellationToken cancellationToken)
     {
-        var scope = await ResolveTenantConfigurationScopeAsync(request.DTO, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(cancellationToken);
         TenantDeviceConfigurationValidation.Validate(request.DTO);
         if (!await UnitOfWork.TenantDeviceConfigurationRepository.IsEligibleTenantDeviceAsync(scope.TenantId, request.DTO.TenantDeviceId, cancellationToken)) throw new ValidationErrorException(AppConstants.ErrorMessages.TenantDeviceNotFound);
         if (await UnitOfWork.TenantDeviceConfigurationRepository.ExistsForTenantDeviceAsync(scope.TenantId, request.DTO.TenantDeviceId, null, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.TenantDeviceConfigurationAlreadyExists);
@@ -594,7 +610,7 @@ public sealed class UpdateTenantDeviceConfigurationCommandHandler : TenantDevice
     /// <inheritdoc />
     public async Task<ApiResponse<TenantDeviceConfigurationResponseDTO>> Handle(UpdateTenantDeviceConfigurationCommand request, CancellationToken cancellationToken)
     {
-        var scope = await ResolveTenantConfigurationScopeAsync(request.DTO, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(cancellationToken);
         if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         TenantDeviceConfigurationValidation.Validate(request.DTO);
 
@@ -644,7 +660,7 @@ public sealed class RotateTenantDeviceHttpsIngressTokenCommandHandler : TenantDe
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
 
-        var scope = await ResolveTenantConfigurationScopeAsync(request.DTO, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(cancellationToken);
         var configuration = await UnitOfWork.TenantDeviceConfigurationRepository.GetForUpdateAsync(
                 scope.TenantId,
                 request.DTO.TenantDeviceConfigurationId,
@@ -668,15 +684,13 @@ public sealed class RotateTenantDeviceHttpsIngressTokenCommandHandler : TenantDe
             throw new ValidationErrorException("The selected device model does not support HTTPS polling.");
         }
 
-        var ingressToken = DeviceHttpsGatewaySecurity.GenerateIngressToken();
-        configuration.HttpsIngressTokenHash = DeviceHttpsGatewaySecurity.HashIngressToken(ingressToken);
+        var gatewayUrl = TenantDeviceConfigurationValidation.IssueHttpsGatewayUrl(configuration);
         configuration.UpdatedById = scope.ActorId;
         configuration.UpdatedDateTime = DateTime.UtcNow;
         await UnitOfWork.SaveChangesAsync(cancellationToken);
 
         // Never log the generated URL or token. The caller receives it once and
         // must install it into the device's Server Domain Name field immediately.
-        var gatewayUrl = $"{configuration.ServerUrl!.TrimEnd('/')}{DeviceHttpsGatewaySecurity.RoutePrefix}/{ingressToken}";
         return ApiResponse<TenantDeviceHttpsIngressEndpointResponseDTO>.Success(
             new TenantDeviceHttpsIngressEndpointResponseDTO { GatewayUrl = gatewayUrl },
             "HTTPS device gateway URL generated. It will not be shown again.");
@@ -692,7 +706,7 @@ public sealed class DeleteTenantDeviceConfigurationCommandHandler : TenantDevice
     /// <inheritdoc />
     public async Task<ApiResponse<bool>> Handle(DeleteTenantDeviceConfigurationCommand request, CancellationToken cancellationToken)
     {
-        var scope = await ResolveTenantConfigurationScopeAsync(request.AccessRequest, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(cancellationToken);
         var entity = await UnitOfWork.TenantDeviceConfigurationRepository.GetForUpdateAsync(scope.TenantId, request.Id, cancellationToken)
             ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceConfigurationNotFound);
         UnitOfWork.TenantDeviceConfigurationRepository.Remove(entity);
@@ -712,7 +726,7 @@ public sealed class GetTenantDeviceConfigurationByIdQueryHandler : TenantDeviceA
     /// <inheritdoc />
     public async Task<ApiResponse<TenantDeviceConfigurationResponseDTO>> Handle(GetTenantDeviceConfigurationByIdQuery request, CancellationToken cancellationToken)
     {
-        var scope = await ResolveTenantConfigurationScopeAsync(request.AccessRequest, cancellationToken);
+        var scope = await ResolveTenantConfigurationScopeAsync(cancellationToken);
         var entity = await UnitOfWork.TenantDeviceConfigurationRepository.GetByIdAsync(scope.TenantId, request.Id, cancellationToken)
             ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceConfigurationNotFound);
         return ApiResponse<TenantDeviceConfigurationResponseDTO>.Success(MapConfigurationResponse(_mapper, entity, scope), AppConstants.SuccessMessages.TenantDeviceConfigurationRetrieved);
@@ -731,9 +745,188 @@ public sealed class GetAllTenantDeviceConfigurationsQueryHandler : TenantDeviceA
     public async Task<ApiResponse<List<TenantDeviceConfigurationResponseDTO>>> Handle(GetAllTenantDeviceConfigurationsQuery request, CancellationToken cancellationToken)
     {
         var filter = request.Filter ?? new GetTenantDeviceConfigurationListRequestDTO();
-        var scope = await ResolveTenantConfigurationListScopeAsync(filter, cancellationToken);
+        var scope = await ResolveTenantConfigurationListScopeAsync(cancellationToken);
         var page = await UnitOfWork.TenantDeviceConfigurationRepository.GetPagedAsync(scope.TenantId!.Value, filter, cancellationToken);
         return ApiResponse<List<TenantDeviceConfigurationResponseDTO>>.SuccessPaginated(page.Data.Select(entity => MapConfigurationResponse(_mapper, entity, scope.TenantEncryptionKey)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.TenantDeviceConfigurationRetrieved);
+    }
+}
+
+/// <summary>Handles Host issuance of an initial device bootstrap URL.</summary>
+public sealed class IssueInitialDeviceBootstrapCommandHandler(
+    ICommonRequestService commonRequestService,
+    IDeviceInitialProvisioningService initialProvisioningService)
+    : IRequestHandler<IssueInitialDeviceBootstrapCommand, ApiResponse<InitialDeviceBootstrapResponseDTO>>
+{
+    /// <inheritdoc />
+    public async Task<ApiResponse<InitialDeviceBootstrapResponseDTO>> Handle(
+        IssueInitialDeviceBootstrapCommand request,
+        CancellationToken cancellationToken)
+    {
+        var dto = request.DTO ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        if (dto.DeviceMasterId <= 0)
+        {
+            throw new ValidationErrorException("A valid physical device is required.");
+        }
+
+        var hostContext = await commonRequestService.ValidateHostUserPermissionRequestAsync();
+        var issue = await initialProvisioningService.IssueAsync(
+            dto.DeviceMasterId,
+            dto.LifetimeMinutes,
+            hostContext.HostUserId,
+            cancellationToken);
+
+        return ApiResponse<InitialDeviceBootstrapResponseDTO>.Success(
+            new InitialDeviceBootstrapResponseDTO
+            {
+                DeviceSerialNumber = issue.DeviceSerialNumber,
+                InitialGatewayUrl = issue.InitialGatewayUrl,
+                HeartbeatIntervalSeconds = issue.HeartbeatIntervalSeconds,
+                ExpiresDateTime = issue.ExpiresDateTime
+            },
+            "Initial device gateway URL generated. It will not be shown again.");
+    }
+}
+
+/// <summary>Handles strongly typed Tenant-admin runtime configuration for an HTTPS device.</summary>
+public sealed class ApplyTenantDeviceRuntimeConfigurationCommandHandler(
+    IUnitOfWork unitOfWork,
+    ICommonRequestService commonRequestService,
+    IIdEncoderService idEncoderService,
+    IDeviceCommandSubmissionService deviceCommandSubmissionService,
+    ILogger<TenantConfigurationHandlerBase> tenantLogger)
+    : TenantDeviceAccessHandlerBase(unitOfWork, commonRequestService, idEncoderService, tenantLogger),
+        IRequestHandler<ApplyTenantDeviceRuntimeConfigurationCommand, ApiResponse<TenantDeviceRuntimeConfigurationResponseDTO>>
+{
+    /// <inheritdoc />
+    public async Task<ApiResponse<TenantDeviceRuntimeConfigurationResponseDTO>> Handle(
+        ApplyTenantDeviceRuntimeConfigurationCommand request,
+        CancellationToken cancellationToken)
+    {
+        var dto = request.DTO ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        TenantDeviceConfigurationValidation.ValidateRuntimeConfiguration(dto);
+        var scope = await ResolveTenantConfigurationScopeAsync(cancellationToken);
+
+        var configuration = await UnitOfWork.TenantDeviceConfigurationRepository.GetForUpdateByTenantDeviceAsync(
+                scope.TenantId,
+                dto.TenantDeviceId,
+                cancellationToken)
+            ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceConfigurationNotFound);
+
+        TenantDeviceConfigurationValidation.EnsureHttpsGateway(configuration);
+        var deviceMaster = await UnitOfWork.DeviceMasterRepository.GetByIdAsync(
+            configuration.TenantDevice.DeviceMasterId,
+            cancellationToken);
+        if (deviceMaster is null || !deviceMaster.IsActive || deviceMaster.IsSoftDeleted || !deviceMaster.SupportsHttps ||
+            !configuration.TenantDevice.IsActive || configuration.TenantDevice.IsSoftDeleted)
+        {
+            throw new ValidationErrorException("The Tenant device must be active and support HTTPS before runtime settings can be queued.");
+        }
+
+        await UnitOfWork.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            string? initialNormalGatewayUrl = null;
+            if (string.IsNullOrWhiteSpace(configuration.HttpsIngressTokenHash))
+            {
+                initialNormalGatewayUrl = TenantDeviceConfigurationValidation.IssueHttpsGatewayUrl(configuration);
+            }
+
+            configuration.HeartbeatIntervalSeconds = dto.HeartbeatIntervalSeconds;
+            configuration.Configuration = JsonSerializer.Serialize(new
+            {
+                schemaVersion = 1,
+                heartbeatIntervalSeconds = dto.HeartbeatIntervalSeconds,
+                volume = dto.Volume,
+                localWebServerEnabled = false,
+                managedBy = "TenantAdmin"
+            });
+            configuration.UpdatedById = scope.ActorId;
+            configuration.UpdatedDateTime = DateTime.UtcNow;
+            await UnitOfWork.SaveChangesAsync(cancellationToken);
+
+            var configurationCommand = await deviceCommandSubmissionService.SubmitAsync(
+                new DeviceCommandSubmission(
+                    scope.TenantId,
+                    dto.TenantDeviceId,
+                    DeviceCommands.SetDeviceInfo,
+                    TenantDeviceConfigurationValidation.BuildSetDeviceInfoPayload(dto, initialNormalGatewayUrl),
+                    scope.ActorId,
+                    ProtectPayload: true),
+                cancellationToken);
+
+            DeviceCommandSubmissionResult? rebootCommand = null;
+            if (dto.RebootAfterApply)
+            {
+                rebootCommand = await deviceCommandSubmissionService.SubmitAsync(
+                    new DeviceCommandSubmission(
+                        scope.TenantId,
+                        dto.TenantDeviceId,
+                        DeviceCommands.Reboot,
+                        JsonSerializer.Serialize(new { cmd = DeviceCommands.Reboot }),
+                        scope.ActorId),
+                    cancellationToken);
+            }
+
+            await UnitOfWork.CommitTransactionAsync(cancellationToken);
+            return ApiResponse<TenantDeviceRuntimeConfigurationResponseDTO>.Success(
+                new TenantDeviceRuntimeConfigurationResponseDTO
+                {
+                    ConfigurationCommandId = configurationCommand.DeviceCommandId,
+                    ConfigurationTrackingId = configurationCommand.InternalTrackingId,
+                    RebootCommandId = rebootCommand?.DeviceCommandId,
+                    RebootTrackingId = rebootCommand?.InternalTrackingId,
+                    Status = configurationCommand.Status.ToString()
+                },
+                "Tenant device configuration has been queued securely.");
+        }
+        catch
+        {
+            await UnitOfWork.RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
+    }
+}
+
+/// <summary>Handles a Tenant-admin reboot without the generic raw command endpoint.</summary>
+public sealed class RebootTenantDeviceCommandHandler(
+    IUnitOfWork unitOfWork,
+    ICommonRequestService commonRequestService,
+    IIdEncoderService idEncoderService,
+    IDeviceCommandSubmissionService deviceCommandSubmissionService,
+    ILogger<TenantConfigurationHandlerBase> tenantLogger)
+    : TenantDeviceAccessHandlerBase(unitOfWork, commonRequestService, idEncoderService, tenantLogger),
+        IRequestHandler<RebootTenantDeviceCommand, ApiResponse<DeviceCommandSubmissionResponseDTO>>
+{
+    /// <inheritdoc />
+    public async Task<ApiResponse<DeviceCommandSubmissionResponseDTO>> Handle(
+        RebootTenantDeviceCommand request,
+        CancellationToken cancellationToken)
+    {
+        var dto = request.DTO ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        if (dto.TenantDeviceId <= 0)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        var scope = await ResolveTenantConfigurationScopeAsync(cancellationToken);
+        var result = await deviceCommandSubmissionService.SubmitAsync(
+            new DeviceCommandSubmission(
+                scope.TenantId,
+                dto.TenantDeviceId,
+                DeviceCommands.Reboot,
+                JsonSerializer.Serialize(new { cmd = DeviceCommands.Reboot }),
+                scope.ActorId),
+            cancellationToken);
+
+        return ApiResponse<DeviceCommandSubmissionResponseDTO>.Success(
+            new DeviceCommandSubmissionResponseDTO
+            {
+                DeviceCommandId = result.DeviceCommandId,
+                InternalTrackingId = result.InternalTrackingId,
+                DeviceSerialNumber = result.DeviceSerialNumber,
+                Status = result.Status.ToString()
+            },
+            "Tenant device reboot has been queued securely.");
     }
 }
 
@@ -881,6 +1074,86 @@ internal static class TenantDeviceConfigurationValidation
         entity.PushMode = TenantDeviceValidation.Normalize(dto.PushMode);
         entity.TimeZoneId = TenantDeviceValidation.Normalize(dto.TimeZoneId);
         entity.Configuration = TenantDeviceValidation.Normalize(dto.Configuration);
+    }
+
+    /// <summary>Validates the approved runtime fields before a protected vendor command is queued.</summary>
+    internal static void ValidateRuntimeConfiguration(ApplyTenantDeviceRuntimeConfigurationRequestDTO dto)
+    {
+        if (dto.TenantDeviceId <= 0 ||
+            string.IsNullOrWhiteSpace(dto.CurrentWebServerPassword) ||
+            dto.CurrentWebServerPassword.Length is < 4 or > 128 ||
+            dto.HeartbeatIntervalSeconds is < 10 or > 3600 ||
+            dto.Volume is < 0 or > 15 ||
+            !dto.DisableLocalWebServer ||
+            (!string.IsNullOrWhiteSpace(dto.NewWebServerPassword) && dto.NewWebServerPassword.Length is < 8 or > 128))
+        {
+            throw new ValidationErrorException(
+                "A valid device password, 10–3600 second heartbeat, volume 0–15, and local WebServer disable policy are required.");
+        }
+    }
+
+    /// <summary>Ensures the stored connection is an HTTPS device gateway before runtime commands are allowed.</summary>
+    internal static void EnsureHttpsGateway(TenantDeviceConfiguration configuration)
+    {
+        var transport = configuration.CommandTransport ?? configuration.MqttTransport;
+        if (transport != (short)DeviceCommunicationProtocol.Https ||
+            !Uri.TryCreate(configuration.ServerUrl, UriKind.Absolute, out var serverUri) ||
+            !string.Equals(serverUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+            !DeviceHttpsGatewaySecurity.IsValidGatewayPath(configuration.ServerPath) ||
+            configuration.ServerPort is not null and not 443)
+        {
+            throw new ValidationErrorException(
+                "Configure this Tenant device for HTTPS, port 443, and the /device-gateway server path before applying runtime settings.");
+        }
+    }
+
+    /// <summary>
+    /// Issues a one-time normal HTTPS gateway URL and persists only its token hash
+    /// on the supplied configuration. The caller returns the raw URL exactly once.
+    /// </summary>
+    internal static string IssueHttpsGatewayUrl(TenantDeviceConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        EnsureHttpsGateway(configuration);
+
+        var ingressToken = DeviceHttpsGatewaySecurity.GenerateIngressToken();
+        configuration.HttpsIngressTokenHash = DeviceHttpsGatewaySecurity.HashIngressToken(ingressToken);
+        return $"{configuration.ServerUrl!.TrimEnd('/')}{DeviceHttpsGatewaySecurity.RoutePrefix}/{ingressToken}";
+    }
+
+    /// <summary>Builds the approved vendor request without persisting plaintext credentials.</summary>
+    internal static string BuildSetDeviceInfoPayload(
+        ApplyTenantDeviceRuntimeConfigurationRequestDTO dto,
+        string? initialNormalGatewayUrl)
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["cmd"] = DeviceCommands.SetDeviceInfo,
+            ["password"] = dto.CurrentWebServerPassword,
+            ["nowtime"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            ["server_response_time"] = dto.HeartbeatIntervalSeconds,
+            ["use_webserver"] = 0
+        };
+
+        if (dto.Volume.HasValue)
+        {
+            payload["volume"] = dto.Volume.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.NewWebServerPassword))
+        {
+            payload["webserver_pwd"] = dto.NewWebServerPassword;
+        }
+
+        if (!string.IsNullOrWhiteSpace(initialNormalGatewayUrl))
+        {
+            payload["use_bs"] = 1;
+            payload["use_domain_name"] = 1;
+            payload["bs_domain_name"] = initialNormalGatewayUrl;
+            payload["serverport"] = 443;
+        }
+
+        return JsonSerializer.Serialize(payload);
     }
 }
 

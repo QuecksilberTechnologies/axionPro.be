@@ -6,6 +6,7 @@
 using System.Buffers;
 using System.Text;
 using axionpro.application.Features.DeviceCommandCmd;
+using axionpro.application.Interfaces.IDeviceCommunication;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,8 @@ namespace axionpro.api.Controllers;
 public sealed class DeviceGatewayController(IMediator mediator) : ControllerBase
 {
     private const int MaximumPayloadBytes = 131_072;
+
+    #region Device Gateway Actions
 
     /// <summary>Receives an authenticated-by-route device poll and returns raw vendor JSON.</summary>
     [HttpPost("{ingressToken}")]
@@ -40,13 +43,52 @@ public sealed class DeviceGatewayController(IMediator mediator) : ControllerBase
             return NotFound();
         }
 
-        var response = await mediator.Send(
+        return await SendPollAsync(
             new ProcessDeviceHttpsPolling(ingressToken, payload, DateTime.UtcNow),
             cancellationToken);
+    }
+
+    /// <summary>
+    /// Receives a short-lived initial device poll before the physical device has a Tenant gateway token.
+    /// </summary>
+    [HttpPost("/api/initial/{deviceSerialNumber}/{ingressToken}")]
+    [RequestSizeLimit(MaximumPayloadBytes)]
+    public async Task<IActionResult> InitialPoll(
+        string deviceSerialNumber,
+        string ingressToken,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(Request.ContentType) ||
+            !Request.ContentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+        {
+            return NotFound();
+        }
+
+        var payload = await ReadBoundedPayloadAsync(Request, cancellationToken);
+        if (payload is null)
+        {
+            return NotFound();
+        }
+
+        return await SendPollAsync(
+            new ProcessInitialDeviceHttpsPolling(deviceSerialNumber, ingressToken, payload, DateTime.UtcNow),
+            cancellationToken);
+    }
+
+    /// <summary>Dispatches one validated device polling command and preserves the non-enumerable 404 response.</summary>
+    private async Task<IActionResult> SendPollAsync(
+        IRequest<DeviceHttpsPollingResponse> request,
+        CancellationToken cancellationToken)
+    {
+        var response = await mediator.Send(request, cancellationToken);
         return !response.IsAccepted
             ? NotFound()
             : Content(response.ResponsePayload, "application/json", Encoding.UTF8);
     }
+
+    #endregion
+
+    #region Shared Payload Handling
 
     private static async Task<string?> ReadBoundedPayloadAsync(HttpRequest request, CancellationToken cancellationToken)
     {
@@ -82,4 +124,6 @@ public sealed class DeviceGatewayController(IMediator mediator) : ControllerBase
             ArrayPool<byte>.Shared.Return(rentedBuffer);
         }
     }
+
+    #endregion
 }

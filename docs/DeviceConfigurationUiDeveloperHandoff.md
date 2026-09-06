@@ -54,7 +54,7 @@ This is the **one temporary technician request** used to put a new device onto
 its initial cloud route. It is not an Angular call and it must not be exposed
 in the production UI.
 
-1. Host first calls `POST /api/initial-device-configure/issue-bootstrap-url`.
+1. Host first calls `POST /api/TenantDeviceConfiguration/issue-bootstrap-url`.
 2. Copy the exact `data.initialGatewayUrl` returned by that API. It will look
    like this, with a real server-generated token at the end:
 
@@ -188,18 +188,18 @@ support screenshot.
 
 ---
 
-## New controller: `InitialDeviceConfigureController`
+## Existing controller: `TenantDeviceConfigurationController` — new secure actions
 
 Base route:
 
 ```text
-/api/initial-device-configure
+/api/TenantDeviceConfiguration
 ```
 
 ### A. Issue a first-connection URL — Host only
 
 ```http
-POST /api/initial-device-configure/issue-bootstrap-url
+POST /api/TenantDeviceConfiguration/issue-bootstrap-url
 Authorization: Bearer {hostAccessToken}
 Content-Type: application/json
 ```
@@ -246,7 +246,7 @@ Host UI behaviour:
 ### B. Apply approved runtime configuration — Tenant Admin only
 
 ```http
-POST /api/initial-device-configure/apply-runtime-configuration
+POST /api/TenantDeviceConfiguration/apply-runtime-configuration
 Authorization: Bearer {tenantAdminAccessToken}
 Content-Type: application/json
 ```
@@ -298,7 +298,7 @@ show `lastHeartbeatDateTime`, `lastSuccessfulConnectionDateTime`,
 ### C. Reboot only — Tenant Admin only
 
 ```http
-POST /api/initial-device-configure/reboot
+POST /api/TenantDeviceConfiguration/reboot
 Authorization: Bearer {tenantAdminAccessToken}
 Content-Type: application/json
 ```
@@ -317,7 +317,7 @@ until a later device heartbeat confirms reconnect.
 
 ---
 
-## Device-only controller: `InitialDeviceGatewayController`
+## Existing controller: `DeviceGatewayController` — device-only initial action
 
 ```http
 POST /api/initial/{deviceSerialNumber}/{opaque-token}
@@ -433,9 +433,9 @@ Before enabling the screens, backend/DB deployment must have completed:
 
 ## Backend implementation status
 
-- New secure controller: `InitialDeviceConfigureController`.
-- New device-only bootstrap controller: `InitialDeviceGatewayController`.
-- Existing Tenant configuration authorization tightened to Tenant module code.
+- Secure Host bootstrap and Tenant runtime actions added to the existing `TenantDeviceConfigurationController`.
+- Device-only initial polling action added to the existing `DeviceGatewayController`.
+- Existing Tenant configuration authorization now uses the Employee-style module-code and stored-procedure permission pipeline.
 - Generic device-global command bypass blocked.
 - Secure provisioning database and module seed SQL prepared.
 - Backend build: 0 errors.

@@ -34,6 +34,8 @@ public sealed class DeviceCommandRepository(
     private static readonly short Failed = (short)DeviceCommandStatus.Failed;
     private static readonly short RetryScheduled = (short)DeviceCommandStatus.RetryScheduled;
 
+    #region Command Submission and Dispatch Lifecycle
+
     /// <inheritdoc />
     public async Task<DeviceCommandSubmissionResult> SubmitAsync(
         DeviceCommandSubmission submission,
@@ -317,6 +319,10 @@ public sealed class DeviceCommandRepository(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    #endregion
+
+    #region HTTPS Device Polling
+
     /// <inheritdoc />
     public async Task<DeviceHttpsPollingResponse> ProcessAsync(
         DeviceHttpsPollingRequest request,
@@ -329,62 +335,44 @@ public sealed class DeviceCommandRepository(
             return DeviceHttpsPollingResponse.Rejected;
         }
 
-        JsonDocument document;
-        try
-        {
-            document = JsonDocument.Parse(request.Payload);
-        }
-        catch (JsonException)
+        var parsedPayload = TryParseHttpsPollingPayload(request.Payload);
+        if (parsedPayload is null)
         {
             return DeviceHttpsPollingResponse.Rejected;
         }
 
-        using (document)
+        using var document = parsedPayload.Value.Document;
+        var root = parsedPayload.Value.Root;
+        var serialNumber = parsedPayload.Value.SerialNumber;
+        var tokenHash = DeviceHttpsGatewaySecurity.HashIngressToken(request.IngressToken);
+        var devices = await context.TenantDevices
+            .Include(device => device.DeviceMaster)
+            .Include(device => device.TenantDeviceConfiguration)
+            .Where(device =>
+                device.IsActive && !device.IsSoftDeleted &&
+                device.DeviceMaster.IsActive && !device.DeviceMaster.IsSoftDeleted &&
+                device.DeviceMaster.SupportsHttps &&
+                device.TenantDeviceConfiguration != null &&
+                (device.TenantDeviceConfiguration.CommandTransport ?? device.TenantDeviceConfiguration.MqttTransport) ==
+                    (short)DeviceCommunicationProtocol.Https &&
+                device.TenantDeviceConfiguration.HttpsIngressTokenHash == tokenHash)
+            .Take(2)
+            .ToListAsync(cancellationToken);
+
+        var device = devices.Count == 1 ? devices[0] : null;
+        if (device is null ||
+            !string.Equals(device.DeviceMaster.SNo.Trim(), serialNumber, StringComparison.Ordinal))
         {
-            var root = document.RootElement;
-            if (root.ValueKind != JsonValueKind.Object ||
-                !root.TryGetProperty("sn", out var serialProperty) ||
-                serialProperty.ValueKind != JsonValueKind.String)
-            {
-                return DeviceHttpsPollingResponse.Rejected;
-            }
-
-            var serialNumber = serialProperty.GetString()?.Trim();
-            if (string.IsNullOrWhiteSpace(serialNumber) || serialNumber.Length > 100)
-            {
-                return DeviceHttpsPollingResponse.Rejected;
-            }
-
-            var tokenHash = DeviceHttpsGatewaySecurity.HashIngressToken(request.IngressToken);
-            var devices = await context.TenantDevices
-                .Include(device => device.DeviceMaster)
-                .Include(device => device.TenantDeviceConfiguration)
-                .Where(device =>
-                    device.IsActive && !device.IsSoftDeleted &&
-                    device.DeviceMaster.IsActive && !device.DeviceMaster.IsSoftDeleted &&
-                    device.DeviceMaster.SupportsHttps &&
-                    device.TenantDeviceConfiguration != null &&
-                    (device.TenantDeviceConfiguration.CommandTransport ?? device.TenantDeviceConfiguration.MqttTransport) ==
-                        (short)DeviceCommunicationProtocol.Https &&
-                    device.TenantDeviceConfiguration.HttpsIngressTokenHash == tokenHash)
-                .Take(2)
-                .ToListAsync(cancellationToken);
-
-            var device = devices.Count == 1 ? devices[0] : null;
-            if (device is null ||
-                !string.Equals(device.DeviceMaster.SNo.Trim(), serialNumber, StringComparison.Ordinal))
-            {
-                return DeviceHttpsPollingResponse.Rejected;
-            }
-
-            return await ProcessValidatedHttpsDeviceAsync(
-                device,
-                root,
-                serialNumber,
-                request,
-                revokeInitialProvisioning: true,
-                cancellationToken);
+            return DeviceHttpsPollingResponse.Rejected;
         }
+
+        return await ProcessValidatedHttpsDeviceAsync(
+            device,
+            root,
+            serialNumber,
+            request,
+            revokeInitialProvisioning: true,
+            cancellationToken);
     }
 
     /// <inheritdoc />
@@ -394,70 +382,60 @@ public sealed class DeviceCommandRepository(
         DeviceHttpsPollingRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (deviceMasterId <= 0 || string.IsNullOrWhiteSpace(expectedSerialNumber) ||
-            string.IsNullOrWhiteSpace(request.Payload))
+        ArgumentNullException.ThrowIfNull(request);
+        if (deviceMasterId <= 0 || string.IsNullOrWhiteSpace(expectedSerialNumber))
         {
             return DeviceHttpsPollingResponse.Rejected;
         }
 
-        JsonDocument document;
-        try
-        {
-            document = JsonDocument.Parse(request.Payload);
-        }
-        catch (JsonException)
+        var parsedPayload = TryParseHttpsPollingPayload(request.Payload);
+        if (parsedPayload is null)
         {
             return DeviceHttpsPollingResponse.Rejected;
         }
 
-        using (document)
+        using var document = parsedPayload.Value.Document;
+        var root = parsedPayload.Value.Root;
+        var serialNumber = parsedPayload.Value.SerialNumber;
+        if (!string.Equals(serialNumber, expectedSerialNumber.Trim(), StringComparison.Ordinal))
         {
-            var root = document.RootElement;
-            if (root.ValueKind != JsonValueKind.Object ||
-                !root.TryGetProperty("sn", out var serialProperty) ||
-                serialProperty.ValueKind != JsonValueKind.String)
-            {
-                return DeviceHttpsPollingResponse.Rejected;
-            }
-
-            var serialNumber = serialProperty.GetString()?.Trim();
-            if (string.IsNullOrWhiteSpace(serialNumber) ||
-                !string.Equals(serialNumber, expectedSerialNumber.Trim(), StringComparison.Ordinal))
-            {
-                return DeviceHttpsPollingResponse.Rejected;
-            }
-
-            var candidates = await context.TenantDevices
-                .Include(device => device.DeviceMaster)
-                .Include(device => device.TenantDeviceConfiguration)
-                .Where(device =>
-                    device.DeviceMasterId == deviceMasterId &&
-                    device.IsActive && !device.IsSoftDeleted &&
-                    device.DeviceMaster.IsActive && !device.DeviceMaster.IsSoftDeleted &&
-                    device.DeviceMaster.SupportsHttps &&
-                    device.TenantDeviceConfiguration != null &&
-                    (device.TenantDeviceConfiguration.CommandTransport ?? device.TenantDeviceConfiguration.MqttTransport) ==
-                        (short)DeviceCommunicationProtocol.Https)
-                .Take(2)
-                .ToListAsync(cancellationToken);
-
-            var device = candidates.Count == 1 ? candidates[0] : null;
-            if (device is null)
-            {
-                // The device is correctly authenticated but has not yet been
-                // assigned to a Tenant. Never reveal whether such a record exists.
-                return new DeviceHttpsPollingResponse(true, BuildHttpsAcknowledgement(root, serialNumber, 20));
-            }
-
-            return await ProcessValidatedHttpsDeviceAsync(
-                device,
-                root,
-                serialNumber,
-                request,
-                revokeInitialProvisioning: false,
-                cancellationToken);
+            return DeviceHttpsPollingResponse.Rejected;
         }
+
+        var candidates = await context.TenantDevices
+            .Include(device => device.DeviceMaster)
+            .Include(device => device.TenantDeviceConfiguration)
+            .Where(device =>
+                device.DeviceMasterId == deviceMasterId &&
+                device.IsActive && !device.IsSoftDeleted &&
+                device.DeviceMaster.IsActive && !device.DeviceMaster.IsSoftDeleted &&
+                device.DeviceMaster.SupportsHttps &&
+                device.TenantDeviceConfiguration != null &&
+                (device.TenantDeviceConfiguration.CommandTransport ?? device.TenantDeviceConfiguration.MqttTransport) ==
+                    (short)DeviceCommunicationProtocol.Https)
+            .Take(2)
+            .ToListAsync(cancellationToken);
+
+        var device = candidates.Count == 1 ? candidates[0] : null;
+        if (device is null)
+        {
+            // The device is correctly authenticated but has not yet been
+            // assigned to a Tenant. Never reveal whether such a record exists.
+            return new DeviceHttpsPollingResponse(true, BuildHttpsAcknowledgement(root, serialNumber, 20));
+        }
+
+        return await ProcessValidatedHttpsDeviceAsync(
+            device,
+            root,
+            serialNumber,
+            request,
+            revokeInitialProvisioning: false,
+            cancellationToken);
     }
+
+    #endregion
+
+    #region Inbound Device Message Audit and Completion
 
     /// <inheritdoc />
     public async Task RecordInboundAsync(DeviceMqttInboundMessage message, CancellationToken cancellationToken = default)
@@ -606,6 +584,10 @@ public sealed class DeviceCommandRepository(
         }
     }
 
+    #endregion
+
+    #region Shared HTTPS Polling
+
     /// <summary>
     /// Performs the shared post-authentication processing for both normal and
     /// bootstrap HTTPS routes. The device never controls the command returned.
@@ -662,6 +644,50 @@ public sealed class DeviceCommandRepository(
             true,
             BuildHttpsAcknowledgement(requestRoot, serialNumber, configuration.HeartbeatIntervalSeconds ?? 20));
     }
+
+    /// <summary>
+    /// Parses the common device envelope once for both normal and bootstrap HTTPS
+    /// routes. The <c>JsonDocument</c> remains owned by the caller and must be disposed.
+    /// </summary>
+    private static (JsonDocument Document, JsonElement Root, string SerialNumber)? TryParseHttpsPollingPayload(string? payload)
+    {
+        if (string.IsNullOrWhiteSpace(payload))
+        {
+            return null;
+        }
+
+        JsonDocument document;
+        try
+        {
+            document = JsonDocument.Parse(payload);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object ||
+            !root.TryGetProperty("sn", out var serialProperty) ||
+            serialProperty.ValueKind != JsonValueKind.String)
+        {
+            document.Dispose();
+            return null;
+        }
+
+        var serialNumber = serialProperty.GetString()?.Trim();
+        if (string.IsNullOrWhiteSpace(serialNumber) || serialNumber.Length > 100)
+        {
+            document.Dispose();
+            return null;
+        }
+
+        return (document, root, serialNumber);
+    }
+
+    #endregion
+
+    #region Payload Protection and Validation
 
     /// <summary>Decrypts a command only in process, immediately before outbound delivery.</summary>
     private async Task<string> DecryptSensitivePayloadAsync(DeviceCommand command, CancellationToken cancellationToken)
@@ -837,4 +863,6 @@ public sealed class DeviceCommandRepository(
 
     private static string? Truncate(string? value, int maxLength) =>
         string.IsNullOrWhiteSpace(value) || value.Length <= maxLength ? value : value[..maxLength];
+
+    #endregion
 }

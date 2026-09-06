@@ -22,10 +22,10 @@ never placed in the route.
 
 | Route | Caller | Purpose |
 |---|---|---|
-| `POST /api/initial-device-configure/issue-bootstrap-url` | Host provisioning role | Creates a temporary initial device URL for an unassigned HTTPS-capable physical device. Default heartbeat is 20 seconds. |
+| `POST /api/TenantDeviceConfiguration/issue-bootstrap-url` | Host provisioning role | Creates a temporary initial device URL for an unassigned HTTPS-capable physical device. Default heartbeat is 20 seconds. |
 | `POST /api/initial/{serial}/{token}` | Physical device only | Receives device-initiated bootstrap polling. Invalid serial/token/payload gets a non-descriptive 404. |
-| `POST /api/initial-device-configure/apply-runtime-configuration` | Tenant Admin role | Queues typed `setdevinfo` settings through the device's outbound HTTPS connection. |
-| `POST /api/initial-device-configure/reboot` | Tenant Admin role | Queues reboot through the outbound HTTPS connection. |
+| `POST /api/TenantDeviceConfiguration/apply-runtime-configuration` | Tenant Admin role | Queues typed `setdevinfo` settings through the device's outbound HTTPS connection. |
+| `POST /api/TenantDeviceConfiguration/reboot` | Tenant Admin role | Queues reboot through the outbound HTTPS connection. |
 | `POST /device-gateway/{token}` | Physical device only | Existing normal per-Tenant HTTPS gateway. |
 
 The generic `POST /api/device-commands/submit` endpoint now rejects all
@@ -44,11 +44,11 @@ the logged-in user's operation permission. For a Tenant user, `tenantId` is
 derived from the JWT; the UI must not trust a tenant ID supplied by the
 browser.
 
-### 1. New `InitialDeviceConfigureController`
+### 1. Existing `TenantDeviceConfigurationController` secure actions
 
-Base route: `POST /api/initial-device-configure/*`. This is the only new
-operator controller. It deliberately accepts typed fields rather than arbitrary
-device JSON.
+Base route: `POST /api/TenantDeviceConfiguration/*`. The secure actions are
+added to the existing controller alongside its configuration CRUD endpoints;
+they deliberately accept typed fields rather than arbitrary device JSON.
 
 | Route | Who can call it | JSON input | What it does / why |
 |---|---|---|---|
@@ -71,7 +71,7 @@ Validation performed by `apply-runtime-configuration`:
 - existing Tenant device configuration must be HTTPS, port `443`, and path
   `/device-gateway`.
 
-### 2. New `InitialDeviceGatewayController`
+### 2. Existing `DeviceGatewayController` initial device action
 
 This controller is **not** for Angular or Postman. It is hidden from API
 explorer, rate-limited, and is callable only by the device:
@@ -195,6 +195,30 @@ Do not grant `TENANT_DEVICE_CONFIGURATION` to ordinary Tenant employees. Grant
 it only to the Tenant Admin role through existing role-permission management.
 Likewise grant the Host module only to approved provisioning roles.
 
+## Structural alignment and duplication removal
+
+The device feature now follows the established Employee feature structure rather
+than introducing a parallel application pattern:
+
+- `TenantDeviceConfigurationPermissionBehavior` follows the existing Employee
+  module-code → authenticated context → stored-procedure permission flow. It
+  uses `HostRuntimePermissionValidator` for the Host bootstrap action and the
+  existing Tenant stored procedure for Tenant actions.
+- The secure actions are in the existing
+  `TenantDeviceConfigurationController`; device-only bootstrap polling is in
+  the existing hidden `DeviceGatewayController`. No extra controller remains.
+- Commands, handlers, validation, and the runtime DTOs are grouped with the
+  existing `TenantDevice` / `TenantDeviceConfiguration` code. The shared
+  device-command interface file owns the initial-provisioning contract.
+- Normal and bootstrap HTTPS polling use one documented payload parser. Normal
+  gateway URL issuance uses one documented validation helper. Token generation,
+  hashing, response protection, and vendor payload validation remain centralized
+  in the existing device constants/catalogue.
+- The previous duplicate controller files, handler files, standalone DTO file,
+  and standalone interface file were removed. New and changed device sections
+  have XML summaries and `#region` groupings consistent with the surrounding
+  feature files.
+
 ## Database work
 
 Run these scripts once, in order, after taking a database backup and before
@@ -263,8 +287,8 @@ using a password rotation in production.
 |---|---|
 | Domain/EF | Added `DeviceInitialProvisioning` entity, DbSet, indexes, and FK mapping. |
 | Persistence | Added secure bootstrap service; added protected command payload encryption and audit redaction; added bootstrap polling support. |
-| API | Added Host/Tenant configuration controller and hidden anonymous initial device gateway. |
-| Authorization | Tenant configuration CRUD is Tenant-only and module-code constrained. Host retains only initial bootstrap issuance. |
+| API | Added secure actions to the existing `TenantDeviceConfigurationController` and initial polling to the existing hidden `DeviceGatewayController`. |
+| Authorization | Uses the existing Employee-style module-code and stored-procedure permission pipeline. Tenant configuration CRUD is Tenant-only; Host retains only initial bootstrap issuance. |
 | Commands | Generic raw device-global administration/configuration commands are blocked. Typed runtime endpoints queue only approved vendor fields. |
 | Seed | Added Host and Tenant modules with active CRUD operation mappings. |
 | Tests | Added opaque-token validation tests. |
