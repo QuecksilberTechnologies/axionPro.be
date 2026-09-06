@@ -36,6 +36,81 @@ cover heartbeat, volume, local-WebServer disable, optional local password
 rotation, and reboot. Further firmware settings must first receive a typed,
 field-validated Tenant-admin operation before they are exposed.
 
+## Device controller inventory and exact API contracts
+
+All **user-facing** routes below require the normal AxionPro Bearer access
+token. `moduleId` and `operationId` are also mandatory because the API checks
+the logged-in user's operation permission. For a Tenant user, `tenantId` is
+derived from the JWT; the UI must not trust a tenant ID supplied by the
+browser.
+
+### 1. New `InitialDeviceConfigureController`
+
+Base route: `POST /api/initial-device-configure/*`. This is the only new
+operator controller. It deliberately accepts typed fields rather than arbitrary
+device JSON.
+
+| Route | Who can call it | JSON input | What it does / why |
+|---|---|---|---|
+| `POST /issue-bootstrap-url` | Host user with `HOST_INITIAL_DEVICE_CONFIGURATION` + Create/Add operation | `{ "deviceMasterId": 1, "lifetimeMinutes": 120, "moduleId": 123, "operationId": 456 }` | Creates a temporary, one-use bootstrap URL for an active, unassigned HTTPS-capable physical device. Returns `initialGatewayUrl`, device serial, fixed first heartbeat `20`, and expiry. The raw secret URL is returned only once. |
+| `POST /apply-runtime-configuration` | Tenant Admin with `TENANT_DEVICE_CONFIGURATION` + Update/Edit operation | `{ "tenantDeviceId": 4, "moduleId": 123, "operationId": 456, "currentWebServerPassword": "current-device-password", "heartbeatIntervalSeconds": 20, "volume": 8, "disableLocalWebServer": true, "newWebServerPassword": "optional-new-password", "rebootAfterApply": true }` | Queues protected `setdevinfo`. It sets the device heartbeat, optional volume, disables local WebServer, optionally changes the local password, and—on first apply—switches the device to its normal per-Tenant opaque gateway URL. It returns only command IDs/tracking IDs, never a password or gateway secret. |
+| `POST /reboot` | Tenant Admin with `TENANT_DEVICE_CONFIGURATION` + Update/Edit operation | `{ "tenantDeviceId": 4, "moduleId": 123, "operationId": 456 }` | Queues a reboot through the outbound HTTPS device channel. It does not contact the device IP directly. |
+
+`123` and `456` above are examples only. After the seed script runs, Angular
+must send the actual Module and Operation IDs supplied by the user's permitted
+menu/operation metadata; `0` is rejected.
+
+Validation performed by `apply-runtime-configuration`:
+
+- `tenantDeviceId > 0` and belongs to the logged-in Tenant;
+- current local WebServer password: 4–128 characters;
+- heartbeat: 10–3,600 seconds; requested default: **20**;
+- volume, when sent: 0–15;
+- `disableLocalWebServer` must be `true`;
+- optional replacement password: 8–128 characters;
+- existing Tenant device configuration must be HTTPS, port `443`, and path
+  `/device-gateway`.
+
+### 2. New `InitialDeviceGatewayController`
+
+This controller is **not** for Angular or Postman. It is hidden from API
+explorer, rate-limited, and is callable only by the device:
+
+```text
+POST /api/initial/{deviceSerialNumber}/{opaque64HexToken}
+Content-Type: application/json
+Body: the vendor's normal device polling JSON, for example { "cmd": "gettime", ... }
+```
+
+Its route token is a 256-bit secret, not a location/tenant ID. The API stores
+only its SHA-256 hash. Bad content type, body, serial, or token returns an
+uninformative `404`. On a valid first poll it gives the device any queued
+initial `setdevinfo` command; that command supplies the normal Tenant gateway
+URL. The first successful normal gateway poll revokes all bootstrap URLs for
+that physical device.
+
+### 3. Existing device controllers whose behaviour was tightened
+
+| Controller / base route | Existing responsibility | Behaviour after this work |
+|---|---|---|
+| `TenantDeviceConfigurationController` — `/api/TenantDeviceConfiguration` | CRUD for a Tenant device's transport / gateway configuration. Routes are `create`, `get-by-id/{id}`, `get-all`, `update`, `rotate-https-ingress-token`, and `delete/{id}`. | Now Tenant-only and checks the module code `TENANT_DEVICE_CONFIGURATION`; Host users cannot use it to change a tenant runtime configuration. On create/update, UI should save HTTPS settings: server URL `https://axionpro-api.onrender.com`, path `/device-gateway`, port `443`, heartbeat `20`. |
+| `TenantDeviceController` — `/api/TenantDevice` | Physical installation record: Tenant, location, DeviceMaster, device code/name and status. | It remains the physical-device registration/assignment controller. Create the Tenant device before its configuration. This is separate from changing device firmware/runtime settings. |
+| `DeviceMasterController` — `/api/DeviceMaster` | Host-maintained device-model catalog and capabilities. | Host must mark the model as HTTPS-capable before a bootstrap URL can be generated. Capability flags remain the source of protocol support; this work does not falsely enable MQTT/MQTTS. |
+| `DeviceCommandController` — `/api/device-commands/submit` | Legacy generic vendor-command queue endpoint. | It cannot submit device-global configuration, reboot, destructive cleanup, upgrade, or write-file commands. It therefore cannot bypass the typed Tenant-admin routes above. |
+| `DeviceGatewayController` — `/device-gateway/{token}` | Normal ongoing outbound HTTPS device polling. | Continues to deliver queued commands and now revokes an initial provisioning route when the device has successfully switched to the normal gateway. |
+
+### Recommended Angular screens
+
+1. **Host / Initial Device Provisioning:** select an unassigned HTTPS-capable
+   DeviceMaster, issue and copy the one-time URL, show its expiry. Do not store
+   or display it again.
+2. **Tenant Admin / Device configuration:** create/read/update the HTTPS
+   `TenantDeviceConfiguration`; then show a separate runtime form containing
+   heartbeat, volume, local-WebServer disable, optional password rotation, and
+   reboot.
+3. Do **not** add an Angular screen for device-IP, raw `setdevinfo`,
+   `writefile`, MQTT credentials, or arbitrary vendor JSON.
+
 ## Operational flow
 
 ```text
@@ -138,6 +213,28 @@ The first script adds:
 Neither script was run by this implementation. They are intentionally
 idempotent where safe; role assignment remains an explicit administrator
 decision.
+
+### SQL execution sheet
+
+Run only the following two files for this device feature, in the stated order:
+
+| Order | SQL file | Database changes |
+|---:|---|---|
+| 1 | `database-scripts/AddSecureInitialDeviceConfiguration.sql` | Adds `DeviceCommand.IsSensitivePayload`; creates `DeviceInitialProvisioning` (hashed bootstrap secret, expiry, 20-second heartbeat, connection/audit timestamps); expands existing device-credential type validation for future local-WebServer password support. |
+| 2 | `database-scripts/CreateDeviceConfigurationModules.sql` | Seeds module `HOST_INITIAL_DEVICE_CONFIGURATION` with Host scope `2`; seeds `TENANT_DEVICE_CONFIGURATION` with Tenant scope `1`; maps active Create/Add/View/Read/Update/Edit/Delete operations for both. |
+
+The module rows and operation mappings are **prepared in SQL but not yet run
+against RenderDB**. The seed deliberately does **not** grant either module to a
+role automatically. After script 2, use the normal role-permission UI/SQL to
+grant:
+
+- Host provisioning role: `HOST_INITIAL_DEVICE_CONFIGURATION` → Create/Add;
+- Tenant Admin role only: `TENANT_DEVICE_CONFIGURATION` → View/Read,
+  Create/Add, Update/Edit, Delete as required.
+
+`RemoveTenantProfileAddress.sql` is a separate earlier Tenant-address change;
+it is **not** part of this device deployment and must not be rerun for this
+feature.
 
 ## Local Postman / LAN security
 

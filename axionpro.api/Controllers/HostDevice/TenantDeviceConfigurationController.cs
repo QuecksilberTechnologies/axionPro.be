@@ -2,7 +2,7 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Exposes authenticated Host and Tenant endpoints for Tenant device connection configuration.
+// Purpose : Exposes authenticated Tenant-admin endpoints for Tenant device connection configuration.
 // ================================================================
 
 using axionpro.application.DTOS.Host;
@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.HostDevice;
 
-/// <summary>Provides authenticated Host and Tenant endpoints for separate Tenant device connection configuration.</summary>
+/// <summary>Provides authenticated Tenant-admin endpoints for separate Tenant device connection configuration.</summary>
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
