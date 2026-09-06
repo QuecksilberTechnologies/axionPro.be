@@ -75,6 +75,18 @@ ADD COLUMN IF NOT EXISTS
 
 
 -- ============================================================================
+-- SECTION 2B : IMMUTABLE MODULE PAGE COMPONENT KEY
+-- ============================================================================
+-- PageName is a stable Angular component-registration key, not a route. URLPath
+-- may change when navigation changes; PageName must remain unchanged forever.
+-- ============================================================================
+
+ALTER TABLE axionpro."Module"
+ADD COLUMN IF NOT EXISTS
+    "PageName" CHARACTER VARYING(100) NULL;
+
+
+-- ============================================================================
 -- SECTION 2A : OPERATION AUDIT COLUMN STANDARDISATION
 -- ============================================================================
 -- The original schema used "UpdateDateTime" only on Operation.  All other
@@ -494,6 +506,8 @@ INSERT INTO axionpro."Module"
     "ModuleCode",
 
     "ModuleName",
+
+    "PageName",
 
     "DisplayName",
 
@@ -2053,6 +2067,105 @@ $$;
 
 
 -- ============================================================================
+-- SECTION 9B
+-- IMMUTABLE PAGE-NAME BACKFILL AND DATABASE ENFORCEMENT
+-- ============================================================================
+-- Existing modules receive a deterministic key once. The special Device
+-- Management component key is intentionally kept exactly as registered by UI.
+-- After this point an update cannot alter PageName, including only its casing.
+-- ============================================================================
+
+UPDATE axionpro."Module" module
+SET "PageName" = CASE module."ModuleCode"
+    WHEN 'HOST_DEVICE_MGMT' THEN 'device-manangment'
+    WHEN 'HOST_DEFAULT_EMAIL_CONFIG' THEN 'platform-email-defaults'
+    WHEN 'TENANT_EMAIL_CONFIG' THEN 'email-delivery-settings'
+    WHEN 'HOST_TENANT_EMAIL_CONFIG' THEN 'tenant-email-administration'
+    WHEN 'HOST_EMAIL_TEMPLATE' THEN 'email-templates'
+    WHEN 'HOST_DEVICE_SETUP' THEN 'device-catalogue'
+    WHEN 'TENANT_DEVICE_SETUP' THEN 'installed-devices'
+    WHEN 'HOST_INITIAL_DEVICE_CONFIGURATION' THEN 'device-provisioning'
+    WHEN 'TENANT_DEVICE_CONFIGURATION' THEN 'device-connectivity'
+    WHEN 'EMP_PASSWORD_MANAGEMENT' THEN 'employee-password-management'
+    ELSE BTRIM(BOTH '-' FROM REGEXP_REPLACE(LOWER(BTRIM(module."ModuleCode")), '[^a-z0-9]+', '-', 'g'))
+END
+WHERE module."PageName" IS NULL
+  AND NULLIF(BTRIM(module."ModuleCode"), '') IS NOT NULL;
+
+DO
+$$
+BEGIN
+    IF EXISTS
+    (
+        SELECT 1
+        FROM axionpro."Module"
+        WHERE "PageName" IS NOT NULL
+          AND
+          (
+              "PageName" !~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+              OR CHAR_LENGTH("PageName") > 100
+          )
+    )
+    THEN
+        RAISE EXCEPTION 'Every Module PageName must be a lowercase 1-100 character component key.';
+    END IF;
+
+    IF EXISTS
+    (
+        SELECT LOWER("PageName")
+        FROM axionpro."Module"
+        WHERE "PageName" IS NOT NULL
+        GROUP BY LOWER("PageName")
+        HAVING COUNT(*) > 1
+    )
+    THEN
+        RAISE EXCEPTION 'Module PageName values must be unique without regard to case.';
+    END IF;
+END;
+$$;
+
+ALTER TABLE axionpro."Module"
+DROP CONSTRAINT IF EXISTS "CK_Module_PageName_Format";
+
+ALTER TABLE axionpro."Module"
+ADD CONSTRAINT "CK_Module_PageName_Format"
+CHECK
+(
+    "PageName" IS NULL
+    OR "PageName" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "UX_Module_PageName_CaseInsensitive"
+ON axionpro."Module" (LOWER("PageName"))
+WHERE "PageName" IS NOT NULL;
+
+CREATE OR REPLACE FUNCTION axionpro."PreventModulePageNameChange"()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    IF NEW."PageName" IS DISTINCT FROM OLD."PageName" THEN
+        RAISE EXCEPTION
+            USING ERRCODE = '23514',
+                  MESSAGE = 'Module PageName is immutable and cannot be changed after creation.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS "TR_Module_PageNameImmutable"
+ON axionpro."Module";
+
+CREATE TRIGGER "TR_Module_PageNameImmutable"
+BEFORE UPDATE OF "PageName"
+ON axionpro."Module"
+FOR EACH ROW
+EXECUTE FUNCTION axionpro."PreventModulePageNameChange"();
+
+
+-- ============================================================================
 -- SECTION 10
 -- SAFE AUTO-INCREMENT / IDENTITY SYNCHRONIZATION
 -- ============================================================================
@@ -2316,6 +2429,7 @@ WHERE "ModuleCode"
           'HOST_TENANT_EMAIL_CONFIG',
           'TENANT_EMAIL_CONFIG',
           'HOST_EMAIL_TEMPLATE',
+          'HOST_DEVICE_MGMT',
           'HOST_DEVICE_SETUP',
           'TENANT_DEVICE_SETUP',
           'HOST_INITIAL_DEVICE_CONFIGURATION',

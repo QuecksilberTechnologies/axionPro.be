@@ -28,6 +28,11 @@ public sealed class NavigationMenuItemResponseDTO
     public int Id { get; init; }
     public string? ModuleCode { get; init; }
     public string ModuleName { get; init; } = string.Empty;
+    /// <summary>
+    /// Gets the immutable frontend page-component key. This is independent of
+    /// the mutable <see cref="UrlPath"/> navigation route.
+    /// </summary>
+    public string? PageName { get; init; }
     public string? DisplayName { get; init; }
     public string? UrlPath { get; init; }
     public string? IconKey { get; init; }

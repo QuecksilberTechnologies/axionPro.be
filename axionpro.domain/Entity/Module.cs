@@ -13,6 +13,12 @@ public partial class Module
 
     public string ModuleName { get; set; } = null!;
 
+    /// <summary>
+    /// Stable client page identity. Unlike <see cref="Urlpath"/>, this value is
+    /// immutable after the Module is created and identifies a registered frontend page component.
+    /// </summary>
+    public string? PageName { get; set; }
+
     public string? DisplayName { get; set; }
 
     public string? Urlpath { get; set; }

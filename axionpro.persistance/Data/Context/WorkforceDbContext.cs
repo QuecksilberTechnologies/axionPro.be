@@ -2369,6 +2369,7 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.ItemPriority).HasDefaultValue(0);
             entity.Property(e => e.ModuleCode).HasMaxLength(50);
             entity.Property(e => e.ModuleName).HasMaxLength(100);
+            entity.Property(e => e.PageName).HasMaxLength(100);
             entity.Property(e => e.Remark).HasMaxLength(200);
             entity.Property(e => e.Urlpath)
                 .HasMaxLength(500)
