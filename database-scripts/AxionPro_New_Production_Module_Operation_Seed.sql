@@ -1633,117 +1633,91 @@ WHERE mapping."ModuleId" = module."Id"
   AND mapping."OperationId" = operation."Id"
   AND module."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT';
 
+-- ============================================================================
+-- SECTION 8B
+-- TENANT PLATFORM FEATURE PLAN INHERITANCE
+-- ============================================================================
+-- A Tenant entitlement is sourced only from an active PlanModuleMapping.
+-- These baseline Tenant features inherit precisely the active plan coverage of
+-- EMP_LIST. This is the established baseline module already present in plans;
+-- Host-only modules are deliberately not assigned to any Subscription Plan.
+-- Existing mappings are never altered, so a Host's later plan-specific choice
+-- remains authoritative.
+
 DO
 $$
 DECLARE
-    plan_fk_column TEXT;
-    insert_columns TEXT;
-    select_columns TEXT;
-    sql_statement TEXT;
     employee_list_plan_count INTEGER;
+    target_module_count INTEGER;
 BEGIN
-    SELECT child_attribute.attname
-    INTO plan_fk_column
-    FROM pg_constraint constraint_info
-    INNER JOIN pg_class child_table
-        ON child_table.oid = constraint_info.conrelid
-    INNER JOIN pg_namespace child_namespace
-        ON child_namespace.oid = child_table.relnamespace
-    INNER JOIN pg_class parent_table
-        ON parent_table.oid = constraint_info.confrelid
-    INNER JOIN LATERAL unnest(constraint_info.conkey)
-        WITH ORDINALITY AS child_key(attribute_number, position)
-        ON TRUE
-    INNER JOIN pg_attribute child_attribute
-        ON child_attribute.attrelid = child_table.oid
-       AND child_attribute.attnum = child_key.attribute_number
-    WHERE constraint_info.contype = 'f'
-      AND child_namespace.nspname = 'axionpro'
-      AND child_table.relname = 'PlanModuleMapping'
-      AND parent_table.relname <> 'Module'
-    ORDER BY constraint_info.oid
-    LIMIT 1;
-
-    IF plan_fk_column IS NULL THEN
-        RAISE EXCEPTION
-            'Unable to discover PlanModuleMapping plan FK column.';
-    END IF;
-
-    EXECUTE format(
-        'SELECT COUNT(DISTINCT source.%I)
-         FROM axionpro."PlanModuleMapping" source
-         INNER JOIN axionpro."Module" source_module
-             ON source_module."Id" = source."ModuleId"
-         WHERE source_module."ModuleCode" = %L',
-        plan_fk_column,
-        'EMP_LIST')
-    INTO employee_list_plan_count;
+    SELECT COUNT(DISTINCT source."SubscriptionPlanId")
+    INTO employee_list_plan_count
+    FROM axionpro."PlanModuleMapping" source
+    INNER JOIN axionpro."Module" source_module
+        ON source_module."Id" = source."ModuleId"
+    WHERE source_module."ModuleCode" = 'EMP_LIST'
+      AND source."IsActive" = TRUE;
 
     IF employee_list_plan_count = 0 THEN
         RAISE EXCEPTION
-            'No EMP_LIST PlanModuleMapping exists. Password Module was not added to any plan.';
+            'No active EMP_LIST PlanModuleMapping exists. Tenant feature plan mappings cannot be seeded.';
     END IF;
 
-    insert_columns := format('%I, %I', plan_fk_column, 'ModuleId');
-    select_columns := format('source.%I, target_module."Id"', plan_fk_column);
+    SELECT COUNT(*)
+    INTO target_module_count
+    FROM axionpro."Module" target_module
+    WHERE target_module."ModuleCode" IN
+          (
+              'TENANT_EMAIL_CONFIG',
+              'TENANT_DEVICE_SETUP',
+              'TENANT_DEVICE_CONFIGURATION',
+              'EMP_PASSWORD_MANAGEMENT'
+          )
+      AND target_module."ModuleScope" = 1
+      AND target_module."IsActive" = TRUE;
 
-    IF EXISTS
+    IF target_module_count <> 4 THEN
+        RAISE EXCEPTION
+            'Expected four active Tenant feature modules before plan inheritance; found %.',
+            target_module_count;
+    END IF;
+
+    INSERT INTO axionpro."PlanModuleMapping"
     (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_schema = 'axionpro'
-          AND table_name = 'PlanModuleMapping'
-          AND column_name = 'IsActive'
-    ) THEN
-        insert_columns := insert_columns || ', "IsActive"';
-        select_columns := select_columns || ', TRUE';
-    END IF;
-
-    IF EXISTS
-    (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_schema = 'axionpro'
-          AND table_name = 'PlanModuleMapping'
-          AND column_name = 'AddedById'
-    ) THEN
-        insert_columns := insert_columns || ', "AddedById"';
-        select_columns := select_columns || ', 1';
-    END IF;
-
-    IF EXISTS
-    (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_schema = 'axionpro'
-          AND table_name = 'PlanModuleMapping'
-          AND column_name = 'AddedDateTime'
-    ) THEN
-        insert_columns := insert_columns || ', "AddedDateTime"';
-        select_columns := select_columns || ', CURRENT_TIMESTAMP';
-    END IF;
-
-    sql_statement := format(
-        'INSERT INTO axionpro."PlanModuleMapping" (%s)
-         SELECT DISTINCT %s
-         FROM axionpro."PlanModuleMapping" source
-         INNER JOIN axionpro."Module" source_module
-             ON source_module."Id" = source."ModuleId"
-            AND source_module."ModuleCode" = %L
-         CROSS JOIN axionpro."Module" target_module
-         WHERE target_module."ModuleCode" = %L
-           AND NOT EXISTS
+        "SubscriptionPlanId", "ModuleId", "IsActive", "Remark",
+        "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime"
+    )
+    SELECT DISTINCT
+        source."SubscriptionPlanId",
+        target_module."Id",
+        TRUE,
+        'Baseline Tenant feature inherited from active EMP_LIST plan coverage.',
+        1,
+        CURRENT_TIMESTAMP,
+        1,
+        CURRENT_TIMESTAMP
+    FROM axionpro."PlanModuleMapping" source
+    INNER JOIN axionpro."Module" source_module
+        ON source_module."Id" = source."ModuleId"
+       AND source_module."ModuleCode" = 'EMP_LIST'
+    INNER JOIN axionpro."Module" target_module
+        ON target_module."ModuleCode" IN
            (
-               SELECT 1
-               FROM axionpro."PlanModuleMapping" existing
-               WHERE existing.%I = source.%I
-                 AND existing."ModuleId" = target_module."Id"
-           )',
-        insert_columns,
-        select_columns,
-        'EMP_LIST',
-        'EMP_PASSWORD_MANAGEMENT',
-        plan_fk_column,
-        plan_fk_column);
-
-    EXECUTE sql_statement;
+               'TENANT_EMAIL_CONFIG',
+               'TENANT_DEVICE_SETUP',
+               'TENANT_DEVICE_CONFIGURATION',
+               'EMP_PASSWORD_MANAGEMENT'
+           )
+       AND target_module."ModuleScope" = 1
+       AND target_module."IsActive" = TRUE
+    WHERE source."IsActive" = TRUE
+      AND NOT EXISTS
+      (
+          SELECT 1
+          FROM axionpro."PlanModuleMapping" existing
+          WHERE existing."SubscriptionPlanId" = source."SubscriptionPlanId"
+            AND existing."ModuleId" = target_module."Id"
+      );
 END;
 $$;
 
@@ -1762,6 +1736,26 @@ DECLARE
     host_tenant_list_module_id INTEGER;
     create_operation_id INTEGER;
 BEGIN
+    INSERT INTO axionpro."Operation"
+    (
+        "OperationName", "Remark", "OperationType", "IsActive",
+        "AddedById", "AddedDateTime", "IconImage"
+    )
+    SELECT
+        'Create',
+        'Create a new record.',
+        1,
+        TRUE,
+        1,
+        CURRENT_TIMESTAMP,
+        'plus'
+    WHERE NOT EXISTS
+    (
+        SELECT 1
+        FROM axionpro."Operation"
+        WHERE LOWER(BTRIM("OperationName")) = 'create'
+    );
+
     SELECT "Id"
     INTO host_tenant_list_module_id
     FROM axionpro."Module"
@@ -2407,7 +2401,7 @@ ORDER BY
 
 -- ============================================================================
 -- VERIFICATION 4
--- EMPLOYEE PASSWORD PLAN MAPPINGS
+-- TENANT PLATFORM FEATURE PLAN MAPPINGS
 -- ============================================================================
 
 SELECT
@@ -2428,6 +2422,14 @@ INNER JOIN axionpro."Module"
        = plan_mapping."ModuleId"
 
 WHERE module."ModuleCode"
-      = 'EMP_PASSWORD_MANAGEMENT'
+      IN
+      (
+          'TENANT_EMAIL_CONFIG',
+          'TENANT_DEVICE_SETUP',
+          'TENANT_DEVICE_CONFIGURATION',
+          'EMP_PASSWORD_MANAGEMENT'
+      )
 
-ORDER BY plan_mapping."Id";
+ORDER BY
+    plan_mapping."SubscriptionPlanId",
+    module."ModuleCode";

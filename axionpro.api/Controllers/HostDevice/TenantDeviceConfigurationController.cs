@@ -2,7 +2,7 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Exposes Host bootstrap plus authenticated Tenant-admin device connection configuration endpoints.
+// Purpose : Exposes Host bootstrap plus Host-authorized and Tenant-admin device connection configuration endpoints.
 // ================================================================
 
 using axionpro.application.DTOS.Host;
@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.HostDevice;
 
-/// <summary>Provides Host initial provisioning and authenticated Tenant-admin connection configuration endpoints.</summary>
+/// <summary>Provides Host initial provisioning plus Host-authorized and Tenant-admin connection configuration endpoints.</summary>
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -38,7 +38,7 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     }
 
     /// <summary>
-    /// Queues the approved Tenant-admin runtime settings through the device's outbound HTTPS gateway.
+    /// Queues the approved Host-authorized or Tenant-admin runtime settings through the device's outbound HTTPS gateway.
     /// </summary>
     [HttpPost("apply-runtime-configuration")]
     public async Task<IActionResult> ApplyRuntimeConfiguration(
@@ -50,7 +50,7 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     }
 
     /// <summary>
-    /// Queues a Tenant-admin-authorized device reboot through the outbound HTTPS gateway.
+    /// Queues a Host-authorized or Tenant-admin device reboot through the outbound HTTPS gateway.
     /// </summary>
     [HttpPost("reboot")]
     public async Task<IActionResult> Reboot(

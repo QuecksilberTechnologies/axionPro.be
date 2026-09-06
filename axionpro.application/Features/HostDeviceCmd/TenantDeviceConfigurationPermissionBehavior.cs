@@ -57,25 +57,36 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
             return await next();
         }
 
+        var principal = await commonRequestService.ValidateAuthenticatedRequestAsync();
         var permissionRequest = ResolvePermissionRequest(request)
             ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
-        await EnsureExpectedModuleCodeAsync(permissionRequest, expectedModuleCode);
 
-        var principal = await commonRequestService.ValidateAuthenticatedRequestAsync();
-        if (string.Equals(expectedModuleCode, HostInitialDeviceConfigurationModuleCode, StringComparison.Ordinal))
+        if (principal.UserType == LoginUserType.Host)
         {
-            if (principal.UserType != LoginUserType.Host)
-            {
-                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
-            }
-
-            await HostRuntimePermissionValidator.ValidateAsync(
+            var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
                 commonRequestService,
                 unitOfWork.StoreProcedureRepository,
                 permissionRequest.ModuleId,
                 permissionRequest.OperationId,
                 cancellationToken);
+
+            // Super Admin is the Host-wide authority and therefore does not need a
+            // per-module mapping. Other Host users must both pass the database
+            // permission check above and submit the expected device module.
+            if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId)
+            {
+                return await next();
+            }
+
+            await EnsureExpectedModuleCodeAsync(permissionRequest, expectedModuleCode);
             return await next();
+        }
+
+        await EnsureExpectedModuleCodeAsync(permissionRequest, expectedModuleCode);
+
+        if (string.Equals(expectedModuleCode, HostInitialDeviceConfigurationModuleCode, StringComparison.Ordinal))
+        {
+            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
 
         if (principal.UserType != LoginUserType.TenantEmployee)

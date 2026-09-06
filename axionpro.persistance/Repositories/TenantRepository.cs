@@ -342,8 +342,9 @@ namespace axionpro.persistance.Repositories
         }
 
         /// <summary>
-        /// Retrieves a safe, Host-visible Tenant detail projection. Each collection is independently limited to live records
-        /// according to its available active and soft-delete columns; no credential secret, password, token, or encryption key is projected.
+        /// Retrieves a safe, Host-visible Tenant detail projection for an active or inactive, non-soft-deleted Tenant.
+        /// Each related collection is independently limited to its live records; no credential secret, password, token,
+        /// or encryption key is projected.
         /// </summary>
         public async Task<HostTenantDetailResponseDTO?> GetHostManagedTenantDetailAsync(
             long tenantId,
@@ -351,7 +352,9 @@ namespace axionpro.persistance.Repositories
         {
             var detail = await _context.Tenants
                 .AsNoTracking()
-                .Where(tenant => tenant.Id == tenantId && tenant.IsActive && tenant.IsSoftDeleted != true)
+                // Host users must be able to open an inactive Tenant to inspect or reactivate it.
+                // Soft-deleted Tenants remain unavailable everywhere in the Host management flow.
+                .Where(tenant => tenant.Id == tenantId && tenant.IsSoftDeleted != true)
                 .Select(tenant => new HostTenantDetailResponseDTO
                 {
                     TenantIndustryId = tenant.TenantIndustryId,
