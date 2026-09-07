@@ -5,23 +5,22 @@
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace axionpro.infrastructure.DeviceCommunication.Mqtt;
 
 /// <summary>Keeps the central MQTT/MQTTS client connected with bounded reconnect attempts.</summary>
 public sealed class AxionProMqttHostedService(
     AxionProMqttClient mqttClient,
-    IOptions<AxionProMqttOptions> options,
     ILogger<AxionProMqttHostedService> logger)
     : BackgroundService
 {
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!options.Value.Enabled)
+        var enabledTransports = mqttClient.EnabledTransports;
+        if (enabledTransports.Count == 0)
         {
-            logger.LogWarning("Central MQTT device communication is disabled. No device command will be published until DeviceMqtt:Enabled is configured.");
+            logger.LogWarning("MQTT/MQTTS device communication is disabled. No device command will be published until an explicit DeviceMqtt transport profile is enabled.");
             return;
         }
 
@@ -30,7 +29,10 @@ public sealed class AxionProMqttHostedService(
         {
             try
             {
-                await mqttClient.ConnectAsync(stoppingToken);
+                foreach (var transport in enabledTransports)
+                {
+                    await mqttClient.ConnectAsync(transport, stoppingToken);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -38,7 +40,7 @@ public sealed class AxionProMqttHostedService(
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Central MQTT connection attempt failed; retrying without creating tenant-specific clients.");
+                logger.LogError(exception, "An AxionPro MQTT/MQTTS connection attempt failed; retrying without creating tenant-specific clients.");
             }
 
             await timer.WaitForNextTickAsync(stoppingToken);

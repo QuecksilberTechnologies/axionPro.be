@@ -209,7 +209,7 @@ public sealed class TenantDeviceConfigurationRepository(WorkforceDbContext conte
             var term = $"%{filter.Search.Trim()}%";
             query = query.Where(x => (x.IpAddress != null && EF.Functions.ILike(x.IpAddress, term)) || (x.MacAddress != null && EF.Functions.ILike(x.MacAddress, term)) || (x.ServerHost != null && EF.Functions.ILike(x.ServerHost, term)) || (x.ServerUrl != null && EF.Functions.ILike(x.ServerUrl, term)) || EF.Functions.ILike(x.TenantDevice.DeviceCode, term) || (x.TenantDevice.DeviceName != null && EF.Functions.ILike(x.TenantDevice.DeviceName, term)));
         }
-        if (filter.TenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.TenantDeviceId.Value);
+        if (filter.ResolvedTenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.ResolvedTenantDeviceId.Value);
         if (filter.CommandTransport.HasValue)
         {
             query = query.Where(x => (x.CommandTransport ?? x.MqttTransport) == (short)filter.CommandTransport.Value);
@@ -234,7 +234,7 @@ public sealed class TenantDeviceConfigurationRepository(WorkforceDbContext conte
             var term = $"%{filter.Search.Trim()}%";
             query = query.Where(x => (x.IpAddress != null && EF.Functions.ILike(x.IpAddress, term)) || (x.MacAddress != null && EF.Functions.ILike(x.MacAddress, term)) || (x.ServerHost != null && EF.Functions.ILike(x.ServerHost, term)) || (x.ServerUrl != null && EF.Functions.ILike(x.ServerUrl, term)) || EF.Functions.ILike(x.TenantDevice.DeviceCode, term) || (x.TenantDevice.DeviceName != null && EF.Functions.ILike(x.TenantDevice.DeviceName, term)));
         }
-        if (filter.TenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.TenantDeviceId.Value);
+        if (filter.ResolvedTenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.ResolvedTenantDeviceId.Value);
         if (filter.CommandTransport.HasValue)
         {
             query = query.Where(x => (x.CommandTransport ?? x.MqttTransport) == (short)filter.CommandTransport.Value);

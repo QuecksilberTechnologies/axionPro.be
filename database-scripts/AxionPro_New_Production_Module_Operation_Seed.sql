@@ -550,6 +550,8 @@ SELECT
 
     'Platform Email Defaults',
 
+    'platform-email-defaults',
+
     'Platform Email Defaults',
 
     '/app/default-email-config',
@@ -1750,25 +1752,17 @@ DECLARE
     host_tenant_list_module_id INTEGER;
     create_operation_id INTEGER;
 BEGIN
-    INSERT INTO axionpro."Operation"
-    (
-        "OperationName", "Remark", "OperationType", "IsActive",
-        "AddedById", "AddedDateTime", "IconImage"
-    )
-    SELECT
-        'Create',
-        'Create a new record.',
-        1,
-        TRUE,
-        1,
-        CURRENT_TIMESTAMP,
-        'plus'
-    WHERE NOT EXISTS
-    (
-        SELECT 1
-        FROM axionpro."Operation"
-        WHERE LOWER(BTRIM("OperationName")) = 'create'
-    );
+    -- Operation.Id = 1 is the existing canonical Create operation.  Do not
+    -- insert a duplicate operation; only ensure the existing record is active
+    -- because Navigation/my-menu excludes inactive operations.
+    UPDATE axionpro."Operation"
+    SET
+        "IsActive" = TRUE,
+        "IconImage" = COALESCE(NULLIF(BTRIM("IconImage"), ''), 'plus'),
+        "UpdatedById" = 1,
+        "UpdatedDateTime" = CURRENT_TIMESTAMP
+    WHERE "Id" = 1
+      AND "IsActive" IS DISTINCT FROM TRUE;
 
     SELECT "Id"
     INTO host_tenant_list_module_id
@@ -1787,14 +1781,13 @@ BEGIN
     SELECT "Id"
     INTO create_operation_id
     FROM axionpro."Operation"
-    WHERE LOWER(BTRIM("OperationName")) = 'create'
+    WHERE "Id" = 1
       AND "IsActive" = TRUE
-    ORDER BY "Id"
     LIMIT 1;
 
     IF create_operation_id IS NULL THEN
         RAISE EXCEPTION
-            'Active Create operation was not found; HOST_TENANT_LIST mapping cannot be seeded.';
+            'The existing Create operation (Operation.Id = 1) must be active before HOST_TENANT_LIST can be mapped.';
     END IF;
 
     INSERT INTO axionpro."ModuleOperationMapping"
@@ -2087,7 +2080,7 @@ SET "PageName" = CASE module."ModuleCode"
     WHEN 'HOST_INITIAL_DEVICE_CONFIGURATION' THEN 'device-provisioning'
     WHEN 'TENANT_DEVICE_CONFIGURATION' THEN 'device-connectivity'
     WHEN 'EMP_PASSWORD_MANAGEMENT' THEN 'employee-password-management'
-    ELSE BTRIM(BOTH '-' FROM REGEXP_REPLACE(LOWER(BTRIM(module."ModuleCode")), '[^a-z0-9]+', '-', 'g'))
+    ELSE BTRIM(REGEXP_REPLACE(LOWER(BTRIM(module."ModuleCode")), '[^a-z0-9]+', '-', 'g'), '-')
 END
 WHERE module."PageName" IS NULL
   AND NULLIF(BTRIM(module."ModuleCode"), '') IS NOT NULL;

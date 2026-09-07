@@ -5,27 +5,35 @@
 
 using System.Text.Json;
 using axionpro.application.Interfaces.IDeviceCommunication;
+using axionpro.domain.Entity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.infrastructure.DeviceCommunication.Mqtt;
 
-/// <summary>Routes inbound messages received on <c>aiface/{SN}/sub</c>.</summary>
+/// <summary>Routes inbound messages received through the configured AiFace response topic.</summary>
 public sealed class DeviceMqttMessageRouter(
     IServiceScopeFactory scopeFactory,
     ILogger<DeviceMqttMessageRouter> logger)
 {
     /// <summary>Audits and processes an inbound device publication without trusting client tenant data.</summary>
     public async Task RouteAsync(
+        DeviceCommunicationProtocol transport,
+        AxionProMqttTransportOptions profile,
         string topic,
         string payload,
         int qualityOfService,
         bool isDuplicateDelivery,
         CancellationToken cancellationToken)
     {
-        if (!TryGetDeviceSerialNumber(topic, out var serialNumber))
+        if (transport is not DeviceCommunicationProtocol.Mqtt and not DeviceCommunicationProtocol.Mqtts)
         {
-            logger.LogWarning("Rejected MQTT topic outside the documented device response route: {Topic}", topic);
+            throw new ArgumentOutOfRangeException(nameof(transport), transport, "Only MQTT and MQTTS messages can use this router.");
+        }
+
+        if (!profile.TryGetDeviceResponseSerialNumber(topic, out var serialNumber))
+        {
+            logger.LogWarning("Rejected MQTT topic outside the configured device response route: {Topic}", topic);
             return;
         }
 
@@ -34,6 +42,7 @@ public sealed class DeviceMqttMessageRouter(
         var queueStore = scope.ServiceProvider.GetRequiredService<IDeviceCommandDispatchStore>();
         await queueStore.RecordInboundAsync(
             new DeviceMqttInboundMessage(
+                transport,
                 topic,
                 serialNumber,
                 payload,
@@ -42,22 +51,6 @@ public sealed class DeviceMqttMessageRouter(
                 identityValid,
                 DateTime.UtcNow),
             cancellationToken);
-    }
-
-    private static bool TryGetDeviceSerialNumber(string topic, out string serialNumber)
-    {
-        serialNumber = string.Empty;
-        var segments = topic.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (segments.Length != 3 ||
-            !string.Equals(segments[0], "aiface", StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(segments[2], "sub", StringComparison.OrdinalIgnoreCase) ||
-            string.IsNullOrWhiteSpace(segments[1]))
-        {
-            return false;
-        }
-
-        serialNumber = segments[1];
-        return true;
     }
 
     private static bool IsPayloadSerialCompatible(string payload, string topicSerialNumber)

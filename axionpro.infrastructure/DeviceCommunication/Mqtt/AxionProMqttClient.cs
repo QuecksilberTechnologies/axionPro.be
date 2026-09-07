@@ -1,98 +1,100 @@
 // ================================================================
-// Purpose : Owns one central server-side MQTT/MQTTS client for every Tenant
-//           device. Broker secrets are read from application configuration.
+// Purpose : Owns isolated, secure central MQTT and MQTTS broker clients.
 // ================================================================
 
 using System.Buffers;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using MQTTnet;
-using MQTTnet.Protocol;
+using axionpro.domain.Entity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MQTTnet;
+using MQTTnet.Formatter;
+using MQTTnet.Protocol;
 
 namespace axionpro.infrastructure.DeviceCommunication.Mqtt;
 
-/// <summary>Provides the single central broker connection and QoS 1 publication path.</summary>
+/// <summary>
+/// Provides one client per enabled transport profile. A command configured for
+/// MQTT can only leave through MQTT; a command configured for MQTTS can only
+/// leave through the independently authenticated TLS connection.
+/// </summary>
 public sealed class AxionProMqttClient : IAxionProMqttPublisher, IAsyncDisposable
 {
-    private readonly AxionProMqttOptions _options;
     private readonly DeviceMqttMessageRouter _messageRouter;
     private readonly ILogger<AxionProMqttClient> _logger;
-    private readonly IMqttClient _client;
-    private readonly SemaphoreSlim _connectionLock = new(1, 1);
+    private readonly IReadOnlyDictionary<DeviceCommunicationProtocol, BrokerConnection> _connections;
 
+    /// <summary>Creates and validates all deployment-configured broker profiles.</summary>
     public AxionProMqttClient(
         IOptions<AxionProMqttOptions> options,
         DeviceMqttMessageRouter messageRouter,
         ILogger<AxionProMqttClient> logger)
     {
-        _options = options.Value;
         _messageRouter = messageRouter;
         _logger = logger;
-        _client = new MqttClientFactory().CreateMqttClient();
-        _client.ApplicationMessageReceivedAsync += HandleMessageAsync;
-        _client.ConnectedAsync += SubscribeToDeviceResponsesAsync;
-        _client.DisconnectedAsync += arguments =>
-        {
-            _logger.LogWarning("Central AxionPro MQTT client disconnected. Reason: {Reason}", arguments.Reason);
-            return Task.CompletedTask;
-        };
+
+        var configuredProfiles = options.Value.ResolveEnabledProfiles();
+        ValidateConfiguredProfiles(configuredProfiles);
+        _connections = configuredProfiles.ToDictionary(
+            pair => pair.Key,
+            pair => CreateConnection(pair.Key, pair.Value));
     }
 
-    /// <inheritdoc />
-    public bool IsConnected => _client.IsConnected;
+    #region Connection State
 
-    /// <summary>Connects the central client once. Repeated calls are safe.</summary>
-    public async Task ConnectAsync(CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public IReadOnlyCollection<DeviceCommunicationProtocol> EnabledTransports => _connections.Keys.ToArray();
+
+    /// <inheritdoc />
+    public bool IsConnected(DeviceCommunicationProtocol transport) =>
+        _connections.TryGetValue(transport, out var connection) && connection.Client.IsConnected;
+
+    /// <summary>Connects one enabled transport profile. Repeated calls are safe.</summary>
+    public async Task ConnectAsync(DeviceCommunicationProtocol transport, CancellationToken cancellationToken)
     {
-        if (!_options.Enabled || _client.IsConnected)
+        if (!_connections.TryGetValue(transport, out var connection) || connection.Client.IsConnected)
         {
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(_options.Host))
-        {
-            throw new InvalidOperationException("DeviceMqtt:Host must be configured when DeviceMqtt:Enabled is true.");
-        }
-
-        await _connectionLock.WaitAsync(cancellationToken);
+        await connection.ConnectionLock.WaitAsync(cancellationToken);
         try
         {
-            if (_client.IsConnected)
+            if (connection.Client.IsConnected)
             {
                 return;
             }
 
-            var builder = new MqttClientOptionsBuilder()
-                .WithClientId(_options.ClientId)
-                .WithTcpServer(_options.Host, _options.Port)
-                .WithCleanSession(false);
-
-            if (!string.IsNullOrWhiteSpace(_options.UserName))
-            {
-                builder.WithCredentials(_options.UserName, _options.Password);
-            }
-
-            if (_options.UseTls)
-            {
-                builder.WithTlsOptions(tls => tls.UseTls());
-            }
-
-            await _client.ConnectAsync(builder.Build(), cancellationToken);
-            _logger.LogInformation("Connected the central AxionPro MQTT client to {Host}:{Port} using TLS: {UseTls}.", _options.Host, _options.Port, _options.UseTls);
+            await connection.Client.ConnectAsync(BuildClientOptions(connection), cancellationToken);
+            _logger.LogInformation(
+                "Connected AxionPro {Transport} broker client to {Host}:{Port}.",
+                transport,
+                connection.Profile.Host,
+                connection.Profile.Port);
         }
         finally
         {
-            _connectionLock.Release();
+            connection.ConnectionLock.Release();
         }
     }
 
     /// <inheritdoc />
-    public async Task PublishAsync(string topic, string payload, CancellationToken cancellationToken = default)
+    public async Task PublishAsync(
+        DeviceCommunicationProtocol transport,
+        string topic,
+        string payload,
+        CancellationToken cancellationToken = default)
     {
-        if (!_client.IsConnected)
+        if (!_connections.TryGetValue(transport, out var connection))
         {
-            throw new InvalidOperationException("The central AxionPro MQTT client is not connected.");
+            throw new InvalidOperationException($"The {transport} broker profile is not enabled.");
+        }
+
+        if (!connection.Client.IsConnected)
+        {
+            throw new InvalidOperationException($"The {transport} broker profile is not connected.");
         }
 
         var message = new MqttApplicationMessageBuilder()
@@ -101,40 +103,228 @@ public sealed class AxionProMqttClient : IAxionProMqttPublisher, IAsyncDisposabl
             .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
             .WithRetainFlag(false)
             .Build();
-        await _client.PublishAsync(message, cancellationToken);
+        await connection.Client.PublishAsync(message, cancellationToken);
     }
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        _client.ApplicationMessageReceivedAsync -= HandleMessageAsync;
-        _client.ConnectedAsync -= SubscribeToDeviceResponsesAsync;
-        if (_client.IsConnected)
+        foreach (var connection in _connections.Values)
         {
-            await _client.DisconnectAsync();
+            try
+            {
+                if (connection.Client.IsConnected)
+                {
+                    await connection.Client.DisconnectAsync();
+                }
+            }
+            finally
+            {
+                connection.Client.Dispose();
+                connection.ConnectionLock.Dispose();
+            }
+        }
+    }
+
+    #endregion
+
+    #region Client Setup and TLS
+
+    private BrokerConnection CreateConnection(
+        DeviceCommunicationProtocol transport,
+        AxionProMqttTransportOptions profile)
+    {
+        var client = new MqttClientFactory().CreateMqttClient();
+        var connection = new BrokerConnection(transport, profile, client);
+        client.ApplicationMessageReceivedAsync += arguments => HandleMessageAsync(connection, arguments);
+        client.ConnectedAsync += arguments => SubscribeToDeviceResponsesAsync(connection, arguments);
+        client.DisconnectedAsync += arguments =>
+        {
+            _logger.LogWarning(
+                "AxionPro {Transport} broker client disconnected. Reason: {Reason}",
+                transport,
+                arguments.Reason);
+            return Task.CompletedTask;
+        };
+        return connection;
+    }
+
+    private static MqttClientOptions BuildClientOptions(BrokerConnection connection)
+    {
+        var builder = new MqttClientOptionsBuilder()
+            .WithClientId(connection.Profile.ClientId)
+            .WithTcpServer(connection.Profile.Host, connection.Profile.Port)
+            .WithProtocolVersion(MqttProtocolVersion.V311)
+            .WithCleanSession(false);
+
+        if (!string.IsNullOrWhiteSpace(connection.Profile.UserName))
+        {
+            builder.WithCredentials(connection.Profile.UserName, connection.Profile.Password);
         }
 
-        _connectionLock.Dispose();
-        _client.Dispose();
+        if (connection.Transport == DeviceCommunicationProtocol.Mqtts)
+        {
+            ConfigureTls(builder, connection.Profile);
+        }
+
+        return builder.Build();
     }
 
-    private async Task SubscribeToDeviceResponsesAsync(MqttClientConnectedEventArgs arguments)
+    private static void ConfigureTls(MqttClientOptionsBuilder builder, AxionProMqttTransportOptions profile)
     {
-        var options = new MqttClientSubscribeOptionsBuilder()
-            .WithTopicFilter(filter => filter.WithTopic("aiface/+/sub").WithAtLeastOnceQoS())
-            .Build();
-        await _client.SubscribeAsync(options, CancellationToken.None);
-        _logger.LogInformation("Subscribed the central AxionPro MQTT client to aiface/+/sub.");
+        builder.WithTlsOptions(tls =>
+        {
+            tls.UseTls()
+                .WithSslProtocols(SslProtocols.Tls12 | SslProtocols.Tls13)
+                .WithAllowUntrustedCertificates(false)
+                .WithIgnoreCertificateChainErrors(false)
+                .WithIgnoreCertificateRevocationErrors(false)
+                .WithRevocationMode(X509RevocationMode.Online)
+                .WithTargetHost(string.IsNullOrWhiteSpace(profile.TlsServerName) ? profile.Host : profile.TlsServerName);
+
+            if (!string.IsNullOrWhiteSpace(profile.TrustedServerCertificatePath))
+            {
+                tls.WithTrustChain(new X509Certificate2Collection(
+                    LoadCertificate(profile.TrustedServerCertificatePath, password: null)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(profile.ClientCertificatePath))
+            {
+                tls.WithClientCertificates(new X509Certificate2Collection(
+                    LoadCertificate(profile.ClientCertificatePath, profile.ClientCertificatePassword)));
+            }
+        });
     }
 
-    private async Task HandleMessageAsync(MqttApplicationMessageReceivedEventArgs arguments)
+    private static X509Certificate2 LoadCertificate(string certificatePath, string? password)
+    {
+        if (!File.Exists(certificatePath))
+        {
+            throw new InvalidOperationException("The configured MQTTS certificate file does not exist.");
+        }
+
+        if (string.Equals(Path.GetExtension(certificatePath), ".pem", StringComparison.OrdinalIgnoreCase))
+        {
+            return X509Certificate2.CreateFromPemFile(certificatePath);
+        }
+
+        return string.Equals(Path.GetExtension(certificatePath), ".pfx", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(Path.GetExtension(certificatePath), ".p12", StringComparison.OrdinalIgnoreCase)
+            ? X509CertificateLoader.LoadPkcs12FromFile(
+                certificatePath,
+                password ?? string.Empty,
+                X509KeyStorageFlags.EphemeralKeySet,
+                Pkcs12LoaderLimits.Defaults)
+            : X509CertificateLoader.LoadCertificateFromFile(certificatePath);
+    }
+
+    private static void ValidateConfiguredProfiles(
+        IReadOnlyDictionary<DeviceCommunicationProtocol, AxionProMqttTransportOptions> profiles)
+    {
+        foreach (var (transport, profile) in profiles)
+        {
+            if (transport is not DeviceCommunicationProtocol.Mqtt and not DeviceCommunicationProtocol.Mqtts ||
+                string.IsNullOrWhiteSpace(profile.Host) ||
+                profile.Port is < 1 or > 65535 ||
+                string.IsNullOrWhiteSpace(profile.ClientId))
+            {
+                throw new InvalidOperationException(
+                    $"DeviceMqtt:{transport} requires a host, a port from 1 to 65535, and a client ID.");
+            }
+
+            if (string.IsNullOrWhiteSpace(profile.UserName) && !string.IsNullOrWhiteSpace(profile.Password))
+            {
+                throw new InvalidOperationException($"DeviceMqtt:{transport} cannot provide a password without a user name.");
+            }
+
+            if (!profile.HasValidTopicSuffix())
+            {
+                throw new InvalidOperationException(
+                    $"DeviceMqtt:{transport}:TopicSuffix must be one static MQTT topic level without spaces, '/', '+', or '#'.");
+            }
+
+            if (transport == DeviceCommunicationProtocol.Mqtt &&
+                (!string.IsNullOrWhiteSpace(profile.TlsServerName) ||
+                 !string.IsNullOrWhiteSpace(profile.TrustedServerCertificatePath) ||
+                 !string.IsNullOrWhiteSpace(profile.ClientCertificatePath)))
+            {
+                throw new InvalidOperationException("TLS certificate settings are valid only for the DeviceMqtt:Mqtts profile.");
+            }
+
+            if (string.IsNullOrWhiteSpace(profile.ClientCertificatePath) &&
+                !string.IsNullOrWhiteSpace(profile.ClientCertificatePassword))
+            {
+                throw new InvalidOperationException($"DeviceMqtt:{transport} cannot provide a client certificate password without a client certificate path.");
+            }
+        }
+
+        var duplicateIdentity = profiles
+            .GroupBy(profile => new
+            {
+                Host = profile.Value.Host.Trim().ToUpperInvariant(),
+                profile.Value.Port,
+                ClientId = profile.Value.ClientId.Trim()
+            })
+            .FirstOrDefault(group => group.Count() > 1);
+        if (duplicateIdentity is not null)
+        {
+            throw new InvalidOperationException("MQTT and MQTTS broker profiles cannot reuse the same broker host, port, and client ID.");
+        }
+    }
+
+    #endregion
+
+    #region Device Routing
+
+    private async Task SubscribeToDeviceResponsesAsync(
+        BrokerConnection connection,
+        MqttClientConnectedEventArgs arguments)
+    {
+        var topic = connection.Profile.BuildDeviceResponseSubscriptionTopic();
+        var options = new MqttClientSubscribeOptionsBuilder()
+            .WithTopicFilter(filter => filter.WithTopic(topic).WithAtLeastOnceQoS())
+            .Build();
+        await connection.Client.SubscribeAsync(options, CancellationToken.None);
+        _logger.LogInformation("Subscribed AxionPro {Transport} client to {Topic}.", connection.Transport, topic);
+    }
+
+    private async Task HandleMessageAsync(
+        BrokerConnection connection,
+        MqttApplicationMessageReceivedEventArgs arguments)
     {
         var payload = Encoding.UTF8.GetString(arguments.ApplicationMessage.Payload.ToArray());
         await _messageRouter.RouteAsync(
+            connection.Transport,
+            connection.Profile,
             arguments.ApplicationMessage.Topic,
             payload,
             (int)arguments.ApplicationMessage.QualityOfServiceLevel,
             arguments.ApplicationMessage.Dup,
             CancellationToken.None);
+    }
+
+    /// <inheritdoc />
+    public string BuildDeviceCommandTopic(DeviceCommunicationProtocol transport, string deviceSerialNumber)
+    {
+        if (!_connections.TryGetValue(transport, out var connection))
+        {
+            throw new InvalidOperationException($"The {transport} broker profile is not enabled.");
+        }
+
+        return connection.Profile.BuildDeviceCommandTopic(deviceSerialNumber);
+    }
+
+    #endregion
+
+    /// <summary>Retains transport-specific state without duplicating client implementations.</summary>
+    private sealed class BrokerConnection(
+        DeviceCommunicationProtocol transport,
+        AxionProMqttTransportOptions profile,
+        IMqttClient client)
+    {
+        public DeviceCommunicationProtocol Transport { get; } = transport;
+        public AxionProMqttTransportOptions Profile { get; } = profile;
+        public IMqttClient Client { get; } = client;
+        public SemaphoreSlim ConnectionLock { get; } = new(1, 1);
     }
 }

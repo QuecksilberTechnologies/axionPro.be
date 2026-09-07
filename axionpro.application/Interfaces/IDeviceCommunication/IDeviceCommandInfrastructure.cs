@@ -34,8 +34,9 @@ public sealed record DeviceCommandDispatch(
     DeviceCommandResponseMode ResponseMode,
     int AttemptCount);
 
-/// <summary>Represents one raw inbound MQTT publication from a device.</summary>
+/// <summary>Represents one raw inbound device publication or polling message.</summary>
 public sealed record DeviceMqttInboundMessage(
+    DeviceCommunicationProtocol Transport,
     string Topic,
     string DeviceSerialNumber,
     string Payload,

@@ -18,6 +18,14 @@ public sealed class DeviceCommandDispatcherWorker(
     ILogger<DeviceCommandDispatcherWorker> logger)
     : BackgroundService
 {
+    private static readonly DeviceCommunicationProtocol[] SupportedTransports =
+    [
+        DeviceCommunicationProtocol.Mqtt,
+        DeviceCommunicationProtocol.Mqtts
+    ];
+
+    private int _transportCursor;
+
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -29,33 +37,40 @@ public sealed class DeviceCommandDispatcherWorker(
                 using var scope = scopeFactory.CreateScope();
                 var queueStore = scope.ServiceProvider.GetRequiredService<IDeviceCommandDispatchStore>();
                 await queueStore.RecoverExpiredResponseDeadlinesAsync(stoppingToken);
-                if (!mqttPublisher.IsConnected)
+                foreach (var transport in GetDispatchOrder())
                 {
-                    continue;
-                }
+                    if (!mqttPublisher.IsConnected(transport))
+                    {
+                        continue;
+                    }
 
-                var dispatch = await queueStore.TryAcquireNextAsync(
-                    new[] { DeviceCommunicationProtocol.Mqtt, DeviceCommunicationProtocol.Mqtts },
-                    cancellationToken: stoppingToken);
-                if (dispatch is null)
-                {
-                    continue;
-                }
+                    var dispatch = await queueStore.TryAcquireNextAsync(
+                        new[] { transport },
+                        cancellationToken: stoppingToken);
+                    if (dispatch is null)
+                    {
+                        continue;
+                    }
 
-                var topic = $"aiface/{dispatch.DeviceSerialNumber}/pub";
-                try
-                {
-                    await mqttPublisher.PublishAsync(topic, dispatch.Payload, stoppingToken);
-                    await queueStore.MarkPublishedAsync(dispatch, topic, qualityOfService: 1, DateTime.UtcNow, stoppingToken);
-                }
-                catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
-                {
-                    logger.LogWarning(
-                        exception,
-                        "MQTT publish failed for DeviceCommand {DeviceCommandId} on serial {DeviceSerialNumber}.",
-                        dispatch.DeviceCommandId,
-                        dispatch.DeviceSerialNumber);
-                    await queueStore.ScheduleRetryOrFailAsync(dispatch, exception.Message, DateTime.UtcNow, stoppingToken);
+                    try
+                    {
+                        var topic = mqttPublisher.BuildDeviceCommandTopic(transport, dispatch.DeviceSerialNumber);
+                        await mqttPublisher.PublishAsync(transport, topic, dispatch.Payload, stoppingToken);
+                        await queueStore.MarkPublishedAsync(dispatch, topic, qualityOfService: 1, DateTime.UtcNow, stoppingToken);
+                    }
+                    catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
+                    {
+                        logger.LogWarning(
+                            exception,
+                            "{Transport} publish failed for DeviceCommand {DeviceCommandId} on serial {DeviceSerialNumber}.",
+                            transport,
+                            dispatch.DeviceCommandId,
+                            dispatch.DeviceSerialNumber);
+                        await queueStore.ScheduleRetryOrFailAsync(dispatch, exception.Message, DateTime.UtcNow, stoppingToken);
+                    }
+
+                    // One command per timer tick preserves the established database queue pacing.
+                    break;
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -66,6 +81,15 @@ public sealed class DeviceCommandDispatcherWorker(
             {
                 logger.LogError(exception, "The central device command dispatcher iteration failed.");
             }
+        }
+    }
+
+    private IEnumerable<DeviceCommunicationProtocol> GetDispatchOrder()
+    {
+        var start = Math.Abs(Interlocked.Increment(ref _transportCursor)) % SupportedTransports.Length;
+        for (var offset = 0; offset < SupportedTransports.Length; offset++)
+        {
+            yield return SupportedTransports[(start + offset) % SupportedTransports.Length];
         }
     }
 }

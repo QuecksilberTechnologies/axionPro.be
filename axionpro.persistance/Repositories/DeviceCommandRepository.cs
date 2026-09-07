@@ -441,12 +441,26 @@ public sealed class DeviceCommandRepository(
     public async Task RecordInboundAsync(DeviceMqttInboundMessage message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
-        var devices = await context.TenantDevices
+        var devicesQuery = context.TenantDevices
             .Include(device => device.DeviceMaster)
+            .Include(device => device.TenantDeviceConfiguration)
             .Where(device =>
                 device.DeviceMaster.SNo == message.DeviceSerialNumber &&
                 device.IsActive && !device.IsSoftDeleted &&
-                device.DeviceMaster.IsActive && !device.DeviceMaster.IsSoftDeleted)
+                device.DeviceMaster.IsActive && !device.DeviceMaster.IsSoftDeleted &&
+                device.TenantDeviceConfiguration != null &&
+                (device.TenantDeviceConfiguration.CommandTransport ?? device.TenantDeviceConfiguration.MqttTransport) ==
+                    (short)message.Transport);
+
+        devicesQuery = message.Transport switch
+        {
+            DeviceCommunicationProtocol.Mqtt => devicesQuery.Where(device => device.DeviceMaster.SupportsMqtt),
+            DeviceCommunicationProtocol.Mqtts => devicesQuery.Where(device => device.DeviceMaster.SupportsMqtts),
+            DeviceCommunicationProtocol.Https => devicesQuery.Where(device => device.DeviceMaster.SupportsHttps),
+            _ => devicesQuery.Where(_ => false)
+        };
+
+        var devices = await devicesQuery
             .Take(2)
             .ToListAsync(cancellationToken);
         var device = devices.Count == 1 ? devices[0] : null;
@@ -472,7 +486,8 @@ public sealed class DeviceCommandRepository(
         if (!message.IsProtocolIdentityValid)
         {
             logger.LogWarning(
-                "Ignored MQTT payload processing for serial {DeviceSerialNumber}: topic and payload identity did not agree.",
+                "Ignored {Transport} payload processing for serial {DeviceSerialNumber}: topic and payload identity did not agree.",
+                message.Transport,
                 message.DeviceSerialNumber);
             return;
         }
@@ -480,7 +495,8 @@ public sealed class DeviceCommandRepository(
         if (device is null)
         {
             logger.LogWarning(
-                "Ignored MQTT command processing for serial {DeviceSerialNumber}: active TenantDevice mapping was missing or ambiguous.",
+                "Ignored {Transport} command processing for serial {DeviceSerialNumber}: active TenantDevice mapping was missing or ambiguous.",
+                message.Transport,
                 message.DeviceSerialNumber);
             return;
         }
@@ -492,7 +508,7 @@ public sealed class DeviceCommandRepository(
         }
         catch (JsonException exception)
         {
-            logger.LogWarning(exception, "MQTT payload for serial {DeviceSerialNumber} is not JSON.", message.DeviceSerialNumber);
+            logger.LogWarning(exception, "{Transport} payload for serial {DeviceSerialNumber} is not JSON.", message.Transport, message.DeviceSerialNumber);
             return;
         }
 
@@ -602,6 +618,7 @@ public sealed class DeviceCommandRepository(
     {
         await RecordInboundAsync(
             new DeviceMqttInboundMessage(
+                DeviceCommunicationProtocol.Https,
                 "https",
                 serialNumber,
                 request.Payload,

@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\axionpro.application\axionpro.application.csproj" />
+    <ProjectReference Include="..\axionpro.infrastructure\axionpro.infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

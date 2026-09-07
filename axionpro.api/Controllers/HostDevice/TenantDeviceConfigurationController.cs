@@ -98,10 +98,10 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     /// <para>Integrated UI page(s): /app/tenant-device-configurations/new; /app/tenant-device-configurations/:tenantDeviceConfigurationId/edit</para>
     /// <para>Angular UI component(s): TenantDeviceConfigurationForm (app/features/host/tenant-device-configurations/tenant-device-configuration-form/tenant-device-configuration-form.ts)</para>
     /// </remarks>
-    [HttpGet("get-by-id/{id:long}")]
-    public async Task<IActionResult> GetById(long id, [FromQuery] TenantDeviceAccessRequestDTO accessRequest, CancellationToken cancellationToken)
+    [HttpGet("get-by-id/{id}")]
+    public async Task<IActionResult> GetById(string id, [FromQuery] TenantDeviceAccessRequestDTO accessRequest, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Received TenantDeviceConfiguration get-by-id request for {TenantDeviceConfigurationId}.", id);
+        logger.LogInformation("Received TenantDeviceConfiguration get-by-id request.");
         return Ok(await mediator.Send(new GetTenantDeviceConfigurationByIdQuery(id, accessRequest), cancellationToken));
     }
 
@@ -168,10 +168,10 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     /// <para>Integrated UI page(s): /app/tenant-device-configurations</para>
     /// <para>Angular UI component(s): TenantDeviceConfigurationsStore (app/features/host/tenant-device-configurations/tenant-device-configurations.store.ts); TenantDeviceConfigurations (app/features/host/tenant-device-configurations/tenant-device-configurations.ts)</para>
     /// </remarks>
-    [HttpDelete("delete/{id:long}")]
-    public async Task<IActionResult> Delete(long id, [FromQuery] TenantDeviceAccessRequestDTO accessRequest, CancellationToken cancellationToken)
+    [HttpDelete("delete/{id}")]
+    public async Task<IActionResult> Delete(string id, [FromQuery] TenantDeviceAccessRequestDTO accessRequest, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Received TenantDeviceConfiguration delete request for {TenantDeviceConfigurationId}.", id);
+        logger.LogInformation("Received TenantDeviceConfiguration delete request.");
         return Ok(await mediator.Send(new DeleteTenantDeviceConfigurationCommand(id, accessRequest), cancellationToken));
     }
 

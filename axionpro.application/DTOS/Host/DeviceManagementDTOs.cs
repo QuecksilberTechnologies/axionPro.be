@@ -5,6 +5,7 @@
 // Purpose : Defines Host-managed DeviceMaster and TenantDevice API contracts.
 // ================================================================
 
+using System.Text.Json.Serialization;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.domain.Entity;
 
@@ -179,15 +180,15 @@ public sealed class CreateTenantDeviceRequestDTO : TenantDeviceRequestDTO { }
 /// <summary>Updates a Host-managed physical Tenant device without altering runtime telemetry.</summary>
 public sealed class UpdateTenantDeviceRequestDTO : TenantDeviceRequestDTO
 {
-    /// <summary>Gets or sets the TenantDevice identifier.</summary>
-    public long Id { get; set; }
+    /// <summary>Gets or sets the encrypted TenantDevice identifier.</summary>
+    public string Id { get; set; } = string.Empty;
 }
 
 /// <summary>Changes the active state of a physical Tenant device.</summary>
 public sealed class UpdateTenantDeviceStatusRequestDTO : TenantDeviceAccessRequestDTO
 {
-    /// <summary>Gets or sets the TenantDevice identifier.</summary>
-    public long Id { get; set; }
+    /// <summary>Gets or sets the encrypted TenantDevice identifier.</summary>
+    public string Id { get; set; } = string.Empty;
     /// <summary>Gets or sets the requested active state.</summary>
     public bool IsActive { get; set; }
 }
@@ -204,13 +205,15 @@ public sealed class GetTenantDeviceListRequestDTO : TenantDeviceAccessRequestDTO
     public int PageSize { get; set; } = 10;
 }
 
-/// <summary>Represents a physical Tenant device returned by the API without exposing a raw Tenant identifier.</summary>
+/// <summary>Represents a physical Tenant device returned by the API without exposing raw identifiers.</summary>
 public sealed class TenantDeviceResponseDTO
 {
     /// <summary>Gets or sets the encrypted Tenant identifier.</summary>
     public string TenantId { get; set; } = string.Empty;
     public long TenantLocationId { get; set; }
-    public long DeviceMasterId { get; set; }
+    /// <summary>Host-only DeviceMaster catalogue identifier. Omitted from Tenant responses.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? DeviceMasterId { get; set; }
     public string DeviceCode { get; set; } = string.Empty;
     public string? DeviceName { get; set; }
     public DateTime? InstalledDateTime { get; set; }
@@ -220,11 +223,17 @@ public sealed class TenantDeviceResponseDTO
     public string? Description { get; set; }
     public string? Remark { get; set; }
     public bool IsActive { get; set; }
-    public long Id { get; set; }
+    /// <summary>Gets or sets the encrypted TenantDevice identifier.</summary>
+    public string Id { get; set; } = string.Empty;
     public string? TenantName { get; set; }
     public string? TenantLocationName { get; set; }
     public string? LocationCode { get; set; }
+    /// <summary>Host-only DeviceMaster catalogue name. Omitted from Tenant responses.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DeviceMasterName { get; set; }
+
+    /// <summary>Host-only DeviceMaster catalogue model. Omitted from Tenant responses.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DeviceMasterModelNo { get; set; }
     public bool HasConfiguration { get; set; }
     public DateTime AddedDateTime { get; set; }
@@ -234,7 +243,8 @@ public sealed class TenantDeviceResponseDTO
 /// <summary>Supplies editable connection settings for a Tenant device.</summary>
 public class TenantDeviceConfigurationRequestDTO : TenantDeviceAccessRequestDTO
 {
-    public long TenantDeviceId { get; set; }
+    /// <summary>Gets or sets the encrypted TenantDevice identifier.</summary>
+    public string TenantDeviceId { get; set; } = string.Empty;
     public string? IpAddress { get; set; }
     public string? MacAddress { get; set; }
     public int? DevicePort { get; set; }
@@ -264,7 +274,8 @@ public sealed class CreateTenantDeviceConfigurationRequestDTO : TenantDeviceConf
 /// <summary>Updates one connection configuration for a Tenant device.</summary>
 public sealed class UpdateTenantDeviceConfigurationRequestDTO : TenantDeviceConfigurationRequestDTO
 {
-    public long Id { get; set; }
+    /// <summary>Gets or sets the encrypted TenantDeviceConfiguration identifier.</summary>
+    public string Id { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -274,7 +285,8 @@ public sealed class UpdateTenantDeviceConfigurationRequestDTO : TenantDeviceConf
 /// </summary>
 public sealed class RotateTenantDeviceHttpsIngressTokenRequestDTO : TenantDeviceAccessRequestDTO
 {
-    public long TenantDeviceConfigurationId { get; set; }
+    /// <summary>Gets or sets the encrypted TenantDeviceConfiguration identifier.</summary>
+    public string TenantDeviceConfigurationId { get; set; } = string.Empty;
 }
 
 /// <summary>Contains the one-time HTTPS gateway URL to copy to the physical device.</summary>
@@ -314,8 +326,8 @@ public sealed class InitialDeviceBootstrapResponseDTO
 /// <summary>Supplies the approved Tenant-admin runtime settings for one configured device.</summary>
 public sealed class ApplyTenantDeviceRuntimeConfigurationRequestDTO : TenantDeviceAccessRequestDTO
 {
-    /// <summary>Gets or sets the physical Tenant device identifier.</summary>
-    public long TenantDeviceId { get; set; }
+    /// <summary>Gets or sets the encrypted physical Tenant device identifier.</summary>
+    public string TenantDeviceId { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the current local WebServer password for immediate device command delivery.</summary>
     public string CurrentWebServerPassword { get; set; } = string.Empty;
@@ -339,8 +351,8 @@ public sealed class ApplyTenantDeviceRuntimeConfigurationRequestDTO : TenantDevi
 /// <summary>Requests an outbound HTTPS reboot for a configured Tenant device.</summary>
 public sealed class RebootTenantDeviceRequestDTO : TenantDeviceAccessRequestDTO
 {
-    /// <summary>Gets or sets the physical Tenant device identifier.</summary>
-    public long TenantDeviceId { get; set; }
+    /// <summary>Gets or sets the encrypted physical Tenant device identifier.</summary>
+    public string TenantDeviceId { get; set; } = string.Empty;
 }
 
 /// <summary>Contains durable server-side tracking identifiers for a queued runtime configuration.</summary>
@@ -368,7 +380,12 @@ public sealed class TenantDeviceRuntimeConfigurationResponseDTO
 public sealed class GetTenantDeviceConfigurationListRequestDTO : TenantDeviceAccessRequestDTO
 {
     public string? Search { get; set; }
-    public long? TenantDeviceId { get; set; }
+    /// <summary>Optional encrypted TenantDevice identifier filter.</summary>
+    public string? TenantDeviceId { get; set; }
+
+    /// <summary>Resolved server-only value used by the repository after authorization.</summary>
+    [JsonIgnore]
+    public long? ResolvedTenantDeviceId { get; set; }
     public DeviceCommunicationProtocol? MqttTransport { get; set; }
     public DeviceCommunicationProtocol? CommandTransport { get; set; }
     public bool? IsEnrollmentEnabled { get; set; }
@@ -376,12 +393,15 @@ public sealed class GetTenantDeviceConfigurationListRequestDTO : TenantDeviceAcc
     public int PageSize { get; set; } = 10;
 }
 
-/// <summary>Represents a Tenant device connection configuration without exposing a raw Tenant identifier.</summary>
+/// <summary>Represents a Tenant device connection configuration without exposing raw identifiers.</summary>
 public sealed class TenantDeviceConfigurationResponseDTO
 {
     public string TenantId { get; set; } = string.Empty;
-    public long Id { get; set; }
-    public long TenantDeviceId { get; set; }
+    /// <summary>Gets or sets the encrypted TenantDeviceConfiguration identifier.</summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the encrypted TenantDevice identifier.</summary>
+    public string TenantDeviceId { get; set; } = string.Empty;
     public string? IpAddress { get; set; }
     public string? MacAddress { get; set; }
     public int? DevicePort { get; set; }
@@ -406,7 +426,12 @@ public sealed class TenantDeviceConfigurationResponseDTO
     public string? LastConnectionError { get; set; }
     public string? DeviceCode { get; set; }
     public string? DeviceName { get; set; }
+    /// <summary>Host-only DeviceMaster catalogue name. Omitted from Tenant responses.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DeviceMasterName { get; set; }
+
+    /// <summary>Host-only DeviceMaster catalogue serial. Omitted from Tenant responses.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DeviceMasterSNo { get; set; }
     public DateTime AddedDateTime { get; set; }
     public DateTime? UpdatedDateTime { get; set; }
