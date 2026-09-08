@@ -270,7 +270,7 @@ namespace axionpro.persistance.Repositories
                 .AsNoTracking()
                 .Include(tenant => tenant.Employee.Where(employee => !employee.IsSoftDeleted))
                     .ThenInclude(employee => employee.LoginCredential.Where(credential =>
-                        credential.IsOnboard &&
+                        credential.TenantId == employee.TenantId &&
                         credential.IsSoftDeleted != true))
                 .Where(tenant => tenant.IsSoftDeleted != true);
 
@@ -282,16 +282,18 @@ namespace axionpro.persistance.Repositories
             if (request.IsVerified.HasValue)
             {
                 query = request.IsVerified.Value
-                    ? query.Where(tenant => tenant.Employee.Any(employee =>
+                    ? query.Where(tenant => tenant.IsVerified || tenant.Employee.Any(employee =>
                         !employee.IsSoftDeleted &&
                         employee.LoginCredential.Any(credential =>
                             credential.TenantId == tenant.Id &&
+                            credential.LoginId == tenant.TenantEmail &&
                             credential.IsOnboard &&
                             credential.IsSoftDeleted != true)))
-                    : query.Where(tenant => !tenant.Employee.Any(employee =>
+                    : query.Where(tenant => !tenant.IsVerified && !tenant.Employee.Any(employee =>
                         !employee.IsSoftDeleted &&
                         employee.LoginCredential.Any(credential =>
                             credential.TenantId == tenant.Id &&
+                            credential.LoginId == tenant.TenantEmail &&
                             credential.IsOnboard &&
                             credential.IsSoftDeleted != true)));
             }

@@ -9,6 +9,8 @@ This project runs API tests directly and opens Playwright-managed Chromium for U
 - API: authenticated navigation rejects a request without a token.
 - API: a permission-aware Tenant Email Configuration CRUD flow (create, read, list, update, delete, and cleanup).
 - Unit: Tenant device configuration permission behavior rejects wrong-module and denied-operation requests before a handler/queue can run, and confirms transport is resolved from stored configuration rather than a Tenant request field.
+- Unit: the recent Device and Employee API surface is locked down end-to-end at the controller contract level: route and HTTP verb, authentication, Device DDL sections and values, employee permission-module bindings, and credential-response redaction. This covers tenant-device configuration, gateway/runtime commands, location and attendance setup, employee enrollment/work setup, and Host card inventory.
+- Unit: Host administration regression tests cover all Host controllers plus the Host-facing Tenant, SMTP, and device endpoints. They confirm every non-onboarding action is authenticated, an already verified Tenant cannot trigger SMTP resend, that conflict is returned as HTTP 409, and Host users are intentionally denied Tenant runtime-configuration screens after device assignment while initial device bootstrap remains available.
 - UI: the Angular login route loads in Chromium.
 
 The UI test is deliberately skipped until a frontend address is supplied. That keeps `Run All` safe when the frontend is not running or is located outside this repository.
@@ -50,7 +52,24 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter 
 
 # Tenant device configuration permission/transport behavior unit tests
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "FullyQualifiedName~TenantDeviceConfigurationPermissionBehaviorTests"
+
+# Recent device, employee enrollment, work setup, card inventory and DDL API contract tests
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=RecentDeviceEmployee"
+
+# Host administration API scenarios: auth boundary, resend-verification state,
+# HTTP 409 conflict envelope, and the Host/Tenant device ownership rule
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=HostApi"
 ```
+
+## Host API regression scenarios
+
+| Scenario | Expected result |
+| --- | --- |
+| Host opens a Host administration page or calls its endpoint | The action has a concrete HTTP route and requires an authenticated session. |
+| Anonymous registration / token verification | Only `POST /api/Tenant/create-tenant` and `POST /api/Tenant/verify` remain anonymous. |
+| Host selects **Resend verification** for a Tenant already shown as verified | No token or SMTP call is made; the API returns the standard `409 Conflict` response. |
+| Host issues the initial bootstrap URL for unassigned inventory | The permission behavior permits the request to reach the handler. |
+| Host opens Tenant Device Configuration after the device is assigned | The permission behavior returns `403`; this is the existing ownership rule, because runtime configuration belongs to Tenant Admin—not a broken Host permission. |
 
 ## Configuration and secrets
 

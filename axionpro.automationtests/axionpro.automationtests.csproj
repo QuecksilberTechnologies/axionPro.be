@@ -24,6 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\axionpro.api\axionpro.api.csproj" />
     <ProjectReference Include="..\axionpro.application\axionpro.application.csproj" />
     <ProjectReference Include="..\axionpro.infrastructure\axionpro.infrastructure.csproj" />
   </ItemGroup>

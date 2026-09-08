@@ -81,9 +81,9 @@ namespace axionpro.application.Features.VerifyEmailCmd.Handlers
                 }
 
                 // ✅ Directly try to get EmployeeId. If not found, email doesn't exist.
-                LoginCredential employeeRecord = await _unitOfWork.UserLoginRepository.AuthenticateUser(userInfo.UserId);
+                LoginCredential? employeeRecord = await _unitOfWork.UserLoginRepository.AuthenticateUser(userInfo.UserId);
 
-                if (employeeRecord.EmployeeId == 0)
+                if (employeeRecord is null || employeeRecord.EmployeeId == 0 || employeeRecord.TenantId is null or <= 0)
                 {
                     return new ApiResponse<VerifyEmailResponseDTO>
                     {
@@ -96,12 +96,28 @@ namespace axionpro.application.Features.VerifyEmailCmd.Handlers
                 // Set empId in response DTO
 
 
-                Tenant tenant = new Tenant();
+                var tenant = await _unitOfWork.TenantRepository.GetHostManagedTenantByIdAsync(
+                    employeeRecord.TenantId.Value,
+                    cancellationToken);
 
-                tenant.Id = employeeRecord.TenantId ?? 0;
+                if (tenant is null)
+                {
+                    return new ApiResponse<VerifyEmailResponseDTO>
+                    {
+                        IsSucceeded = false,
+                        Message = "Tenant was not found.",
+                        Data = null
+                    };
+                }
 
+                // Do not update a blank Tenant aggregate. The former flow set
+                // IsActive and IsVerified to their default false values and did
+                // not save the change. Verification must preserve activation.
+                tenant.IsVerified = true;
+                tenant.UpdatedById = employeeRecord.EmployeeId;
+                tenant.UpdatedDateTime = DateTime.UtcNow;
 
-                var tenantResult = await _unitOfWork.TenantRepository.UpdateTenantAsync(tenant);
+                var tenantResult = await _unitOfWork.TenantRepository.UpdateTenantAsync(tenant, cancellationToken);
 
                 if (tenantResult == null)
                 {
@@ -112,6 +128,8 @@ namespace axionpro.application.Features.VerifyEmailCmd.Handlers
                         Data = null
                     };
                 }
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 userInfo.EmployeeId = employeeRecord.EmployeeId;
                 userInfo.TenantId = employeeRecord.TenantId;

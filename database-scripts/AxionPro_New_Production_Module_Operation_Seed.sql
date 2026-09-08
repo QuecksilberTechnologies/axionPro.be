@@ -11,16 +11,22 @@
 --                          and Host email templates.
 --   4. Device modules    : Host device setup, Tenant device setup, Host initial
 --                          provisioning, and Tenant runtime configuration.
---   5. Employee password : Child module, dedicated Reset Password operation,
+--   5. Device and work management : Tenant locations, attendance policies,
+--                          employee-device enrollment, employee work setup,
+--                          and Host card inventory permission modules.
+--   6. Employee password : Child module, dedicated Reset Password operation,
 --                          operation mapping, and inherited plan mappings.
---   6. Existing module / operation records ko normalize/update karna.
---   7. Identity / auto-increment sequence safely synchronize karna.
+--   7. Existing module / operation records ko normalize/update karna.
+--   8. Identity / auto-increment sequence safely synchronize karna.
 --
 -- IMPORTANT:
 --   * SMTP password/secret hard-code nahi kiya gaya hai.
 --   * Existing role permissions are never auto-granted.
 --   * Existing production IDs ko reset/delete nahi kiya jayega.
 --   * Script re-run safe/idempotent rakhi gayi hai.
+--   * Shared modules intentionally have TenantId = NULL; root modules
+--     intentionally have ParentModuleId = NULL. Those two NULLs model scope
+--     and hierarchy, not incomplete seed data.
 -- ============================================================================
 
 
@@ -694,6 +700,8 @@ INSERT INTO axionpro."Module"
 
     "ModuleName",
 
+    "PageName",
+
     "DisplayName",
 
     "URLPath",
@@ -734,6 +742,8 @@ SELECT
     'TENANT_EMAIL_CONFIG',
 
     'Email Delivery Settings',
+
+    'email-delivery-settings',
 
     'Email Settings',
 
@@ -1222,29 +1232,57 @@ CREATE TEMPORARY TABLE module_seed
 (
     "ModuleCode" CHARACTER VARYING(100) PRIMARY KEY,
     "ModuleName" CHARACTER VARYING(200) NOT NULL,
+    "PageName" CHARACTER VARYING(100) NOT NULL,
     "DisplayName" CHARACTER VARYING(200) NOT NULL,
     "URLPath" CHARACTER VARYING(500) NOT NULL,
+    "ParentModuleCode" CHARACTER VARYING(100) NULL,
     "IsModuleDisplayInUI" BOOLEAN NOT NULL,
-    "ImageIconWeb" CHARACTER VARYING(100) NULL,
-    "ImageIconMobile" CHARACTER VARYING(100) NULL,
+    "ImageIconWeb" CHARACTER VARYING(100) NOT NULL,
+    "ImageIconMobile" CHARACTER VARYING(100) NOT NULL,
     "ModuleScope" SMALLINT NOT NULL,
     "ItemPriority" INTEGER NOT NULL,
     "Remark" CHARACTER VARYING(1000) NOT NULL
 )
 ON COMMIT DROP;
 
+-- Employee management child modules are part of the existing EMP_MGMT menu.
+-- Check this once before resolving ParentModuleId below so a partial or
+-- incorrectly scoped installation cannot silently create root-level modules.
+DO
+$$
+DECLARE
+    employee_parent_count INTEGER;
+BEGIN
+    SELECT COUNT(*)
+    INTO employee_parent_count
+    FROM axionpro."Module"
+    WHERE "ModuleCode" = 'EMP_MGMT'
+      AND "ParentModuleId" IS NULL
+      AND "IsLeafNode" = FALSE
+      AND "ModuleScope" = 1;
+
+    IF employee_parent_count <> 1 THEN
+        RAISE EXCEPTION
+            'Expected exactly one Tenant-scope EMP_MGMT parent Module, found %. Cannot seed employee device and work-management modules.',
+            employee_parent_count;
+    END IF;
+END;
+$$;
+
 INSERT INTO module_seed
 (
-    "ModuleCode", "ModuleName", "DisplayName", "URLPath",
-    "IsModuleDisplayInUI", "ImageIconWeb", "ImageIconMobile",
+    "ModuleCode", "ModuleName", "PageName", "DisplayName", "URLPath",
+    "ParentModuleCode", "IsModuleDisplayInUI", "ImageIconWeb", "ImageIconMobile",
     "ModuleScope", "ItemPriority", "Remark"
 )
 VALUES
 (
     'HOST_DEFAULT_EMAIL_CONFIG',
     'Platform Email Defaults',
+    'platform-email-defaults',
     'Platform Email Defaults',
     '/app/default-email-config',
+    NULL,
     TRUE,
     'bi bi-envelope-gear',
     'mail-settings',
@@ -1255,8 +1293,10 @@ VALUES
 (
     'TENANT_EMAIL_CONFIG',
     'Email Delivery Settings',
+    'email-delivery-settings',
     'Email Settings',
     '/app/tenant-email-config',
+    NULL,
     TRUE,
     'bi bi-envelope-at',
     'mail',
@@ -1267,8 +1307,10 @@ VALUES
 (
     'HOST_TENANT_EMAIL_CONFIG',
     'Tenant Email Administration',
+    'tenant-email-administration',
     'Tenant Email Administration',
     '/app/tenants/tenant-email-config',
+    NULL,
     TRUE,
     'bi bi-envelope-at',
     'mail',
@@ -1279,8 +1321,10 @@ VALUES
 (
     'HOST_EMAIL_TEMPLATE',
     'Email Template Library',
+    'email-templates',
     'Email Templates',
     '/app/email-templates',
+    NULL,
     TRUE,
     'bi bi-envelope',
     'mail',
@@ -1291,8 +1335,10 @@ VALUES
 (
     'HOST_DEVICE_SETUP',
     'Device Catalogue',
+    'device-catalogue',
     'Device Catalogue',
     '/app/device-masters',
+    NULL,
     TRUE,
     'bi bi-cpu',
     'memory',
@@ -1303,8 +1349,10 @@ VALUES
 (
     'TENANT_DEVICE_SETUP',
     'Installed Devices',
+    'installed-devices',
     'Installed Devices',
     '/app/tenant-devices',
+    NULL,
     TRUE,
     'bi bi-hdd-network',
     'devices',
@@ -1315,8 +1363,10 @@ VALUES
 (
     'HOST_INITIAL_DEVICE_CONFIGURATION',
     'Device Provisioning',
+    'device-provisioning',
     'Device Provisioning',
     '/app/device-masters',
+    NULL,
     FALSE,
     'bi bi-router',
     'router',
@@ -1327,14 +1377,128 @@ VALUES
 (
     'TENANT_DEVICE_CONFIGURATION',
     'Device Connectivity',
+    'device-connectivity',
     'Device Connectivity',
     '/app/tenant-device-configurations',
+    NULL,
     TRUE,
     'bi bi-sliders',
     'settings',
     1,
     520,
-    'Tenant-admin configuration of device connectivity, gateway rotation, heartbeat, and reboot.'
+    'Tenant-admin configuration of device connectivity, gateway rotation, heartbeat, runtime settings, and reboot.'
+),
+(
+    'HOST_TENANT_CARD_INVENTORY',
+    'Host Tenant Card Inventory',
+    'tenant-card-inventory',
+    'Card Inventory',
+    '/app/tenant-card-inventory',
+    NULL,
+    TRUE,
+    'bi bi-credit-card',
+    'credit-card',
+    2,
+    530,
+    'Host-only procurement, tax, issue, and lifecycle inventory for Tenant-issued physical access cards.'
+),
+(
+    'TENANT_LOCATIONS',
+    'Tenant Locations',
+    'tenant-locations',
+    'Locations',
+    '/app/tenant-locations',
+    NULL,
+    TRUE,
+    'bi bi-geo-alt',
+    'location-on',
+    1,
+    500,
+    'Tenant-owned office, client-site, and remote-work locations used by devices, employee assignments, and attendance rules.'
+),
+(
+    'TENANT_ATTENDANCE_POLICIES',
+    'Tenant Attendance Policies',
+    'attendance-policies',
+    'Attendance Policies',
+    '/app/attendance-policies',
+    NULL,
+    TRUE,
+    'bi bi-calendar2-check',
+    'fact-check',
+    1,
+    505,
+    'Tenant-owned rules that define allowed biometric, mobile, web, manual, office, and work-from-home attendance modes.'
+),
+(
+    'EMP_DEVICES',
+    'Employee Device Enrollments',
+    'employee-device-enrollment',
+    'Employee Device Enrollments',
+    '/employees/device-enrollment',
+    'EMP_MGMT',
+    TRUE,
+    'bi bi-person-vcard',
+    'badge',
+    1,
+    50,
+    'Maps an employee to authorised Tenant devices and queues the employee user, face, card, PIN, and access-window changes.'
+),
+(
+    'EMP_WORK_LOCATIONS',
+    'Employee Work Locations',
+    'employee-work-locations',
+    'Employee Work Locations',
+    '/employees/work-locations',
+    'EMP_MGMT',
+    TRUE,
+    'bi bi-buildings',
+    'business',
+    1,
+    60,
+    'Assigns an employee to one or more Tenant locations with effective dates, primary-location status, and attendance eligibility.'
+),
+(
+    'EMP_WORK_ARRANGEMENT',
+    'Employee Work Arrangements',
+    'employee-work-arrangements',
+    'Employee Work Arrangements',
+    '/employees/work-arrangements',
+    'EMP_MGMT',
+    TRUE,
+    'bi bi-calendar-week',
+    'calendar-month',
+    1,
+    70,
+    'Defines an employee''s long-running office, remote, hybrid, or work-from-home attendance arrangement.'
+),
+(
+    'EMP_WORK_PATTERN',
+    'Employee Work Patterns',
+    'employee-work-patterns',
+    'Employee Work Patterns',
+    '/employees/work-patterns',
+    'EMP_MGMT',
+    TRUE,
+    'bi bi-calendar3-range',
+    'date-range',
+    1,
+    80,
+    'Defines recurring weekday work patterns and applicable location context beneath an employee work arrangement.'
+),
+(
+    'EMP_OVERRIDES',
+    'Employee Work Mode Overrides',
+    'employee-work-mode-overrides',
+    'Employee Work Mode Overrides',
+    '/employees/work-mode-overrides',
+    'EMP_MGMT',
+    TRUE,
+    'bi bi-calendar-event',
+    'event-repeat',
+    1,
+    90,
+    'Records a time-bound exception to an employee''s normal work arrangement without rewriting the standing arrangement.'
 );
 
 UPDATE axionpro."Module" module
@@ -1343,7 +1507,7 @@ SET
     "ModuleName" = seed."ModuleName",
     "DisplayName" = seed."DisplayName",
     "URLPath" = seed."URLPath",
-    "ParentModuleId" = NULL,
+    "ParentModuleId" = parent."Id",
     "IsLeafNode" = TRUE,
     "IsModuleDisplayInUI" = seed."IsModuleDisplayInUI",
     "IsCommonMenu" = FALSE,
@@ -1352,26 +1516,34 @@ SET
     "ImageIconMobile" = seed."ImageIconMobile",
     "ItemPriority" = seed."ItemPriority",
     "Remark" = seed."Remark",
+    "AddedById" = COALESCE(module."AddedById", 1),
+    "AddedDateTime" = COALESCE(module."AddedDateTime", CURRENT_TIMESTAMP),
     "UpdatedById" = 1,
     "UpdatedDateTime" = CURRENT_TIMESTAMP,
     "ModuleScope" = seed."ModuleScope"
 FROM module_seed seed
+LEFT JOIN axionpro."Module" parent
+    ON parent."ModuleCode" = seed."ParentModuleCode"
+   AND parent."ParentModuleId" IS NULL
+   AND parent."IsLeafNode" = FALSE
+   AND parent."ModuleScope" = 1
 WHERE module."ModuleCode" = seed."ModuleCode";
 
 INSERT INTO axionpro."Module"
 (
-    "TenantId", "ModuleCode", "ModuleName", "DisplayName", "URLPath",
+    "TenantId", "ModuleCode", "ModuleName", "PageName", "DisplayName", "URLPath",
     "ParentModuleId", "IsLeafNode", "IsModuleDisplayInUI", "IsCommonMenu",
     "IsActive", "ImageIconWeb", "ImageIconMobile", "ItemPriority", "Remark",
-    "AddedById", "AddedDateTime", "ModuleScope"
+    "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "ModuleScope"
 )
 SELECT
     NULL,
     seed."ModuleCode",
     seed."ModuleName",
+    seed."PageName",
     seed."DisplayName",
     seed."URLPath",
-    NULL,
+    parent."Id",
     TRUE,
     seed."IsModuleDisplayInUI",
     FALSE,
@@ -1382,14 +1554,89 @@ SELECT
     seed."Remark",
     1,
     CURRENT_TIMESTAMP,
+    1,
+    CURRENT_TIMESTAMP,
     seed."ModuleScope"
 FROM module_seed seed
+LEFT JOIN axionpro."Module" parent
+    ON parent."ModuleCode" = seed."ParentModuleCode"
+   AND parent."ParentModuleId" IS NULL
+   AND parent."IsLeafNode" = FALSE
+   AND parent."ModuleScope" = 1
 WHERE NOT EXISTS
 (
     SELECT 1
     FROM axionpro."Module" existing
     WHERE existing."ModuleCode" = seed."ModuleCode"
+)
+  AND (seed."ParentModuleCode" IS NULL OR parent."Id" IS NOT NULL);
+
+-- The module seed consumes the platform-wide CRUD actions.  The Operation
+-- master may have been deployed before this script, so create a missing
+-- semantic action only when neither supported spelling exists, then ensure
+-- every action used by these menus has complete labels, icon, type, and audit
+-- metadata. OperationType values are the established OperationType enum:
+-- Add=1, Update=2, Delete=3, View=4.
+INSERT INTO axionpro."Operation"
+(
+    "OperationName", "Remark", "OperationType", "IsActive",
+    "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "IconImage"
+)
+SELECT seed."OperationName", seed."Remark", seed."OperationType", TRUE,
+       1, CURRENT_TIMESTAMP, 1, CURRENT_TIMESTAMP, seed."IconImage"
+FROM
+(
+    VALUES
+        ('View',   'View permitted records and details.', 4, 'eye'),
+        ('Create', 'Create a permitted record or queue a new request.', 1, 'plus-circle'),
+        ('Update', 'Update a permitted record or apply an approved change.', 2, 'pencil-square'),
+        ('Delete', 'Soft-delete or remove a permitted record.', 3, 'trash3')
+) AS seed("OperationName", "Remark", "OperationType", "IconImage")
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM axionpro."Operation" existing
+    WHERE
+        (seed."OperationName" = 'View' AND LOWER(BTRIM(existing."OperationName")) IN ('view', 'read'))
+        OR (seed."OperationName" = 'Create' AND LOWER(BTRIM(existing."OperationName")) IN ('create', 'add'))
+        OR (seed."OperationName" = 'Update' AND LOWER(BTRIM(existing."OperationName")) IN ('update', 'edit'))
+        OR (seed."OperationName" = 'Delete' AND LOWER(BTRIM(existing."OperationName")) = 'delete')
 );
+
+UPDATE axionpro."Operation" operation
+SET
+    "Remark" = CASE
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read')
+            THEN 'View permitted records and details.'
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add')
+            THEN 'Create a permitted record or queue a new request.'
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit')
+            THEN 'Update a permitted record or apply an approved change.'
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'delete'
+            THEN 'Soft-delete or remove a permitted record.'
+        ELSE operation."Remark"
+    END,
+    "OperationType" = CASE
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read') THEN 4
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add') THEN 1
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit') THEN 2
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'delete' THEN 3
+        ELSE operation."OperationType"
+    END,
+    "IconImage" = CASE
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read') THEN 'eye'
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add') THEN 'plus-circle'
+        WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit') THEN 'pencil-square'
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'delete' THEN 'trash3'
+        ELSE operation."IconImage"
+    END,
+    "IsActive" = TRUE,
+    "AddedById" = COALESCE(operation."AddedById", 1),
+    "AddedDateTime" = COALESCE(operation."AddedDateTime", CURRENT_TIMESTAMP),
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP
+WHERE LOWER(BTRIM(operation."OperationName")) IN
+      ('view', 'read', 'create', 'add', 'update', 'edit', 'delete');
 
 INSERT INTO axionpro."ModuleOperationMapping"
 (
@@ -1475,6 +1722,37 @@ WHERE mapping."ModuleId" = module."Id"
   AND LOWER(BTRIM(operation."OperationName")) IN
       ('view', 'read', 'create', 'add', 'update', 'edit', 'delete');
 
+-- A pre-existing installation can contain a non-standard operation already
+-- attached to one of these modules. Preserve its operation and active state,
+-- while completing every menu/audit property instead of leaving an ambiguous
+-- NULL in the navigation payload. Standard CRUD rows above retain their
+-- action-specific priority and remark; this block only supplies a safe
+-- fallback for any remaining operation type.
+UPDATE axionpro."ModuleOperationMapping" mapping
+SET
+    "PageURL" = COALESCE(NULLIF(BTRIM(mapping."PageURL"), ''), module."URLPath"),
+    "IconURL" = COALESCE(
+        NULLIF(BTRIM(mapping."IconURL"), ''),
+        NULLIF(BTRIM(operation."IconImage"), ''),
+        module."ImageIconWeb"),
+    "IsCommonItem" = COALESCE(mapping."IsCommonItem", FALSE),
+    "IsOperational" = COALESCE(mapping."IsOperational", TRUE),
+    "Priority" = COALESCE(mapping."Priority", 99),
+    "Remark" = COALESCE(
+        NULLIF(BTRIM(mapping."Remark"), ''),
+        operation."OperationName" || ' permission for ' || module."DisplayName" || '.'),
+    "IsActive" = COALESCE(mapping."IsActive", TRUE),
+    "AddedById" = COALESCE(mapping."AddedById", 1),
+    "AddedDateTime" = COALESCE(mapping."AddedDateTime", CURRENT_TIMESTAMP),
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP
+FROM axionpro."Module" module,
+     module_seed seed,
+     axionpro."Operation" operation
+WHERE mapping."ModuleId" = module."Id"
+  AND seed."ModuleCode" = module."ModuleCode"
+  AND operation."Id" = mapping."OperationId";
+
 
 -- ============================================================================
 -- SECTION 8B
@@ -1507,15 +1785,16 @@ $$;
 
 INSERT INTO axionpro."Module"
 (
-    "TenantId", "ModuleCode", "ModuleName", "DisplayName", "URLPath",
+    "TenantId", "ModuleCode", "ModuleName", "PageName", "DisplayName", "URLPath",
     "ParentModuleId", "IsLeafNode", "IsModuleDisplayInUI", "IsCommonMenu",
     "IsActive", "ImageIconWeb", "ImageIconMobile", "ItemPriority", "Remark",
-    "AddedById", "AddedDateTime", "ModuleScope"
+    "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "ModuleScope"
 )
 SELECT
     NULL,
     'EMP_PASSWORD_MANAGEMENT',
     'Employee-Password-Management',
+    'employee-password-management',
     'Employee Password Management',
     '/employees/password-management',
     parent."Id",
@@ -1527,6 +1806,8 @@ SELECT
     'key',
     40,
     'Tenant-admin reset of a selected employee login password.',
+    1,
+    CURRENT_TIMESTAMP,
     1,
     CURRENT_TIMESTAMP,
     1
@@ -1565,6 +1846,8 @@ SET
     "ImageIconMobile" = 'key',
     "ItemPriority" = 40,
     "Remark" = 'Tenant-admin reset of a selected employee login password.',
+    "AddedById" = COALESCE(module."AddedById", 1),
+    "AddedDateTime" = COALESCE(module."AddedDateTime", CURRENT_TIMESTAMP),
     "UpdatedById" = 1,
     "UpdatedDateTime" = CURRENT_TIMESTAMP,
     "ModuleScope" = 1
@@ -1578,7 +1861,7 @@ INSERT INTO axionpro."Operation"
 SELECT
     'Reset Password',
     'Reset the login password of a selected tenant employee',
-    4,
+    2,
     TRUE,
     1,
     CURRENT_TIMESTAMP,
@@ -1593,9 +1876,11 @@ WHERE NOT EXISTS
 UPDATE axionpro."Operation"
 SET
     "Remark" = 'Reset the login password of a selected tenant employee',
-    "OperationType" = 4,
+    "OperationType" = 2,
     "IsActive" = TRUE,
     "IconImage" = 'key-round',
+    "AddedById" = COALESCE("AddedById", 1),
+    "AddedDateTime" = COALESCE("AddedDateTime", CURRENT_TIMESTAMP),
     "UpdatedById" = 1,
     "UpdatedDateTime" = CURRENT_TIMESTAMP
 WHERE LOWER(BTRIM("OperationName")) = LOWER('Reset Password');
@@ -1685,16 +1970,23 @@ BEGIN
     WHERE target_module."ModuleCode" IN
           (
               'TENANT_EMAIL_CONFIG',
+              'TENANT_LOCATIONS',
+              'TENANT_ATTENDANCE_POLICIES',
               'TENANT_DEVICE_SETUP',
               'TENANT_DEVICE_CONFIGURATION',
-              'EMP_PASSWORD_MANAGEMENT'
+              'EMP_PASSWORD_MANAGEMENT',
+              'EMP_DEVICES',
+              'EMP_WORK_LOCATIONS',
+              'EMP_WORK_ARRANGEMENT',
+              'EMP_WORK_PATTERN',
+              'EMP_OVERRIDES'
           )
       AND target_module."ModuleScope" = 1
       AND target_module."IsActive" = TRUE;
 
-    IF target_module_count <> 4 THEN
+    IF target_module_count <> 11 THEN
         RAISE EXCEPTION
-            'Expected four active Tenant feature modules before plan inheritance; found %.',
+            'Expected eleven active Tenant feature modules before plan inheritance; found %.',
             target_module_count;
     END IF;
 
@@ -1720,9 +2012,16 @@ BEGIN
         ON target_module."ModuleCode" IN
            (
                'TENANT_EMAIL_CONFIG',
+               'TENANT_LOCATIONS',
+               'TENANT_ATTENDANCE_POLICIES',
                'TENANT_DEVICE_SETUP',
                'TENANT_DEVICE_CONFIGURATION',
-               'EMP_PASSWORD_MANAGEMENT'
+               'EMP_PASSWORD_MANAGEMENT',
+               'EMP_DEVICES',
+               'EMP_WORK_LOCATIONS',
+               'EMP_WORK_ARRANGEMENT',
+               'EMP_WORK_PATTERN',
+               'EMP_OVERRIDES'
            )
        AND target_module."ModuleScope" = 1
        AND target_module."IsActive" = TRUE
@@ -1849,7 +2148,10 @@ DO
 $$
 DECLARE
     invalid_module_count INTEGER;
-    missing_crud_mapping_count INTEGER;
+    incomplete_module_metadata_count INTEGER;
+    missing_standard_action_mapping_count INTEGER;
+    incomplete_mapping_metadata_count INTEGER;
+    incomplete_operation_metadata_count INTEGER;
     password_module_count INTEGER;
     reset_password_operation_count INTEGER;
     reset_password_mapping_count INTEGER;
@@ -1871,8 +2173,39 @@ BEGIN
     END IF;
 
     SELECT COUNT(*)
-    INTO missing_crud_mapping_count
+    INTO incomplete_module_metadata_count
+    FROM axionpro."Module" module
+    INNER JOIN module_seed seed
+        ON seed."ModuleCode" = module."ModuleCode"
+    WHERE NULLIF(BTRIM(module."ModuleName"), '') IS NULL
+       OR NULLIF(BTRIM(module."DisplayName"), '') IS NULL
+       OR NULLIF(BTRIM(module."URLPath"), '') IS NULL
+       OR NULLIF(BTRIM(module."ImageIconWeb"), '') IS NULL
+       OR NULLIF(BTRIM(module."ImageIconMobile"), '') IS NULL
+       OR NULLIF(BTRIM(module."Remark"), '') IS NULL
+       OR module."ItemPriority" IS NULL
+       OR module."AddedById" IS NULL
+       OR module."AddedDateTime" IS NULL
+       OR module."UpdatedById" IS NULL
+       OR module."UpdatedDateTime" IS NULL;
+
+    IF incomplete_module_metadata_count <> 0 THEN
+        RAISE EXCEPTION
+            'Consolidated module validation failed: % seeded module row(s) have incomplete presentation or audit metadata.',
+            incomplete_module_metadata_count;
+    END IF;
+
+    -- Every menu feature receives all four standard action permissions.
+    -- DataViewStructureId and PageTypeId remain intentionally NULL because
+    -- they are optional foreign-key metadata and no neutral IDs can safely be
+    -- invented by a permission seed.
+    SELECT COUNT(*)
+    INTO missing_standard_action_mapping_count
     FROM module_seed seed
+    CROSS JOIN
+    (
+        VALUES ('view'), ('create'), ('update'), ('delete')
+    ) AS required_action("ActionName")
     WHERE NOT EXISTS
     (
         SELECT 1
@@ -1884,14 +2217,66 @@ BEGIN
         WHERE module."ModuleCode" = seed."ModuleCode"
           AND mapping."IsActive" = TRUE
           AND operation."IsActive" = TRUE
-          AND LOWER(BTRIM(operation."OperationName")) IN
-              ('view', 'read', 'create', 'add', 'update', 'edit', 'delete')
+          AND
+          (
+              (required_action."ActionName" = 'view' AND LOWER(BTRIM(operation."OperationName")) IN ('view', 'read'))
+              OR (required_action."ActionName" = 'create' AND LOWER(BTRIM(operation."OperationName")) IN ('create', 'add'))
+              OR (required_action."ActionName" = 'update' AND LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit'))
+              OR (required_action."ActionName" = 'delete' AND LOWER(BTRIM(operation."OperationName")) = 'delete')
+          )
     );
 
-    IF missing_crud_mapping_count <> 0 THEN
+    IF missing_standard_action_mapping_count <> 0 THEN
         RAISE EXCEPTION
-            'Consolidated mapping validation failed: % seeded module code(s) have no active CRUD mapping.',
-            missing_crud_mapping_count;
+            'Consolidated mapping validation failed: % required module-action mapping(s) are missing.',
+            missing_standard_action_mapping_count;
+    END IF;
+
+    SELECT COUNT(*)
+    INTO incomplete_mapping_metadata_count
+    FROM axionpro."ModuleOperationMapping" mapping
+    INNER JOIN axionpro."Module" module
+        ON module."Id" = mapping."ModuleId"
+    INNER JOIN module_seed seed
+        ON seed."ModuleCode" = module."ModuleCode"
+    WHERE NULLIF(BTRIM(mapping."PageURL"), '') IS NULL
+       OR NULLIF(BTRIM(mapping."IconURL"), '') IS NULL
+       OR mapping."IsCommonItem" IS NULL
+       OR mapping."IsOperational" IS NULL
+       OR mapping."Priority" IS NULL
+       OR NULLIF(BTRIM(mapping."Remark"), '') IS NULL
+       OR mapping."IsActive" IS NULL
+       OR mapping."AddedById" IS NULL
+       OR mapping."AddedDateTime" IS NULL
+       OR mapping."UpdatedById" IS NULL
+       OR mapping."UpdatedDateTime" IS NULL;
+
+    IF incomplete_mapping_metadata_count <> 0 THEN
+        RAISE EXCEPTION
+            'Consolidated mapping validation failed: % module-operation mapping row(s) have incomplete UI or audit metadata.',
+            incomplete_mapping_metadata_count;
+    END IF;
+
+    SELECT COUNT(*)
+    INTO incomplete_operation_metadata_count
+    FROM axionpro."Operation" operation
+    WHERE LOWER(BTRIM(operation."OperationName")) IN
+          ('view', 'read', 'create', 'add', 'update', 'edit', 'delete')
+      AND
+      (
+          NULLIF(BTRIM(operation."Remark"), '') IS NULL
+          OR operation."OperationType" IS NULL
+          OR NULLIF(BTRIM(operation."IconImage"), '') IS NULL
+          OR operation."AddedById" IS NULL
+          OR operation."AddedDateTime" IS NULL
+          OR operation."UpdatedById" IS NULL
+          OR operation."UpdatedDateTime" IS NULL
+      );
+
+    IF incomplete_operation_metadata_count <> 0 THEN
+        RAISE EXCEPTION
+            'Consolidated operation validation failed: % standard operation row(s) have incomplete metadata.',
+            incomplete_operation_metadata_count;
     END IF;
 
     SELECT COUNT(*)
@@ -2065,8 +2450,29 @@ $$;
 -- ============================================================================
 -- Existing modules receive a deterministic key once. The special Device
 -- Management component key is intentionally kept exactly as registered by UI.
--- After this point an update cannot alter PageName, including only its casing.
+-- A legacy NULL may be populated once; after that an update cannot alter
+-- PageName, including only its casing.
 -- ============================================================================
+
+-- On a re-run, this replaces the older strict trigger implementation before
+-- the backfill below executes. It permits only the one-time NULL -> key
+-- migration required for older module rows such as card inventory.
+CREATE OR REPLACE FUNCTION axionpro."PreventModulePageNameChange"()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    IF OLD."PageName" IS NOT NULL
+       AND NEW."PageName" IS DISTINCT FROM OLD."PageName" THEN
+        RAISE EXCEPTION
+            USING ERRCODE = '23514',
+                  MESSAGE = 'Module PageName is immutable and cannot be changed after initial assignment.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
 
 UPDATE axionpro."Module" module
 SET "PageName" = CASE module."ModuleCode"
@@ -2079,11 +2485,40 @@ SET "PageName" = CASE module."ModuleCode"
     WHEN 'TENANT_DEVICE_SETUP' THEN 'installed-devices'
     WHEN 'HOST_INITIAL_DEVICE_CONFIGURATION' THEN 'device-provisioning'
     WHEN 'TENANT_DEVICE_CONFIGURATION' THEN 'device-connectivity'
+    WHEN 'HOST_TENANT_CARD_INVENTORY' THEN 'tenant-card-inventory'
+    WHEN 'TENANT_LOCATIONS' THEN 'tenant-locations'
+    WHEN 'TENANT_ATTENDANCE_POLICIES' THEN 'attendance-policies'
+    WHEN 'EMP_DEVICES' THEN 'employee-device-enrollment'
+    WHEN 'EMP_WORK_LOCATIONS' THEN 'employee-work-locations'
+    WHEN 'EMP_WORK_ARRANGEMENT' THEN 'employee-work-arrangements'
+    WHEN 'EMP_WORK_PATTERN' THEN 'employee-work-patterns'
+    WHEN 'EMP_OVERRIDES' THEN 'employee-work-mode-overrides'
     WHEN 'EMP_PASSWORD_MANAGEMENT' THEN 'employee-password-management'
     ELSE BTRIM(REGEXP_REPLACE(LOWER(BTRIM(module."ModuleCode")), '[^a-z0-9]+', '-', 'g'), '-')
 END
 WHERE module."PageName" IS NULL
   AND NULLIF(BTRIM(module."ModuleCode"), '') IS NOT NULL;
+
+DO
+$$
+DECLARE
+    missing_page_name_count INTEGER;
+BEGIN
+    SELECT COUNT(*)
+    INTO missing_page_name_count
+    FROM module_seed seed
+    LEFT JOIN axionpro."Module" module
+        ON module."ModuleCode" = seed."ModuleCode"
+    WHERE module."Id" IS NULL
+       OR NULLIF(BTRIM(module."PageName"), '') IS NULL;
+
+    IF missing_page_name_count <> 0 THEN
+        RAISE EXCEPTION
+            'Module PageName validation failed: % seeded module row(s) do not have a stable page key.',
+            missing_page_name_count;
+    END IF;
+END;
+$$;
 
 DO
 $$
@@ -2138,10 +2573,11 @@ LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    IF NEW."PageName" IS DISTINCT FROM OLD."PageName" THEN
+    IF OLD."PageName" IS NOT NULL
+       AND NEW."PageName" IS DISTINCT FROM OLD."PageName" THEN
         RAISE EXCEPTION
             USING ERRCODE = '23514',
-                  MESSAGE = 'Module PageName is immutable and cannot be changed after creation.';
+                  MESSAGE = 'Module PageName is immutable and cannot be changed after initial assignment.';
     END IF;
 
     RETURN NEW;
@@ -2381,6 +2817,8 @@ SELECT
 
     "ModuleName",
 
+    "PageName",
+
     "DisplayName",
 
     "URLPath",
@@ -2427,6 +2865,14 @@ WHERE "ModuleCode"
           'TENANT_DEVICE_SETUP',
           'HOST_INITIAL_DEVICE_CONFIGURATION',
           'TENANT_DEVICE_CONFIGURATION',
+          'HOST_TENANT_CARD_INVENTORY',
+          'TENANT_LOCATIONS',
+          'TENANT_ATTENDANCE_POLICIES',
+          'EMP_DEVICES',
+          'EMP_WORK_LOCATIONS',
+          'EMP_WORK_ARRANGEMENT',
+          'EMP_WORK_PATTERN',
+          'EMP_OVERRIDES',
           'EMP_PASSWORD_MANAGEMENT'
       )
 
@@ -2492,6 +2938,14 @@ WHERE module."ModuleCode"
           'TENANT_DEVICE_SETUP',
           'HOST_INITIAL_DEVICE_CONFIGURATION',
           'TENANT_DEVICE_CONFIGURATION',
+          'HOST_TENANT_CARD_INVENTORY',
+          'TENANT_LOCATIONS',
+          'TENANT_ATTENDANCE_POLICIES',
+          'EMP_DEVICES',
+          'EMP_WORK_LOCATIONS',
+          'EMP_WORK_ARRANGEMENT',
+          'EMP_WORK_PATTERN',
+          'EMP_OVERRIDES',
           'EMP_PASSWORD_MANAGEMENT'
       )
 
@@ -2532,8 +2986,15 @@ WHERE module."ModuleCode"
       IN
       (
           'TENANT_EMAIL_CONFIG',
+          'TENANT_LOCATIONS',
+          'TENANT_ATTENDANCE_POLICIES',
           'TENANT_DEVICE_SETUP',
           'TENANT_DEVICE_CONFIGURATION',
+          'EMP_DEVICES',
+          'EMP_WORK_LOCATIONS',
+          'EMP_WORK_ARRANGEMENT',
+          'EMP_WORK_PATTERN',
+          'EMP_OVERRIDES',
           'EMP_PASSWORD_MANAGEMENT'
       )
 

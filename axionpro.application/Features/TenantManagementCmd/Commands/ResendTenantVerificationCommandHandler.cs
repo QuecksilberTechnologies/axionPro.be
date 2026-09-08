@@ -19,6 +19,7 @@ using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using System.Net;
+using axionpro.domain.Entity;
 
 namespace axionpro.application.Features.TenantManagementCmd.Commands;
 
@@ -144,19 +145,15 @@ public sealed class ResendTenantVerificationCommandHandler
             throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
         }
 
-        if (tenant.IsVerified)
+        var tenantLoginCredential = TenantOnboardingVerification.FindCredential(tenant);
+
+        // The Host list and resend action must use the exact same definition.
+        // Older records can have IsOnboard persisted while Tenant.IsVerified was
+        // not updated by the legacy verification handler.
+        if (TenantOnboardingVerification.IsVerified(tenant, tenantLoginCredential))
         {
             throw new ConflictException(AppConstants.ErrorMessages.TenantAlreadyVerified);
         }
-
-        var tenantLoginCredential = tenant.Employee
-            .SelectMany(employee => employee.LoginCredential)
-            .Where(credential =>
-                credential.TenantId == tenant.Id &&
-                credential.LoginId == tenant.TenantEmail &&
-                credential.IsSoftDeleted != true)
-            .OrderBy(credential => credential.Id)
-            .FirstOrDefault();
 
         if (tenantLoginCredential is null)
         {
@@ -229,3 +226,38 @@ public sealed class ResendTenantVerificationCommandHandler
 }
 
 #endregion
+
+/// <summary>
+/// Defines the single Host-visible verification state for a Tenant onboarding
+/// account. Legacy data may have only the onboarding-credential flag, whereas
+/// new verification writes also persist <see cref="Tenant.IsVerified"/>.
+/// </summary>
+public static class TenantOnboardingVerification
+{
+    /// <summary>Finds the non-deleted onboarding credential that belongs to the Tenant email address.</summary>
+    public static LoginCredential? FindCredential(Tenant tenant)
+    {
+        ArgumentNullException.ThrowIfNull(tenant);
+
+        return tenant.Employee
+            .Where(employee => employee.TenantId == tenant.Id && !employee.IsSoftDeleted)
+            .SelectMany(employee => employee.LoginCredential)
+            .Where(credential =>
+                credential.TenantId == tenant.Id &&
+                string.Equals(credential.LoginId, tenant.TenantEmail, StringComparison.OrdinalIgnoreCase) &&
+                credential.IsSoftDeleted != true)
+            .OrderBy(credential => credential.Id)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Treats either the canonical Tenant flag or a completed legacy onboarding
+    /// credential as verified. This prevents a verified Tenant from receiving a
+    /// second verification email while legacy data is being normalized.
+    /// </summary>
+    public static bool IsVerified(Tenant tenant, LoginCredential? credential)
+    {
+        ArgumentNullException.ThrowIfNull(tenant);
+        return tenant.IsVerified || credential?.IsOnboard == true;
+    }
+}

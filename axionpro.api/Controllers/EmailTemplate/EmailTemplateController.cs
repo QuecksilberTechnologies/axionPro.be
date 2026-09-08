@@ -24,6 +24,7 @@ public sealed class EmailTemplateController(
     /// <summary>
     /// Legacy lookup route retained for existing integrations. New Host administration should use <c>get-by-id</c> and <c>get-all</c>.
     /// </summary>
+    [Authorize]
     [HttpGet("get-template-by-code")]
     public async Task<IActionResult> GetTemplateByCodeAsync(
         [FromQuery] string code,
@@ -36,6 +37,7 @@ public sealed class EmailTemplateController(
     /// <summary>
     /// Legacy send route retained for existing integrations. It resolves only an active template and uses the configured SMTP fallback flow.
     /// </summary>
+    [Authorize]
     [HttpPost("send-template")]
     public async Task<IActionResult> SendTemplatedEmail(
         [FromBody] SendEmailTemplatRequestDTO request,

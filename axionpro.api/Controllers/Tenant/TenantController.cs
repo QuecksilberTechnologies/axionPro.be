@@ -451,6 +451,7 @@ public class TenantController : ControllerBase
         /// <para>Backend endpoint: GET /api/tenant/get-all-tenant-by-subscription-plan-id.</para>
         /// </remarks>
 
+        [Authorize]
         [HttpGet("get-all-tenant-by-subscription-plan-Id")]
         public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] application.DTOs.Tenant.TenantRequestDTO code)
         {
@@ -475,6 +476,7 @@ public class TenantController : ControllerBase
     /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
     /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
     /// </remarks>
+    [Authorize]
     [HttpGet("get-employee-code-pattern")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetEmployeeCodePatternAsync([FromQuery] EmployeeCodePatternRequestDTO code)
@@ -498,6 +500,7 @@ public class TenantController : ControllerBase
         /// <para>Backend endpoint: POST /api/tenant/get.</para>
         /// </remarks>
 
+        [Authorize]
         [HttpPost("get")]
         public async Task<IActionResult> GetAllTenantEnabledModuleOperationsByTenantIdAsync([FromBody] TenantEnabledModuleRequestDTO code)
         {
@@ -521,6 +524,7 @@ public class TenantController : ControllerBase
     /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>
     /// <para>Angular UI component(s): CurrentUserPermissionsStore (app/core/stores/current-user-permissions.store.ts); EmployeesPermissionsStore (app/features/employees/employees-permissions/employees-permissions.store.ts); RolePermissionsStore (app/features/roles/role-permissions/role-permissions.store.ts); hasModuleOperationGuard (app/core/guards/has-module-operation-guard.ts); hasModulePermissionGuard (app/core/guards/has-module-permission-guard.ts); superAdminGuard (app/core/guards/super-admin-guard.ts); AttendancePolicies (app/features/attendance-policies/attendance-policies.ts); Login (app/features/authentication/login/login.ts)</para>
     /// </remarks>
+    [Authorize]
     [HttpGet("get-all-tenant-operations")]
     public async Task<IActionResult> GetAllNodeLeafeWithOperationsAsync([FromQuery] TenantEnabledOperationsRequestDTO code)
     {
@@ -549,6 +553,7 @@ public class TenantController : ControllerBase
     /// <para>Integrated UI page(s): /app/tenants/:tenantId/modules</para>
     /// <para>Angular UI component(s): TenantModulesStore (app/features/host/tenants/tenant-modules/tenant-modules.store.ts); TenantModules (app/features/host/tenants/tenant-modules/tenant-modules.ts)</para>
     /// </remarks>
+    [Authorize]
     [HttpPost("update-modules-and-operations")]
     public async Task<IActionResult> TenantModuleOperationsUpdate([FromBody] TenantModuleOperationsUpdateRequestDTO code)
     {
@@ -576,6 +581,7 @@ public class TenantController : ControllerBase
     /// <para>Integrated UI page(s): /auth/registration-verify</para>
     /// <para>Angular UI component(s): RegistrationVerify (app/features/authentication/registration/registration-verify/registration-verify.ts)</para>
     /// </remarks>
+    [AllowAnonymous]
     [HttpPost("verify")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDTO request)
     {

@@ -12,6 +12,7 @@ using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Features.TenantManagementCmd.Commands;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -104,24 +105,14 @@ public sealed class GetAllTenantsQueryHandler
 
     private HostTenantResponseDTO MapTenant(Tenant tenant, string tenantEncryptionKey)
     {
-        var tenantLoginCredential = tenant.Employee
-            .Where(employee =>
-                employee.TenantId == tenant.Id &&
-                !employee.IsSoftDeleted)
-            .SelectMany(employee => employee.LoginCredential)
-            .Where(credential =>
-                credential.TenantId == tenant.Id &&
-                credential.IsOnboard &&
-                credential.IsSoftDeleted != true)
-            .OrderBy(credential => credential.Id)
-            .FirstOrDefault();
+        var tenantLoginCredential = TenantOnboardingVerification.FindCredential(tenant);
 
         var response = _mapper.Map<HostTenantResponseDTO>(tenant);
         response.Id = HostTenantIdentifierProtector.Encrypt(
             tenant.Id,
             tenantEncryptionKey,
             _idEncoderService);
-        response.IsVerified = tenantLoginCredential?.IsOnboard ?? false;
+        response.IsVerified = TenantOnboardingVerification.IsVerified(tenant, tenantLoginCredential);
         response.EmployeeId = tenantLoginCredential is null
             ? string.Empty
             : _idEncoderService.EncodeId_long(
