@@ -369,8 +369,7 @@ namespace axionpro.persistance.Repositories
 
         private static IReadOnlyCollection<NavigationMenuItemResponseDTO> BuildNavigationTree(
             IReadOnlyCollection<NavigationModuleRecord> scopedModules,
-            IReadOnlyCollection<NavigationOperationRecord> allowedOperations
-            )
+            IReadOnlyCollection<NavigationOperationRecord> allowedOperations)
         {
             var modulesById = scopedModules
                 .GroupBy(module => module.Id)
