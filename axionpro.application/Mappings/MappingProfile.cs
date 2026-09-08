@@ -219,6 +219,8 @@ namespace axionpro.application.Mappings
                         ? (short?)s.CommandTransport.Value
                         : s.MqttTransport.HasValue ? (short?)s.MqttTransport.Value : null))
                 .ForMember(d => d.HttpsIngressTokenHash, o => o.Ignore())
+                .ForMember(d => d.PendingHttpsIngressTokenHash, o => o.Ignore())
+                .ForMember(d => d.PendingHttpsIngressTokenExpiresDateTime, o => o.Ignore())
                 .ForMember(d => d.CommunicationType, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore())
@@ -245,6 +247,8 @@ namespace axionpro.application.Mappings
                         ? (short?)s.CommandTransport.Value
                         : s.MqttTransport.HasValue ? (short?)s.MqttTransport.Value : null))
                 .ForMember(d => d.HttpsIngressTokenHash, o => o.Ignore())
+                .ForMember(d => d.PendingHttpsIngressTokenHash, o => o.Ignore())
+                .ForMember(d => d.PendingHttpsIngressTokenExpiresDateTime, o => o.Ignore())
                 .ForMember(d => d.CommunicationType, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore())

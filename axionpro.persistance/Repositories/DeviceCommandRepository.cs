@@ -355,7 +355,9 @@ public sealed class DeviceCommandRepository(
                 device.TenantDeviceConfiguration != null &&
                 (device.TenantDeviceConfiguration.CommandTransport ?? device.TenantDeviceConfiguration.MqttTransport) ==
                     (short)DeviceCommunicationProtocol.Https &&
-                device.TenantDeviceConfiguration.HttpsIngressTokenHash == tokenHash)
+                (device.TenantDeviceConfiguration.HttpsIngressTokenHash == tokenHash ||
+                 (device.TenantDeviceConfiguration.PendingHttpsIngressTokenHash == tokenHash &&
+                  device.TenantDeviceConfiguration.PendingHttpsIngressTokenExpiresDateTime > request.ReceivedDateTime)))
             .Take(2)
             .ToListAsync(cancellationToken);
 
@@ -366,13 +368,18 @@ public sealed class DeviceCommandRepository(
             return DeviceHttpsPollingResponse.Rejected;
         }
 
+        var promotePendingGateway =
+            string.Equals(device.TenantDeviceConfiguration!.PendingHttpsIngressTokenHash, tokenHash, StringComparison.Ordinal) &&
+            device.TenantDeviceConfiguration.PendingHttpsIngressTokenExpiresDateTime > request.ReceivedDateTime;
+
         return await ProcessValidatedHttpsDeviceAsync(
             device,
             root,
             serialNumber,
             request,
             revokeInitialProvisioning: true,
-            cancellationToken);
+            promotePendingGateway: promotePendingGateway,
+            cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
@@ -430,7 +437,8 @@ public sealed class DeviceCommandRepository(
             serialNumber,
             request,
             revokeInitialProvisioning: false,
-            cancellationToken);
+            promotePendingGateway: false,
+            cancellationToken: cancellationToken);
     }
 
     #endregion
@@ -554,14 +562,15 @@ public sealed class DeviceCommandRepository(
                 ? resultProperty.GetBoolean()
                 : (bool?)null;
 
+            var redactedResponsePayload = RedactSensitiveJson(message.Payload);
             if (message.IsDuplicateDelivery && await context.DeviceCommandResponses.AnyAsync(
                     response =>
                         response.TenantDeviceId == device.Id &&
                         response.ResponseCommandName == commandName &&
-                        response.ResponsePayload == message.Payload,
+                        response.ResponsePayload == redactedResponsePayload,
                     cancellationToken))
             {
-                // The raw MQTT audit is intentionally retained above, but QoS 1 redelivery
+                // The redacted response audit is retained above, but QoS 1 redelivery
                 // must not create another parsed response or change command state.
                 return;
             }
@@ -575,7 +584,7 @@ public sealed class DeviceCommandRepository(
                 ResponseCommandName = commandName,
                 Result = result,
                 FailureReason = result == false ? ExtractFailureReason(root) : null,
-                ResponsePayload = message.Payload,
+                ResponsePayload = redactedResponsePayload,
                 ReceivedDateTime = message.ReceivedDateTime
             }, cancellationToken);
 
@@ -614,6 +623,7 @@ public sealed class DeviceCommandRepository(
         string serialNumber,
         DeviceHttpsPollingRequest request,
         bool revokeInitialProvisioning,
+        bool promotePendingGateway,
         CancellationToken cancellationToken)
     {
         await RecordInboundAsync(
@@ -633,6 +643,16 @@ public sealed class DeviceCommandRepository(
         configuration.LastSuccessfulConnectionDateTime = request.ReceivedDateTime;
         configuration.LastConnectionError = null;
         configuration.UpdatedDateTime = request.ReceivedDateTime;
+
+        // The replacement URL becomes authoritative only after the physical
+        // device authenticates on it. Until that first poll the previous URL
+        // remains usable, so a failed configuration command cannot strand it.
+        if (promotePendingGateway)
+        {
+            configuration.HttpsIngressTokenHash = configuration.PendingHttpsIngressTokenHash;
+            configuration.PendingHttpsIngressTokenHash = null;
+            configuration.PendingHttpsIngressTokenExpiresDateTime = null;
+        }
 
         if (revokeInitialProvisioning)
         {

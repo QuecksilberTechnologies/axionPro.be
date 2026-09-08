@@ -1,5 +1,12 @@
 # Device Configuration — UI Developer Handoff
 
+> **Current Tenant runtime contract:** use
+> [TenantDeviceRuntimeSettingsUiHandoff.md](TenantDeviceRuntimeSettingsUiHandoff.md)
+> as the authoritative Angular/API reference. This older document remains the
+> technician/bootstrap reference. In particular, Tenant runtime settings now
+> use typed section endpoints, and local Web UI/API access is an explicit
+> Tenant-controlled setting rather than a forced disable.
+
 ## Physical device prerequisites — complete before using the UI
 
 This is the technician checklist for the physical AiFace device. Complete it

@@ -2,9 +2,14 @@
 
 ## Purpose
 
-This is the UI contract for an **already assigned and configured** biometric
-device that must be pointed to AxionPro's normal HTTPS gateway. It is not the
-first-time/unassigned-device bootstrap flow.
+This is the **technician recovery** UI contract for an already assigned and
+configured biometric device that must be manually pointed to a fresh normal
+HTTPS gateway. It is not the first-time/unassigned-device bootstrap flow.
+
+For a live device that is already polling AxionPro, do not use this immediate
+rotation flow: it invalidates the old URL. Use the seamless remote replacement
+flow in [TenantDeviceRuntimeSettingsUiHandoff.md](TenantDeviceRuntimeSettingsUiHandoff.md),
+which keeps the old URL valid until the device confirms the new one.
 
 The UI has two technician-facing steps:
 
@@ -52,6 +57,11 @@ When the device already has a URL, a clearer destructive label is:
 ```text
 Rotate HTTPS device URL
 ```
+
+The button is available to an authorized Tenant device administrator. A Host
+user may also issue the gateway URL as part of device provisioning by sending
+the assigned-device token (`tenantDeviceId`), but Host users do not have access
+to the Tenant's configuration read/edit/runtime screens after assignment.
 
 Only show the action when all of the following are true:
 

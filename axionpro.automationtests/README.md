@@ -8,6 +8,7 @@ This project runs API tests directly and opens Playwright-managed Chromium for U
 - API: public `ClientInfo/detect-device` response contains the automation browser identity.
 - API: authenticated navigation rejects a request without a token.
 - API: a permission-aware Tenant Email Configuration CRUD flow (create, read, list, update, delete, and cleanup).
+- Unit: Tenant device configuration permission behavior rejects wrong-module and denied-operation requests before a handler/queue can run, and confirms transport is resolved from stored configuration rather than a Tenant request field.
 - UI: the Angular login route loads in Chromium.
 
 The UI test is deliberately skipped until a frontend address is supplied. That keeps `Run All` safe when the frontend is not running or is located outside this repository.
@@ -46,6 +47,9 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj
 
 # Tenant Email Configuration CRUD only
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=TenantEmailConfig"
+
+# Tenant device configuration permission/transport behavior unit tests
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "FullyQualifiedName~TenantDeviceConfigurationPermissionBehaviorTests"
 ```
 
 ## Configuration and secrets

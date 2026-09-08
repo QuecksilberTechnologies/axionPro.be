@@ -3,6 +3,8 @@
 //           vendor JSON and must not contain AxionPro tracking identifiers.
 // ================================================================
 
+using System.Text.Json.Serialization;
+
 namespace axionpro.application.DTOS.Host;
 
 /// <summary>Submits one supported vendor command to a Tenant device.</summary>
@@ -18,6 +20,8 @@ public sealed class DeviceCommandSubmissionResponseDTO
 {
     public long DeviceCommandId { get; set; }
     public Guid InternalTrackingId { get; set; }
-    public string DeviceSerialNumber { get; set; } = string.Empty;
+    /// <summary>Host-only physical device identity. Omitted from Tenant responses.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DeviceSerialNumber { get; set; }
     public string Status { get; set; } = string.Empty;
 }

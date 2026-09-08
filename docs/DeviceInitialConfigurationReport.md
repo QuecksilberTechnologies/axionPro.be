@@ -1,5 +1,13 @@
 # Secure Device Initial Configuration — Implementation Report
 
+> **Current implementation note:** Tenant runtime configuration has expanded
+> beyond the original bootstrap report. For the authoritative typed settings,
+> permission, queue-retention, transport-resolution, dropdown, and testing
+> contract, see
+> [TenantDeviceRuntimeSettingsUiHandoff.md](TenantDeviceRuntimeSettingsUiHandoff.md).
+> Older `apply-runtime-configuration` examples below are retained as history;
+> new Tenant UI work must use the typed section endpoints in that handoff.
+
 ## Scope completed
 
 This change implements a secure, outbound-HTTPS device provisioning flow for the

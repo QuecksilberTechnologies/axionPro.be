@@ -70,15 +70,22 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
                 permissionRequest.OperationId,
                 cancellationToken);
 
+            // Host access is intentionally limited to device provisioning and
+            // issuing/reissuing a gateway URL. The Tenant owns all connection,
+            // runtime, and device-operation configuration after assignment.
+            if (!IsHostAllowedRequest())
+            {
+                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+            }
+
             // Super Admin is the Host-wide authority and therefore does not need a
             // per-module mapping. Other Host users must both pass the database
             // permission check above and submit the expected device module.
-            if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId)
+            if (hostContext.CurrentHostRoleId != AppConstants.SuperAdminHostRoleId)
             {
-                return await next();
+                await EnsureExpectedModuleCodeAsync(permissionRequest, expectedModuleCode);
             }
 
-            await EnsureExpectedModuleCodeAsync(permissionRequest, expectedModuleCode);
             return await next();
         }
 
@@ -136,10 +143,25 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
                requestType == typeof(GetAllTenantDeviceConfigurationsQuery) ||
                requestType == typeof(RotateTenantDeviceHttpsIngressTokenCommand) ||
                requestType == typeof(ApplyTenantDeviceRuntimeConfigurationCommand) ||
-               requestType == typeof(RebootTenantDeviceCommand)
+               requestType == typeof(RebootTenantDeviceCommand) ||
+               requestType == typeof(ApplyTenantDeviceSettingsCommand) ||
+               requestType == typeof(SyncTenantDeviceTimeCommand) ||
+               requestType == typeof(UpdateTenantDeviceLocationCommand) ||
+               requestType == typeof(GetTenantDeviceGatewayAddressQuery) ||
+               requestType == typeof(ReplaceTenantDeviceHttpsGatewayUrlCommand) ||
+               requestType == typeof(DispatchTenantDeviceMqttsNowCommand)
              ? TenantDeviceConfigurationModuleCode
              : null;
     }
+
+    /// <summary>
+    /// Host users provision unassigned inventory and may issue an HTTPS gateway
+    /// URL for a device. Once assigned, Tenant admins own all configuration,
+    /// runtime settings, and device operations.
+    /// </summary>
+    private static bool IsHostAllowedRequest() =>
+        typeof(TRequest) == typeof(IssueInitialDeviceBootstrapCommand) ||
+        typeof(TRequest) == typeof(RotateTenantDeviceHttpsIngressTokenCommand);
 
     #endregion
 

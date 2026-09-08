@@ -3718,8 +3718,11 @@ namespace axionpro.persistance.Data.Context
                   entity.Property(e => e.IpAddress).HasMaxLength(45);
                   entity.Property(e => e.MacAddress).HasMaxLength(50);
                   entity.Property(e => e.MqttTransport);
-                  entity.Property(e => e.CommandTransport);
+                entity.Property(e => e.CommandTransport);
                 entity.Property(e => e.HttpsIngressTokenHash).HasMaxLength(64);
+                entity.Property(e => e.PendingHttpsIngressTokenHash).HasMaxLength(64);
+                entity.HasIndex(e => e.PendingHttpsIngressTokenHash, "UX_TenantDeviceConfiguration_PendingHttpsIngressTokenHash")
+                    .IsUnique().HasFilter("\"PendingHttpsIngressTokenHash\" IS NOT NULL");
                   entity.Property(e => e.ServerHost).HasMaxLength(300);
                 entity.Property(e => e.ServerPath).HasMaxLength(300);
                 entity.Property(e => e.ServerUrl).HasMaxLength(500);

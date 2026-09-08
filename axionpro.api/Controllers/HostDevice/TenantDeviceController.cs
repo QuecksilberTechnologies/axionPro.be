@@ -107,6 +107,19 @@ public sealed class TenantDeviceController(IMediator mediator, ILogger<TenantDev
     { logger.LogInformation("Received TenantDevice status request for {TenantDeviceId}.", dto.Id); return Ok(await mediator.Send(new UpdateTenantDeviceStatusCommand(dto), cancellationToken)); }
 
     /// <summary>
+    /// Lets a Tenant administrator move an already assigned device to another
+    /// location without changing the Host-owned DeviceMaster assignment.
+    /// </summary>
+    [HttpPost("update-location")]
+    public async Task<IActionResult> UpdateLocation(
+        [FromBody] UpdateTenantDeviceLocationRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Received TenantDevice location update for {TenantDeviceId}.", dto.TenantDeviceId);
+        return Ok(await mediator.Send(new UpdateTenantDeviceLocationCommand(dto), cancellationToken));
+    }
+
+    /// <summary>
     /// Used-In-Angular: deletes tenant device.
     /// </summary>
     /// <remarks>

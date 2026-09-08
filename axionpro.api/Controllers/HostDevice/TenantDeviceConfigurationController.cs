@@ -61,6 +61,100 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
         return Ok(await mediator.Send(new RebootTenantDeviceCommand(dto), cancellationToken));
     }
 
+    /// <summary>Queues one typed device time-settings change through the configured outbound transport.</summary>
+    [HttpPost("settings/time")]
+    public Task<IActionResult> UpdateTimeSettings([FromBody] UpdateTenantDeviceTimeSettingsRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.Time, cancellationToken);
+
+    /// <summary>Queues an explicit device-clock synchronization through the configured outbound transport.</summary>
+    [HttpPost("settings/time/sync")]
+    public async Task<IActionResult> SyncTime([FromBody] SyncTenantDeviceTimeRequestDTO dto, CancellationToken cancellationToken) =>
+        Ok(await mediator.Send(new SyncTenantDeviceTimeCommand(dto), cancellationToken));
+
+    /// <summary>Queues typed bell settings through the configured outbound transport.</summary>
+    [HttpPost("settings/bell")]
+    public Task<IActionResult> UpdateBellSettings([FromBody] UpdateTenantDeviceBellSettingsRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.Bell, cancellationToken);
+
+    /// <summary>Queues typed device display and recognition settings through the configured outbound transport.</summary>
+    [HttpPost("settings/device-setup")]
+    public Task<IActionResult> UpdateDeviceSetupSettings([FromBody] UpdateTenantDeviceSetupSettingsRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.DeviceSetup, cancellationToken);
+
+    /// <summary>Queues typed advanced face, verification, privacy, and fill-light settings.</summary>
+    [HttpPost("settings/advanced")]
+    public Task<IActionResult> UpdateAdvancedSettings([FromBody] UpdateTenantDeviceAdvancedSettingsRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.Advanced, cancellationToken);
+
+    /// <summary>Queues typed door, Wiegand, and access-control settings.</summary>
+    [HttpPost("settings/lock")]
+    public Task<IActionResult> UpdateLockSettings([FromBody] UpdateTenantDeviceLockSettingsRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.Lock, cancellationToken);
+
+    /// <summary>Queues typed serial port settings.</summary>
+    [HttpPost("settings/serial")]
+    public Task<IActionResult> UpdateSerialSettings([FromBody] UpdateTenantDeviceSerialSettingsRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.Serial, cancellationToken);
+
+    /// <summary>Queues typed Ethernet settings. Static addressing is applied only when DHCP is disabled.</summary>
+    [HttpPost("settings/ethernet")]
+    public Task<IActionResult> UpdateEthernetSettings([FromBody] UpdateTenantDeviceEthernetSettingsRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.Ethernet, cancellationToken);
+
+    /// <summary>Queues typed Wi-Fi network settings. Static addressing is applied only when DHCP is disabled.</summary>
+    [HttpPost("settings/wifi")]
+    public Task<IActionResult> UpdateWifiSettings([FromBody] UpdateTenantDeviceWifiSettingsRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.Wifi, cancellationToken);
+
+    /// <summary>Queues typed optional app-notification settings.</summary>
+    [HttpPost("settings/app-notification")]
+    public Task<IActionResult> UpdateAppNotificationSettings([FromBody] UpdateTenantDeviceAppNotificationSettingsRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.AppNotification, cancellationToken);
+
+    /// <summary>Queues local device Web UI/API enablement and password rotation.</summary>
+    [HttpPost("settings/web-access")]
+    public Task<IActionResult> UpdateWebAccess([FromBody] UpdateTenantDeviceWebAccessRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.WebAccess, cancellationToken);
+
+    /// <summary>Queues the PIN required by the device physical System/Local Manager menu.</summary>
+    [HttpPost("settings/screen-menu-pin")]
+    public Task<IActionResult> UpdateScreenMenuPin([FromBody] UpdateTenantDeviceScreenMenuPinRequestDTO dto, CancellationToken cancellationToken) =>
+        SendSettingsAsync(dto, TenantDeviceSettingsSection.ScreenMenuPin, cancellationToken);
+
+    /// <summary>Gets the device cloud gateway base address and replacement state without returning a bearer token.</summary>
+    [HttpGet("gateway-address/{tenantDeviceId}")]
+    public async Task<IActionResult> GetGatewayAddress(
+        string tenantDeviceId,
+        [FromQuery] TenantDeviceAccessRequestDTO dto,
+        CancellationToken cancellationToken) =>
+        Ok(await mediator.Send(new GetTenantDeviceGatewayAddressQuery(tenantDeviceId, dto), cancellationToken));
+
+    /// <summary>
+    /// Replaces the device HTTPS gateway remotely. The current URL remains usable
+    /// until the device polls through the new URL; heartbeat is not changed.
+    /// </summary>
+    [HttpPost("replace-https-gateway-url")]
+    public async Task<IActionResult> ReplaceHttpsGatewayUrl(
+        [FromBody] ReplaceTenantDeviceHttpsGatewayUrlRequestDTO dto,
+        CancellationToken cancellationToken) =>
+        Ok(await mediator.Send(new ReplaceTenantDeviceHttpsGatewayUrlCommand(dto), cancellationToken));
+
+    /// <summary>
+    /// Publishes the next command already in the MQTTS queue now. HTTPS devices
+    /// deliberately use their next outbound heartbeat instead.
+    /// </summary>
+    [HttpPost("dispatch-mqtts-now")]
+    public async Task<IActionResult> DispatchMqttsNow(
+        [FromBody] DispatchTenantDeviceMqttsNowRequestDTO dto,
+        CancellationToken cancellationToken) =>
+        Ok(await mediator.Send(new DispatchTenantDeviceMqttsNowCommand(dto), cancellationToken));
+
+    private async Task<IActionResult> SendSettingsAsync(
+        TenantDeviceSettingRequestDTO dto,
+        TenantDeviceSettingsSection section,
+        CancellationToken cancellationToken) =>
+        Ok(await mediator.Send(new ApplyTenantDeviceSettingsCommand(dto, section), cancellationToken));
+
     #endregion
 
     #region Tenant Device Configuration CRUD

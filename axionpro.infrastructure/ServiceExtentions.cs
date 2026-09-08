@@ -2,6 +2,7 @@
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IDeviceCommunication;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.ILogger;
@@ -45,6 +46,7 @@ namespace axionpro.infrastructure
             services.AddSingleton<AxionProMqttClient>();
             services.AddSingleton<IAxionProMqttPublisher>(serviceProvider =>
                 serviceProvider.GetRequiredService<AxionProMqttClient>());
+            services.AddScoped<IDeviceCommandManualDispatcher, DeviceCommandManualDispatcher>();
             services.AddHostedService<AxionProMqttHostedService>();
             services.AddHostedService<DeviceCommandDispatcherWorker>();
 

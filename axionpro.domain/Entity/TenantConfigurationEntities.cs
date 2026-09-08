@@ -272,6 +272,13 @@ public partial class TenantDeviceConfiguration
     /// is deliberately never persisted or returned by configuration read endpoints.
     /// </summary>
     public string? HttpsIngressTokenHash { get; set; }
+    /// <summary>
+    /// SHA-256 hash for a replacement HTTPS gateway URL awaiting the device's
+    /// first successful poll. The current gateway remains valid until promotion.
+    /// </summary>
+    public string? PendingHttpsIngressTokenHash { get; set; }
+    /// <summary>Expiry for the pending replacement gateway token.</summary>
+    public DateTime? PendingHttpsIngressTokenExpiresDateTime { get; set; }
     public string? ServerHost { get; set; }
     public int? ServerPort { get; set; }
     public string? ServerPath { get; set; }

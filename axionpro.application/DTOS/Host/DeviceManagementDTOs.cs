@@ -285,8 +285,17 @@ public sealed class UpdateTenantDeviceConfigurationRequestDTO : TenantDeviceConf
 /// </summary>
 public sealed class RotateTenantDeviceHttpsIngressTokenRequestDTO : TenantDeviceAccessRequestDTO
 {
-    /// <summary>Gets or sets the encrypted TenantDeviceConfiguration identifier.</summary>
-    public string TenantDeviceConfigurationId { get; set; } = string.Empty;
+    /// <summary>
+    /// Gets or sets the encrypted TenantDeviceConfiguration identifier. Tenant
+    /// administrators use this value when rotating from a configuration screen.
+    /// </summary>
+    public string? TenantDeviceConfigurationId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the encrypted TenantDevice identifier. Host users use this
+    /// value to issue the gateway URL without reading Tenant configuration.
+    /// </summary>
+    public string? TenantDeviceId { get; set; }
 }
 
 /// <summary>Contains the one-time HTTPS gateway URL to copy to the physical device.</summary>
@@ -338,10 +347,16 @@ public sealed class ApplyTenantDeviceRuntimeConfigurationRequestDTO : TenantDevi
     /// <summary>Gets or sets the optional device volume between 0 and 15.</summary>
     public int? Volume { get; set; }
 
-    /// <summary>Gets or sets whether the local device WebServer must be disabled after cloud verification.</summary>
+    /// <summary>
+    /// Legacy field retained for request compatibility. Local Web UI/API access
+    /// is now changed only through the typed settings/web-access endpoint.
+    /// </summary>
     public bool DisableLocalWebServer { get; set; } = true;
 
-    /// <summary>Gets or sets the optional replacement local WebServer password.</summary>
+    /// <summary>
+    /// Legacy field retained for request compatibility. Use the typed
+    /// settings/web-access endpoint to rotate the local Web UI/API password.
+    /// </summary>
     public string? NewWebServerPassword { get; set; }
 
     /// <summary>Gets or sets whether the device should reboot after applying the queued configuration.</summary>

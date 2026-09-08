@@ -102,6 +102,21 @@ public interface IDeviceCommandDispatchStore
 }
 
 /// <summary>
+/// Publishes the next already-queued MQTTS command for one device only when an
+/// authorized user explicitly requests it. It never accepts a raw command
+/// payload and preserves the durable per-device queue ordering.
+/// </summary>
+public interface IDeviceCommandManualDispatcher
+{
+    Task<ManualDeviceCommandDispatchResult> DispatchNextMqttsAsync(
+        long tenantDeviceId,
+        CancellationToken cancellationToken = default);
+}
+
+/// <summary>Contains only non-sensitive manual-dispatch outcome data.</summary>
+public sealed record ManualDeviceCommandDispatchResult(bool WasDispatched, string Message);
+
+/// <summary>
 /// Handles the HTTPS polling transport. It never opens a connection to a
 /// device IP address; the physical device always initiates the request.
 /// </summary>

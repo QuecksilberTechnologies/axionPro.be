@@ -9,6 +9,13 @@ this file updated when the device flow changes.
 This runbook covers the HTTPS flow only. MQTT/MQTTS settings, broker
 credentials, and CA certificates are not part of it.
 
+For Tenant runtime settings, local Web UI/API access, physical System-menu
+PIN, and a **live remote gateway replacement** that preserves the active URL
+until confirmation, use
+[TenantDeviceRuntimeSettingsUiHandoff.md](TenantDeviceRuntimeSettingsUiHandoff.md).
+The normal rotate flow in this runbook remains the technician/manual recovery
+flow and invalidates the previous gateway URL immediately.
+
 ## Core model
 
 The device always makes an **outbound HTTPS POST** to AxionPro. AxionPro does
@@ -28,8 +35,8 @@ device; rotating a normal gateway URL invalidates the previous normal URL.
 
 | Role | Responsibility |
 | --- | --- |
-| Host Admin | Maintains device inventory and, for a new unassigned device, issues a temporary bootstrap URL. |
-| Tenant/authorized device administrator | Creates and maintains the Tenant device configuration; rotates the normal gateway URL for an existing device. |
+| Host Admin | Maintains device inventory, creates/changes the physical Tenant-device assignment, and issues a bootstrap or HTTPS gateway URL. It cannot read, update, delete, or apply runtime configuration after assignment. |
+| Tenant/authorized device administrator | Owns the complete assigned-device configuration: creates, reads, updates, and deletes it; rotates the normal gateway URL; applies runtime configuration; and reboots the device. |
 | Technician | Connects device to the network and enters the complete returned URL on the physical device. |
 | Physical device | Polls the public AxionPro HTTPS endpoint. It never receives an unsolicited Internet connection. |
 
@@ -88,6 +95,26 @@ The DeviceMaster/Inventory record must be active, support HTTPS, and have the
 same serial number as the physical device. A factory reset does not change the
 device serial number.
 
+## Configuration ownership after assignment
+
+Once Host Admin assigns an inventory device to a Tenant, connection and
+runtime configuration belongs to that Tenant. The Tenant role needs the
+`TENANT_DEVICE_CONFIGURATION` module permissions appropriate to the action:
+Add, View, Update, and Delete. With those permissions, it can manage the
+transport, server values, heartbeat, feature toggles, HTTPS gateway rotation,
+runtime command settings, and reboot.
+
+Host users are deliberately denied configuration read, create, update, delete,
+runtime-configuration, and reboot endpoints. Their device responsibilities are
+inventory/assignment plus issuing a bootstrap or HTTPS gateway URL. This avoids
+exposing a Tenant's operational configuration to Host users.
+
+For a normal HTTPS gateway URL, Host calls the existing rotate endpoint with
+the opaque `tenantDeviceId` returned by its assigned-device list; it does not
+need or receive a configuration ID. A Tenant calls that same endpoint with its
+opaque `tenantDeviceConfigurationId` from the configuration screen. Exactly
+one identifier is accepted per request.
+
 ## Flow A — existing assigned device or factory-reset device
 
 Use this flow when `TenantDevice` and `TenantDeviceConfiguration` already
@@ -110,6 +137,17 @@ Content-Type: application/json
 ```json
 {
   "tenantDeviceConfigurationId": "{configuration-id-token}",
+  "tenantId": "{selected-tenant-id}",
+  "moduleId": 49,
+  "operationId": 2
+}
+```
+
+Host URL issuance uses the same endpoint, but sends the device token instead:
+
+```json
+{
+  "tenantDeviceId": "{tenant-device-id-token}",
   "tenantId": "{selected-tenant-id}",
   "moduleId": 49,
   "operationId": 2
