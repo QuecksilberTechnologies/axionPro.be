@@ -121,6 +121,7 @@ public class UnitOfWork : IUnitOfWork
     private IAttendancePolicyRepository? _attendancePolicyRepository;
     private IEmployeeLocationAssignmentRepository? _employeeLocationAssignmentRepository;
     private IEmployeeDeviceEnrollmentRepository? _employeeDeviceEnrollmentRepository;
+    private ITenantCardMasterRepository? _tenantCardMasterRepository;
     private IEmployeeWorkArrangementRepository? _employeeWorkArrangementRepository;
     private IEmployeeWorkPatternRepository? _employeeWorkPatternRepository;
     private IEmployeeWorkModeOverrideRequestRepository? _employeeWorkModeOverrideRequestRepository;
@@ -464,6 +465,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IEmployeeDeviceEnrollmentRepository EmployeeDeviceEnrollmentRepository =>
         _employeeDeviceEnrollmentRepository ??= new EmployeeDeviceEnrollmentRepository(_context);
+
+    public ITenantCardMasterRepository TenantCardMasterRepository =>
+        _tenantCardMasterRepository ??= new TenantCardMasterRepository(_context);
 
     public IEmployeeWorkArrangementRepository EmployeeWorkArrangementRepository =>
         _employeeWorkArrangementRepository ??= new EmployeeWorkArrangementRepository(_context);

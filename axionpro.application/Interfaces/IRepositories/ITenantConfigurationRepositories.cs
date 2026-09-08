@@ -7,6 +7,7 @@
 
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TenantConfiguration;
+using axionpro.application.DTOS.Host;
 using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces.IRepositories;
@@ -99,10 +100,29 @@ public interface IEmployeeDeviceEnrollmentRepository
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
     /// <summary>Determines whether a Host-managed TenantDevice is eligible for enrollment.</summary>
     Task<bool> IsEligibleTenantDeviceAsync(long tenantId, long tenantDeviceId, CancellationToken cancellationToken);
-    /// <summary>Determines whether the physical device already has the live enroll identifier.</summary>
-    Task<bool> EnrollIdExistsAsync(long tenantId, long tenantDeviceId, string enrollId, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Determines whether the employee is already live on the physical Tenant device.</summary>
+    Task<bool> EnrollmentExistsAsync(long tenantId, long employeeId, long tenantDeviceId, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Gets an enrollment-eligible Tenant device with its authoritative location and configuration.</summary>
+    Task<TenantDevice?> GetEligibleTenantDeviceAsync(long tenantId, long tenantDeviceId, CancellationToken cancellationToken);
+    /// <summary>Determines whether the employee has an active attendance-allowed assignment for the device location.</summary>
+    Task<bool> HasEligibleEmployeeLocationAssignmentAsync(long tenantId, long employeeId, long tenantLocationId, DateOnly effectiveOn, CancellationToken cancellationToken);
+    /// <summary>Gets a non-soft-deleted active card for a trusted Tenant scope.</summary>
+    Task<TenantCardMaster?> GetActiveCardAsync(long tenantId, long cardId, CancellationToken cancellationToken);
+    /// <summary>Gets a tracked card for safe bind/unbind state transitions.</summary>
+    Task<TenantCardMaster?> GetCardForUpdateAsync(long tenantId, long cardId, CancellationToken cancellationToken);
     /// <summary>Adds a prepared employee-device enrollment.</summary>
     Task AddAsync(EmployeeDeviceEnrollment entity, CancellationToken cancellationToken);
+}
+
+/// <summary>Defines Host-only Tenant card-inventory persistence and assignment safety checks.</summary>
+public interface ITenantCardMasterRepository
+{
+    Task<TenantCardMaster?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken);
+    Task<TenantCardMaster?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
+    Task<PagedResponseDTO<TenantCardMaster>> GetPagedAsync(long tenantId, TenantCardMasterFilterRequestDTO filter, CancellationToken cancellationToken);
+    Task<bool> CardHashExistsAsync(long tenantId, string lookupHash, long? excludeId, CancellationToken cancellationToken);
+    Task<bool> HasActiveEnrollmentAssignmentAsync(long tenantId, long cardId, CancellationToken cancellationToken);
+    Task AddAsync(TenantCardMaster entity, CancellationToken cancellationToken);
 }
 
 /// <summary>Defines employee-work-arrangement persistence, validation, and lifecycle checks.</summary>

@@ -110,11 +110,28 @@ public partial class EmployeeDeviceEnrollment
     public long TenantId { get; set; }
     public long EmployeeId { get; set; }
     public long TenantDeviceId { get; set; }
+    /// <summary>Location snapshot taken from the TenantDevice at enrollment time.</summary>
+    public long TenantLocationId { get; set; }
+    /// <summary>Optional Host-issued active card bound to this device user.</summary>
+    public long? TenantCardMasterId { get; set; }
     public string EnrollId { get; set; } = null!;
+    /// <summary>Legacy display-only field. New credential flows use TenantCardMasterId.</summary>
     public string? CardNumber { get; set; }
+    /// <summary>SHA-256 of the last submitted face file; raw biometric image is never persisted here.</summary>
+    public string? FaceImageHash { get; set; }
     public bool IsFaceEnrolled { get; set; }
     public bool IsFingerprintEnrolled { get; set; }
     public bool IsCardEnrolled { get; set; }
+    public short FaceDeploymentStatus { get; set; }
+    public short CardDeploymentStatus { get; set; }
+    public short PinDeploymentStatus { get; set; }
+    public long? FaceDeviceCommandId { get; set; }
+    public long? CardDeviceCommandId { get; set; }
+    public long? PinDeviceCommandId { get; set; }
+    /// <summary>Most recent enable/disable command. Its status is the device-confirmation source for IsActive.</summary>
+    public long? UserActivationDeviceCommandId { get; set; }
+    public DateTime? AccessEffectiveFromDateTime { get; set; }
+    public DateTime? AccessEffectiveToDateTime { get; set; }
     public DateTime? LastSyncedDateTime { get; set; }
     public bool IsActive { get; set; }
     public bool IsSoftDeleted { get; set; }
@@ -126,6 +143,81 @@ public partial class EmployeeDeviceEnrollment
     public DateTime? SoftDeletedDateTime { get; set; }
     public virtual Tenant Tenant { get; set; } = null!;
     public virtual Employee Employee { get; set; } = null!;
+    public virtual TenantDevice TenantDevice { get; set; } = null!;
+    public virtual TenantLocation TenantLocation { get; set; } = null!;
+    public virtual TenantCardMaster? TenantCardMaster { get; set; }
+    public virtual DeviceCommand? FaceDeviceCommand { get; set; }
+    public virtual DeviceCommand? CardDeviceCommand { get; set; }
+    public virtual DeviceCommand? PinDeviceCommand { get; set; }
+    public virtual DeviceCommand? UserActivationDeviceCommand { get; set; }
+    public virtual ICollection<EmployeeDeviceAccessWindow> EmployeeDeviceAccessWindows { get; set; } = new List<EmployeeDeviceAccessWindow>();
+}
+
+/// <summary>
+/// Represents one weekly access window for an employee on one physical device.
+/// It is deliberately a child of EmployeeDeviceEnrollment rather than a shared
+/// master because the user requested one per-device employee configuration.
+/// </summary>
+public partial class EmployeeDeviceAccessWindow
+{
+    public long Id { get; set; }
+    public long EmployeeDeviceEnrollmentId { get; set; }
+    public short DayOfWeek { get; set; }
+    public TimeOnly StartLocalTime { get; set; }
+    public TimeOnly EndLocalTime { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsSoftDeleted { get; set; }
+    public long AddedById { get; set; }
+    public DateTime AddedDateTime { get; set; }
+    public long? UpdatedById { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+    public long? SoftDeletedById { get; set; }
+    public DateTime? SoftDeletedDateTime { get; set; }
+    public virtual EmployeeDeviceEnrollment EmployeeDeviceEnrollment { get; set; } = null!;
+}
+
+/// <summary>Represents one Host-managed physical card held in a Tenant's card inventory.</summary>
+public partial class TenantCardMaster
+{
+    public long Id { get; set; }
+    public long TenantId { get; set; }
+    public string CardNumberEncrypted { get; set; } = null!;
+    public string CardNumberLookupHash { get; set; } = null!;
+    public string? CardReference { get; set; }
+    public short CardStatus { get; set; }
+    public string PurchaseCurrencyCode { get; set; } = null!;
+    public decimal UnitPurchasePriceExcludingTax { get; set; }
+    public int? SupplierCountryId { get; set; }
+    public int? SupplierStateId { get; set; }
+    public int? PlaceOfSupplyCountryId { get; set; }
+    public int? PlaceOfSupplyStateId { get; set; }
+    public string? SupplierName { get; set; }
+    public string? SupplierTaxRegistrationNumber { get; set; }
+    public string? PurchaseInvoiceNumber { get; set; }
+    public DateOnly? PurchaseInvoiceDate { get; set; }
+    public short TaxTreatment { get; set; }
+    public decimal CgstRate { get; set; }
+    public decimal CgstAmount { get; set; }
+    public decimal SgstRate { get; set; }
+    public decimal SgstAmount { get; set; }
+    public decimal IgstRate { get; set; }
+    public decimal IgstAmount { get; set; }
+    public string? ForeignTaxLabel { get; set; }
+    public decimal ForeignTaxRate { get; set; }
+    public decimal ForeignTaxAmount { get; set; }
+    public decimal CustomsDutyAmount { get; set; }
+    public decimal FreightAmount { get; set; }
+    public decimal LandedCost { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsSoftDeleted { get; set; }
+    public long AddedById { get; set; }
+    public DateTime AddedDateTime { get; set; }
+    public long? UpdatedById { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+    public long? SoftDeletedById { get; set; }
+    public DateTime? SoftDeletedDateTime { get; set; }
+    public virtual Tenant Tenant { get; set; } = null!;
+    public virtual ICollection<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; } = new List<EmployeeDeviceEnrollment>();
 }
 
 /// <summary>Represents an employee's active or historical work arrangement.</summary>

@@ -28,6 +28,10 @@ public static class DeviceDdl
     public const string Ethernet = "ethernet";
     public const string Wifi = "wifi";
     public const string AppNotification = "app-notification";
+    /// <summary>Employee credential actions are AxionPro UI choices, not vendor firmware settings.</summary>
+    public const string EmployeeDeviceCredentials = "employee-device-credentials";
+    public const string EmployeeDeviceAccessWindows = "employee-device-access-windows";
+    public const string TenantCardInventory = "tenant-card-inventory";
 
     private static readonly IReadOnlyList<DeviceDdlOption> YesNo =
     [
@@ -88,6 +92,19 @@ public static class DeviceDdl
             [
                 Field("appNotificationEnabled", "Enable app notifications", YesNo),
                 Field("notificationType", "Notification frequency", ("0", "All notifications"), ("1", "Each attendance punch"), ("2", "Summary"), ("3", "Disabled"))
+            ],
+            [EmployeeDeviceCredentials] =
+            [
+                Field("credentialType", "Credential to remove", ("1", "Face biometric"), ("2", "Access card"), ("3", "Device PIN"))
+            ],
+            [EmployeeDeviceAccessWindows] =
+            [
+                Field("dayOfWeek", "Working access day", ("1", "Monday"), ("2", "Tuesday"), ("3", "Wednesday"), ("4", "Thursday"), ("5", "Friday"), ("6", "Saturday"), ("7", "Sunday"))
+            ],
+            [TenantCardInventory] =
+            [
+                Field("taxTreatment", "Purchase tax treatment", ("1", "India — intra-state (CGST + SGST)"), ("2", "India — inter-state (IGST)"), ("3", "Import (customs duty / import tax)"), ("4", "Foreign local tax")),
+                Field("cardStatus", "Inventory lifecycle filter", ("1", "Available"), ("2", "Assigned"), ("3", "Blocked"), ("4", "Lost"), ("5", "Returned"), ("6", "Retired"))
             ]
         };
 

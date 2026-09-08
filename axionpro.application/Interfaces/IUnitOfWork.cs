@@ -102,6 +102,8 @@ namespace axionpro.application.Interfaces
         IEmployeeLocationAssignmentRepository EmployeeLocationAssignmentRepository { get; }
         /// <summary>Gets employee-device-enrollment persistence operations.</summary>
         IEmployeeDeviceEnrollmentRepository EmployeeDeviceEnrollmentRepository { get; }
+        /// <summary>Gets Host-only Tenant card-inventory persistence operations.</summary>
+        ITenantCardMasterRepository TenantCardMasterRepository { get; }
         /// <summary>Gets employee-work-arrangement persistence operations.</summary>
         IEmployeeWorkArrangementRepository EmployeeWorkArrangementRepository { get; }
         /// <summary>Gets employee-work-pattern persistence operations.</summary>

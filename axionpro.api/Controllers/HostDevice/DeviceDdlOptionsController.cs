@@ -52,6 +52,18 @@ public sealed class DeviceDdlOptionsController : ControllerBase
     [HttpGet("app-notification")]
     public IActionResult GetAppNotification() => Ok(Section(DeviceDdl.AppNotification));
 
+    /// <summary>Gets the employee device credential choices used only by the credential-removal action.</summary>
+    [HttpGet("employee-device-credentials")]
+    public IActionResult GetEmployeeDeviceCredentials() => Ok(Section(DeviceDdl.EmployeeDeviceCredentials));
+
+    /// <summary>Gets the Monday-first working-access-day options for employee device schedules.</summary>
+    [HttpGet("employee-device-access-windows")]
+    public IActionResult GetEmployeeDeviceAccessWindows() => Ok(Section(DeviceDdl.EmployeeDeviceAccessWindows));
+
+    /// <summary>Gets Host card-procurement tax treatment and inventory-status filter options.</summary>
+    [HttpGet("tenant-card-inventory")]
+    public IActionResult GetTenantCardInventory() => Ok(Section(DeviceDdl.TenantCardInventory));
+
     private static ApiResponse<IReadOnlyList<DeviceDdlField>> Section(string section) =>
         ApiResponse<IReadOnlyList<DeviceDdlField>>.Success(DeviceDdl.GetSection(section));
 }

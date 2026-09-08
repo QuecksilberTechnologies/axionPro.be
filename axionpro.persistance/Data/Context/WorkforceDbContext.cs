@@ -146,6 +146,10 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; }
 
+        public virtual DbSet<EmployeeDeviceAccessWindow> EmployeeDeviceAccessWindows { get; set; }
+
+        public virtual DbSet<TenantCardMaster> TenantCardMasters { get; set; }
+
         public virtual DbSet<EmployeeLocationAssignment> EmployeeLocationAssignments { get; set; }
 
         public virtual DbSet<EmployeeWorkArrangement> EmployeeWorkArrangements { get; set; }
@@ -3765,15 +3769,79 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("EmployeeDeviceEnrollment", "axionpro");
                 entity.HasIndex(e => e.EmployeeId, "IX_EmployeeDeviceEnrollment_EmployeeId");
                 entity.HasIndex(e => e.TenantDeviceId, "IX_EmployeeDeviceEnrollment_TenantDeviceId");
+                entity.HasIndex(e => e.TenantLocationId, "IX_EmployeeDeviceEnrollment_TenantLocationId");
+                entity.HasIndex(e => e.TenantCardMasterId, "IX_EmployeeDeviceEnrollment_TenantCardMasterId");
                 entity.HasIndex(e => e.TenantId, "IX_EmployeeDeviceEnrollment_TenantId");
                 entity.Property(e => e.EnrollId).HasMaxLength(100);
                 entity.Property(e => e.CardNumber).HasMaxLength(100);
+                entity.Property(e => e.FaceImageHash).HasMaxLength(64);
+                entity.Property(e => e.FaceDeploymentStatus).HasDefaultValue((short)DeviceCredentialDeploymentStatus.NotConfigured);
+                entity.Property(e => e.CardDeploymentStatus).HasDefaultValue((short)DeviceCredentialDeploymentStatus.NotConfigured);
+                entity.Property(e => e.PinDeploymentStatus).HasDefaultValue((short)DeviceCredentialDeploymentStatus.NotConfigured);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.EmployeeDeviceEnrollments)
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_Tenant");
                 entity.HasOne(e => e.Employee).WithMany(e => e.EmployeeDeviceEnrollments)
                     .HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_Employee");
+                entity.HasOne(e => e.TenantDevice).WithMany(e => e.EmployeeDeviceEnrollments)
+                    .HasForeignKey(e => e.TenantDeviceId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_TenantDevice");
+                entity.HasOne(e => e.TenantLocation).WithMany(e => e.EmployeeDeviceEnrollments)
+                    .HasForeignKey(e => e.TenantLocationId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_TenantLocation");
+                entity.HasOne(e => e.TenantCardMaster).WithMany(e => e.EmployeeDeviceEnrollments)
+                    .HasForeignKey(e => e.TenantCardMasterId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_TenantCardMaster");
+                entity.HasOne(e => e.FaceDeviceCommand).WithMany().HasForeignKey(e => e.FaceDeviceCommandId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_FaceDeviceCommand");
+                entity.HasOne(e => e.CardDeviceCommand).WithMany().HasForeignKey(e => e.CardDeviceCommandId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_CardDeviceCommand");
+                entity.HasOne(e => e.PinDeviceCommand).WithMany().HasForeignKey(e => e.PinDeviceCommandId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_PinDeviceCommand");
+                entity.HasOne(e => e.UserActivationDeviceCommand).WithMany().HasForeignKey(e => e.UserActivationDeviceCommandId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_UserActivationDeviceCommand");
+            });
+
+            modelBuilder.Entity<EmployeeDeviceAccessWindow>(entity =>
+            {
+                entity.ToTable("EmployeeDeviceAccessWindow", "axionpro");
+                entity.HasIndex(e => e.EmployeeDeviceEnrollmentId, "IX_EmployeeDeviceAccessWindow_EnrollmentId");
+                entity.HasIndex(e => new { e.EmployeeDeviceEnrollmentId, e.DayOfWeek, e.StartLocalTime }, "UX_EmployeeDeviceAccessWindow_Enrollment_Day_Start")
+                    .IsUnique().HasFilter("((\"IsActive\" = true) AND (\"IsSoftDeleted\" = false))");
+                entity.Property(e => e.StartLocalTime).HasColumnType("time without time zone");
+                entity.Property(e => e.EndLocalTime).HasColumnType("time without time zone");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.HasOne(e => e.EmployeeDeviceEnrollment).WithMany(e => e.EmployeeDeviceAccessWindows)
+                    .HasForeignKey(e => e.EmployeeDeviceEnrollmentId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceAccessWindow_Enrollment");
+            });
+
+            modelBuilder.Entity<TenantCardMaster>(entity =>
+            {
+                entity.ToTable("TenantCardMaster", "axionpro");
+                entity.HasIndex(e => e.TenantId, "IX_TenantCardMaster_TenantId");
+                entity.HasIndex(e => new { e.TenantId, e.CardNumberLookupHash }, "UX_TenantCardMaster_Tenant_CardHash")
+                    .IsUnique().HasFilter("(\"IsSoftDeleted\" = false)");
+                entity.HasIndex(e => new { e.TenantId, e.CardStatus, e.IsActive }, "IX_TenantCardMaster_AvailableLookup");
+                entity.Property(e => e.CardNumberEncrypted).HasMaxLength(1000).IsRequired();
+                entity.Property(e => e.CardNumberLookupHash).HasMaxLength(64).IsRequired();
+                entity.Property(e => e.CardReference).HasMaxLength(100);
+                entity.Property(e => e.PurchaseCurrencyCode).HasMaxLength(3).IsRequired();
+                entity.Property(e => e.SupplierName).HasMaxLength(200);
+                entity.Property(e => e.SupplierTaxRegistrationNumber).HasMaxLength(100);
+                entity.Property(e => e.PurchaseInvoiceNumber).HasMaxLength(100);
+                entity.Property(e => e.ForeignTaxLabel).HasMaxLength(100);
+                entity.Property(e => e.UnitPurchasePriceExcludingTax).HasPrecision(18, 4);
+                entity.Property(e => e.CgstRate).HasPrecision(9, 4);
+                entity.Property(e => e.CgstAmount).HasPrecision(18, 4);
+                entity.Property(e => e.SgstRate).HasPrecision(9, 4);
+                entity.Property(e => e.SgstAmount).HasPrecision(18, 4);
+                entity.Property(e => e.IgstRate).HasPrecision(9, 4);
+                entity.Property(e => e.IgstAmount).HasPrecision(18, 4);
+                entity.Property(e => e.ForeignTaxRate).HasPrecision(9, 4);
+                entity.Property(e => e.ForeignTaxAmount).HasPrecision(18, 4);
+                entity.Property(e => e.CustomsDutyAmount).HasPrecision(18, 4);
+                entity.Property(e => e.FreightAmount).HasPrecision(18, 4);
+                entity.Property(e => e.LandedCost).HasPrecision(18, 4);
+                entity.Property(e => e.CardStatus).HasDefaultValue((short)TenantCardStatus.Available);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.HasOne(e => e.Tenant).WithMany(e => e.TenantCardMasters)
+                    .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantCardMaster_Tenant");
             });
 
             modelBuilder.Entity<EmployeeWorkArrangement>(entity =>

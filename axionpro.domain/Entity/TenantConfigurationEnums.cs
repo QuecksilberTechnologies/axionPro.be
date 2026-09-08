@@ -98,3 +98,33 @@ public enum TenantLocationType : short
     /// <summary>Remote office.</summary>
     RemoteOffice = 9
 }
+
+/// <summary>Describes the operational state of a physical access card in Tenant inventory.</summary>
+public enum TenantCardStatus : short
+{
+    Available = 1,
+    Assigned = 2,
+    Blocked = 3,
+    Lost = 4,
+    Returned = 5,
+    Retired = 6
+}
+
+/// <summary>Describes the tax basis recorded from the actual card procurement invoice.</summary>
+public enum TenantCardTaxTreatment : short
+{
+    DomesticIntraState = 1,
+    DomesticInterState = 2,
+    Import = 3,
+    ForeignLocalTax = 4
+}
+
+/// <summary>Describes a credential's most recently submitted device deployment state.</summary>
+public enum DeviceCredentialDeploymentStatus : short
+{
+    NotConfigured = 0,
+    Queued = 1,
+    Completed = 2,
+    Failed = 3,
+    Removed = 4
+}

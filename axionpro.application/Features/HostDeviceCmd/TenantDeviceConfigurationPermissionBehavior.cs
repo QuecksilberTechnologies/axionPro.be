@@ -35,6 +35,7 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
 {
     private const string HostInitialDeviceConfigurationModuleCode = "HOST_INITIAL_DEVICE_CONFIGURATION";
     private const string TenantDeviceConfigurationModuleCode = "TENANT_DEVICE_CONFIGURATION";
+    private const string HostTenantCardInventoryModuleCode = "HOST_TENANT_CARD_INVENTORY";
 
     #region Permission Pipeline
 
@@ -91,7 +92,7 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
 
         await EnsureExpectedModuleCodeAsync(permissionRequest, expectedModuleCode);
 
-        if (string.Equals(expectedModuleCode, HostInitialDeviceConfigurationModuleCode, StringComparison.Ordinal))
+        if (!string.Equals(expectedModuleCode, TenantDeviceConfigurationModuleCode, StringComparison.Ordinal))
         {
             throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
@@ -136,6 +137,9 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
             return HostInitialDeviceConfigurationModuleCode;
         }
 
+        if (requestType.Namespace?.StartsWith("axionpro.application.Features.HostDeviceCmd.Handlers", StringComparison.Ordinal) == true && requestType.Name.Contains("TenantCardMaster", StringComparison.Ordinal))
+            return HostTenantCardInventoryModuleCode;
+
         return requestType == typeof(CreateTenantDeviceConfigurationCommand) ||
                requestType == typeof(UpdateTenantDeviceConfigurationCommand) ||
                requestType == typeof(DeleteTenantDeviceConfigurationCommand) ||
@@ -161,7 +165,8 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
     /// </summary>
     private static bool IsHostAllowedRequest() =>
         typeof(TRequest) == typeof(IssueInitialDeviceBootstrapCommand) ||
-        typeof(TRequest) == typeof(RotateTenantDeviceHttpsIngressTokenCommand);
+        typeof(TRequest) == typeof(RotateTenantDeviceHttpsIngressTokenCommand) ||
+        typeof(TRequest).Name.Contains("TenantCardMaster", StringComparison.Ordinal);
 
     #endregion
 

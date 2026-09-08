@@ -7,6 +7,7 @@
 
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.domain.Entity;
+using Microsoft.AspNetCore.Http;
 using System.Text.Json.Serialization;
 
 namespace axionpro.application.DTOS.TenantConfiguration;
@@ -228,25 +229,37 @@ public sealed class EmployeeLocationAssignmentResponseDTO
 public class CreateEmployeeDeviceEnrollmentRequestDTO : PermissionRequestDTO
 {
     public string EmployeeId { get; set; } = string.Empty;
-    public long TenantDeviceId { get; set; }
-    public string EnrollId { get; set; } = string.Empty;
-    public string? CardNumber { get; set; }
-    public bool IsFaceEnrolled { get; set; }
-    public bool IsFingerprintEnrolled { get; set; }
-    public bool IsCardEnrolled { get; set; }
+    /// <summary>Encrypted Tenant device identifier. The server resolves the physical device and location.</summary>
+    public string TenantDeviceId { get; set; } = string.Empty;
+    /// <summary>Optional encrypted Host-issued card identifier. A typed card number is never accepted here.</summary>
+    public string? TenantCardId { get; set; }
+    /// <summary>Optional inclusive validity period for all configured weekly access windows.</summary>
+    public DateTime? AccessEffectiveFromDateTime { get; set; }
+    public DateTime? AccessEffectiveToDateTime { get; set; }
+    /// <summary>Weekly employee/device access windows; the API owns their persistence and lifecycle.</summary>
+    public List<EmployeeDeviceAccessWindowRequestDTO> AccessWindows { get; set; } = new();
+    public bool IsActive { get; set; } = true;
+}
+
+/// <summary>One local-time weekly access window submitted with an employee-device enrollment.</summary>
+public sealed class EmployeeDeviceAccessWindowRequestDTO
+{
+    public WorkPatternDay DayOfWeek { get; set; }
+    public TimeOnly StartLocalTime { get; set; }
+    public TimeOnly EndLocalTime { get; set; }
     public bool IsActive { get; set; } = true;
 }
 
 /// <summary>Supplies client-editable values for an existing employee device enrollment.</summary>
 public sealed class UpdateEmployeeDeviceEnrollmentRequestDTO : CreateEmployeeDeviceEnrollmentRequestDTO
 {
-    public long Id { get; set; }
+    public string Id { get; set; } = string.Empty;
 }
 
 /// <summary>Supplies an employee-device-enrollment active-state change.</summary>
 public sealed class UpdateEmployeeDeviceEnrollmentStatusRequestDTO : PermissionRequestDTO
 {
-    public long Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public bool IsActive { get; set; }
 }
 
@@ -256,7 +269,8 @@ public sealed class EmployeeDeviceEnrollmentFilterRequestDTO : PermissionRequest
     public string? Search { get; set; }
     public string? EmployeeId { get; set; }
     [JsonIgnore] public long? ResolvedEmployeeId { get; set; }
-    public long? TenantDeviceId { get; set; }
+    public string? TenantDeviceId { get; set; }
+    [JsonIgnore] public long? ResolvedTenantDeviceId { get; set; }
     public long? TenantLocationId { get; set; }
     public bool? IsActive { get; set; }
     public int PageNumber { get; set; } = 1;
@@ -266,23 +280,79 @@ public sealed class EmployeeDeviceEnrollmentFilterRequestDTO : PermissionRequest
 /// <summary>Describes an employee enrollment on a Host-managed physical device.</summary>
 public sealed class EmployeeDeviceEnrollmentResponseDTO
 {
-    public long Id { get; set; }
-    public long EmployeeId { get; set; }
+    public string Id { get; set; } = string.Empty;
+    public string EmployeeId { get; set; } = string.Empty;
     public string EmployeeName { get; set; } = string.Empty;
     public string? EmployeeCode { get; set; }
-    public long TenantDeviceId { get; set; }
+    public string TenantDeviceId { get; set; } = string.Empty;
     public string DeviceCode { get; set; } = string.Empty;
     public string? DeviceName { get; set; }
-    public string SerialNumber { get; set; } = string.Empty;
-    public long TenantLocationId { get; set; }
+    public string TenantLocationId { get; set; } = string.Empty;
     public string TenantLocationName { get; set; } = string.Empty;
-    public string EnrollId { get; set; } = string.Empty;
-    public string? CardNumber { get; set; }
+    /// <summary>Device-only global employee identifier. It is intentionally not returned to Angular.</summary>
+    public string? TenantCardId { get; set; }
+    public string? MaskedCardNumber { get; set; }
     public bool IsFaceEnrolled { get; set; }
     public bool IsFingerprintEnrolled { get; set; }
     public bool IsCardEnrolled { get; set; }
+    public DeviceCredentialDeploymentStatus FaceDeploymentStatus { get; set; }
+    public DeviceCredentialDeploymentStatus CardDeploymentStatus { get; set; }
+    public DeviceCredentialDeploymentStatus PinDeploymentStatus { get; set; }
+    public DeviceCommandStatus? FaceCommandStatus { get; set; }
+    public DeviceCommandStatus? CardCommandStatus { get; set; }
+    public DeviceCommandStatus? PinCommandStatus { get; set; }
+    /// <summary>Live confirmation state for the most recent enable/disable command.</summary>
+    public DeviceCommandStatus? UserActivationCommandStatus { get; set; }
+    public DateTime? AccessEffectiveFromDateTime { get; set; }
+    public DateTime? AccessEffectiveToDateTime { get; set; }
+    public List<EmployeeDeviceAccessWindowResponseDTO> AccessWindows { get; set; } = new();
     public DateTime? LastSyncedDateTime { get; set; }
     public bool IsActive { get; set; }
+}
+
+/// <summary>One read-only weekly access window returned as part of its enrollment.</summary>
+public sealed class EmployeeDeviceAccessWindowResponseDTO
+{
+    public WorkPatternDay DayOfWeek { get; set; }
+    public TimeOnly StartLocalTime { get; set; }
+    public TimeOnly EndLocalTime { get; set; }
+    public bool IsActive { get; set; }
+}
+
+/// <summary>Queues an uploaded face photo for one existing employee-device enrollment.</summary>
+public sealed class UpsertEmployeeDeviceFaceRequestDTO : PermissionRequestDTO
+{
+    public string EnrollmentId { get; set; } = string.Empty;
+    public IFormFile? FaceImage { get; set; }
+}
+
+/// <summary>Queues a write-only employee device PIN create or replacement.</summary>
+public sealed class UpsertEmployeeDevicePinRequestDTO : PermissionRequestDTO
+{
+    public string EnrollmentId { get; set; } = string.Empty;
+    public string Pin { get; set; } = string.Empty;
+}
+
+/// <summary>Queues card association change for one existing employee-device enrollment.</summary>
+public sealed class BindEmployeeDeviceCardRequestDTO : PermissionRequestDTO
+{
+    public string EnrollmentId { get; set; } = string.Empty;
+    public string TenantCardId { get; set; } = string.Empty;
+}
+
+/// <summary>Queues removal of one employee credential from a physical device.</summary>
+public sealed class RemoveEmployeeDeviceCredentialRequestDTO : PermissionRequestDTO
+{
+    public string EnrollmentId { get; set; } = string.Empty;
+    public EmployeeDeviceCredentialType CredentialType { get; set; }
+}
+
+/// <summary>Names only the employee credentials which can be remotely removed.</summary>
+public enum EmployeeDeviceCredentialType : short
+{
+    Face = 1,
+    Card = 2,
+    Pin = 3
 }
 
 /// <summary>Supplies client-editable values for an employee work arrangement.</summary>

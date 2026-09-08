@@ -14,6 +14,7 @@ public partial class Tenant
     public virtual ICollection<AttendancePolicy> AttendancePolicies { get; set; } = new List<AttendancePolicy>();
     public virtual ICollection<EmployeeLocationAssignment> EmployeeLocationAssignments { get; set; } = new List<EmployeeLocationAssignment>();
     public virtual ICollection<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; } = new List<EmployeeDeviceEnrollment>();
+    public virtual ICollection<TenantCardMaster> TenantCardMasters { get; set; } = new List<TenantCardMaster>();
     public virtual ICollection<EmployeeWorkArrangement> EmployeeWorkArrangements { get; set; } = new List<EmployeeWorkArrangement>();
     public virtual ICollection<EmployeeWorkPattern> EmployeeWorkPatterns { get; set; } = new List<EmployeeWorkPattern>();
     public virtual ICollection<EmployeeWorkModeOverrideRequest> EmployeeWorkModeOverrideRequests { get; set; } = new List<EmployeeWorkModeOverrideRequest>();
@@ -45,4 +46,16 @@ public partial class Country
 public partial class City
 {
     public virtual ICollection<TenantLocation> TenantLocations { get; set; } = new List<TenantLocation>();
+}
+
+/// <summary>Adds device-enrollment navigation to a Tenant location.</summary>
+public partial class TenantLocation
+{
+    public virtual ICollection<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; } = new List<EmployeeDeviceEnrollment>();
+}
+
+/// <summary>Adds employee-enrollment navigation to a physical Tenant device.</summary>
+public partial class TenantDevice
+{
+    public virtual ICollection<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; } = new List<EmployeeDeviceEnrollment>();
 }
