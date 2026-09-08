@@ -31,14 +31,14 @@ public sealed class NavigationController : ControllerBase
     }
 
     /// <summary>
-    /// Not-Used-In-Angular.
+    /// Used by the Angular application shell to build the authenticated user's menu.
     /// </summary>
     /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
     /// <para>API endpoint purpose: retrieves my navigation menu.</para>
     /// <para>Handler flow: GetMyNavigationMenuQuery is processed by GetMyNavigationMenuQueryHandler; operation(s): GetTenantNavigationMenuAsync, GetHostNavigationMenuAsync.</para>
     /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); NavigationMenuResponseDTO: UserType (string), Items (IReadOnlyCollection&lt;NavigationMenuItemResponseDTO&gt;)</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>The Angular shell calls this endpoint after authentication and uses Data.Items as the menu tree.</para>
     /// <para>Backend endpoint: GET /api/navigation/my-menu.</para>
     /// </remarks>
     [HttpGet("my-menu")]
