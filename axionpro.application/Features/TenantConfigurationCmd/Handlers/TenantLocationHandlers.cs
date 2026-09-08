@@ -146,8 +146,9 @@ public abstract class TenantLocationAccessHandlerBase : TenantConfigurationHandl
     }
 
     /// <summary>
-    /// Resolves the list scope. The current Host Admin role is permitted to retrieve
-    /// all live Tenant locations, while normal Host and Tenant users remain Tenant-scoped.
+    /// Resolves the list scope. Any authorized Host role may retrieve all live
+    /// Tenant locations when TenantId is omitted; Tenant users remain scoped to
+    /// their own Tenant.
     /// </summary>
     /// <param name="accessRequest">The request containing Host or Tenant permission context.</param>
     /// <param name="cancellationToken">The token used to cancel authorization work.</param>
@@ -163,7 +164,7 @@ public abstract class TenantLocationAccessHandlerBase : TenantConfigurationHandl
         {
             var hostContext = await CommonRequestService.ValidateHostUserPermissionRequestAsync();
 
-            if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId)
+            if (string.IsNullOrWhiteSpace(accessRequest.TenantId))
             {
                 return null;
             }

@@ -140,14 +140,6 @@ public class SaveHostRoleModulePermissionsCommandHandler
                 "Every requested module-operation permission must be an active module-operation mapping.");
         }
 
-        // Host Admin cannot be partially de-permissioned. Persist the complete
-        // active Host-scope set for audit/UI consistency; runtime authorization is
-        // also protected by the same canonical Host Admin bypass.
-        if (hostRole.Id == AppConstants.SuperAdminHostRoleId)
-        {
-            requestedPairs = validMappingPairs.ToList();
-        }
-
         var requestedSet = requestedPairs.ToHashSet();
         var existingPermissions = await _unitOfWork.HostRolePermissionRepository
             .GetByHostRoleIdAsync(hostRole.Id, cancellationToken);

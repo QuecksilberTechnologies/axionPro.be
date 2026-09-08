@@ -20,8 +20,8 @@ namespace axionpro.application.Features.TenantManagementCmd;
 
 /// <summary>
 /// Enforces the Host Tenant-management module contract for every command and
-/// query in <c>TenantManagementCmd</c>. Super Admin access remains entirely in
-/// the existing <see cref="HostRuntimePermissionValidator"/> flow.
+/// query in <c>TenantManagementCmd</c>. Every Host role is checked through the
+/// persisted <see cref="HostRuntimePermissionValidator"/> flow.
 /// </summary>
 public sealed class TenantManagementPermissionBehavior<TRequest, TResponse>(
     IUnitOfWork unitOfWork,
@@ -53,19 +53,12 @@ public sealed class TenantManagementPermissionBehavior<TRequest, TResponse>(
         }
 
         var permissionRequest = ResolvePermissionRequest(request);
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+        await HostRuntimePermissionValidator.ValidateAsync(
             commonRequestService,
             unitOfWork.StoreProcedureRepository,
             permissionRequest?.ModuleId ?? 0,
             permissionRequest?.OperationId ?? 0,
             cancellationToken);
-
-        // The HostRuntimePermissionValidator verifies the current role before
-        // permitting Super Admin access, including when the client omits IDs.
-        if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId)
-        {
-            return await next();
-        }
 
         if (permissionRequest is null)
         {

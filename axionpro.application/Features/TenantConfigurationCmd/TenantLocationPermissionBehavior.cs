@@ -20,9 +20,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.TenantConfigurationCmd;
 
 /// <summary>
-/// Centrally authorizes only the six TenantLocation commands and queries. It
-/// supports the existing Host Super Admin bypass, normal Host permissions, and
-/// Tenant employee permissions without changing endpoint contracts.
+/// Centrally authorizes only the six TenantLocation commands and queries. Host
+/// roles use persisted module-operation permissions and Tenant employees use
+/// the tenant permission function without changing endpoint contracts.
 /// </summary>
 public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
     IUnitOfWork unitOfWork,
@@ -48,17 +48,12 @@ public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
 
         if (principal.UserType == LoginUserType.Host)
         {
-            var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+            await HostRuntimePermissionValidator.ValidateAsync(
                 commonRequestService,
                 unitOfWork.StoreProcedureRepository,
                 permissionRequest.ModuleId,
                 permissionRequest.OperationId,
                 cancellationToken);
-
-            if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId)
-            {
-                return await next();
-            }
 
             await EnsureExpectedModuleCodeAsync(permissionRequest, cancellationToken);
             return await next();

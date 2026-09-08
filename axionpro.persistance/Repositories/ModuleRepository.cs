@@ -308,7 +308,6 @@ namespace axionpro.persistance.Repositories
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<NavigationMenuItemResponseDTO>> GetHostNavigationMenuAsync(
             long hostRoleId,
-            bool isSuperAdmin,
             CancellationToken cancellationToken = default)
         {
             var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
@@ -345,53 +344,33 @@ namespace axionpro.persistance.Repositories
                       operation.IsActive
                 select new { module, operation };
 
-            NavigationOperationRecord[] allowedOperations;
-            if (isSuperAdmin)
-            {
-                allowedOperations = (await hostModuleOperations
-                    .Select(row => new NavigationOperationRecord(
-                        row.module.Id,
-                        row.operation.Id,
-                        row.operation.OperationName,
-                        row.operation.IconImage))
-                    .ToListAsync(cancellationToken))
-                    .Distinct()
-                    .ToArray();
-            }
-            else
-            {
-                allowedOperations = (await (
-                    from row in hostModuleOperations
-                    join permission in context.HostRoleModuleAndPermissions.AsNoTracking()
-                        on new { ModuleId = row.module.Id, OperationId = row.operation.Id }
-                        equals new { permission.ModuleId, permission.OperationId }
-                    where permission.HostRoleId == hostRoleId &&
-                          permission.IsActive &&
-                          !permission.IsSoftDeleted
-                    select new NavigationOperationRecord(
-                        row.module.Id,
-                        row.operation.Id,
-                        row.operation.OperationName,
-                        row.operation.IconImage))
-                    .ToListAsync(cancellationToken))
-                    .Distinct()
-                    .ToArray();
-            }
+            var allowedOperations = (await (
+                from row in hostModuleOperations
+                join permission in context.HostRoleModuleAndPermissions.AsNoTracking()
+                    on new { ModuleId = row.module.Id, OperationId = row.operation.Id }
+                    equals new { permission.ModuleId, permission.OperationId }
+                where permission.HostRoleId == hostRoleId &&
+                      permission.IsActive &&
+                      !permission.IsSoftDeleted
+                select new NavigationOperationRecord(
+                    row.module.Id,
+                    row.operation.Id,
+                    row.operation.OperationName,
+                    row.operation.IconImage))
+                .ToListAsync(cancellationToken))
+                .Distinct()
+                .ToArray();
 
-            // MyMenu is the Host application's menu source. The canonical Host
-            // Admin must see every active, UI-visible Host module even if an older
-            // module is awaiting its first operation mapping. Other Host roles
-            // remain limited to modules reached through an explicit permission.
-            return BuildNavigationTree(
-                hostModules,
-                allowedOperations,
-                includeAllScopedModules: isSuperAdmin);
+            // MyMenu is role/permission driven for every Host role. A module is
+            // visible only when its active operational mapping is granted to the
+            // current HostRoleModuleAndPermission set.
+            return BuildNavigationTree(hostModules, allowedOperations);
         }
 
         private static IReadOnlyCollection<NavigationMenuItemResponseDTO> BuildNavigationTree(
             IReadOnlyCollection<NavigationModuleRecord> scopedModules,
-            IReadOnlyCollection<NavigationOperationRecord> allowedOperations,
-            bool includeAllScopedModules = false)
+            IReadOnlyCollection<NavigationOperationRecord> allowedOperations
+            )
         {
             var modulesById = scopedModules
                 .GroupBy(module => module.Id)
@@ -417,14 +396,6 @@ namespace axionpro.persistance.Repositories
             foreach (var operationModuleId in operationsByModuleId.Keys)
             {
                 AddModuleAndAncestors(operationModuleId, modulesById, visibleModuleIds);
-            }
-
-            if (includeAllScopedModules)
-            {
-                foreach (var moduleId in modulesById.Keys)
-                {
-                    AddModuleAndAncestors(moduleId, modulesById, visibleModuleIds);
-                }
             }
 
             var childrenByParentId = modulesById.Values

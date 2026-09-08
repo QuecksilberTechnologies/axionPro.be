@@ -45,17 +45,12 @@ public sealed class EmailTemplatePermissionBehavior<TRequest, TResponse>(
         }
 
         var permissionRequest = protectedRequest.PermissionRequest;
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+        await HostRuntimePermissionValidator.ValidateAsync(
             commonRequestService,
             unitOfWork.StoreProcedureRepository,
             permissionRequest?.ModuleId ?? 0,
             permissionRequest?.OperationId ?? 0,
             cancellationToken);
-
-        if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId)
-        {
-            return await next();
-        }
 
         if (permissionRequest is null)
         {

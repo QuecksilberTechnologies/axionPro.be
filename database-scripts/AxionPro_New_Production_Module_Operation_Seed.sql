@@ -17,14 +17,18 @@
 --   6. Employee password : Child module, dedicated Reset Password operation,
 --                          operation mapping, and inherited plan mappings.
 --   7. Existing module / operation records ko normalize/update karna.
---   8. Identity / auto-increment sequence safely synchronize karna.
+--   8. Host administration hierarchy and Host authorization baseline.
+--   9. Identity / auto-increment sequence safely synchronize karna.
 --
 -- IMPORTANT:
 --   * SMTP password/secret hard-code nahi kiya gaya hai.
---   * Host Admin (HostRole Id = 1) receives/re-activates every active Host-scope
---     operational mapping deliberately. Other Host and all Tenant role
---     permissions are never auto-granted.
---   * Existing production IDs ko reset/delete nahi kiya jayega.
+--   * Host-Super-Admin (HostRole Id = 1) receives persisted permission rows for
+--     every active Host-scope operational mapping. Runtime authorization always
+--     uses the persisted HostRoleModuleAndPermission rows; there is no role
+--     bypass in the request behaviours or MyMenu query.
+--   * Host authorization data is deliberately rebuilt by this seed: old Host
+--     users, roles, grants, and Host refresh tokens are removed, then the
+--     identity sequences are restarted and the canonical Host user is inserted.
 --   * Script re-run safe/idempotent rakhi gayi hai.
 --   * Shared modules intentionally have TenantId = NULL; root modules
 --     intentionally have ParentModuleId = NULL. Those two NULLs model scope
@@ -434,7 +438,7 @@ WHERE "ConfigName" = 'DEFAULT_REGISTRATION_SMTP'
 -- ============================================================================
 --
 -- ModuleScope = 2
--- Host Admin module
+-- Host-scope platform module
 --
 -- Purpose:
 -- New Tenant registration ke waqt selected/default SMTP configuration
@@ -1230,6 +1234,67 @@ WHERE mapping."ModuleId"
 -- It drives module normalization and standard CRUD operation mappings.
 -- ============================================================================
 
+-- Host administration is a real Host-scope parent module.  Its children are
+-- the pages visible in the Host UI for Host users, roles, role permissions,
+-- modules, submodules, operations, mappings, and subscriptions.
+UPDATE axionpro."Module"
+SET
+    "TenantId" = NULL,
+    "ModuleName" = 'Host-Management',
+    "PageName" = COALESCE("PageName", 'host-management'),
+    "DisplayName" = 'Host Management',
+    "URLPath" = NULL,
+    "ParentModuleId" = NULL,
+    "IsLeafNode" = FALSE,
+    "IsModuleDisplayInUI" = TRUE,
+    "IsCommonMenu" = FALSE,
+    "IsActive" = TRUE,
+    "ImageIconWeb" = 'bi bi-shield-lock',
+    "ImageIconMobile" = 'admin-panel-settings',
+    "ItemPriority" = 100,
+    "Remark" = 'Host-only administration for users, roles, permissions, modules, operations, mappings, and subscriptions.',
+    "AddedById" = COALESCE("AddedById", 1),
+    "AddedDateTime" = COALESCE("AddedDateTime", CURRENT_TIMESTAMP),
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP,
+    "ModuleScope" = 2
+WHERE "ModuleCode" = 'HOST_MANAGEMENT';
+
+INSERT INTO axionpro."Module"
+(
+    "TenantId", "ModuleCode", "ModuleName", "PageName", "DisplayName", "URLPath",
+    "ParentModuleId", "IsLeafNode", "IsModuleDisplayInUI", "IsCommonMenu",
+    "IsActive", "ImageIconWeb", "ImageIconMobile", "ItemPriority", "Remark",
+    "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "ModuleScope"
+)
+SELECT
+    NULL,
+    'HOST_MANAGEMENT',
+    'Host-Management',
+    'host-management',
+    'Host Management',
+    NULL,
+    NULL,
+    FALSE,
+    TRUE,
+    FALSE,
+    TRUE,
+    'bi bi-shield-lock',
+    'admin-panel-settings',
+    100,
+    'Host-only administration for users, roles, permissions, modules, operations, mappings, and subscriptions.',
+    1,
+    CURRENT_TIMESTAMP,
+    1,
+    CURRENT_TIMESTAMP,
+    2
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM axionpro."Module"
+    WHERE "ModuleCode" = 'HOST_MANAGEMENT'
+);
+
 CREATE TEMPORARY TABLE module_seed
 (
     "ModuleCode" CHARACTER VARYING(100) PRIMARY KEY,
@@ -1291,6 +1356,118 @@ VALUES
     2,
     410,
     'Host-managed default SMTP profile copied when a tenant is registered.'
+),
+(
+    'HOST_USERS',
+    'Host Users',
+    'host-users',
+    'Users',
+    '/app/host-users',
+    'HOST_MANAGEMENT',
+    TRUE,
+    'bi bi-people',
+    'people',
+    2,
+    110,
+    'Creates and manages authenticated Host users and their assigned Host roles.'
+),
+(
+    'HOST_ROLES',
+    'Host Roles',
+    'host-roles',
+    'Roles',
+    '/app/host-roles',
+    'HOST_MANAGEMENT',
+    TRUE,
+    'bi bi-shield-check',
+    'verified-user',
+    2,
+    120,
+    'Creates and manages Host roles used by the Host authorization model.'
+),
+(
+    'HOST_ROLE_PERMISSIONS',
+    'Host Role Permissions',
+    'host-role-permissions',
+    'Role Permissions',
+    '/app/host-roles/permissions',
+    'HOST_MANAGEMENT',
+    TRUE,
+    'bi bi-check2-square',
+    'rule',
+    2,
+    130,
+    'Assigns active Host module-operation permissions to a Host role.'
+),
+(
+    'HOST_MODULES',
+    'Host Modules',
+    'host-modules',
+    'Modules',
+    '/app/modules',
+    'HOST_MANAGEMENT',
+    TRUE,
+    'bi bi-grid-3x3-gap',
+    'apps',
+    2,
+    140,
+    'Maintains Host-scope parent modules and their presentation metadata.'
+),
+(
+    'HOST_SUBMODULES',
+    'Host Submodules',
+    'host-submodules',
+    'Submodules',
+    '/app/modules/sub-modules',
+    'HOST_MANAGEMENT',
+    TRUE,
+    'bi bi-diagram-3',
+    'account-tree',
+    2,
+    150,
+    'Maintains Host-scope child modules beneath a Host parent module.'
+),
+(
+    'HOST_OPERATIONS',
+    'Host Operations',
+    'host-operations',
+    'Operations',
+    '/app/modules/operations',
+    'HOST_MANAGEMENT',
+    TRUE,
+    'bi bi-lightning-charge',
+    'bolt',
+    2,
+    160,
+    'Maintains reusable Host operations and their UI/audit metadata.'
+),
+(
+    'HOST_MODULE_OPERATIONS',
+    'Host Module Operations',
+    'host-module-operations',
+    'Module Operations',
+    '/app/modules/module-operations',
+    'HOST_MANAGEMENT',
+    TRUE,
+    'bi bi-link-45deg',
+    'link',
+    2,
+    170,
+    'Maps active Host modules to active operations used by MyMenu and role permissions.'
+),
+(
+    'HOST_SUBSCRIPTIONS',
+    'Host Subscriptions',
+    'host-subscriptions',
+    'Subscriptions',
+    '/app/subscriptions',
+    'HOST_MANAGEMENT',
+    TRUE,
+    'bi bi-credit-card-2-front',
+    'subscriptions',
+    2,
+    180,
+    'Manages Host-owned subscription plans and tenant plan assignment.'
 ),
 (
     'TENANT_EMAIL_CONFIG',
@@ -1528,7 +1705,7 @@ LEFT JOIN axionpro."Module" parent
     ON parent."ModuleCode" = seed."ParentModuleCode"
    AND parent."ParentModuleId" IS NULL
    AND parent."IsLeafNode" = FALSE
-   AND parent."ModuleScope" = 1
+   AND parent."ModuleScope" = seed."ModuleScope"
 WHERE module."ModuleCode" = seed."ModuleCode";
 
 INSERT INTO axionpro."Module"
@@ -1564,7 +1741,7 @@ LEFT JOIN axionpro."Module" parent
     ON parent."ModuleCode" = seed."ParentModuleCode"
    AND parent."ParentModuleId" IS NULL
    AND parent."IsLeafNode" = FALSE
-   AND parent."ModuleScope" = 1
+   AND parent."ModuleScope" = seed."ModuleScope"
 WHERE NOT EXISTS
 (
     SELECT 1
@@ -2330,11 +2507,83 @@ $$;
 -- SECTION 8E
 -- PLATFORM HOST ADMIN PERMISSION BASELINE
 -- ============================================================================
--- HostRole Id = 1 is the one canonical Host Admin role used by the application
--- authorization contract. It must be able to administer every Host-scope
--- module, even when no row was manually selected in the role-permission UI.
--- Other Host roles remain strictly role-mapping based.
+-- Rebuild the Host authorization baseline before inserting persisted grants.
+-- Only two authenticated principal types are supported by MyMenu: Tenant and
+-- Host. Host authorization itself is still role/permission based; no runtime
+-- Host-Super-Admin receives the complete persisted grant set; runtime checks
+-- still evaluate HostRoleModuleAndPermission for every Host request.
 -- ============================================================================
+
+DELETE FROM axionpro."RefreshToken"
+WHERE "HostUserId" IS NOT NULL;
+
+DELETE FROM axionpro."HostRoleModuleAndPermission";
+DELETE FROM axionpro."HostUser";
+DELETE FROM axionpro."HostRole";
+
+DO
+$$
+DECLARE
+    sequence_name TEXT;
+BEGIN
+    FOREACH sequence_name IN ARRAY ARRAY[
+        pg_get_serial_sequence('axionpro."HostRole"', 'Id'),
+        pg_get_serial_sequence('axionpro."HostUser"', 'Id'),
+        pg_get_serial_sequence('axionpro."HostRoleModuleAndPermission"', 'Id')
+    ]
+    LOOP
+        IF sequence_name IS NOT NULL THEN
+            PERFORM setval(sequence_name::regclass, 1, FALSE);
+        END IF;
+    END LOOP;
+END;
+$$;
+
+INSERT INTO axionpro."HostRole"
+(
+    "Id", "Name", "Description", "IsActive", "AddedById", "AddedDateTime",
+    "UpdatedById", "UpdatedDateTime", "DeletedById", "DeletedDateTime", "IsSoftDeleted"
+)
+VALUES
+(
+    1,
+    'Host-Super-Admin',
+    'Full Host-scope administration through persisted module-operation permissions.',
+    TRUE,
+    1,
+    CURRENT_TIMESTAMP,
+    1,
+    CURRENT_TIMESTAMP,
+    NULL,
+    NULL,
+    FALSE
+);
+
+-- PasswordHash is ASP.NET Core Identity PasswordHasher V3 for 12344321.
+INSERT INTO axionpro."HostUser"
+(
+    "Id", "HostRoleId", "Name", "LoginId", "PasswordHash", "Email", "MobileNumber",
+    "IsActive", "IsSoftDeleted", "AddedById", "AddedDateTime", "UpdatedById",
+    "UpdatedDateTime", "DeletedById", "DeletedDateTime"
+)
+VALUES
+(
+    1,
+    1,
+    'Deepesh Gupta',
+    'mca.deepesh',
+    'AQAAAAIAAYagAAAAEEDpT6tXHxx4OhhP394Aqp4vlsVunbyd3qQGOnszn4oghxYFlkERmuDjy0ATNqawgw==',
+    'mca.deepesh@axionpro.com',
+    '9111161399',
+    TRUE,
+    FALSE,
+    1,
+    CURRENT_TIMESTAMP,
+    1,
+    CURRENT_TIMESTAMP,
+    NULL,
+    NULL
+);
 
 DO
 $$
@@ -2342,43 +2591,6 @@ DECLARE
     expected_mapping_count INTEGER;
     effective_permission_count INTEGER;
 BEGIN
-    IF NOT EXISTS
-    (
-        SELECT 1
-        FROM axionpro."HostRole"
-        WHERE "Id" = 1
-          AND "IsActive" = TRUE
-          AND "IsSoftDeleted" = FALSE
-    ) THEN
-        RAISE EXCEPTION
-            'The canonical Host Admin role (HostRole.Id = 1) must exist and be active before Host permissions can be seeded.';
-    END IF;
-
-    -- A previous deselection creates a soft-deleted row. Reactivate that exact
-    -- row first so the seed is idempotent and does not create a duplicate pair.
-    UPDATE axionpro."HostRoleModuleAndPermission" permission
-    SET
-        "IsActive" = TRUE,
-        "IsSoftDeleted" = FALSE,
-        "UpdatedById" = 1,
-        "UpdatedDateTime" = CURRENT_TIMESTAMP,
-        "DeletedById" = NULL,
-        "DeletedDateTime" = NULL
-    FROM axionpro."ModuleOperationMapping" mapping
-    INNER JOIN axionpro."Module" module
-        ON module."Id" = mapping."ModuleId"
-    INNER JOIN axionpro."Operation" operation
-        ON operation."Id" = mapping."OperationId"
-    WHERE permission."HostRoleId" = 1
-      AND permission."ModuleId" = mapping."ModuleId"
-      AND permission."OperationId" = mapping."OperationId"
-      AND mapping."IsActive" = TRUE
-      AND mapping."IsOperational" = TRUE
-      AND module."ModuleScope" = 2
-      AND module."IsActive" = TRUE
-      AND operation."IsActive" = TRUE
-      AND (permission."IsSoftDeleted" = TRUE OR permission."IsActive" = FALSE);
-
     INSERT INTO axionpro."HostRoleModuleAndPermission"
     (
         "HostRoleId",
@@ -2458,7 +2670,7 @@ BEGIN
 
     IF effective_permission_count <> expected_mapping_count THEN
         RAISE EXCEPTION
-            'Host Admin permission validation failed: expected % active Host mapping(s), found % active Host Admin permission(s).',
+            'Host-Super-Admin permission validation failed: expected % active Host mapping(s), found % active Host-Super-Admin permission(s).',
             expected_mapping_count,
             effective_permission_count;
     END IF;
@@ -2618,6 +2830,15 @@ $$;
 
 UPDATE axionpro."Module" module
 SET "PageName" = CASE module."ModuleCode"
+    WHEN 'HOST_MANAGEMENT' THEN 'host-management'
+    WHEN 'HOST_USERS' THEN 'host-users'
+    WHEN 'HOST_ROLES' THEN 'host-roles'
+    WHEN 'HOST_ROLE_PERMISSIONS' THEN 'host-role-permissions'
+    WHEN 'HOST_MODULES' THEN 'host-modules'
+    WHEN 'HOST_SUBMODULES' THEN 'host-submodules'
+    WHEN 'HOST_OPERATIONS' THEN 'host-operations'
+    WHEN 'HOST_MODULE_OPERATIONS' THEN 'host-module-operations'
+    WHEN 'HOST_SUBSCRIPTIONS' THEN 'host-subscriptions'
     WHEN 'HOST_DEVICE_MGMT' THEN 'device-manangment'
     WHEN 'HOST_DEFAULT_EMAIL_CONFIG' THEN 'platform-email-defaults'
     WHEN 'TENANT_EMAIL_CONFIG' THEN 'email-delivery-settings'
@@ -2749,7 +2970,9 @@ EXECUTE FUNCTION axionpro."PreventModulePageNameChange"();
 -- Existing table:
 --     next ID = MAX(Id) + 1
 --
--- Existing production IDs kabhi backward reset nahi honge.
+-- Host authorization tables are intentionally rebuilt above, so their
+-- sequences are restarted from the canonical seed rows; other tables retain
+-- the normal MAX(Id) + 1 behavior.
 -- ============================================================================
 
 DO
@@ -2896,6 +3119,60 @@ BEGIN
 
     END IF;
 
+
+    -- ========================================================================
+    -- HostRole
+    -- ========================================================================
+
+    sequence_name := pg_get_serial_sequence('axionpro."HostRole"', 'Id');
+
+    IF sequence_name IS NOT NULL THEN
+        SELECT COALESCE(MAX("Id"), 0)
+        INTO maximum_id
+        FROM axionpro."HostRole";
+
+        PERFORM setval(
+            sequence_name::regclass,
+            CASE WHEN maximum_id = 0 THEN 1 ELSE maximum_id END,
+            maximum_id <> 0);
+    END IF;
+
+
+    -- ========================================================================
+    -- HostUser
+    -- ========================================================================
+
+    sequence_name := pg_get_serial_sequence('axionpro."HostUser"', 'Id');
+
+    IF sequence_name IS NOT NULL THEN
+        SELECT COALESCE(MAX("Id"), 0)
+        INTO maximum_id
+        FROM axionpro."HostUser";
+
+        PERFORM setval(
+            sequence_name::regclass,
+            CASE WHEN maximum_id = 0 THEN 1 ELSE maximum_id END,
+            maximum_id <> 0);
+    END IF;
+
+
+    -- ========================================================================
+    -- HostRoleModuleAndPermission
+    -- ========================================================================
+
+    sequence_name := pg_get_serial_sequence('axionpro."HostRoleModuleAndPermission"', 'Id');
+
+    IF sequence_name IS NOT NULL THEN
+        SELECT COALESCE(MAX("Id"), 0)
+        INTO maximum_id
+        FROM axionpro."HostRoleModuleAndPermission";
+
+        PERFORM setval(
+            sequence_name::regclass,
+            CASE WHEN maximum_id = 0 THEN 1 ELSE maximum_id END,
+            maximum_id <> 0);
+    END IF;
+
 END;
 $$;
 
@@ -2998,6 +3275,15 @@ FROM axionpro."Module"
 WHERE "ModuleCode"
       IN
       (
+          'HOST_MANAGEMENT',
+          'HOST_USERS',
+          'HOST_ROLES',
+          'HOST_ROLE_PERMISSIONS',
+          'HOST_MODULES',
+          'HOST_SUBMODULES',
+          'HOST_OPERATIONS',
+          'HOST_MODULE_OPERATIONS',
+          'HOST_SUBSCRIPTIONS',
           'HOST_DEFAULT_EMAIL_CONFIG',
           'HOST_TENANT_EMAIL_CONFIG',
           'TENANT_EMAIL_CONFIG',
@@ -3072,6 +3358,14 @@ INNER JOIN axionpro."Operation"
 WHERE module."ModuleCode"
       IN
       (
+          'HOST_USERS',
+          'HOST_ROLES',
+          'HOST_ROLE_PERMISSIONS',
+          'HOST_MODULES',
+          'HOST_SUBMODULES',
+          'HOST_OPERATIONS',
+          'HOST_MODULE_OPERATIONS',
+          'HOST_SUBSCRIPTIONS',
           'HOST_DEFAULT_EMAIL_CONFIG',
           'HOST_TENANT_EMAIL_CONFIG',
           'TENANT_EMAIL_CONFIG',

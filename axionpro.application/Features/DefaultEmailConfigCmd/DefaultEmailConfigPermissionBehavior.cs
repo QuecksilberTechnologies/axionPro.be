@@ -16,8 +16,9 @@ namespace axionpro.application.Features.DefaultEmailConfigCmd;
 
 /// <summary>
 /// Restricts every DefaultEmailConfig request to the Host-only
-/// <c>HOST_DEFAULT_EMAIL_CONFIG</c> module. Non-Super-Admin Host users must have
-/// the supplied module-operation permission in the current database state.
+/// <c>HOST_DEFAULT_EMAIL_CONFIG</c> module. Every Host user, including
+/// Host-Super-Admin, must have the supplied module-operation permission in the
+/// current database state.
 /// </summary>
 public sealed class DefaultEmailConfigPermissionBehavior<TRequest, TResponse>(
     IUnitOfWork unitOfWork,
@@ -41,17 +42,12 @@ public sealed class DefaultEmailConfigPermissionBehavior<TRequest, TResponse>(
         }
 
         var permissionRequest = ResolvePermissionRequest(request);
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+        await HostRuntimePermissionValidator.ValidateAsync(
             commonRequestService,
             unitOfWork.StoreProcedureRepository,
             permissionRequest?.ModuleId ?? 0,
             permissionRequest?.OperationId ?? 0,
             cancellationToken);
-
-        if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId)
-        {
-            return await next();
-        }
 
         if (permissionRequest is null)
         {

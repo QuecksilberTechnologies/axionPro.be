@@ -14,37 +14,23 @@ using axionpro.application.Interfaces.IRepositories;
 namespace axionpro.application.Common.Helpers;
 
 /// <summary>
-/// Validates the trusted Host request context, allowing the current Super Admin role directly and enforcing database permissions for every other Host role.
+/// Validates the trusted Host request context and enforces the persisted
+/// module-operation permission for every Host role, including Host-Super-Admin.
 /// </summary>
 public static class HostRuntimePermissionValidator
 {
     /// <summary>
-    /// Determines whether the trusted request represents the single platform Host Admin role.
-    /// The JWT role snapshot must still match the active database role; a stale token must
-    /// never receive the Host Admin bypass.
-    /// </summary>
-    /// <param name="hostContext">The trusted Host context resolved from the request.</param>
-    /// <returns><see langword="true"/> only for the current, non-stale Host Admin role.</returns>
-    public static bool IsHostAdmin(HostUserRequestContext hostContext)
-    {
-        ArgumentNullException.ThrowIfNull(hostContext);
-
-        return string.Equals(hostContext.UserType, AppConstants.HostUserType, StringComparison.Ordinal) &&
-               hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId &&
-               hostContext.TokenHostRoleId == hostContext.CurrentHostRoleId;
-    }
-
-    /// <summary>
-    /// Validates the Host JWT context and either permits the current Super Admin role or verifies the requested module-operation permission against current database state.
+    /// Validates the Host JWT context and verifies the requested module-operation
+    /// permission against current database state.
     /// </summary>
     /// <param name="commonRequestService">The trusted Host request validator.</param>
     /// <param name="storeProcedureRepository">The repository used to invoke the Host permission function.</param>
-    /// <param name="moduleId">The module identifier supplied by the request permission contract for non-Super-Admin access.</param>
-    /// <param name="operationId">The operation identifier supplied by the request permission contract for non-Super-Admin access.</param>
+    /// <param name="moduleId">The module identifier supplied by the request permission contract.</param>
+    /// <param name="operationId">The operation identifier supplied by the request permission contract.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
     /// <returns>The trusted Host context used by the handler after authorization succeeds.</returns>
     /// <exception cref="UnauthorizedAccessException">Thrown when the Host session is invalid or its role snapshot is stale.</exception>
-    /// <exception cref="ForbiddenAccessException">Thrown when a non-Super-Admin Host role lacks the requested permission.</exception>
+    /// <exception cref="ForbiddenAccessException">Thrown when the Host role lacks the requested permission.</exception>
     public static async Task<HostUserRequestContext> ValidateAsync(
         ICommonRequestService commonRequestService,
         IStoreProcedureRepository storeProcedureRepository,
@@ -53,14 +39,6 @@ public static class HostRuntimePermissionValidator
         CancellationToken cancellationToken)
     {
         var hostContext = await commonRequestService.ValidateHostUserPermissionRequestAsync();
-
-        // Super Admin access is verified from the current database role while retaining the trusted
-        // Host token context and its identifier-protection key. A matching role snapshot prevents a
-        // stale token from bypassing the normal permission-function stale-role checks.
-        if (IsHostAdmin(hostContext))
-        {
-            return hostContext;
-        }
 
         if (moduleId <= 0 || operationId <= 0)
         {

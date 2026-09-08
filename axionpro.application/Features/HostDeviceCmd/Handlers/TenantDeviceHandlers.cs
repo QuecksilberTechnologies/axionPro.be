@@ -258,8 +258,9 @@ public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandler
     }
 
     /// <summary>
-    /// Resolves a list scope. Host Admin can omit TenantId to list every live Tenant record;
-    /// all other callers remain restricted to an authorized Tenant.
+    /// Resolves a list scope. Any Host role that has the requested list
+    /// permission may omit TenantId to list every live Tenant record; Tenant
+    /// users remain restricted to their own Tenant.
     /// </summary>
     protected async Task<TenantDeviceListAccessScope> ResolveTenantListScopeAsync(
         TenantDeviceAccessRequestDTO accessRequest,
@@ -277,8 +278,7 @@ public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandler
                 accessRequest.OperationId,
                 cancellationToken);
 
-            if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId &&
-                string.IsNullOrWhiteSpace(accessRequest.TenantId))
+            if (string.IsNullOrWhiteSpace(accessRequest.TenantId))
             {
                 return new TenantDeviceListAccessScope(null, hostContext.TenantEncryptionKey, LoginUserType.Host);
             }
@@ -413,7 +413,8 @@ public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandler
 
     /// <summary>
     /// Resolves the configuration list scope after the device-configuration permission behavior has authorized the request.
-    /// Super Admin may omit TenantId to list every Tenant configuration; another Host user must select a Tenant.
+    /// An authorized Host role may omit TenantId to list every Tenant
+    /// configuration; Tenant users remain Tenant-scoped.
     /// </summary>
     protected async Task<TenantDeviceListAccessScope> ResolveAuthorizedTenantConfigurationListScopeAsync(
         TenantDeviceAccessRequestDTO accessRequest,
@@ -425,8 +426,7 @@ public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandler
         if (principal.UserType == LoginUserType.Host)
         {
             var hostContext = await CommonRequestService.ValidateHostUserPermissionRequestAsync();
-            if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId &&
-                string.IsNullOrWhiteSpace(accessRequest.TenantId))
+            if (string.IsNullOrWhiteSpace(accessRequest.TenantId))
             {
                 return new TenantDeviceListAccessScope(null, hostContext.TenantEncryptionKey, LoginUserType.Host);
             }

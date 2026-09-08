@@ -64,7 +64,7 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
 
         if (principal.UserType == LoginUserType.Host)
         {
-            var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+            await HostRuntimePermissionValidator.ValidateAsync(
                 commonRequestService,
                 unitOfWork.StoreProcedureRepository,
                 permissionRequest.ModuleId,
@@ -79,13 +79,9 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
                 throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
             }
 
-            // Super Admin is the Host-wide authority and therefore does not need a
-            // per-module mapping. Other Host users must both pass the database
-            // permission check above and submit the expected device module.
-            if (hostContext.CurrentHostRoleId != AppConstants.SuperAdminHostRoleId)
-            {
-                await EnsureExpectedModuleCodeAsync(permissionRequest, expectedModuleCode);
-            }
+            // Every Host role must submit the expected active module and pass
+            // its persisted module-operation permission.
+            await EnsureExpectedModuleCodeAsync(permissionRequest, expectedModuleCode);
 
             return await next();
         }

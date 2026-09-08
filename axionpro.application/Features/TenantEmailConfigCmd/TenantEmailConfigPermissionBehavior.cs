@@ -17,8 +17,8 @@ namespace axionpro.application.Features.TenantEmailConfigCmd;
 
 /// <summary>
 /// Validates the separate Host and Tenant module operations for Tenant SMTP
-/// configuration. Host Super Admin retains the established Host bypass; all
-/// other callers are checked against current database permissions.
+/// configuration. Every Host role is checked against current database
+/// permissions; Tenant employees use the tenant permission function.
 /// </summary>
 public sealed class TenantEmailConfigPermissionBehavior<TRequest, TResponse>(
     IUnitOfWork unitOfWork,
@@ -48,17 +48,14 @@ public sealed class TenantEmailConfigPermissionBehavior<TRequest, TResponse>(
 
         if (principal.UserType == LoginUserType.Host)
         {
-            var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+            await HostRuntimePermissionValidator.ValidateAsync(
                 commonRequestService,
                 unitOfWork.StoreProcedureRepository,
                 permissionRequest.ModuleId,
                 permissionRequest.OperationId,
                 cancellationToken);
 
-            if (hostContext.CurrentHostRoleId != AppConstants.SuperAdminHostRoleId)
-            {
-                await EnsureExpectedModuleCodeAsync(permissionRequest, HostTenantEmailConfigModuleCode);
-            }
+            await EnsureExpectedModuleCodeAsync(permissionRequest, HostTenantEmailConfigModuleCode);
 
             return await next();
         }

@@ -109,7 +109,6 @@ namespace axionpro.application.Interfaces.IRepositories
         /// </summary>
         Task<IReadOnlyCollection<NavigationMenuItemResponseDTO>> GetHostNavigationMenuAsync(
             long hostRoleId,
-            bool isSuperAdmin,
             CancellationToken cancellationToken = default);
 
         #endregion

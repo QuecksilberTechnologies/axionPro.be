@@ -107,17 +107,13 @@ public class GetHostRoleModulePermissionsQueryHandler
                 !mapping.Module.IsCommonMenu)
             .ToList();
 
-        // Host Admin is intentionally system-wide. The editor therefore always
-        // renders every active Host operation as allowed for this one canonical role;
-        // other Host roles retain their persisted granular selections.
-        var assignedPairs = hostRole.Id == AppConstants.SuperAdminHostRoleId
-            ? activeMappings
-                .Select(mapping => (mapping.ModuleId, mapping.OperationId))
-                .ToHashSet()
-            : (await _unitOfWork.HostRolePermissionRepository
-                    .GetHostUserPermissionsAsync(hostRole.Id, cancellationToken))
-                .Select(permission => (permission.ModuleId, permission.OperationId))
-                .ToHashSet();
+        // The editor reflects persisted grants for every Host role, including
+        // Host-Super-Admin. The seed creates the initial complete grant set;
+        // subsequent changes are represented by HostRoleModuleAndPermission.
+        var assignedPairs = (await _unitOfWork.HostRolePermissionRepository
+                .GetHostUserPermissionsAsync(hostRole.Id, cancellationToken))
+            .Select(permission => (permission.ModuleId, permission.OperationId))
+            .ToHashSet();
 
         var response = new GetHostRoleModulePermissionsResponseDTO
         {

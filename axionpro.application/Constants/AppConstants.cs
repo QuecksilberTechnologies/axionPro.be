@@ -476,7 +476,7 @@ namespace axionpro.application.Constants
         public static readonly DateTime ExpireTokenDate = DateTime.UtcNow.AddDays(5);
         public static readonly string IP = "100.100.100.100";
 
-        public static readonly string SuperAdminRoleName = "Host Admin";
+        public static readonly string SuperAdminRoleName = "Host-Super-Admin";
         public static readonly string SuperAdminRoleType = "SYSTEM";
         public static readonly string SuperAdminRoleCode = "Auth_0";
         public static readonly int Web = 1;
