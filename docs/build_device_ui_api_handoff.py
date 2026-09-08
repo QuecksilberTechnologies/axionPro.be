@@ -300,7 +300,7 @@ SUCCESS_ENROLLMENT = code_json('''{
 p = doc.add_paragraph(style="Title")
 p.alignment = WD_ALIGN_PARAGRAPH.LEFT
 p.add_run("AxionPro Device UI API Developer Guide")
-para("For Angular UI developers. This guide explains the recently added device provisioning, runtime settings, employee credential, card inventory, dropdown, and work-configuration APIs. Each endpoint section states why it exists, exactly when the UI should call it, a request and response example, and the database or device queue impact.")
+para("For Angular UI developers. This guide explains the recently added device provisioning, runtime settings, employee credential, card inventory, dropdown, work-configuration APIs, and the current attendance-ingestion boundary. Each endpoint section states why it exists, exactly when the UI should call it, a request and response example, and the database or device queue impact.")
 table(["Audience", "Scope", "Important result"], [["Angular UI developer", "Device configuration, employee credentials, card inventory, work configuration", "The UI never opens a LAN connection to a device. All remote device actions enter the durable DeviceCommand queue."]], [1.55, 2.9, 2.4], 8.7)
 para("Example IDs in this document are placeholders. Use opaque IDs returned by the APIs; do not construct, decode, or replace them in Angular. `moduleId` and `operationId` must be sourced from the authenticated user's permitted module operations.")
 
@@ -327,6 +327,7 @@ table(["Area", "Endpoint family", "Primary table or queue"], [
     ["Employee device credential", "EmployeeDeviceEnrollment and face/card/PIN actions", "EmployeeDeviceEnrollment, EmployeeDeviceAccessWindow, TenantCardMaster, DeviceCommand"],
     ["Employee eligibility", "EmployeeLocationAssignment", "EmployeeLocationAssignment"],
     ["Work configuration", "EmployeeWorkArrangement, EmployeeWorkPattern, EmployeeWorkModeOverride", "Corresponding work tables"],
+    ["Attendance punch validation", "Not yet exposed as a production endpoint", "Required future raw-event and attendance-decision records"],
 ], [1.35, 3.15, 2.35], 8.3)
 
 heading("1 Initial device provisioning and tenant device connection", 1)
@@ -687,8 +688,24 @@ for label, controller, table_name, create_body, purpose in WORK_CRUD:
   "isSucceeded": true,
   "message": "Operation completed successfully.",
   "data": {"id": 31, "isActive": true},
-  "errors": []
+    "errors": []
 }''')
+
+heading("Attendance punch validation and multi location rule", 2)
+para("This is a required attendance rule, but it is not implemented by the configuration or enrollment APIs in this guide. `EmployeeLocationAssignment` decides whether a person is eligible to be enrolled on a device at a location. It does not yet decide whether a received biometric punch is accepted as attendance.")
+table(["Business rule", "Required production decision"], [
+    ["First IN", "When the employee has no open attendance session, accept the device event and open a session with its source device, location and device timestamp."],
+    ["Second IN before OUT", "Reject the attendance decision even if the second device is at another office. Preserve the raw device event and record `DuplicateOpenIn` with the active session location, device and time."],
+    ["OUT", "Close the current open session. The recommended default is to require the OUT at the same location as the active IN; a future Tenant attendance policy may explicitly permit a cross-location OUT."],
+    ["IN after valid OUT", "Accept a new session. This supports an employee visiting Head Office in the morning and a Client Site or Delhi office later in the day."],
+], [2.05, 4.95], 8.2)
+para("The rule must apply to every employee and every enrolled device. It must be evaluated atomically on the server so two nearly simultaneous device punches cannot create two open IN sessions.")
+para("Current device status: the temporary TIMMY `sendlog` diagnostic endpoint writes logs only and returns an acknowledgement; it does not persist attendance or evaluate duplicate IN events. The normal HTTPS gateway currently handles device polling and command delivery, not a completed attendance decision workflow.")
+bullets([
+    "Do not show a device punch as final attendance success in Angular until the future server attendance decision is available.",
+    "The raw event must be append-only and retained whether accepted or rejected. It needs device serial, TenantDevice, location, encrypted/decrypted employee resolution, vendor log index, device event time, receive time, IN or OUT, verification mode, response decision and rejection reason.",
+    "A device normally posts `sendlog` after local recognition. Therefore the server can reject the attendance record immediately, but an instant error on the device screen requires vendor support for real-time online authorization before the device finalizes the punch. That capability must be confirmed against the exact device protocol; it is not assumed by this API guide.",
+])
 
 heading("7 Generic device command submission", 1)
 api("Submit an approved vendor command", "POST /api/device-commands/submit", "Queues a command from the protocol-approved catalog. This is not the normal form API for tenant UI; use typed settings and credential endpoints first.", "Only a controlled Host diagnostic/admin tool needs a supported command that has no typed user-facing endpoint.", '''{
