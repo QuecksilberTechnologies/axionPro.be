@@ -16,7 +16,7 @@ namespace axionpro.api.Controllers.HostDevice;
 [Route("api/device-commands")]
 public sealed class DeviceCommandController(IMediator mediator) : ControllerBase
 {
-    /// <summary>Queues a protocol-confirmed command after current Host or Tenant permission validation.</summary>
+    /// <summary>Queues a protocol-confirmed diagnostic command when no typed UI endpoint applies; normal Angular screens should use typed device, credential, and reboot APIs.</summary>
     [HttpPost("submit")]
     public async Task<IActionResult> Submit(
         [FromBody] SubmitDeviceCommandRequestDTO dto,

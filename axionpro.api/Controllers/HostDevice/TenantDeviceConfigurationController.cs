@@ -22,7 +22,7 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     #region Initial Device Provisioning and Runtime Configuration
 
     /// <summary>
-    /// Issues a short-lived initial HTTPS gateway URL for an unassigned physical device.
+    /// Issues a short-lived initial HTTPS gateway URL so a technician can connect a new unassigned physical device without exposing a permanent credential.
     /// </summary>
     /// <remarks>
     /// Host provisioning permission is enforced by the HostDevice permission behavior.
@@ -38,7 +38,7 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     }
 
     /// <summary>
-    /// Queues the approved Host-authorized or Tenant-admin runtime settings through the device's outbound HTTPS gateway.
+    /// Queues the approved Host-authorized or Tenant-admin runtime settings so the device is configured through its outbound transport instead of a direct LAN call.
     /// </summary>
     [HttpPost("apply-runtime-configuration")]
     public async Task<IActionResult> ApplyRuntimeConfiguration(
@@ -50,7 +50,7 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
     }
 
     /// <summary>
-    /// Queues a Host-authorized or Tenant-admin device reboot through the outbound HTTPS gateway.
+    /// Queues a Host-authorized or Tenant-admin device reboot so restart is auditable and works for both configured transports.
     /// </summary>
     [HttpPost("reboot")]
     public async Task<IActionResult> Reboot(
@@ -61,67 +61,67 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
         return Ok(await mediator.Send(new RebootTenantDeviceCommand(dto), cancellationToken));
     }
 
-    /// <summary>Queues one typed device time-settings change through the configured outbound transport.</summary>
+    /// <summary>Queues one typed device time-settings change so the Time UI updates only this firmware configuration section.</summary>
     [HttpPost("settings/time")]
     public Task<IActionResult> UpdateTimeSettings([FromBody] UpdateTenantDeviceTimeSettingsRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.Time, cancellationToken);
 
-    /// <summary>Queues an explicit device-clock synchronization through the configured outbound transport.</summary>
+    /// <summary>Queues an explicit device-clock synchronization when an admin needs the physical device clock corrected without changing time-format settings.</summary>
     [HttpPost("settings/time/sync")]
     public async Task<IActionResult> SyncTime([FromBody] SyncTenantDeviceTimeRequestDTO dto, CancellationToken cancellationToken) =>
         Ok(await mediator.Send(new SyncTenantDeviceTimeCommand(dto), cancellationToken));
 
-    /// <summary>Queues typed bell settings through the configured outbound transport.</summary>
+    /// <summary>Queues typed bell settings so the Bell UI can update output behavior without sending raw vendor JSON.</summary>
     [HttpPost("settings/bell")]
     public Task<IActionResult> UpdateBellSettings([FromBody] UpdateTenantDeviceBellSettingsRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.Bell, cancellationToken);
 
-    /// <summary>Queues typed device display and recognition settings through the configured outbound transport.</summary>
+    /// <summary>Queues typed device display and recognition settings so the Device setup UI uses readable business properties.</summary>
     [HttpPost("settings/device-setup")]
     public Task<IActionResult> UpdateDeviceSetupSettings([FromBody] UpdateTenantDeviceSetupSettingsRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.DeviceSetup, cancellationToken);
 
-    /// <summary>Queues typed advanced face, verification, privacy, and fill-light settings.</summary>
+    /// <summary>Queues typed advanced face, verification, privacy, and fill-light settings so these sensitive controls remain permission-checked.</summary>
     [HttpPost("settings/advanced")]
     public Task<IActionResult> UpdateAdvancedSettings([FromBody] UpdateTenantDeviceAdvancedSettingsRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.Advanced, cancellationToken);
 
-    /// <summary>Queues typed door, Wiegand, and access-control settings.</summary>
+    /// <summary>Queues typed door, Wiegand, and access-control settings so a lock configuration change is logged and transport-neutral.</summary>
     [HttpPost("settings/lock")]
     public Task<IActionResult> UpdateLockSettings([FromBody] UpdateTenantDeviceLockSettingsRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.Lock, cancellationToken);
 
-    /// <summary>Queues typed serial port settings.</summary>
+    /// <summary>Queues typed serial port settings so the Serial UI uses validated device options.</summary>
     [HttpPost("settings/serial")]
     public Task<IActionResult> UpdateSerialSettings([FromBody] UpdateTenantDeviceSerialSettingsRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.Serial, cancellationToken);
 
-    /// <summary>Queues typed Ethernet settings. Static addressing is applied only when DHCP is disabled.</summary>
+    /// <summary>Queues typed Ethernet settings so network changes are delivered safely through the configured outbound transport; static addressing applies only when DHCP is disabled.</summary>
     [HttpPost("settings/ethernet")]
     public Task<IActionResult> UpdateEthernetSettings([FromBody] UpdateTenantDeviceEthernetSettingsRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.Ethernet, cancellationToken);
 
-    /// <summary>Queues typed Wi-Fi network settings. Static addressing is applied only when DHCP is disabled.</summary>
+    /// <summary>Queues typed Wi-Fi network settings so the tenant can manage connectivity without a direct browser call to the device; static addressing applies only when DHCP is disabled.</summary>
     [HttpPost("settings/wifi")]
     public Task<IActionResult> UpdateWifiSettings([FromBody] UpdateTenantDeviceWifiSettingsRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.Wifi, cancellationToken);
 
-    /// <summary>Queues typed optional app-notification settings.</summary>
+    /// <summary>Queues typed optional app-notification settings so third-party notification details stay protected inside the command queue.</summary>
     [HttpPost("settings/app-notification")]
     public Task<IActionResult> UpdateAppNotificationSettings([FromBody] UpdateTenantDeviceAppNotificationSettingsRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.AppNotification, cancellationToken);
 
-    /// <summary>Queues local device Web UI/API enablement and password rotation.</summary>
+    /// <summary>Queues local device Web UI/API enablement and password rotation so the Tenant can lock or restore local access without exposing stored credentials.</summary>
     [HttpPost("settings/web-access")]
     public Task<IActionResult> UpdateWebAccess([FromBody] UpdateTenantDeviceWebAccessRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.WebAccess, cancellationToken);
 
-    /// <summary>Queues the PIN required by the device physical System/Local Manager menu.</summary>
+    /// <summary>Queues the PIN required by the device physical System/Local Manager menu so unauthorized people cannot change settings at the device screen.</summary>
     [HttpPost("settings/screen-menu-pin")]
     public Task<IActionResult> UpdateScreenMenuPin([FromBody] UpdateTenantDeviceScreenMenuPinRequestDTO dto, CancellationToken cancellationToken) =>
         SendSettingsAsync(dto, TenantDeviceSettingsSection.ScreenMenuPin, cancellationToken);
 
-    /// <summary>Gets the device cloud gateway base address and replacement state without returning a bearer token.</summary>
+    /// <summary>Gets the device cloud gateway base address and replacement state so Angular can show connection health without returning a bearer token.</summary>
     [HttpGet("gateway-address/{tenantDeviceId}")]
     public async Task<IActionResult> GetGatewayAddress(
         string tenantDeviceId,
@@ -130,7 +130,7 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
         Ok(await mediator.Send(new GetTenantDeviceGatewayAddressQuery(tenantDeviceId, dto), cancellationToken));
 
     /// <summary>
-    /// Replaces the device HTTPS gateway remotely. The current URL remains usable
+    /// Replaces the device HTTPS gateway remotely so the Tenant can rotate the connection address without visiting the device. The current URL remains usable
     /// until the device polls through the new URL; heartbeat is not changed.
     /// </summary>
     [HttpPost("replace-https-gateway-url")]
@@ -140,7 +140,7 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
         Ok(await mediator.Send(new ReplaceTenantDeviceHttpsGatewayUrlCommand(dto), cancellationToken));
 
     /// <summary>
-    /// Publishes the next command already in the MQTTS queue now. HTTPS devices
+    /// Publishes the next command already in the MQTTS queue now when a Tenant explicitly needs immediate broker delivery. HTTPS devices
     /// deliberately use their next outbound heartbeat instead.
     /// </summary>
     [HttpPost("dispatch-mqtts-now")]
