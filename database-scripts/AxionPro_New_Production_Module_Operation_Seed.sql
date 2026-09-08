@@ -21,7 +21,9 @@
 --
 -- IMPORTANT:
 --   * SMTP password/secret hard-code nahi kiya gaya hai.
---   * Existing role permissions are never auto-granted.
+--   * Host Admin (HostRole Id = 1) receives/re-activates every active Host-scope
+--     operational mapping deliberately. Other Host and all Tenant role
+--     permissions are never auto-granted.
 --   * Existing production IDs ko reset/delete nahi kiya jayega.
 --   * Script re-run safe/idempotent rakhi gayi hai.
 --   * Shared modules intentionally have TenantId = NULL; root modules
@@ -2319,6 +2321,146 @@ BEGIN
         RAISE EXCEPTION
             'EMP_PASSWORD_MANAGEMENT mapping validation failed. Expected 1, found %.',
             reset_password_mapping_count;
+    END IF;
+END;
+$$;
+
+
+-- ============================================================================
+-- SECTION 8E
+-- PLATFORM HOST ADMIN PERMISSION BASELINE
+-- ============================================================================
+-- HostRole Id = 1 is the one canonical Host Admin role used by the application
+-- authorization contract. It must be able to administer every Host-scope
+-- module, even when no row was manually selected in the role-permission UI.
+-- Other Host roles remain strictly role-mapping based.
+-- ============================================================================
+
+DO
+$$
+DECLARE
+    expected_mapping_count INTEGER;
+    effective_permission_count INTEGER;
+BEGIN
+    IF NOT EXISTS
+    (
+        SELECT 1
+        FROM axionpro."HostRole"
+        WHERE "Id" = 1
+          AND "IsActive" = TRUE
+          AND "IsSoftDeleted" = FALSE
+    ) THEN
+        RAISE EXCEPTION
+            'The canonical Host Admin role (HostRole.Id = 1) must exist and be active before Host permissions can be seeded.';
+    END IF;
+
+    -- A previous deselection creates a soft-deleted row. Reactivate that exact
+    -- row first so the seed is idempotent and does not create a duplicate pair.
+    UPDATE axionpro."HostRoleModuleAndPermission" permission
+    SET
+        "IsActive" = TRUE,
+        "IsSoftDeleted" = FALSE,
+        "UpdatedById" = 1,
+        "UpdatedDateTime" = CURRENT_TIMESTAMP,
+        "DeletedById" = NULL,
+        "DeletedDateTime" = NULL
+    FROM axionpro."ModuleOperationMapping" mapping
+    INNER JOIN axionpro."Module" module
+        ON module."Id" = mapping."ModuleId"
+    INNER JOIN axionpro."Operation" operation
+        ON operation."Id" = mapping."OperationId"
+    WHERE permission."HostRoleId" = 1
+      AND permission."ModuleId" = mapping."ModuleId"
+      AND permission."OperationId" = mapping."OperationId"
+      AND mapping."IsActive" = TRUE
+      AND mapping."IsOperational" = TRUE
+      AND module."ModuleScope" = 2
+      AND module."IsActive" = TRUE
+      AND operation."IsActive" = TRUE
+      AND (permission."IsSoftDeleted" = TRUE OR permission."IsActive" = FALSE);
+
+    INSERT INTO axionpro."HostRoleModuleAndPermission"
+    (
+        "HostRoleId",
+        "ModuleId",
+        "OperationId",
+        "IsActive",
+        "IsSoftDeleted",
+        "AddedById",
+        "AddedDateTime",
+        "UpdatedById",
+        "UpdatedDateTime",
+        "DeletedById",
+        "DeletedDateTime"
+    )
+    SELECT
+        1,
+        mapping."ModuleId",
+        mapping."OperationId",
+        TRUE,
+        FALSE,
+        1,
+        CURRENT_TIMESTAMP,
+        1,
+        CURRENT_TIMESTAMP,
+        NULL,
+        NULL
+    FROM axionpro."ModuleOperationMapping" mapping
+    INNER JOIN axionpro."Module" module
+        ON module."Id" = mapping."ModuleId"
+    INNER JOIN axionpro."Operation" operation
+        ON operation."Id" = mapping."OperationId"
+    WHERE mapping."IsActive" = TRUE
+      AND mapping."IsOperational" = TRUE
+      AND module."ModuleScope" = 2
+      AND module."IsActive" = TRUE
+      AND operation."IsActive" = TRUE
+      AND NOT EXISTS
+      (
+          SELECT 1
+          FROM axionpro."HostRoleModuleAndPermission" existing
+          WHERE existing."HostRoleId" = 1
+            AND existing."ModuleId" = mapping."ModuleId"
+            AND existing."OperationId" = mapping."OperationId"
+      );
+
+    SELECT COUNT(DISTINCT (mapping."ModuleId", mapping."OperationId"))
+    INTO expected_mapping_count
+    FROM axionpro."ModuleOperationMapping" mapping
+    INNER JOIN axionpro."Module" module
+        ON module."Id" = mapping."ModuleId"
+    INNER JOIN axionpro."Operation" operation
+        ON operation."Id" = mapping."OperationId"
+    WHERE mapping."IsActive" = TRUE
+      AND mapping."IsOperational" = TRUE
+      AND module."ModuleScope" = 2
+      AND module."IsActive" = TRUE
+      AND operation."IsActive" = TRUE;
+
+    SELECT COUNT(DISTINCT (permission."ModuleId", permission."OperationId"))
+    INTO effective_permission_count
+    FROM axionpro."HostRoleModuleAndPermission" permission
+    INNER JOIN axionpro."ModuleOperationMapping" mapping
+        ON mapping."ModuleId" = permission."ModuleId"
+       AND mapping."OperationId" = permission."OperationId"
+    INNER JOIN axionpro."Module" module
+        ON module."Id" = mapping."ModuleId"
+    INNER JOIN axionpro."Operation" operation
+        ON operation."Id" = mapping."OperationId"
+    WHERE permission."HostRoleId" = 1
+      AND permission."IsActive" = TRUE
+      AND permission."IsSoftDeleted" = FALSE
+      AND mapping."IsActive" = TRUE
+      AND mapping."IsOperational" = TRUE
+      AND module."ModuleScope" = 2
+      AND module."IsActive" = TRUE
+      AND operation."IsActive" = TRUE;
+
+    IF effective_permission_count <> expected_mapping_count THEN
+        RAISE EXCEPTION
+            'Host Admin permission validation failed: expected % active Host mapping(s), found % active Host Admin permission(s).',
+            expected_mapping_count,
+            effective_permission_count;
     END IF;
 END;
 $$;

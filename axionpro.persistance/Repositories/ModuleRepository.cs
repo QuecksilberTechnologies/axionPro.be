@@ -378,12 +378,20 @@ namespace axionpro.persistance.Repositories
                     .ToArray();
             }
 
-            return BuildNavigationTree(hostModules, allowedOperations);
+            // MyMenu is the Host application's menu source. The canonical Host
+            // Admin must see every active, UI-visible Host module even if an older
+            // module is awaiting its first operation mapping. Other Host roles
+            // remain limited to modules reached through an explicit permission.
+            return BuildNavigationTree(
+                hostModules,
+                allowedOperations,
+                includeAllScopedModules: isSuperAdmin);
         }
 
         private static IReadOnlyCollection<NavigationMenuItemResponseDTO> BuildNavigationTree(
             IReadOnlyCollection<NavigationModuleRecord> scopedModules,
-            IReadOnlyCollection<NavigationOperationRecord> allowedOperations)
+            IReadOnlyCollection<NavigationOperationRecord> allowedOperations,
+            bool includeAllScopedModules = false)
         {
             var modulesById = scopedModules
                 .GroupBy(module => module.Id)
@@ -409,6 +417,14 @@ namespace axionpro.persistance.Repositories
             foreach (var operationModuleId in operationsByModuleId.Keys)
             {
                 AddModuleAndAncestors(operationModuleId, modulesById, visibleModuleIds);
+            }
+
+            if (includeAllScopedModules)
+            {
+                foreach (var moduleId in modulesById.Keys)
+                {
+                    AddModuleAndAncestors(moduleId, modulesById, visibleModuleIds);
+                }
             }
 
             var childrenByParentId = modulesById.Values

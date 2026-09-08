@@ -17,9 +17,12 @@ using axionpro.application.Common.Models.Security;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.Host;
+using axionpro.application.DTOS.Navigation;
 using axionpro.application.Exceptions;
+using axionpro.application.Features.HostCmd.Handler;
 using axionpro.application.Features.HostDeviceCmd;
 using axionpro.application.Features.HostDeviceCmd.Handlers;
+using axionpro.application.Features.NavigationCmd.Handlers;
 using axionpro.application.Features.TenantManagementCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -243,6 +246,150 @@ public sealed class HostApiRegressionTests
         });
     }
 
+    [TestCase(AppConstants.SuperAdminHostRoleId, true)]
+    [TestCase(2L, false)]
+    public async Task My_menu_sends_the_host_admin_bypass_only_for_the_canonical_host_admin_role(
+        long currentHostRoleId,
+        bool expectedBypass)
+    {
+        bool? receivedBypass = null;
+        var moduleRepository = CreateProxy<IModuleRepository>((method, args) =>
+        {
+            if (method.Name != nameof(IModuleRepository.GetHostNavigationMenuAsync))
+            {
+                throw new NotSupportedException($"Unexpected module repository call: {method.Name}.");
+            }
+
+            receivedBypass = Convert.ToBoolean(args![1]);
+            return Task.FromResult<IReadOnlyCollection<NavigationMenuItemResponseDTO>>(
+            [
+                new NavigationMenuItemResponseDTO
+                {
+                    Id = 44,
+                    ModuleCode = "HOST_REGRESSION",
+                    ModuleName = "Host Regression",
+                    ModuleScope = (short)AppConstants.HostModuleScope,
+                    IsLeafNode = true
+                }
+            ]);
+        });
+        var unitOfWork = CreateProxy<IUnitOfWork>((method, _) => method.Name switch
+        {
+            "get_ModuleRepository" => moduleRepository,
+            _ => throw new NotSupportedException($"Unexpected unit-of-work call: {method.Name}.")
+        });
+        var handler = new GetMyNavigationMenuQueryHandler(
+            CreateHostCommonRequestService(currentHostRoleId),
+            unitOfWork,
+            NullLogger<GetMyNavigationMenuQueryHandler>.Instance);
+
+        var response = await handler.Handle(new GetMyNavigationMenuQuery(), CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(receivedBypass, Is.EqualTo(expectedBypass));
+            Assert.That(response.IsSucceeded, Is.True);
+            Assert.That(response.Data!.Items.Single().ModuleCode, Is.EqualTo("HOST_REGRESSION"));
+        });
+    }
+
+    [Test]
+    public async Task Host_admin_permission_editor_marks_all_active_host_operations_as_allowed_without_a_manual_grant()
+    {
+        var hostMapping = new ModuleOperationMapping
+        {
+            Id = 41,
+            ModuleId = 11,
+            OperationId = 7,
+            IsActive = true,
+            IsOperational = true,
+            Module = new axionpro.domain.Entity.Module
+            {
+                Id = 11,
+                ModuleScope = (short)AppConstants.HostModuleScope,
+                ModuleName = "Host Regression",
+                IsActive = true
+            },
+            Operation = new Operation
+            {
+                Id = 7,
+                OperationName = "View",
+                IsActive = true
+            }
+        };
+        var tenantMapping = new ModuleOperationMapping
+        {
+            Id = 42,
+            ModuleId = 12,
+            OperationId = 7,
+            IsActive = true,
+            IsOperational = true,
+            Module = new axionpro.domain.Entity.Module
+            {
+                Id = 12,
+                ModuleScope = (short)AppConstants.TenantModuleScope,
+                ModuleName = "Tenant Regression",
+                IsActive = true
+            },
+            Operation = new Operation
+            {
+                Id = 7,
+                OperationName = "View",
+                IsActive = true
+            }
+        };
+        var hostRoleRepository = CreateProxy<IHostRoleRepository>((method, _) => method.Name switch
+        {
+            nameof(IHostRoleRepository.GetByIdAsync) => Task.FromResult<HostRole?>(new HostRole
+            {
+                Id = AppConstants.SuperAdminHostRoleId,
+                Name = "Host Admin",
+                IsActive = true,
+                IsSoftDeleted = false
+            }),
+            _ => throw new NotSupportedException($"Unexpected Host role repository call: {method.Name}.")
+        });
+        var hostPermissionRepository = CreateProxy<IHostRolePermissionRepository>((method, _) =>
+            throw new AssertionException($"Host Admin must not depend on persisted permission rows: {method.Name}."));
+        var moduleRepository = CreateProxy<IModuleRepository>((method, _) => method.Name switch
+        {
+            nameof(IModuleRepository.GetAllModuleOperationMappingsAsync) =>
+                Task.FromResult(new List<ModuleOperationMapping> { hostMapping, tenantMapping }),
+            _ => throw new NotSupportedException($"Unexpected module repository call: {method.Name}.")
+        });
+        var unitOfWork = CreateProxy<IUnitOfWork>((method, _) => method.Name switch
+        {
+            "get_HostRoleRepository" => hostRoleRepository,
+            "get_HostRolePermissionRepository" => hostPermissionRepository,
+            "get_ModuleRepository" => moduleRepository,
+            _ => throw new NotSupportedException($"Unexpected unit-of-work call: {method.Name}.")
+        });
+        var commonRequestService = CreateProxy<ICommonRequestService>((method, _) => method.Name switch
+        {
+            nameof(ICommonRequestService.ValidateHostSuperAdminRequestAsync) => Task.FromResult(new HostUserRequestContext
+            {
+                HostUserId = 1,
+                TokenHostRoleId = AppConstants.SuperAdminHostRoleId,
+                CurrentHostRoleId = AppConstants.SuperAdminHostRoleId,
+                UserType = AppConstants.HostUserType
+            }),
+            _ => throw new NotSupportedException($"Unexpected common-request call: {method.Name}.")
+        });
+        var handler = new GetHostRoleModulePermissionsQueryHandler(unitOfWork, commonRequestService);
+
+        var response = await handler.Handle(
+            new GetHostRoleModulePermissionsQuery(AppConstants.SuperAdminHostRoleId),
+            CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(response.IsSucceeded, Is.True);
+            Assert.That(response.Data!.Modules, Has.Count.EqualTo(1));
+            Assert.That(response.Data.Modules.Single().ModuleId, Is.EqualTo(hostMapping.ModuleId));
+            Assert.That(response.Data.Modules.Single().Operations.Single().IsAllowed, Is.True);
+        });
+    }
+
     private static Tenant CreateTenant(bool isVerified, bool credentialIsOnboard)
     {
         var tenant = new Tenant
@@ -293,7 +440,8 @@ public sealed class HostApiRegressionTests
         });
     }
 
-    private static ICommonRequestService CreateHostCommonRequestService() =>
+    private static ICommonRequestService CreateHostCommonRequestService(
+        long currentHostRoleId = AppConstants.SuperAdminHostRoleId) =>
         CreateProxy<ICommonRequestService>((method, _) => method.Name switch
         {
             nameof(ICommonRequestService.ValidateAuthenticatedRequestAsync) => Task.FromResult(new AuthenticatedRequestContext
@@ -304,8 +452,8 @@ public sealed class HostApiRegressionTests
             nameof(ICommonRequestService.ValidateHostUserPermissionRequestAsync) => Task.FromResult(new HostUserRequestContext
             {
                 HostUserId = 1,
-                TokenHostRoleId = AppConstants.SuperAdminHostRoleId,
-                CurrentHostRoleId = AppConstants.SuperAdminHostRoleId,
+                TokenHostRoleId = currentHostRoleId,
+                CurrentHostRoleId = currentHostRoleId,
                 UserType = AppConstants.HostUserType,
                 TenantEncryptionKey = "host-regression-key"
             }),

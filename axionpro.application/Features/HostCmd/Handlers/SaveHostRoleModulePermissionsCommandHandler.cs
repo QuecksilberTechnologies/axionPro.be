@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.DTOS.Host;
+using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -84,7 +85,11 @@ public class SaveHostRoleModulePermissionsCommandHandler
         SaveHostRoleModulePermissionsCommand request,
         CancellationToken cancellationToken)
     {
-        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
+        // Permission administration itself is a Host Admin responsibility. This is
+        // deliberately stricter than ordinary Host API authentication so another
+        // Host role cannot alter its own or another role's grants.
+        var hostUserId = (await _commonRequestService
+            .ValidateHostSuperAdminRequestAsync()).HostUserId;
         cancellationToken.ThrowIfCancellationRequested();
 
         var dto = request?.DTO
@@ -117,15 +122,30 @@ public class SaveHostRoleModulePermissionsCommandHandler
             .GetByIdAsync(dto.HostRoleId)
             ?? throw new ApiException("Host role was not found.", 404);
 
-        var validMappingPairs = (await _unitOfWork.ModuleRepository
+        var activeHostMappings = (await _unitOfWork.ModuleRepository
                 .GetAllModuleOperationMappingsAsync(cancellationToken))
-            .Where(mapping => mapping.IsActive == true)
+            .Where(mapping =>
+                mapping.IsActive == true &&
+                mapping.IsOperational == true &&
+                mapping.Module is { IsActive: true } &&
+                mapping.Module.ModuleScope == (short)AppConstants.HostModuleScope &&
+                mapping.Operation.IsActive)
+            .ToList();
+        var validMappingPairs = activeHostMappings
             .Select(mapping => (mapping.ModuleId, mapping.OperationId))
             .ToHashSet();
         if (requestedPairs.Any(pair => !validMappingPairs.Contains(pair)))
         {
             throw new ValidationErrorException(
                 "Every requested module-operation permission must be an active module-operation mapping.");
+        }
+
+        // Host Admin cannot be partially de-permissioned. Persist the complete
+        // active Host-scope set for audit/UI consistency; runtime authorization is
+        // also protected by the same canonical Host Admin bypass.
+        if (hostRole.Id == AppConstants.SuperAdminHostRoleId)
+        {
+            requestedPairs = validMappingPairs.ToList();
         }
 
         var requestedSet = requestedPairs.ToHashSet();

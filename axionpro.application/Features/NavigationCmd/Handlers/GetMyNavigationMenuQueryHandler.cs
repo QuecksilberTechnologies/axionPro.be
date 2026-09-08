@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.Common.Enums;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Navigation;
 using axionpro.application.Interfaces;
@@ -78,7 +79,7 @@ public sealed class GetMyNavigationMenuQueryHandler
 
             menuItems = await _unitOfWork.ModuleRepository.GetHostNavigationMenuAsync(
                 hostContext.CurrentHostRoleId,
-                hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId,
+                HostRuntimePermissionValidator.IsHostAdmin(hostContext),
                 cancellationToken);
         }
         else
