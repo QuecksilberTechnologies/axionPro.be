@@ -440,11 +440,13 @@ public sealed class HostApiRegressionTests
     {
         var seed = LoadProductionSeed();
         var hostSection = Slice(seed, "-- SECTION 8E", "-- SECTION 9");
+        var cardUpgrade = File.ReadAllText(
+            FindRepositoryFile("database-scripts/TenantCardMaster_EmployeeDeviceCredential_Upgrade.sql"));
         var moduleCodes = new[]
         {
-            "HOST_MANAGEMENT", "HOST_USERS", "HOST_ROLES", "HOST_ROLE_PERMISSIONS",
+            "HOST_MANAGEMENT", "HOST_TENANT_RFID_MANAGEMENT", "HOST_USERS", "HOST_ROLES", "HOST_ROLE_PERMISSIONS",
             "HOST_MODULES", "HOST_SUBMODULES", "HOST_OPERATIONS",
-            "HOST_MODULE_OPERATIONS", "HOST_SUBSCRIPTIONS"
+            "HOST_MODULE_OPERATIONS", "HOST_SUBSCRIPTIONS", "HOST_TENANT_CARD_INVENTORY"
         };
         var moduleSeed = Slice(seed, "INSERT INTO module_seed", "UPDATE axionpro.\"Module\" module");
 
@@ -455,7 +457,7 @@ public sealed class HostApiRegressionTests
                 Assert.That(seed, Does.Contain($"'{moduleCode}'"), $"Missing Host module code {moduleCode}.");
             }
 
-            foreach (var childModuleCode in moduleCodes.Skip(1))
+            foreach (var childModuleCode in moduleCodes.Skip(2).Where(code => code != "HOST_TENANT_CARD_INVENTORY"))
             {
                 var tuple = Regex.Match(
                     moduleSeed,
@@ -474,13 +476,24 @@ public sealed class HostApiRegressionTests
             Assert.That(moduleSeed, Does.Contain("'/app/modules/operations'"));
             Assert.That(moduleSeed, Does.Contain("'/app/modules/module-operations'"));
             Assert.That(moduleSeed, Does.Contain("'/app/subscriptions'"));
+            var cardTuple = Regex.Match(
+                moduleSeed,
+                "\\(\\s*'HOST_TENANT_CARD_INVENTORY'.*?\\n\\),",
+                RegexOptions.Singleline).Value;
+            Assert.That(cardTuple, Does.Contain("'HOST_TENANT_RFID_MANAGEMENT'"));
+            Assert.That(seed, Does.Contain("'HOST_TENANT_RFID_MANAGEMENT'"));
+            Assert.That(seed, Does.Contain("'bi bi-broadcast-pin'"));
+            Assert.That(cardUpgrade, Does.Contain("'HOST_TENANT_RFID_MANAGEMENT'"));
+            Assert.That(cardUpgrade, Does.Contain("parent.\"Id\""));
+            Assert.That(cardUpgrade, Does.Contain("m.\"ModuleCode\"='HOST_TENANT_CARD_INVENTORY'"));
+            Assert.That(cardUpgrade, Does.Not.Contain("m.\"ModuleCode\"='HOST_TENANT_RFID_MANAGEMENT'"));
             Assert.That(seed, Does.Contain("'bi bi-shield-lock'"));
             Assert.That(hostSection, Does.Contain("DELETE FROM axionpro.\"RefreshToken\""));
             Assert.That(hostSection, Does.Contain("DELETE FROM axionpro.\"HostRoleModuleAndPermission\""));
             Assert.That(hostSection, Does.Contain("DELETE FROM axionpro.\"HostUser\""));
             Assert.That(hostSection, Does.Contain("DELETE FROM axionpro.\"HostRole\""));
             Assert.That(hostSection, Does.Contain("'Host-Super-Admin'"));
-            Assert.That(hostSection, Does.Contain("'mca.deepesh'"));
+            Assert.That(Regex.Matches(hostSection, "'mca.deepesh@gmail.com'").Count, Is.EqualTo(2));
             Assert.That(hostSection, Does.Contain("'9111161399'"));
             Assert.That(hostSection, Does.Contain("PasswordHash is ASP.NET Core Identity PasswordHasher V3 for 12344321."));
             Assert.That(hostSection, Does.Contain("AQAAAAIAAYagAAAAEEDpT6tXHxx4OhhP394Aqp4vlsVunbyd3qQGOnszn4oghxYFlkERmuDjy0ATNqawgw=="));
@@ -524,7 +537,7 @@ public sealed class HostApiRegressionTests
         var seed = LoadProductionSeed();
         var hash = Regex.Match(seed, @"AQAAAA[A-Za-z0-9+/]+=*").Value;
         var verification = new PasswordHasher<string>().VerifyHashedPassword(
-            "mca.deepesh",
+            "mca.deepesh@gmail.com",
             hash,
             "12344321");
 

@@ -1295,6 +1295,67 @@ WHERE NOT EXISTS
     WHERE "ModuleCode" = 'HOST_MANAGEMENT'
 );
 
+-- Tenant RFID Management is the Host-scope parent for card inventory.  The
+-- parent is navigation-only; all CRUD operations remain bound to its Card
+-- Inventory child module.
+UPDATE axionpro."Module"
+SET
+    "TenantId" = NULL,
+    "ModuleName" = 'Host-Tenant-RFID-Management',
+    "PageName" = 'tenant-rfid-management',
+    "DisplayName" = 'Tenant RFID Management',
+    "URLPath" = NULL,
+    "ParentModuleId" = NULL,
+    "IsLeafNode" = FALSE,
+    "IsModuleDisplayInUI" = TRUE,
+    "IsCommonMenu" = FALSE,
+    "IsActive" = TRUE,
+    "ImageIconWeb" = 'bi bi-broadcast-pin',
+    "ImageIconMobile" = 'contactless',
+    "ItemPriority" = 525,
+    "Remark" = 'Host management of tenant RFID cards and card inventory.',
+    "AddedById" = COALESCE("AddedById", 1),
+    "AddedDateTime" = COALESCE("AddedDateTime", CURRENT_TIMESTAMP),
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP,
+    "ModuleScope" = 2
+WHERE "ModuleCode" = 'HOST_TENANT_RFID_MANAGEMENT';
+
+INSERT INTO axionpro."Module"
+(
+    "TenantId", "ModuleCode", "ModuleName", "PageName", "DisplayName", "URLPath",
+    "ParentModuleId", "IsLeafNode", "IsModuleDisplayInUI", "IsCommonMenu",
+    "IsActive", "ImageIconWeb", "ImageIconMobile", "ItemPriority", "Remark",
+    "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "ModuleScope"
+)
+SELECT
+    NULL,
+    'HOST_TENANT_RFID_MANAGEMENT',
+    'Host-Tenant-RFID-Management',
+    'tenant-rfid-management',
+    'Tenant RFID Management',
+    NULL,
+    NULL,
+    FALSE,
+    TRUE,
+    FALSE,
+    TRUE,
+    'bi bi-broadcast-pin',
+    'contactless',
+    525,
+    'Host management of tenant RFID cards and card inventory.',
+    1,
+    CURRENT_TIMESTAMP,
+    1,
+    CURRENT_TIMESTAMP,
+    2
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM axionpro."Module"
+    WHERE "ModuleCode" = 'HOST_TENANT_RFID_MANAGEMENT'
+);
+
 CREATE TEMPORARY TABLE module_seed
 (
     "ModuleCode" CHARACTER VARYING(100) PRIMARY KEY,
@@ -1573,7 +1634,7 @@ VALUES
     'tenant-card-inventory',
     'Card Inventory',
     '/app/tenant-card-inventory',
-    NULL,
+    'HOST_TENANT_RFID_MANAGEMENT',
     TRUE,
     'bi bi-credit-card',
     'credit-card',
@@ -2571,9 +2632,9 @@ VALUES
     1,
     1,
     'Deepesh Gupta',
-    'mca.deepesh',
+    'mca.deepesh@gmail.com',
     'AQAAAAIAAYagAAAAEEDpT6tXHxx4OhhP394Aqp4vlsVunbyd3qQGOnszn4oghxYFlkERmuDjy0ATNqawgw==',
-    'mca.deepesh@axionpro.com',
+    'mca.deepesh@gmail.com',
     '9111161399',
     TRUE,
     FALSE,
@@ -2831,6 +2892,7 @@ $$;
 UPDATE axionpro."Module" module
 SET "PageName" = CASE module."ModuleCode"
     WHEN 'HOST_MANAGEMENT' THEN 'host-management'
+    WHEN 'HOST_TENANT_RFID_MANAGEMENT' THEN 'tenant-rfid-management'
     WHEN 'HOST_USERS' THEN 'host-users'
     WHEN 'HOST_ROLES' THEN 'host-roles'
     WHEN 'HOST_ROLE_PERMISSIONS' THEN 'host-role-permissions'
@@ -3276,6 +3338,7 @@ WHERE "ModuleCode"
       IN
       (
           'HOST_MANAGEMENT',
+          'HOST_TENANT_RFID_MANAGEMENT',
           'HOST_USERS',
           'HOST_ROLES',
           'HOST_ROLE_PERMISSIONS',

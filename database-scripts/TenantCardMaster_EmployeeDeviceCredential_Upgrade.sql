@@ -60,12 +60,34 @@ CREATE TABLE IF NOT EXISTS "EmployeeDeviceAccessWindow" (
 );
 CREATE INDEX IF NOT EXISTS "IX_EmployeeDeviceAccessWindow_Enrollment" ON "EmployeeDeviceAccessWindow" ("EmployeeDeviceEnrollmentId");
 
--- Host card-inventory permission module and its standard CRUD operations.
--- The platform Super Admin role is id 1; additional Host roles must be granted
--- these mappings through the normal Host-role permission screen.
+-- Host Tenant RFID Management parent and its Card Inventory child module.
+-- The parent is navigation-only; every CRUD mapping remains attached to the
+-- Card Inventory child. The platform Super Admin role is id 1; additional Host
+-- roles must be granted these mappings through the normal Host-role permission screen.
 INSERT INTO axionpro."Module" ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId","IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","IsActive","ImageIconWeb","ImageIconMobile","ItemPriority","Remark","AddedById","AddedDateTime","ModuleScope")
-SELECT NULL,'HOST_TENANT_CARD_INVENTORY','Host-Tenant-Card-Inventory','Card Inventory','/app/tenant-card-inventory',NULL,TRUE,TRUE,FALSE,TRUE,'bi bi-credit-card','credit-card',530,'Host-only procurement and lifecycle inventory for Tenant-issued physical cards.',1,CURRENT_TIMESTAMP,2
-WHERE NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode"='HOST_TENANT_CARD_INVENTORY');
+SELECT NULL,'HOST_TENANT_RFID_MANAGEMENT','Host-Tenant-RFID-Management','Tenant RFID Management',NULL,NULL,FALSE,TRUE,FALSE,TRUE,'bi bi-broadcast-pin','contactless',525,'Host management of tenant RFID cards and card inventory.',1,CURRENT_TIMESTAMP,2
+WHERE NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode"='HOST_TENANT_RFID_MANAGEMENT');
+
+UPDATE axionpro."Module" parent
+SET "ModuleName"='Host-Tenant-RFID-Management', "DisplayName"='Tenant RFID Management', "URLPath"=NULL,
+    "ParentModuleId"=NULL, "IsLeafNode"=FALSE, "IsModuleDisplayInUI"=TRUE, "IsCommonMenu"=FALSE,
+    "IsActive"=TRUE, "ImageIconWeb"='bi bi-broadcast-pin', "ImageIconMobile"='contactless',
+    "ItemPriority"=525, "Remark"='Host management of tenant RFID cards and card inventory.',
+    "UpdatedById"=1, "UpdatedDateTime"=CURRENT_TIMESTAMP, "ModuleScope"=2
+WHERE parent."ModuleCode"='HOST_TENANT_RFID_MANAGEMENT';
+
+INSERT INTO axionpro."Module" ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId","IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","IsActive","ImageIconWeb","ImageIconMobile","ItemPriority","Remark","AddedById","AddedDateTime","ModuleScope")
+SELECT NULL,'HOST_TENANT_CARD_INVENTORY','Host-Tenant-Card-Inventory','Card Inventory','/app/tenant-card-inventory',parent."Id",TRUE,TRUE,FALSE,TRUE,'bi bi-credit-card','credit-card',530,'Host-only procurement and lifecycle inventory for Tenant-issued physical cards.',1,CURRENT_TIMESTAMP,2
+FROM axionpro."Module" parent
+WHERE parent."ModuleCode"='HOST_TENANT_RFID_MANAGEMENT'
+  AND NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode"='HOST_TENANT_CARD_INVENTORY');
+
+UPDATE axionpro."Module" child
+SET "ParentModuleId"=parent."Id", "IsLeafNode"=TRUE, "IsModuleDisplayInUI"=TRUE, "IsActive"=TRUE,
+    "UpdatedById"=1, "UpdatedDateTime"=CURRENT_TIMESTAMP, "ModuleScope"=2
+FROM axionpro."Module" parent
+WHERE child."ModuleCode"='HOST_TENANT_CARD_INVENTORY'
+  AND parent."ModuleCode"='HOST_TENANT_RFID_MANAGEMENT';
 
 INSERT INTO axionpro."ModuleOperationMapping" ("ModuleId","OperationId","PageURL","IconURL","IsCommonItem","IsOperational","Priority","Remark","IsActive","AddedById","AddedDateTime")
 SELECT m."Id",o."Id",m."URLPath",m."ImageIconWeb",FALSE,TRUE,CASE lower(o."OperationName") WHEN 'view' THEN 10 WHEN 'create' THEN 20 WHEN 'update' THEN 30 WHEN 'delete' THEN 40 ELSE 99 END,'Card inventory permission.',TRUE,1,CURRENT_TIMESTAMP
