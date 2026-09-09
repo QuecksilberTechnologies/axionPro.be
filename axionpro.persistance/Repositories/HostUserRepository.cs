@@ -98,6 +98,16 @@ namespace axionpro.persistance.Repositories
                     !x.IsSoftDeleted);
         }
 
+        /// <inheritdoc />
+        public Task<HostUser?> GetForUpdateAsync(long id)
+        {
+            return _context.HostUsers
+                .Include(x => x.HostRole)
+                .FirstOrDefaultAsync(x =>
+                    x.Id == id &&
+                    !x.IsSoftDeleted);
+        }
+
         /// <summary>
         /// Retrieves all non-soft-deleted host users with their host roles.
         /// </summary>
@@ -195,8 +205,6 @@ namespace axionpro.persistance.Repositories
         /// <returns>The persisted host-user entity.</returns>
         public async Task<HostUser> UpdateAsync(HostUser entity)
         {
-            _context.HostUsers.Update(entity);
-
             await _context.SaveChangesAsync();
 
             return entity;
@@ -209,8 +217,6 @@ namespace axionpro.persistance.Repositories
         /// <returns><see langword="true"/> when at least one record is persisted; otherwise, <see langword="false"/>.</returns>
         public async Task<bool> DeleteAsync(HostUser entity)
         {
-            _context.HostUsers.Update(entity);
-
             return await _context.SaveChangesAsync() > 0;
         }
 

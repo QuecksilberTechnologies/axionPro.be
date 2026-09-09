@@ -109,6 +109,16 @@ namespace axionpro.application.Constants
             /// </summary>
             public const string TenantAlreadyVerified = "Tenant is already verified.";
 
+            /// <summary>
+            /// Indicates that a Tenant cannot receive onboarding verification because its active onboarding login is unavailable.
+            /// </summary>
+            public const string TenantOnboardingCredentialNotFound = "The Tenant onboarding login was not found. Ensure the active onboarding login uses the Tenant email address.";
+
+            /// <summary>
+            /// Indicates that a Tenant onboarding login does not resolve to its corresponding employee record.
+            /// </summary>
+            public const string TenantOnboardingEmployeeNotFound = "The Tenant onboarding employee record was not found.";
+
             public const string TenantLocationNotFound = "The requested tenant location was not found.";
             public const string TenantLocationInUse = "Tenant location is currently in use. Remove or deactivate the dependent configuration before changing this location.";
             public const string AttendancePolicyNotFound = "The requested attendance policy was not found.";

@@ -36,6 +36,13 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<HostUser?> GetByIdAsync(long id);
 
         /// <summary>
+        /// Retrieves a tracked, non-soft-deleted host user for a state-changing operation.
+        /// </summary>
+        /// <param name="id">The host-user identifier.</param>
+        /// <returns>The tracked host user with its role, or <see langword="null"/> when it is not found.</returns>
+        Task<HostUser?> GetForUpdateAsync(long id);
+
+        /// <summary>
         /// Retrieves all non-soft-deleted host users with their roles.
         /// </summary>
         /// <returns>A list of host users, which is empty when no matching users exist.</returns>

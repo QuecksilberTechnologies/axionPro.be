@@ -111,7 +111,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             }
 
             var hostUser = await _unitOfWork.HostUserRepository
-                .GetByIdAsync(dto.Id);
+                .GetForUpdateAsync(dto.Id);
 
             if (hostUser == null)
             {

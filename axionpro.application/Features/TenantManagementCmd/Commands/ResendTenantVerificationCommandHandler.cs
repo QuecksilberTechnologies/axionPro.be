@@ -157,7 +157,7 @@ public sealed class ResendTenantVerificationCommandHandler
 
         if (tenantLoginCredential is null)
         {
-            throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
+            throw new NotFoundException(AppConstants.ErrorMessages.TenantOnboardingCredentialNotFound);
         }
 
         var onboardingEmployee = tenant.Employee
@@ -165,7 +165,7 @@ public sealed class ResendTenantVerificationCommandHandler
 
         if (onboardingEmployee is null)
         {
-            throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
+            throw new NotFoundException(AppConstants.ErrorMessages.TenantOnboardingEmployeeNotFound);
         }
 
         // Reuse the initial Tenant set-password token format, expiration, URL, and welcome template.
