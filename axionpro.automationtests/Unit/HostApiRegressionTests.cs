@@ -62,6 +62,192 @@ namespace axionpro.automationtests.Unit;
 [Category("HostApi")]
 public sealed class HostApiRegressionTests
 {
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task Tenant_creation_real_database_rollback_probe(bool host)
+    {
+        var path = Environment.GetEnvironmentVariable("AXIONPRO_HOST_DB_SETTINGS");
+        if (string.IsNullOrWhiteSpace(path)) Assert.Ignore("Opt-in real database rollback test.");
+        var config = new ConfigurationBuilder().AddJsonFile(path!).Build();
+        await using var db = new WorkforceDbContext(new DbContextOptionsBuilder<WorkforceDbContext>()
+            .UseNpgsql(config.GetConnectionString("DefaultConnection")).Options);
+        var mapper = new AutoMapper.MapperConfiguration(c => c.AddProfile<axionpro.application.Mappings.MappingProfile>()).CreateMapper();
+        var encryption = new axionpro.infrastructure.EncryptionService.AesEncryptionService();
+        var encoder = new axionpro.infrastructure.EncryptionService.IdEncoderService();
+        var password = new axionpro.infrastructure.Security.HashedService.PasswordService(NullLogger<axionpro.infrastructure.Security.HashedService.PasswordService>.Instance);
+        var ctor = typeof(global::UnitOfWork).GetConstructors().Single();
+        var values = ctor.GetParameters().Select(p =>
+        {
+            object? value = p.ParameterType == typeof(WorkforceDbContext) ? db :
+                p.ParameterType == typeof(Microsoft.Extensions.Logging.ILoggerFactory) ? NullLoggerFactory.Instance :
+                p.ParameterType == typeof(AutoMapper.IMapper) ? mapper :
+                p.ParameterType == typeof(IConfiguration) ? config :
+                p.ParameterType == typeof(IEncryptionService) ? encryption :
+                p.ParameterType == typeof(IIdEncoderService) ? encoder :
+                p.ParameterType == typeof(axionpro.application.Interfaces.IHashed.IPasswordService) ? password : null;
+            if (value != null) return value;
+            var proxy = DispatchProxy.Create(p.ParameterType, typeof(InterfaceProxy));
+            ((InterfaceProxy)proxy).Handler = (m, _) => throw new InvalidOperationException("Unexpected dependency: " + m.Name);
+            return proxy;
+        }).ToArray();
+        using var real = (global::UnitOfWork)ctor.Invoke(values);
+        var reachedCommit = false;
+        var wrapper = CreateProxy<IUnitOfWork>((m, a) =>
+        {
+            if (m.Name == "CommitTransactionAsync") { reachedCommit = true; return real.RollbackTransactionAsync(); }
+            return m.Invoke(real, a);
+        });
+        var logger = new CreationProbeLogger();
+        var handler = new axionpro.application.Features.RegistrationCmd.Handlers.CreateTenantCommandHandler(
+            CreateProxy<ITokenService>((_, _) => Task.FromResult("probe-token")), mapper, wrapper, logger,
+            CreateProxy<IEmailService>((_, _) => Task.FromResult(true)),
+            CreateProxy<IStoreProcedureRepository>((_, _) => Task.FromResult(new HostUserPermissionCheckResponseDTO { ResultCode = 1 })),
+            password, encryption, encoder, config, CreateHostCommonRequestService());
+        var dto = new axionpro.application.DTOs.Registration.TenantCreateRequestDTO
+        {
+            SubscriptionPlanId = 2, TenantIndustryId = 9, CompanyName = "Rollback Probe", TenantCode = "QTPROBE",
+            CompanyEmailDomain = "example.test", TenantEmail = "probe-" + Guid.NewGuid().ToString("N") + "@example.test",
+            ContactPersonName = "Test Admin", ContactNumber = "+919827177773", CountryId = 1, GenderId = 1, Prefix = "QT", IncludeMonth = false
+        };
+        ApiResponse<axionpro.application.DTOs.Registration.TenantCreateResponseDTO> result;
+        if (host)
+        {
+            var sender = CreateProxy<ISender>((_, a) => handler.Handle(
+                (axionpro.application.Features.RegistrationCmd.Handlers.CreateTenantCommand)a![0]!, (CancellationToken)a[1]!));
+            result = await new CreateNewTenantCommandHandler(sender).Handle(new(new NewTenantCreationRequestDTO
+            {
+                ModuleId = 34, OperationId = 1, SubscriptionPlanId = 2, TenantIndustryId = 9,
+                CompanyName = dto.CompanyName, TenantCode = dto.TenantCode, TenantEmail = dto.TenantEmail,
+                CompanyEmailDomain = dto.CompanyEmailDomain, ContactPersonName = dto.ContactPersonName,
+                ContactNumber = dto.ContactNumber, CountryId = 1, GenderId = 1,
+                InitialLocation = new() { LocationCode = "HQ-54-001", LocationName = "IN-MP-JBP Head Office", StateId = 20, Address = "Narmada Nagar" },
+                Profile = new() { LogoUrl = "https://www.quecksilber.org/office-place.webp", ThemeColor = "#b4cafa" },
+                EmployeeCodePattern = new() { Prefix = "QT", IncludeMonth = false }
+            }), default);
+        }
+        else result = await handler.Handle(new(dto), default);
+        Assert.That(result.IsSucceeded && reachedCommit, Is.True, result.Message + "\n" + logger.Error);
+    }
+
+    private sealed class CreationProbeLogger : Microsoft.Extensions.Logging.ILogger<axionpro.application.Features.RegistrationCmd.Handlers.CreateTenantCommandHandler>
+    {
+        public string? Error;
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel level) => true;
+        public void Log<TState>(Microsoft.Extensions.Logging.LogLevel level, Microsoft.Extensions.Logging.EventId id, TState state,
+            Exception? exception, Func<TState, Exception?, string> formatter) { if (exception != null) Error = exception.ToString(); }
+    }
+
+    [TestCase(false, "success")]
+    [TestCase(true, "success")]
+    [TestCase(false, "save-failure")]
+    [TestCase(true, "save-failure")]
+    [TestCase(false, "email-failure")]
+    [TestCase(true, "email-failure")]
+    public async Task Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome(bool host, string scenario)
+    {
+        var calls = new List<string>();
+        var departments = new Dictionary<string, int>();
+        object? Invoke(MethodInfo method, object?[]? args)
+        {
+            calls.Add(method.Name);
+            if (method.Name.StartsWith("get_"))
+            {
+                Assert.That(method.Name, Is.Not.EqualTo("get_TenantEmailConfigRepository"));
+                var nested = DispatchProxy.Create(method.ReturnType, typeof(InterfaceProxy));
+                ((InterfaceProxy)nested).Handler = Invoke;
+                return nested;
+            }
+            Assert.That(method.Name, Is.Not.EqualTo("AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync"),
+                "Permissions must not be inserted again after BulkInsertAsync.");
+            if (method.Name == "SaveChangesAsync" && scenario == "save-failure")
+                return Task.FromException<int>(new InvalidOperationException("Simulated database failure"));
+            if (method.Name == "AddTenantAsync") ((Tenant)args![0]!).Id = 501;
+            if (method.Name == "AddEmployeeAggregateAsync") ((Employee)args![0]!).Id = 50000001;
+            if (method.Name == "AutoCreateDepartmentSeedAsync")
+                foreach (var d in (IEnumerable<Department>)args![0]!) departments[d.DepartmentName] = departments.Count + 1;
+            if (method.ReturnType == typeof(Task)) return Task.Delay(1);
+            var resultType = method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>)
+                ? method.ReturnType.GetGenericArguments()[0] : method.ReturnType;
+            object? value = method.Name switch
+            {
+                "CheckTenantByEmailAsync" => false,
+                "GetEmployeeIdByUserLogin" => null,
+                "CheckHostUserPermissionAsync" => new HostUserPermissionCheckResponseDTO { ResultCode = 1 },
+                "GetDepartmentNameIdMapAsync" => departments,
+                "GetTenantAdminRoleAsync" => new Role { Id = 1 },
+                "GetAllSubscribedModuleAsync" => new List<axionpro.domain.Entity.Module> { new() { Id = 8, IsLeafNode = true } },
+                "GetModuleOperationMappings" => new List<ModuleOperationMapping> { new() { ModuleId = 8, OperationId = 4 } },
+                "GetAllTenantModuleWithOperation" => new TenantEnabledOperationsResponseDTO { Modules = [new() { Id = 8, Operations = [new() { Id = 4 }] }] },
+                "AutoCreatePolicyTypesAsync" => args![0],
+                "AddTenantSubscriptionAsync" => args![0],
+                "SendTemplatedEmailUsingHostConfigAsync" => scenario != "email-failure",
+                _ => resultType == typeof(bool) ? true : resultType == typeof(int) ? 1 : resultType == typeof(string) ? "test-value" : Activator.CreateInstance(resultType)
+            };
+            if (method.Name == "GetTenantSubscriptionPlanInfoAsync")
+            {
+                var list = (System.Collections.IList)value!;
+                list.Add(Activator.CreateInstance(resultType.GetGenericArguments()[0]));
+            }
+            if (method.Name == "GetCreatedEmployeeResponseAsync") resultType.GetProperty("Id")!.SetValue(value, "50000001");
+            if (method.ReturnType == resultType) return value;
+            return typeof(HostApiRegressionTests).GetMethod(nameof(DelayedResult), BindingFlags.NonPublic | BindingFlags.Static)!
+                .MakeGenericMethod(resultType).Invoke(null, [value]);
+        }
+        T Proxy<T>() where T : class => CreateProxy<T>(Invoke);
+        var handler = new axionpro.application.Features.RegistrationCmd.Handlers.CreateTenantCommandHandler(
+            Proxy<ITokenService>(), new AutoMapper.MapperConfiguration(c => c.AddProfile<axionpro.application.Mappings.MappingProfile>()).CreateMapper(),
+            Proxy<IUnitOfWork>(), NullLogger<axionpro.application.Features.RegistrationCmd.Handlers.CreateTenantCommandHandler>.Instance,
+            Proxy<IEmailService>(), Proxy<IStoreProcedureRepository>(), Proxy<axionpro.application.Interfaces.IHashed.IPasswordService>(),
+            Proxy<IEncryptionService>(), Proxy<IIdEncoderService>(),
+            new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["FrontEndWebURL:BaseUrl"] = "https://example.test" }).Build(),
+            CreateHostCommonRequestService());
+        var dto = new axionpro.application.DTOs.Registration.TenantCreateRequestDTO
+        {
+            CompanyName = "Test Tenant", TenantEmail = "tenant@example.test", TenantCode = "QT", CompanyEmailDomain = "example.test",
+            ContactPersonName = "Test Admin", CountryId = 1, SubscriptionPlanId = 2, TenantIndustryId = 9
+        };
+        ApiResponse<axionpro.application.DTOs.Registration.TenantCreateResponseDTO> result;
+        if (host)
+        {
+            var sender = CreateProxy<ISender>((_, args) => handler.Handle(
+                (axionpro.application.Features.RegistrationCmd.Handlers.CreateTenantCommand)args![0]!, (CancellationToken)args[1]!));
+            result = await new CreateNewTenantCommandHandler(sender).Handle(new CreateNewTenantCommand(new NewTenantCreationRequestDTO
+            {
+                ModuleId = 34, OperationId = 1, CompanyName = dto.CompanyName, TenantEmail = dto.TenantEmail,
+                TenantCode = dto.TenantCode, CompanyEmailDomain = dto.CompanyEmailDomain, ContactPersonName = dto.ContactPersonName,
+                CountryId = 1, SubscriptionPlanId = 2, TenantIndustryId = 9
+            }), default);
+        }
+        else result = await handler.Handle(new(dto), default);
+        Assert.That(result.IsSucceeded, Is.EqualTo(scenario != "save-failure"), result.Message + " | " + string.Join(",", calls));
+        Assert.That(calls.Count(c => c == "CommitTransactionAsync"), Is.EqualTo(scenario == "save-failure" ? 0 : 1));
+        Assert.That(calls.Count(c => c == "RollbackTransactionAsync"), Is.EqualTo(scenario == "save-failure" ? 1 : 0));
+        if (scenario != "save-failure")
+        {
+            Assert.That(calls.Count(c => c == "BulkInsertAsync"), Is.EqualTo(1));
+            Assert.That(calls.IndexOf("SendTemplatedEmailUsingHostConfigAsync"), Is.GreaterThan(calls.IndexOf("CommitTransactionAsync")));
+            Assert.That(result.Data.EmailSent, Is.EqualTo(scenario != "email-failure"));
+        }
+    }
+
+    private static async Task<T> DelayedResult<T>(T value) { await Task.Delay(1); return value; }
+
+    [Test]
+    public void Host_tenant_creation_contract_uses_host_email_config_only()
+    {
+        var properties = typeof(NewTenantCreationRequestDTO).GetProperties()
+            .Select(property => property.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        Assert.That(properties, Does.Contain(nameof(NewTenantCreationRequestDTO.Profile)));
+        Assert.That(properties, Does.Contain(nameof(NewTenantCreationRequestDTO.InitialLocation)));
+        Assert.That(properties, Does.Contain(nameof(NewTenantCreationRequestDTO.EmployeeCodePattern)));
+        Assert.That(properties, Does.Not.Contain("EmailConfiguration"));
+        Assert.That(typeof(INewTenantOnboardingConfiguration).GetProperties()
+            .Any(property => property.Name.Equals("EmailConfiguration", StringComparison.OrdinalIgnoreCase)), Is.False);
+    }
+
     [Test]
     [Category("HostDatabaseRead")]
     public async Task Configured_host_device_database_reads_and_populated_mapping_succeed()
@@ -81,6 +267,12 @@ public sealed class HostApiRegressionTests
         var configurations = await new TenantDeviceConfigurationRepository(context).GetHostPagedAsync(new GetTenantDeviceConfigurationListRequestDTO(), default);
         foreach (var item in configurations.Data) mapper.Map<TenantDeviceConfigurationResponseDTO>(item);
         TestContext.WriteLine($"Configuration rows mapped: {configurations.Data.Count}");
+        var cardTenantId = (await context.Tenants.AsNoTracking().Select(t => (long?)t.Id).FirstOrDefaultAsync()) ?? 0;
+        if (cardTenantId > 0)
+        {
+            var cards = await new TenantCardMasterRepository(context).GetPagedAsync(cardTenantId, new TenantCardMasterFilterRequestDTO(), default);
+            TestContext.WriteLine($"Card rows read: {cards.Data.Count}");
+        }
     }
 
     [TestCase(null)]

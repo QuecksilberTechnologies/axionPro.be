@@ -686,25 +686,8 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
                 await _unitOfWork.TenantRepository.AddTenantProfileAsync(tenantProfile);
 
-                // =====================================================
-                // STEP 19 : Create tenant email config only when the caller
-                // explicitly supplied SMTP data. The Host configuration still
-                // sends the welcome email, but must never be copied into a
-                // TenantEmailConfig row merely because the request omitted it.
-                // =====================================================
-                if (HasTenantEmailConfiguration(onboardingRequest?.EmailConfiguration))
-                {
-                    await _unitOfWork.TenantEmailConfigRepository.InsertEmailConfigAsync(
-                        BuildTenantEmailConfiguration(newTenantId, defaultEmailConfiguration, onboardingRequest));
-                }
-
-                // =====================================================
-                // STEP 20 : Create role permission mapping
-                // =====================================================
-                await _unitOfWork.RoleRepository.AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync(
-                    newTenantId,
-                    employeeId,
-                    createdAdminRoleId);
+                // Admin permissions were inserted in step 16.1 and the employee's
+                // UserRole was saved with the aggregate. Do not insert them twice.
 
                 // =====================================================
                 // STEP 21 : Final save before commit
@@ -794,51 +777,6 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 }
             };
         }
-
-        private static TenantEmailConfig BuildTenantEmailConfiguration(
-            long tenantId,
-            DefaultEmailConfig defaultEmailConfiguration,
-            INewTenantOnboardingConfiguration? onboardingRequest)
-        {
-            var emailConfiguration = onboardingRequest?.EmailConfiguration;
-            var smtpPassword = GetConfiguredValue(
-                emailConfiguration?.SmtpPasswordEncrypted,
-                defaultEmailConfiguration.SmtpPasswordEncrypted);
-
-            return new TenantEmailConfig
-            {
-                TenantId = tenantId,
-                SmtpHost = GetConfiguredValue(
-                    emailConfiguration?.SmtpHost,
-                    defaultEmailConfiguration.SmtpHost),
-                SmtpPort = emailConfiguration?.SmtpPort ?? defaultEmailConfiguration.SmtpPort,
-                SmtpUsername = GetConfiguredValue(
-                    emailConfiguration?.SmtpUsername,
-                    defaultEmailConfiguration.SmtpUsername),
-                SmtpPasswordEncrypted = smtpPassword,
-                FromEmail = GetConfiguredValue(
-                    emailConfiguration?.FromEmail,
-                    defaultEmailConfiguration.FromEmail),
-                FromName = GetConfiguredValue(
-                    emailConfiguration?.FromName,
-                    defaultEmailConfiguration.FromName),
-                IsActive = emailConfiguration?.IsActive ?? defaultEmailConfiguration.IsActive,
-                SecrateKey = GetConfiguredValue(
-                    emailConfiguration?.SecrateKey,
-                    GetConfiguredValue(defaultEmailConfiguration.SecrateKey, smtpPassword))
-            };
-        }
-
-        private static bool HasTenantEmailConfiguration(
-            NewTenantEmailConfigurationRequestDTO? emailConfiguration) =>
-            emailConfiguration is not null &&
-            (!string.IsNullOrWhiteSpace(emailConfiguration.SmtpHost) ||
-             emailConfiguration.SmtpPort.HasValue ||
-             !string.IsNullOrWhiteSpace(emailConfiguration.SmtpUsername) ||
-             !string.IsNullOrWhiteSpace(emailConfiguration.SmtpPasswordEncrypted) ||
-             !string.IsNullOrWhiteSpace(emailConfiguration.FromEmail) ||
-             !string.IsNullOrWhiteSpace(emailConfiguration.FromName) ||
-             !string.IsNullOrWhiteSpace(emailConfiguration.SecrateKey));
 
         /// <summary>
         /// Resolves the Host SMTP configuration selected for registration.

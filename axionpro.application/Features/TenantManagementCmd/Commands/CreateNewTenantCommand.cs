@@ -53,7 +53,6 @@ public sealed class CreateNewTenantCommandHandler
             RunningNumberLength = pattern.RunningNumberLength,
             Profile = dto.Profile,
             InitialLocation = dto.InitialLocation,
-            EmailConfiguration = dto.EmailConfiguration
         };
 
         return _sender.Send(new CreateTenantCommand(legacyRequest), cancellationToken);
@@ -64,5 +63,4 @@ internal sealed class NewTenantCreationBridgeRequestDTO : TenantCreateRequestDTO
 {
     public NewTenantProfileRequestDTO Profile { get; set; } = new();
     public NewTenantLocationRequestDTO InitialLocation { get; set; } = new();
-    public NewTenantEmailConfigurationRequestDTO? EmailConfiguration { get; set; }
 }

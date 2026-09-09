@@ -6,10 +6,10 @@
   License: Open Database License (ODbL). Retain this attribution on redistribution.
 
   Result: India (36 states/UTs, 4199 cities) + China
-  (34 regions, 4134 cities). Macau SAR has no city in
-  the source release, so the script deliberately includes the fallback city Macao.
+  (34 regions, 4134 cities). Macau SAR has no District in
+  the source release, so the script deliberately includes the fallback District Macao.
 
-  WARNING: This is a full Country / State / City reset. It also clears the country
+  WARNING: This is a full Country / State / District reset. It also clears the country
   reference records that block those FKs: District, ComplianceRule,
   CountryIdentityRule, CountryStatutoryRule, StatutoryType, TaxSystemMaster and
   TaxRegimeMaster. Host tables are not deleted. It aborts if tenant/user data still
@@ -32,10 +32,10 @@ CREATE TEMP TABLE full_location_seed
     "CountryCode" character varying(10) NOT NULL,
     "StateSort" integer NOT NULL,
     "StateName" character varying(100) NOT NULL,
-    "CityName" character varying(100) NOT NULL
+    "DistrictName" character varying(100) NOT NULL
 ) ON COMMIT DROP;
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('IN', 1, 'Andaman and Nicobar Islands', 'Bamboo Flat'),
     ('IN', 1, 'Andaman and Nicobar Islands', 'Nicobar'),
@@ -538,7 +538,7 @@ VALUES
     ('IN', 8, 'Dadra and Nagar Haveli and Daman and Diu', 'Daman'),
     ('IN', 8, 'Dadra and Nagar Haveli and Daman and Diu', 'Diu');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('IN', 8, 'Dadra and Nagar Haveli and Daman and Diu', 'Silvassa'),
     ('IN', 9, 'Delhi', 'Alipur'),
@@ -1041,7 +1041,7 @@ VALUES
     ('IN', 13, 'Himachal Pradesh', 'Santokhgarh'),
     ('IN', 13, 'Himachal Pradesh', 'Sarahan');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('IN', 13, 'Himachal Pradesh', 'Sarka Ghat'),
     ('IN', 13, 'Himachal Pradesh', 'Seoni'),
@@ -1544,7 +1544,7 @@ VALUES
     ('IN', 20, 'Madhya Pradesh', 'Alot'),
     ('IN', 20, 'Madhya Pradesh', 'Amanganj');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('IN', 20, 'Madhya Pradesh', 'Amarkantak'),
     ('IN', 20, 'Madhya Pradesh', 'Amarpatan'),
@@ -2047,7 +2047,7 @@ VALUES
     ('IN', 21, 'Maharashtra', 'Katol'),
     ('IN', 21, 'Maharashtra', 'Katral');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('IN', 21, 'Maharashtra', 'Khadki'),
     ('IN', 21, 'Maharashtra', 'Khalapur'),
@@ -2550,7 +2550,7 @@ VALUES
     ('IN', 28, 'Punjab', 'Ajnala'),
     ('IN', 28, 'Punjab', 'Akalgarh');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('IN', 28, 'Punjab', 'Alawalpur'),
     ('IN', 28, 'Punjab', 'Amloh'),
@@ -3053,7 +3053,7 @@ VALUES
     ('IN', 31, 'Tamil Nadu', 'Nattam'),
     ('IN', 31, 'Tamil Nadu', 'Nattarasankottai');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('IN', 31, 'Tamil Nadu', 'Needamangalam'),
     ('IN', 31, 'Tamil Nadu', 'Neelankarai'),
@@ -3556,7 +3556,7 @@ VALUES
     ('IN', 34, 'Uttar Pradesh', 'Harduaganj'),
     ('IN', 34, 'Uttar Pradesh', 'Hasanpur');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('IN', 34, 'Uttar Pradesh', 'Hastinapur'),
     ('IN', 34, 'Uttar Pradesh', 'Hata'),
@@ -4059,7 +4059,7 @@ VALUES
     ('IN', 36, 'West Bengal', 'Champdani'),
     ('IN', 36, 'West Bengal', 'Chandannagar');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('IN', 36, 'West Bengal', 'Chandrakona'),
     ('IN', 36, 'West Bengal', 'Chittaranjan'),
@@ -4562,7 +4562,7 @@ VALUES
     ('CN', 40, 'Fujian', 'Shangjie'),
     ('CN', 40, 'Fujian', 'Shanxia');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('CN', 40, 'Fujian', 'Shanyang'),
     ('CN', 40, 'Fujian', 'Shaowu'),
@@ -5065,7 +5065,7 @@ VALUES
     ('CN', 43, 'Guangxi', 'Xingye'),
     ('CN', 43, 'Guangxi', 'Xiufeng');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('CN', 43, 'Guangxi', 'Xixiangtang'),
     ('CN', 43, 'Guangxi', 'Yangshuo'),
@@ -5568,7 +5568,7 @@ VALUES
     ('CN', 47, 'Heilongjiang', 'Lanxi'),
     ('CN', 47, 'Heilongjiang', 'Lianhe');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('CN', 47, 'Heilongjiang', 'Lindian'),
     ('CN', 47, 'Heilongjiang', 'Lingdong'),
@@ -5888,7 +5888,7 @@ VALUES
     ('CN', 49, 'Hong Kong SAR', 'Central and Western'),
     ('CN', 49, 'Hong Kong SAR', 'Eastern'),
     ('CN', 49, 'Hong Kong SAR', 'Islands'),
-    ('CN', 49, 'Hong Kong SAR', 'Kowloon City'),
+    ('CN', 49, 'Hong Kong SAR', 'Kowloon District'),
     ('CN', 49, 'Hong Kong SAR', 'Kwai Tsing'),
     ('CN', 49, 'Hong Kong SAR', 'Kwun Tong'),
     ('CN', 49, 'Hong Kong SAR', 'North'),
@@ -6071,7 +6071,7 @@ VALUES
     ('CN', 51, 'Hunan', 'Beihu'),
     ('CN', 51, 'Hunan', 'Beita');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('CN', 51, 'Hunan', 'Biyong'),
     ('CN', 51, 'Hunan', 'Bojia'),
@@ -6574,7 +6574,7 @@ VALUES
     ('CN', 54, 'Jiangxi', 'Ganzhou'),
     ('CN', 54, 'Jiangxi', 'Ganzhou Shi');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('CN', 54, 'Jiangxi', 'Gao''an'),
     ('CN', 54, 'Jiangxi', 'Gongqingcheng'),
@@ -7077,7 +7077,7 @@ VALUES
     ('CN', 60, 'Shaanxi', 'Mianxian'),
     ('CN', 60, 'Shaanxi', 'Mizhi');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('CN', 60, 'Shaanxi', 'Nanzheng'),
     ('CN', 60, 'Shaanxi', 'Ningqiang'),
@@ -7580,7 +7580,7 @@ VALUES
     ('CN', 64, 'Sichuan', 'Guang’an'),
     ('CN', 64, 'Sichuan', 'Guanghan');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('CN', 64, 'Sichuan', 'Guangyuan'),
     ('CN', 64, 'Sichuan', 'Gulin'),
@@ -7757,7 +7757,7 @@ VALUES
     ('CN', 64, 'Sichuan', 'Zizhong'),
     ('CN', 65, 'Taiwan', 'Baoying'),
     ('CN', 65, 'Taiwan', 'Changhua'),
-    ('CN', 65, 'Taiwan', 'Changshu City'),
+    ('CN', 65, 'Taiwan', 'Changshu District'),
     ('CN', 65, 'Taiwan', 'Changzhou'),
     ('CN', 65, 'Taiwan', 'Chengxiang'),
     ('CN', 65, 'Taiwan', 'Chiayi'),
@@ -8083,7 +8083,7 @@ VALUES
     ('CN', 68, 'Xinjiang', 'Shawan'),
     ('CN', 68, 'Xinjiang', 'Shihezi');
 
-INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "CityName")
+INSERT INTO full_location_seed ("CountryCode", "StateSort", "StateName", "DistrictName")
 VALUES
     ('CN', 68, 'Xinjiang', 'Shihezi'),
     ('CN', 68, 'Xinjiang', 'Shuanghe'),
@@ -8248,7 +8248,7 @@ VALUES
     ('CN', 69, 'Yunnan', 'Weixin'),
     ('CN', 69, 'Yunnan', 'Wenlan'),
     ('CN', 69, 'Yunnan', 'Wenshan'),
-    ('CN', 69, 'Yunnan', 'Wenshan City'),
+    ('CN', 69, 'Yunnan', 'Wenshan District'),
     ('CN', 69, 'Yunnan', 'Wuding'),
     ('CN', 69, 'Yunnan', 'Wuhua'),
     ('CN', 69, 'Yunnan', 'Xianggelila'),
@@ -8431,7 +8431,7 @@ BEGIN
     SELECT "ExecuteReset" INTO v_execute_reset FROM pg_temp.location_reset_config;
 
     IF (SELECT COUNT(*) FROM pg_temp.full_location_seed) <> 8333 THEN
-        RAISE EXCEPTION 'Source city-count validation failed before reset.';
+        RAISE EXCEPTION 'Source District-count validation failed before reset.';
     END IF;
 
     IF (SELECT COUNT(*) FROM (SELECT "CountryCode", "StateName" FROM pg_temp.full_location_seed GROUP BY "CountryCode", "StateName") states) <> 70 THEN
@@ -8458,7 +8458,7 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- Fail closed when schema adds a new Country/State/City foreign key that
+    -- Fail closed when schema adds a new Country/State/District foreign key that
     -- is not reviewed in this script's ordered cleanup list.
     FOR v_dependency IN
         SELECT DISTINCT source.relname AS table_name
@@ -8470,10 +8470,10 @@ BEGIN
         WHERE fk.contype = 'f'
           AND target_schema.nspname = 'axionpro'
           AND source_schema.nspname = 'axionpro'
-          AND target.relname IN ('Country', 'State', 'City')
+          AND target.relname IN ('Country', 'State', 'District')
           AND source.relname NOT IN
           (
-              'City', 'State', 'District', 'ComplianceRule',
+              'District', 'State', 'District', 'ComplianceRule',
               'CountryIdentityRule', 'CountryStatutoryRule', 'StatutoryType',
               'TaxSystemMaster', 'TaxRegimeMaster', 'TenantLocation', 'Employee',
               'EmployeeTaxProfile', 'InsurancePolicy', 'SalaryComponentMaster',
@@ -8487,26 +8487,26 @@ BEGIN
     END LOOP;
 
     LOCK TABLE
-        axionpro."Country", axionpro."State", axionpro."City", axionpro."District",
+        axionpro."Country", axionpro."State", axionpro."District", axionpro."District",
         axionpro."ComplianceRule", axionpro."CountryIdentityRule",
         axionpro."CountryStatutoryRule", axionpro."StatutoryType",
         axionpro."TaxSystemMaster", axionpro."TaxRegimeMaster"
     IN ACCESS EXCLUSIVE MODE;
 
-    -- Delete children before Country / State / City parents.
+    -- Delete children before Country / State / District parents.
     DELETE FROM axionpro."TaxRegimeMaster";
     DELETE FROM axionpro."ComplianceRule";
     DELETE FROM axionpro."CountryStatutoryRule";
     DELETE FROM axionpro."CountryIdentityRule";
     DELETE FROM axionpro."District";
-    DELETE FROM axionpro."City";
+    DELETE FROM axionpro."District";
     DELETE FROM axionpro."TaxSystemMaster";
     DELETE FROM axionpro."StatutoryType";
     DELETE FROM axionpro."State";
     DELETE FROM axionpro."Country";
 
     FOREACH v_reference_table IN ARRAY ARRAY[
-        'Country', 'State', 'City', 'District', 'ComplianceRule',
+        'Country', 'State', 'District', 'District', 'ComplianceRule',
         'CountryIdentityRule', 'CountryStatutoryRule', 'StatutoryType',
         'TaxSystemMaster', 'TaxRegimeMaster'
     ]
@@ -8531,16 +8531,16 @@ BEGIN
     JOIN axionpro."Country" country ON country."CountryCode" = seed."CountryCode"
     ORDER BY seed."StateSort";
 
-    INSERT INTO axionpro."City" ("StateId", "CityName", "IsActive")
-    SELECT state."Id", seed."CityName", TRUE
+    INSERT INTO axionpro."District" ("StateId", "DistrictName", "IsActive")
+    SELECT state."Id", seed."DistrictName", TRUE
     FROM pg_temp.full_location_seed seed
     JOIN axionpro."Country" country ON country."CountryCode" = seed."CountryCode"
     JOIN axionpro."State" state ON state."CountryId" = country."Id" AND state."StateName" = seed."StateName"
-    ORDER BY seed."StateSort", seed."CityName";
+    ORDER BY seed."StateSort", seed."DistrictName";
 
     IF (SELECT COUNT(*) FROM axionpro."Country") <> 2
        OR (SELECT COUNT(*) FROM axionpro."State") <> 70
-       OR (SELECT COUNT(*) FROM axionpro."City") <> 8333 THEN
+       OR (SELECT COUNT(*) FROM axionpro."District") <> 8333 THEN
         RAISE EXCEPTION 'Location reset post-seed validation failed. Transaction will roll back.';
     END IF;
 
@@ -8548,10 +8548,10 @@ BEGIN
 END;
 $$;
 
-SELECT c."CountryCode", c."CountryName", COUNT(DISTINCT s."Id") AS "StateCount", COUNT(city."Id") AS "CityCount"
+SELECT c."CountryCode", c."CountryName", COUNT(DISTINCT s."Id") AS "StateCount", COUNT(District."Id") AS "DistrictCount"
 FROM axionpro."Country" c
 LEFT JOIN axionpro."State" s ON s."CountryId" = c."Id"
-LEFT JOIN axionpro."City" city ON city."StateId" = s."Id"
+LEFT JOIN axionpro."District" District ON District."StateId" = s."Id"
 WHERE c."CountryCode" IN ('IN', 'CN')
 GROUP BY c."CountryCode", c."CountryName"
 ORDER BY c."CountryCode";

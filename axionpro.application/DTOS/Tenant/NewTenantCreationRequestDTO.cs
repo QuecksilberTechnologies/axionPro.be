@@ -34,12 +34,6 @@ public sealed class NewTenantCreationRequestDTO : PermissionRequestDTO, INewTena
     /// <summary>Gets or sets the first employee-code generation pattern.</summary>
     public NewTenantEmployeeCodePatternRequestDTO EmployeeCodePattern { get; set; } = new();
 
-    /// <summary>
-    /// Gets or sets the optional initial Tenant SMTP configuration. When it is
-    /// absent, onboarding uses the Host SMTP configuration only for the
-    /// welcome email and does not create a TenantEmailConfig row.
-    /// </summary>
-    public NewTenantEmailConfigurationRequestDTO? EmailConfiguration { get; set; }
 }
 
 /// <summary>Supplies extended onboarding values to the established transactional creation handler.</summary>
@@ -47,7 +41,6 @@ public interface INewTenantOnboardingConfiguration
 {
     NewTenantProfileRequestDTO Profile { get; }
     NewTenantLocationRequestDTO InitialLocation { get; }
-    NewTenantEmailConfigurationRequestDTO? EmailConfiguration { get; }
 }
 
 /// <summary>Defines the initial Tenant employee-code generation pattern.</summary>
@@ -59,19 +52,6 @@ public sealed class NewTenantEmployeeCodePatternRequestDTO
     public bool IncludeDepartment { get; set; }
     public string Separator { get; set; } = "/";
     public string RunningNumberLength { get; set; } = "4";
-}
-
-/// <summary>Defines the Tenant-owned SMTP settings used after onboarding.</summary>
-public sealed class NewTenantEmailConfigurationRequestDTO
-{
-    public string? SmtpHost { get; set; }
-    public int? SmtpPort { get; set; }
-    public string? SmtpUsername { get; set; }
-    public string? SmtpPasswordEncrypted { get; set; }
-    public string? FromEmail { get; set; }
-    public string? FromName { get; set; }
-    public bool IsActive { get; set; } = true;
-    public string? SecrateKey { get; set; }
 }
 
 /// <summary>Defines editable values for the initial Tenant profile.</summary>
