@@ -80,7 +80,28 @@ API to apply this repository fix; no seed reset or schema migration is required.
 | Anonymous registration / token verification | Only `POST /api/Tenant/create-tenant` and `POST /api/Tenant/verify` remain anonymous. |
 | Host selects **Resend verification** for a Tenant already shown as verified | No token or SMTP call is made; the API returns the standard `409 Conflict` response. |
 | Host issues the initial bootstrap URL for unassigned inventory | The permission behavior permits the request to reach the handler. |
-| Host opens Tenant Device Configuration after the device is assigned | The permission behavior returns `403`; this is the existing ownership rule, because runtime configuration belongs to Tenant Admin—not a broken Host permission. |
+| Host reads Tenant Device Configuration | List/detail reads require the scope-2 `TENANT_DEVICE_CONFIG` module and a persisted Host grant. A missing grant or a different module returns `403`. Runtime mutation ownership remains Tenant-only. |
+
+### Authenticated Host device checks
+
+`Category=HostLive` logs in and calls the real device/configuration list endpoints, checking HTTP 200,
+the success envelope, array data and pagination. Supply `AXIONPRO_HOST_LOGIN_ID`,
+`AXIONPRO_HOST_LOGIN_PASSWORD`, `AXIONPRO_HOST_DEVICE_MODULE_ID`,
+`AXIONPRO_HOST_CONFIGURATION_MODULE_ID`, and `AXIONPRO_HOST_VIEW_OPERATION_ID` through the
+environment. Obtain IDs from my-menu; configure the target with `AXIONPRO_TEST_API_BASE_URL`.
+Missing settings cause an explicit skip, not a pass. No records are created or deleted by these list checks.
+
+`Category=HostDatabaseRead` additionally reads actual rows and maps them through the application mapping
+profile. Opt in with `AXIONPRO_HOST_DB_SETTINGS` pointing to the intended API settings JSON containing
+`ConnectionStrings:DefaultConnection`. This detects missing columns that translation-only tests cannot find.
+
+On 2026-09-09 the populated read reproduced PostgreSQL `42703` for
+`PendingHttpsIngressTokenExpiresDateTime`. Apply `database-scripts/AddPendingHttpsGatewayReplacement.sql`
+transactionally before the corresponding API release. This adds the pending token columns, constraint
+and index without resetting seed data. The production device list returned HTTP 200 with one row after
+the migration; the configuration permission fix additionally requires the updated API deployment.
+Both authenticated HostLive tests passed against the updated local API using the configured database;
+the populated database check mapped one device and one configuration row successfully.
 
 ## Configuration and secrets
 

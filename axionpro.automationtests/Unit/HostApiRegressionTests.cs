@@ -62,6 +62,27 @@ namespace axionpro.automationtests.Unit;
 [Category("HostApi")]
 public sealed class HostApiRegressionTests
 {
+    [Test]
+    [Category("HostDatabaseRead")]
+    public async Task Configured_host_device_database_reads_and_populated_mapping_succeed()
+    {
+        var settingsPath = Environment.GetEnvironmentVariable("AXIONPRO_HOST_DB_SETTINGS");
+        if (string.IsNullOrWhiteSpace(settingsPath)) Assert.Ignore("Set AXIONPRO_HOST_DB_SETTINGS to opt into read-only configured database checks.");
+        var configuration = new ConfigurationBuilder().AddJsonFile(settingsPath!).Build();
+        await using var context = new WorkforceDbContext(new DbContextOptionsBuilder<WorkforceDbContext>()
+            .UseNpgsql(configuration.GetConnectionString("DefaultConnection")).Options);
+        var modules = await context.Set<axionpro.domain.Entity.Module>().Where(m => m.Id == 35 || m.Id == 36)
+            .Select(m => new { m.Id, m.ModuleCode, m.ModuleScope }).ToListAsync();
+        foreach (var module in modules) TestContext.WriteLine($"Module {module.Id}: {module.ModuleCode}, scope {module.ModuleScope}");
+        var mapper = new AutoMapper.MapperConfiguration(c => c.AddProfile<axionpro.application.Mappings.MappingProfile>()).CreateMapper();
+        var devices = await new TenantDeviceRepository(context).GetHostPagedAsync(new GetTenantDeviceListRequestDTO(), default);
+        foreach (var device in devices.Data) mapper.Map<TenantDeviceResponseDTO>(device);
+        TestContext.WriteLine($"Device rows mapped: {devices.Data.Count}");
+        var configurations = await new TenantDeviceConfigurationRepository(context).GetHostPagedAsync(new GetTenantDeviceConfigurationListRequestDTO(), default);
+        foreach (var item in configurations.Data) mapper.Map<TenantDeviceConfigurationResponseDTO>(item);
+        TestContext.WriteLine($"Configuration rows mapped: {configurations.Data.Count}");
+    }
+
     [TestCase(null)]
     [TestCase(true)]
     [TestCase(false)]
@@ -283,14 +304,14 @@ public sealed class HostApiRegressionTests
     }
 
     [Test]
-    public async Task Host_is_deliberately_denied_the_tenant_runtime_configuration_list_but_can_issue_an_initial_bootstrap_url()
+    public async Task Host_can_read_configuration_with_its_host_module_grant_and_issue_an_initial_bootstrap_url()
     {
         var commonRequestService = CreateHostCommonRequestService();
         var behavior = new TenantDeviceConfigurationPermissionBehavior<
             GetAllTenantDeviceConfigurationsQuery,
             ApiResponse<List<TenantDeviceConfigurationResponseDTO>>>(
             CreateUnitOfWork(hostPermissionAllowed: true),
-            commonRequestService,
+            CreateHostCommonRequestService(moduleCode: "TENANT_DEVICE_CONFIG"),
             NullLogger<TenantDeviceConfigurationPermissionBehavior<
                 GetAllTenantDeviceConfigurationsQuery,
                 ApiResponse<List<TenantDeviceConfigurationResponseDTO>>>>.Instance);
@@ -301,10 +322,11 @@ public sealed class HostApiRegressionTests
                 OperationId = 1
             });
 
-        Assert.ThrowsAsync<ForbiddenAccessException>(() => behavior.Handle(
+        var listResponse = await behavior.Handle(
             listRequest,
             _ => Task.FromResult(ApiResponse<List<TenantDeviceConfigurationResponseDTO>>.Success([])),
-            CancellationToken.None));
+            CancellationToken.None);
+        Assert.That(listResponse.IsSucceeded, Is.True);
 
         var bootstrapBehavior = new TenantDeviceConfigurationPermissionBehavior<
             IssueInitialDeviceBootstrapCommand,
@@ -331,6 +353,19 @@ public sealed class HostApiRegressionTests
             CancellationToken.None);
 
         Assert.That(nextWasCalled, Is.True);
+    }
+
+    [TestCase(false, "TENANT_DEVICE_CONFIG")]
+    [TestCase(true, "TENANT_DEVICE_CONFIGURATION")]
+    [TestCase(true, "HOST_INITIAL_DEVICE_CONFIGURATION")]
+    public void Host_configuration_read_rejects_missing_grant_or_wrong_module(bool allowed, string moduleCode)
+    {
+        var behavior = new TenantDeviceConfigurationPermissionBehavior<GetAllTenantDeviceConfigurationsQuery, ApiResponse<List<TenantDeviceConfigurationResponseDTO>>>(
+            CreateUnitOfWork(hostPermissionAllowed: allowed), CreateHostCommonRequestService(moduleCode: moduleCode),
+            NullLogger<TenantDeviceConfigurationPermissionBehavior<GetAllTenantDeviceConfigurationsQuery, ApiResponse<List<TenantDeviceConfigurationResponseDTO>>>>.Instance);
+        Assert.ThrowsAsync<ForbiddenAccessException>(() => behavior.Handle(
+            new GetAllTenantDeviceConfigurationsQuery(new GetTenantDeviceConfigurationListRequestDTO { ModuleId = 36, OperationId = 4 }),
+            _ => throw new AssertionException("Denied request reached handler."), default));
     }
 
     [Test]
@@ -748,8 +783,8 @@ public sealed class HostApiRegressionTests
             "get_TenantRepository" => tenantRepository,
             "get_StoreProcedureRepository" => CreateProxy<IStoreProcedureRepository>((method, _) => method.Name switch
             {
-                nameof(IStoreProcedureRepository.CheckHostUserPermissionAsync) when hostPermissionAllowed =>
-                    Task.FromResult(new HostUserPermissionCheckResponseDTO { ResultCode = 1 }),
+                nameof(IStoreProcedureRepository.CheckHostUserPermissionAsync) =>
+                    Task.FromResult(new HostUserPermissionCheckResponseDTO { ResultCode = hostPermissionAllowed ? 1 : 0 }),
                 _ => throw new NotSupportedException($"Unexpected store procedure call: {method.Name}.")
             }),
             _ => throw new NotSupportedException($"Unexpected unit-of-work call: {method.Name}.")
@@ -757,7 +792,8 @@ public sealed class HostApiRegressionTests
     }
 
     private static ICommonRequestService CreateHostCommonRequestService(
-        long currentHostRoleId = AppConstants.SuperAdminHostRoleId) =>
+        long currentHostRoleId = AppConstants.SuperAdminHostRoleId,
+        string moduleCode = "HOST_INITIAL_DEVICE_CONFIGURATION") =>
         CreateProxy<ICommonRequestService>((method, _) => method.Name switch
         {
             nameof(ICommonRequestService.ValidateAuthenticatedRequestAsync) => Task.FromResult(new AuthenticatedRequestContext
@@ -773,7 +809,7 @@ public sealed class HostApiRegressionTests
                 UserType = AppConstants.HostUserType,
                 TenantEncryptionKey = "host-regression-key"
             }),
-            nameof(ICommonRequestService.GetModuleCodeAsync) => Task.FromResult<string?>("HOST_INITIAL_DEVICE_CONFIGURATION"),
+            nameof(ICommonRequestService.GetModuleCodeAsync) => Task.FromResult<string?>(moduleCode),
             _ => throw new NotSupportedException($"Unexpected common-request call: {method.Name}.")
         });
 

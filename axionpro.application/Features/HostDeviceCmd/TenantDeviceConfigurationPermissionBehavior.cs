@@ -36,6 +36,7 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
     private const string HostInitialDeviceConfigurationModuleCode = "HOST_INITIAL_DEVICE_CONFIGURATION";
     private const string TenantDeviceConfigurationModuleCode = "TENANT_DEVICE_CONFIGURATION";
     private const string HostTenantCardInventoryModuleCode = "HOST_TENANT_CARD_INVENTORY";
+    private const string HostDeviceConfigurationModuleCode = "TENANT_DEVICE_CONFIG";
 
     #region Permission Pipeline
 
@@ -71,9 +72,8 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
                 permissionRequest.OperationId,
                 cancellationToken);
 
-            // Host access is intentionally limited to device provisioning and
-            // issuing/reissuing a gateway URL. The Tenant owns all connection,
-            // runtime, and device-operation configuration after assignment.
+            // Host read access uses the Host leaf module and its persisted grants.
+            // Runtime changes remain governed by the Tenant ownership boundary.
             if (!IsHostAllowedRequest())
             {
                 throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
@@ -81,7 +81,8 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
 
             // Every Host role must submit the expected active module and pass
             // its persisted module-operation permission.
-            await EnsureExpectedModuleCodeAsync(permissionRequest, expectedModuleCode);
+            await EnsureExpectedModuleCodeAsync(permissionRequest,
+                IsConfigurationReadRequest() ? HostDeviceConfigurationModuleCode : expectedModuleCode);
 
             return await next();
         }
@@ -155,14 +156,18 @@ public sealed class TenantDeviceConfigurationPermissionBehavior<TRequest, TRespo
     }
 
     /// <summary>
-    /// Host users provision unassigned inventory and may issue an HTTPS gateway
-    /// URL for a device. Once assigned, Tenant admins own all configuration,
-    /// runtime settings, and device operations.
+    /// Host users may read configuration under their Host module grant, provision
+    /// inventory, and issue a gateway URL. Tenant admins own runtime mutations.
     /// </summary>
     private static bool IsHostAllowedRequest() =>
+        IsConfigurationReadRequest() ||
         typeof(TRequest) == typeof(IssueInitialDeviceBootstrapCommand) ||
         typeof(TRequest) == typeof(RotateTenantDeviceHttpsIngressTokenCommand) ||
         typeof(TRequest).Name.Contains("TenantCardMaster", StringComparison.Ordinal);
+
+    private static bool IsConfigurationReadRequest() =>
+        typeof(TRequest) == typeof(GetAllTenantDeviceConfigurationsQuery) ||
+        typeof(TRequest) == typeof(GetTenantDeviceConfigurationByIdQuery);
 
     #endregion
 
