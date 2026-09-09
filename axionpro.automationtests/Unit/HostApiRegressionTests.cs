@@ -5,6 +5,13 @@
 // ================================================================
 
 using System.Reflection;
+using System.Data;
+using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using axionpro.persistance.Data.Context;
+using axionpro.persistance.Repositories;
+using axionpro.application.DTOs.Tenant;
 using System.Text.RegularExpressions;
 using axionpro.api.Controllers.DefaultEmailConfig;
 using axionpro.api.Controllers.EmailTemplate;
@@ -55,6 +62,91 @@ namespace axionpro.automationtests.Unit;
 [Category("HostApi")]
 public sealed class HostApiRegressionTests
 {
+    [TestCase(null)]
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task Host_tenant_list_translates_to_PostgreSql_with_verification_and_search_filters(bool? verified)
+    {
+        var commands = new HostQueryCommandInterceptor();
+        await using var context = new WorkforceDbContext(new DbContextOptionsBuilder<WorkforceDbContext>()
+            .UseNpgsql("Host=localhost;Database=translation_only;Username=unused;Password=unused")
+            .AddInterceptors(new HostQueryConnectionInterceptor(), commands).Options);
+        var repository = new TenantRepository(context, NullLogger<TenantRepository>.Instance);
+        var page = await repository.GetHostManagedTenantsAsync(new GetAllTenantsRequestDTO
+        {
+            IsActive = true, IsVerified = verified, SearchKeyword = "office", PageNumber = 1, PageSize = 10
+        });
+        Assert.That(page.Data, Is.Empty);
+        Assert.That(commands.Sql, Has.Count.EqualTo(2));
+        Assert.That(commands.Sql[1], Does.Contain("LoginCredential").And.Contain("LIMIT"));
+    }
+
+    [TestCase("devices")]
+    [TestCase("configurations")]
+    [TestCase("catalogue")]
+    [TestCase("tenant-detail")]
+    [TestCase("tenant-update-load")]
+    [TestCase("host-users")]
+    [TestCase("host-roles")]
+    public async Task Host_read_repositories_translate_to_PostgreSql(string resource)
+    {
+        var commands = new HostQueryCommandInterceptor();
+        await using var context = new WorkforceDbContext(new DbContextOptionsBuilder<WorkforceDbContext>()
+            .UseNpgsql("Host=localhost;Database=translation_only;Username=unused;Password=unused")
+            .AddInterceptors(new HostQueryConnectionInterceptor(), commands).Options);
+        switch (resource)
+        {
+            case "devices":
+                await new TenantDeviceRepository(context).GetHostPagedAsync(new GetTenantDeviceListRequestDTO { Search = "office", IsActive = true }, default);
+                break;
+            case "configurations":
+                await new TenantDeviceConfigurationRepository(context).GetHostPagedAsync(new GetTenantDeviceConfigurationListRequestDTO { Search = "office", IsEnrollmentEnabled = true }, default);
+                break;
+            case "catalogue":
+                await new DeviceMasterRepository(context).GetPagedAsync(new GetDeviceMasterListRequestDTO { Search = "office", IsActive = true }, default);
+                break;
+            case "tenant-detail":
+                await new TenantRepository(context, NullLogger<TenantRepository>.Instance).GetHostManagedTenantDetailAsync(1);
+                break;
+            case "tenant-update-load":
+                await new TenantRepository(context, NullLogger<TenantRepository>.Instance).GetHostManagedTenantByIdAsync(1);
+                break;
+            case "host-users":
+                await new HostUserRepository(context, null!, NullLogger<HostUserRepository>.Instance, null!, null!).GetPagedAsync(true, 1, 10, default);
+                break;
+            case "host-roles":
+                await new HostRoleRepository(context, null!, NullLogger<HostRoleRepository>.Instance, null!, null!).GetAllAsync();
+                break;
+        }
+        Assert.That(commands.Sql, Is.Not.Empty);
+        Assert.That(commands.Sql.All(sql => sql.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase)), Is.True);
+    }
+
+    // Exercise real repository/provider translation, without opening a database or executing SQL.
+    private sealed class HostQueryConnectionInterceptor : DbConnectionInterceptor
+    {
+        public override ValueTask<InterceptionResult> ConnectionOpeningAsync(DbConnection connection,
+            ConnectionEventData eventData, InterceptionResult result, CancellationToken cancellationToken = default)
+            => ValueTask.FromResult(InterceptionResult.Suppress());
+    }
+
+    private sealed class HostQueryCommandInterceptor : DbCommandInterceptor
+    {
+        public List<string> Sql { get; } = [];
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,
+            CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            Sql.Add(command.CommandText);
+            var table = new DataTable();
+            if (command.CommandText.Contains("count(*)", StringComparison.OrdinalIgnoreCase))
+            {
+                table.Columns.Add("count", typeof(int));
+                table.Rows.Add(0);
+            }
+            return ValueTask.FromResult(InterceptionResult<DbDataReader>.SuppressWithResult(table.CreateDataReader()));
+        }
+    }
+
     private static readonly Type[] HostControllerTypes =
     [
         typeof(HostController),

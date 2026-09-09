@@ -63,6 +63,17 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter 
 
 ## Host API regression scenarios
 
+The Host regression tests also compile the actual repository queries with the PostgreSQL EF provider.
+Connection/command interceptors prevent database access and supply empty results: these checks validate
+SQL translation, not production schema compatibility or populated response data. Coverage includes
+Tenant lists (verification unset/true/false, search, active filter and paging), Tenant detail/update loading,
+Host users/roles, device catalogue, installed devices and device connectivity lists.
+
+The Tenant list regression reproduces `The LINQ expression 'employee' could not be translated` before
+the fix. The filtered credential Include now compares TenantId through `credential.Employee.TenantId`,
+preserving the tenant match without referencing the outer Include lambda. Deploy/restart the updated
+API to apply this repository fix; no seed reset or schema migration is required.
+
 | Scenario | Expected result |
 | --- | --- |
 | Host opens a Host administration page or calls its endpoint | The action has a concrete HTTP route and requires an authenticated session. |

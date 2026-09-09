@@ -269,8 +269,9 @@ namespace axionpro.persistance.Repositories
             var query = _context.Tenants
                 .AsNoTracking()
                 .Include(tenant => tenant.Employee.Where(employee => !employee.IsSoftDeleted))
+                    // Filtered Includes must translate independently of the outer employee lambda.
                     .ThenInclude(employee => employee.LoginCredential.Where(credential =>
-                        credential.TenantId == employee.TenantId &&
+                        credential.TenantId == credential.Employee.TenantId &&
                         credential.IsSoftDeleted != true))
                 .Where(tenant => tenant.IsSoftDeleted != true);
 
