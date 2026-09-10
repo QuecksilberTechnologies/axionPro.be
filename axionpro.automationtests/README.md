@@ -271,8 +271,34 @@ automation suite against production.
 
 Current target migration/restart/live HTTP acceptance: PENDING. The user requested
 confirmation of this behavior and document names before giving the next instruction.
+The subsequent 2026-09-10 instruction grants migration/restart and completion approval
+and forbids rerunning already tested cases. Target acceptance is now WIP: the intended
+API URL/service host and authorized test tenant/account must be identified. Development
+and Production configuration-only migration checks both succeeded and resolve to the
+same remote database. No migration, restart or live acceptance has been performed;
+existing passed test suites were not rerun. See the reference's target acceptance follow-up.
 
 Latest focused run (2026-09-10): 18 alias/canonical-header tests passed, zero failed
 or skipped. Result: artifacts/bulk-import/bulk-header-mapping.trx. Previous complete
 backend run: 88 bulk + 119 regression tests passed; no actual-target deployment or
 live HTTP validation was performed during this documentation/header review.
+
+Production execution follow-up (2026-09-10): target identified as
+https://axionpro-api.onrender.com. Backup archive created and fully read successfully;
+Render suspension verified; all four Production migrations committed; post-migration
+schema/ownership checks passed. Deployment `dep-dahcpf7qj5pc73a6mu1g` for commit
+`d2754cd984e8edf2570d310e556fda68a8eb7716` succeeded and is Live. Actual Swagger
+exposes all 32 bulk routes and runtime logs show queue polling. Authenticated bulk acceptance and
+DB-result comparison remain PENDING on an authorized tenant login/session. Earlier
+passed suites were not rerun. Backup location/hash and execution evidence are in
+the main reference's Production execution section; this supersedes the earlier
+statement that no target migration was performed.
+
+Authenticated development acceptance (2026-09-10): tenant 8 passed nine live
+Department/Designation/Role XLSX, CSV and pasted-CSV flows plus seven HTTP validation
+checks. Nine completed jobs and six sample records matched downloaded reports in
+read-only database reconciliation. EmployeeType remains BLOCKED on missing tenant
+entitlement/module 79 and Add/View grants; its successful import is not a pass.
+The existing passed test suites were not rerun. See `../docs/bulk-upload/README.md`
+for sample XLSX/CSV files, actual response/report evidence and the remaining
+EmployeeType-only command. No passwords or tokens are stored in those artifacts.

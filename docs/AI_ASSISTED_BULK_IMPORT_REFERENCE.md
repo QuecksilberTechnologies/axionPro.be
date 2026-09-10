@@ -1128,3 +1128,137 @@ after explicit mapping; canonical headers auto-matched. Artifact:
 artifacts/bulk-import/bulk-header-mapping.trx. Prior full backend result remains
 88 bulk + 119 regression passes; that full suite was not rerun for this test/doc-only
 change. Actual target migration/restart and authenticated acceptance remain pending.
+
+### Target acceptance follow-up (2026-09-10)
+
+- User authorized completing the current four-master scope, migration/restart,
+  remaining tests and documentation before moving to another bulk module.
+- User instructed that already tested cases must not be rerun. Existing TRX
+  artifacts are retained as evidence; no previously passed suite was rerun.
+- Development and Production migration-runner `-ValidateOnly` checks succeeded.
+  Both resolve to the same remote Render database, `workforcedb_34hi_duis`.
+  These checks do not connect to the database or apply migrations.
+- Target acceptance is WIP, blocked on identifying the intended API URL/service
+  host and authorized test tenant/account. No local dotnet/API/IIS worker process
+  or AXIONPRO live-test environment settings were found in this session.
+- Migration/restart approval is already granted; do not request it again.
+  Resolve the target host/environment before backup, draining its worker,
+  migration and restart. Authenticated upload/preview/confirm/report and persisted
+  row verification remain PENDING, not passed. No target database was changed.
+
+### Production execution (2026-09-10, supersedes the blocker above)
+
+- Identified live API: https://axionpro-api.onrender.com. Render Production service:
+  `srv-d6n5vpi4d50c73d9urn0`, repository `QuecksilberTechnologies/axionPro.be`,
+  branch `main_branch`. User signed in to Render and authorized continuation.
+- COMPLETE: PostgreSQL custom-format backup saved outside the repository at
+  `C:/Users/qtech/AppData/Local/AxionPro/Backups/workforcedb-pre-bulk-20260910-205535.dump`
+  (788002 bytes). Archive listing and full archive read succeeded; a database
+  restore was not performed. SHA256:
+  `E793375F4BD7A7A21BF300D6EC7C953A76E34ABB942DD4CDF93891F059D7D02C`.
+- COMPLETE: read-only target preflight found zero missing/foreign Designation
+  parents and zero duplicate identity groups for Designation, Department and Role.
+- COMPLETE: Render displayed Suspended before migrations. All four scripts ran
+  through the Production migration runner and committed successfully. EmployeeType
+  migration updated two Employee references; no test bulk records were inserted.
+- COMPLETE: post-migration reads confirmed BulkImportJob, EmployeeType.TenantId,
+  zero cross-tenant Employee/EmployeeType references and zero bulk jobs.
+- COMPLETE: service resumed and manual latest-commit deployment succeeded for
+  `d2754cd984e8edf2570d310e556fda68a8eb7716`, deployment
+  `dep-dahcpf7qj5pc73a6mu1g`. Render displayed `Deploy succeeded | Live`.
+  Actual Swagger returned all 32 bulk routes (8 per master); runtime logs showed
+  the worker polling BulkImportJob. No authenticated import was inferred from this.
+  Render is a Free instance and can sleep when inactive; scheduled work requires
+  the API to be awake. No paid-plan or billing change was made.
+- PENDING: authenticated upload/preview/confirm/worker/report and DB-result checks.
+  Active tenants are Quecksilber Technologies (8) and SkyFruit (9), each with one
+  active login. Neither is assumed to be an authorized test tenant without an
+  identified login/session. Render authentication does not authenticate a tenant.
+- Previous 18 header, 88 bulk and 119 regression passes were not rerun.
+
+### Authenticated development acceptance and UI samples (2026-09-10)
+
+- User identified the Render API as the development target and supplied the tenant
+  administrator account. Login resolved to tenant 8, Quecksilber Technologies,
+  role 22. Credentials/tokens are not saved in the handoff.
+- COMPLETE: `docs/bulk-upload` contains four upload-ready XLSX files, matching CSV
+  files, a UI integration/testing README, reusable development acceptance scripts
+  and actual sanitized preview/job/report evidence. All four sheets were inspected
+  and visually reviewed; the first three XLSX files were accepted by the live API.
+- COMPLETE: Department, Designation and Role each passed XLSX creation (two rows),
+  CSV existing-record replay and pasted-CSV replay (two skipped, zero created).
+  Nine flows passed, zero failed. Six master records remain with prefix
+  `UIQA-20260910-` for UI review: Department IDs 6/7, Designation IDs 6/7,
+  Role IDs 28/29. No employee assignments or role grants were created.
+- COMPLETE: nine completed jobs reconciled to database rows and reports, including
+  RecordId, name, description/remark, role type, parent Department, counts and
+  tenant ownership. Evidence: `docs/bulk-upload/results/db-verification.json`.
+- COMPLETE: seven new live HTTP validation checks passed. Missing alias mapping,
+  duplicate rows, missing required name and unknown parent all blocked confirmation
+  with HTTP 400. Anonymous read returned 401; View-only mutation and missing
+  EmployeeType entitlement returned 403. Invalid drafts remain unconfirmed.
+- BLOCKED: EmployeeType module 79 has no TenantEnabledModule entry for tenant 8
+  and remains absent from current my-menu. Its successful import/DB acceptance is
+  PENDING. Enable through existing Host entitlement sync and tenant role grants,
+  then run only `run-live.ps1 -Masters EmployeeType`. Do not change permission
+  logic, grant via direct SQL, or rerun completed masters to resolve this.
+- Previous 18/88/119 passed suites were not rerun. This run does not repeat live
+  concurrency/recovery/retry/cancel or cross-tenant authenticated acceptance.
+- UI developer handoff: `docs/bulk-upload/README.md`. Angular implementation is
+  separate and was not performed. Current master phase is not wholly accepted
+  until EmployeeType's entitlement-dependent live checks pass.
+
+### Employee code pattern decisions (2026-09-11; approved design, implementation PENDING)
+
+- Reuse the tenant's existing employee-code pattern configuration for Employee
+  import. Preserve supplied existing codes when they match the selected pattern
+  and do not conflict with another employee. When codes do not match, require the
+  user to select/configure the intended pattern and review proposed codes.
+- User approved changing the tenant pattern even after the initial Tenant Admin
+  employee exists. Approved execution order: update the tenant pattern, change
+  the existing Tenant Admin employee code to that pattern, then insert remaining
+  imported employees using the same pattern. This updates the Admin's employee
+  code, not their login, role or employee identity.
+- Show code changes in preview and obtain explicit approval before applying them.
+  Year/month components should use the employee joining/onboarding date rather
+  than import time. Running numbers remain a separate sequence concern.
+- Still clarify before implementation: whether already-created employees other
+  than the initial Admin must also be recoded; which date is authoritative when
+  joining and software-onboarding dates differ; and how retained numeric suffixes
+  affect the counter and the Admin's proposed code. Do not invent these rules.
+- Current generator still uses DateTime.UtcNow for year/month and increments
+  LastUsedNumber; this decision is not implemented or tested yet. No code, pattern
+  or employee record was changed while recording this decision.
+
+### Requested next scope (2026-09-11; implementation PENDING)
+
+- User requested employee-code pattern insert/update endpoints alongside the
+  existing Tenant GET endpoint, and an Employee insertion template. Reuse existing
+  folders, repositories, mappings, constants and permission pipeline; no new code
+  folders or assumed business rules are authorized.
+- Employee template must cover the required onboarding/base-account information
+  and optional available profile data, including contact number and main address.
+  Employees should complete remaining information after their own login.
+- Inspection: Employee already contains MobileNumber and emergency-contact fields.
+  Main address fields are in the existing EmployeeContact model/flow, not Employee.
+  Confirm the intended primary contact/address mapping before implementing it;
+  do not add address columns to Employee by assumption.
+- Pattern-update scope for existing non-admin employees and date/sequence rules
+  from the preceding decision section still require clarification. New endpoint
+  implementation/tests and the final Employee template are not marked complete.
+
+### Confirmed Employee import rules (2026-09-11; supersedes open questions above)
+
+- A tenant pattern change must update employee codes for all existing employees,
+  including the initial Tenant Admin, after the user approves the preview.
+- Use original joining date for year/month components, not import time or the
+  software account-creation timestamp.
+- Preserve matching existing employee codes. Continue new running numbers after
+  the highest retained number: retained 0145 and 0200 means next number 0201.
+- Save supplied information to the corresponding existing employee-related
+  tables. MobileNumber belongs to Employee; primary personal contact/address
+  uses the existing EmployeeContact flow. Missing optional profile information
+  can be completed by the employee after login.
+- These business decisions are approved. Pattern insert/update endpoints,
+  all-employee recoding, Employee import/template and their required tests remain
+  implementation work; this confirmation alone is not an implementation/test pass.
