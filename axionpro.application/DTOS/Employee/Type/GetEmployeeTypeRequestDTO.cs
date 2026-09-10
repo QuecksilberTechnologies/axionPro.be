@@ -1,24 +1,10 @@
-﻿using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using axionpro.application.DTOs.BaseDTO;
 
-namespace axionpro.application.DTOS.Employee.Type
+namespace axionpro.application.DTOS.Employee.Type;
+
+/// <summary>Tenant scope is resolved from authentication, never from a query parameter.</summary>
+public sealed class GetEmployeeTypeRequestDTO : PermissionRequestDTO
 {
-    /// <summary>
-    /// post-request to fetch all employee-type 
-    /// </summary>
-
-    public class GetEmployeeTypeRequestDTO: BaseRequest
-    {
-        /// <summary> TenantId Required</summary>
-        // ✅ Required Fields
-      
-       
-  
-    
-    }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
 }

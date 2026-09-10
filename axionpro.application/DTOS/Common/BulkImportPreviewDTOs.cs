@@ -1,0 +1,86 @@
+using axionpro.application.Common.Enums;
+using axionpro.application.DTOs.BaseDTO;
+using Microsoft.AspNetCore.Http;
+
+namespace axionpro.application.DTOS.Common;
+
+/// <summary>One uploaded workbook/CSV or pasted table, with optional explicit column mapping.</summary>
+public sealed class BulkImportPreviewRequestDTO : PermissionRequestDTO
+{
+    /// <summary>Optional client-generated identifier for retrying the same preview request safely.</summary>
+    public Guid? RequestId { get; set; }
+    public IFormFile? File { get; set; }
+    public string? PastedText { get; set; }
+    public string? SheetName { get; set; }
+
+    /// <summary>JSON object of target field to source column, for example {"DepartmentName":"Dept"}.</summary>
+    public string? ColumnMappingJson { get; set; }
+}
+
+/// <summary>A bounded source table. Row numbers preserve source locations for correction.</summary>
+public sealed class BulkImportTableDTO
+{
+    public List<string> Columns { get; set; } = new();
+    public List<BulkImportSourceRowDTO> Rows { get; set; } = new();
+}
+
+public sealed class BulkImportSourceRowDTO
+{
+    public int RowNumber { get; set; }
+    public List<string> Values { get; set; } = new();
+}
+
+/// <summary>A saved draft preview; master records are created only after explicit confirmation.</summary>
+public sealed class BulkImportPreviewResponseDTO
+{
+    public Guid? JobId { get; set; }
+    public BulkImportMaster Master { get; set; }
+    public List<string> SourceColumns { get; set; } = new();
+    public Dictionary<string, string> ColumnMapping { get; set; } = new();
+    public List<string> Errors { get; set; } = new();
+    public List<BulkImportPreviewRowDTO> Rows { get; set; } = new();
+    public int ReadyCount => Rows.Count(row => row.Status == BulkImportRowStatus.Ready);
+    public int ExistingCount => Rows.Count(row => row.Status == BulkImportRowStatus.Existing);
+    public int InvalidCount => Rows.Count(row => row.Status == BulkImportRowStatus.Invalid);
+    public bool IsValid => Errors.Count == 0 && Rows.Count > 0 && InvalidCount == 0;
+    public bool ConfirmationAvailable { get; set; }
+    public bool CanCommit => JobId.HasValue && ConfirmationAvailable && IsValid;
+}
+
+/// <summary>Acts only on saved server-side rows; confirmation accepts no replacement data.</summary>
+public sealed class BulkImportJobRequestDTO : PermissionRequestDTO
+{
+    public Guid JobId { get; set; }
+    /// <summary>Null queues now. Future UTC time queues for that time.</summary>
+    public DateTimeOffset? ScheduledAtUtc { get; set; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
+}
+
+public sealed class BulkImportJobResponseDTO
+{
+    public Guid JobId { get; set; }
+    public BulkImportMaster Master { get; set; }
+    public BulkImportJobStatus Status { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime UpdatedAtUtc { get; set; }
+    public DateTime? ScheduledAtUtc { get; set; }
+    public int TotalRows { get; set; }
+    public int ProcessedRows { get; set; }
+    public int CreatedCount { get; set; }
+    public int ExistingCount { get; set; }
+    public int FailedCount { get; set; }
+    public string? Error { get; set; }
+    public BulkImportPreviewResponseDTO? Preview { get; set; }
+}
+
+public sealed class BulkImportPreviewRowDTO
+{
+    public bool Processed { get; set; }
+    public int RowNumber { get; set; }
+    public Dictionary<string, string> Values { get; set; } = new();
+    public BulkImportRowStatus Status { get; set; }
+    public int? ExistingId { get; set; }
+    public int? DepartmentId { get; set; }
+    public List<string> Errors { get; set; } = new();
+}

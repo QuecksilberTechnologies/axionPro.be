@@ -137,7 +137,15 @@ public class UpdateBaseEmployeeByAdminCommandHandler
                     employee.DepartmentId = request.DTO.DepartmentId.Value;
 
                 if (request.DTO.EmployeeTypeId.HasValue)
+                {
+                    var employeeType = await _unitOfWork.EmployeeTypeRepository.GetEmployeeTypeByIdAsync(
+                        validation.TenantId, request.DTO.EmployeeTypeId.Value, cancellationToken);
+                    if (employeeType?.IsActive != true)
+                    {
+                        throw new ValidationErrorException("EmployeeType must be active and belong to this tenant.");
+                    }
                     employee.EmployeeTypeId = request.DTO.EmployeeTypeId.Value;
+                }
 
                 if (request.DTO.CountryId.HasValue)
                     employee.CountryId = request.DTO.CountryId.Value;

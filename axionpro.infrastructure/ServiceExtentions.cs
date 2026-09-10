@@ -34,6 +34,16 @@ namespace axionpro.infrastructure
     {
         public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddOptions<axionpro.application.Common.Models.BulkImportOptions>()
+                .Bind(configuration.GetSection(axionpro.application.Common.Models.BulkImportOptions.SectionName))
+                .Validate(value => value.PollIntervalSeconds is >= 1 and <= 300,
+                    "BulkImport:PollIntervalSeconds must be between 1 and 300.")
+                .Validate(value => value.BatchSize is >= 1 and <= 200,
+                    "BulkImport:BatchSize must be between 1 and 200.")
+                .Validate(value => value.BatchTimeoutSeconds is >= 5 and <= 300,
+                    "BulkImport:BatchTimeoutSeconds must be between 5 and 300.")
+                .ValidateOnStart();
+            services.AddHostedService<BulkImportWorker>();
             // Register background service
              services.AddHostedService<CommonBackgroundService>();  // ✅ This is mandatory
              services.AddMemoryCache();

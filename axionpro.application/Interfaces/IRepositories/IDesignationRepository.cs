@@ -75,9 +75,14 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<bool> UpdateDesignationAsync(Designation entity, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Determines whether a designation name already exists within a tenant.
+        /// Determines whether a live designation name exists in the same tenant and department.
         /// </summary>
-        Task<bool> CheckDuplicateValueAsync(long tenantId, string value);
+        Task<bool> CheckDuplicateValueAsync(
+            long tenantId,
+            int departmentId,
+            string value,
+            int? excludeId = null,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a designation projection by identifier.

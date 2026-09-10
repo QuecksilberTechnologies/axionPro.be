@@ -338,7 +338,7 @@ public class UnitOfWork : IUnitOfWork
         _candidateCategorySkillRepository ??= new CandidateCategorySkillRepository(_context, _loggerFactory.CreateLogger<CandidateCategorySkillRepository>());
 
     public IEmployeeTypeRepository EmployeeTypeRepository =>
-        _employeeTypeRepository ??= new EmployeeTypeRepository(_context, _loggerFactory.CreateLogger<EmployeeTypeRepository>());
+        _employeeTypeRepository ??= new EmployeeTypeRepository(_context, _mapper);
 
     public IClientRepository ClientsRepository =>
         _clientRepository ??= new ClientRepository(_context, _loggerFactory.CreateLogger<ClientRepository>());

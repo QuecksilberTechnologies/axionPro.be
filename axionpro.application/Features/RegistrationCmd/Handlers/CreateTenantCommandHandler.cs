@@ -546,6 +546,8 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 17 : Create employee (tenant admin)
                 // =====================================================
+                var onboardingTypeId = await _unitOfWork.EmployeeTypeRepository.EnsureOnboardingTypeAsync(
+                    newTenantId, newTenantId, cancellationToken);
                 var employee = new Employee
                 {
                     TenantId = newTenantId,
@@ -558,7 +560,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     IsActive = true,
                     IsSoftDeleted = false,
                     IsEditAllowed = true,
-                    EmployeeTypeId = ConstantValues.ParmanentEmployeeType,
+                    EmployeeTypeId = onboardingTypeId,
                     AddedById = newTenantId,
                     AddedDateTime = DateTime.UtcNow
                 };

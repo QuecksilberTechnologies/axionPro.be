@@ -1,4 +1,4 @@
-﻿using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Mappings;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,12 +10,15 @@ namespace axionpro.application
     {
         public static void AddApplication(this IServiceCollection services)
         {
+            services.AddScoped<Common.Helpers.BulkImportPreviewService>();
+            services.AddScoped<Common.Helpers.BulkImportWorkflowService>();
             // Registration the services
             //
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddMediatR(conf => conf.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
             services.AddTransient( typeof(MediatR.IPipelineBehavior<,>),typeof(Features.EmployeeCmd.EmployeeTenantPermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.DepartmentCmd.DepartmentPermissionBehavior<,>));
+            services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.EmployeeTypeCmd.EmployeeTypePermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.DesignationCmd.DesignationPermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.RoleCmd.RolePermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.TenantManagementCmd.TenantManagementPermissionBehavior<,>));

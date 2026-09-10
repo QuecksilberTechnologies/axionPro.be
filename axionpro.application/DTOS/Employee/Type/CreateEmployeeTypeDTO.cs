@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.ComponentModel.DataAnnotations;
+using axionpro.application.DTOs.BaseDTO;
 
-namespace axionpro.application.DTOS.Employee.Type
+namespace axionpro.application.DTOS.Employee.Type;
+
+/// <summary>Tenant-owned type creation; ownership and audit fields come from the login context.</summary>
+public sealed class CreateEmployeeTypeDTO : PermissionRequestDTO
 {
-    internal class CreateEmployeeTypeDTO
-    {
-    }
+    [Required, StringLength(255)]
+    public string TypeName { get; set; } = string.Empty;
+    [StringLength(255)]
+    public string? Description { get; set; }
+    [StringLength(255)]
+    public string? Remark { get; set; }
+    public bool IsActive { get; set; } = true;
 }

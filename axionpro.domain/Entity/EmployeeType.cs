@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -6,6 +6,9 @@ namespace axionpro.domain.Entity;
 public partial class EmployeeType
 {
     public int Id { get; set; }
+
+    /// <summary>Null only for retained legacy catalogue rows; tenant APIs never expose them.</summary>
+    public long? TenantId { get; set; }
 
     public string? TypeName { get; set; }
 

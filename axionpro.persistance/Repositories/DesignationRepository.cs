@@ -103,11 +103,12 @@ namespace axionpro.persistance.Repositories
                 return null;
             }
 
-            var exists = await _context.Designations.AnyAsync(
-                designation => designation.TenantId == entity.TenantId &&
-                               designation.DesignationName.ToLower() == entity.DesignationName.ToLower() &&
-                               designation.IsSoftDeleted != true,
-                cancellationToken);
+            entity.DesignationName = entity.DesignationName.Trim();
+            var exists = await CheckDuplicateValueAsync(
+                entity.TenantId,
+                entity.DepartmentId,
+                entity.DesignationName,
+                cancellationToken: cancellationToken);
 
             if (exists)
             {
@@ -169,6 +170,16 @@ namespace axionpro.persistance.Repositories
 
             if (!departmentExists)
                 return false;
+
+            if (await CheckDuplicateValueAsync(
+                    entity.TenantId,
+                    entity.DepartmentId,
+                    entity.DesignationName,
+                    entity.Id,
+                    cancellationToken))
+            {
+                return false;
+            }
 
             existing.DesignationName = entity.DesignationName;
             existing.Description = entity.Description;
@@ -235,14 +246,22 @@ namespace axionpro.persistance.Repositories
         #region Queries
 
         /// <summary>
-        /// Determines whether a designation name already exists within a tenant.
+        /// Matches normalized designation names within one tenant-owned department.
         /// </summary>
-        public Task<bool> CheckDuplicateValueAsync(long tenantId, string value)
+        public Task<bool> CheckDuplicateValueAsync(
+            long tenantId,
+            int departmentId,
+            string value,
+            int? excludeId = null,
+            CancellationToken cancellationToken = default)
         {
             return _context.Designations.AnyAsync(
                 designation => designation.TenantId == tenantId &&
+                               designation.DepartmentId == departmentId &&
+                               (!excludeId.HasValue || designation.Id != excludeId.Value) &&
                                designation.IsSoftDeleted != true &&
-                               designation.DesignationName.ToLower() == value.Trim().ToLower());
+                               designation.DesignationName.Trim().ToLower() == value.Trim().ToLower(),
+                cancellationToken);
         }
 
         /// <summary>

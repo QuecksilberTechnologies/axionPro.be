@@ -731,6 +731,8 @@ namespace axionpro.application.Mappings
             CreateMap<GetDesignationResponseDTO, Designation>().ReverseMap();
 
 
+            CreateMap<axionpro.application.DTOS.Employee.Type.CreateEmployeeTypeDTO, EmployeeType>();
+            CreateMap<EmployeeType, axionpro.application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>();
             CreateMap<CreateDepartmentRequestDTO, Department>().ReverseMap();
             CreateMap<Department, GetSingleDepartmentResponseDTO>().ReverseMap();
             CreateMap<Department, GetDepartmentRequestDTO>().ReverseMap();

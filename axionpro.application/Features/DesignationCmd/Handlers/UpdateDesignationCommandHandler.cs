@@ -138,6 +138,23 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                     AppConstants.ErrorCodes.DesignationHasEmployeeDependencies);
             }
 
+            // A designation name is unique within its department, not across the tenant.
+            var targetName = string.IsNullOrWhiteSpace(request.DTO.DesignationName)
+                ? entity.DesignationName
+                : request.DTO.DesignationName.Trim();
+            var targetDepartmentId = request.DTO.DepartmentId > 0
+                ? request.DTO.DepartmentId
+                : entity.DepartmentId;
+            if (await _unitOfWork.DesignationRepository.CheckDuplicateValueAsync(
+                    tenantId,
+                    targetDepartmentId,
+                    targetName,
+                    entity.Id,
+                    cancellationToken))
+            {
+                throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
+            }
+
             if (!string.IsNullOrWhiteSpace(request.DTO.DesignationName))
                 entity.DesignationName = request.DTO.DesignationName.Trim();
             if (request.DTO.DepartmentId > 0)

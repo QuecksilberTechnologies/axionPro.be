@@ -365,6 +365,14 @@ namespace axionpro.persistance.Data.Context
 
       protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<BulkImportJob>(entity =>
+        {
+            entity.ToTable("BulkImportJob", "axionpro");
+            entity.HasKey(job => job.Id);
+            entity.Property(job => job.PreviewJson).HasColumnType("jsonb");
+            entity.Property(job => job.InputHash).HasMaxLength(64);
+        });
+
         modelBuilder.Entity<AccoumndationAllowancePolicyByDesignation>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Accoumnd__3214EC071BDF4022");

@@ -126,6 +126,13 @@ public class CreateBaseEmployeeInfoCommandHandler
                 // ===============================
                 var employee = _mapper.Map<Employee>(request.DTO);
 
+                var employeeType = await _unitOfWork.EmployeeTypeRepository.GetEmployeeTypeByIdAsync(
+                    validation.TenantId, request.DTO.EmployeeTypeId, cancellationToken);
+                if (employeeType?.IsActive != true)
+                {
+                    throw new ValidationErrorException("EmployeeType must be active and belong to this tenant.");
+                }
+
                 employee.TenantId = validation.TenantId;
                 employee.AddedById = validation.UserEmployeeId;
                 employee.AddedDateTime = DateTime.UtcNow;

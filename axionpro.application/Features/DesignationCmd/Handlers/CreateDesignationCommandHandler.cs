@@ -123,7 +123,11 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 throw new ValidationErrorException(
                     AppConstants.ErrorMessages.InvalidRequest);
 
-            if (await _unitOfWork.DesignationRepository.CheckDuplicateValueAsync(tenantId, designationName))
+            if (await _unitOfWork.DesignationRepository.CheckDuplicateValueAsync(
+                    tenantId,
+                    request.DTO.DepartmentId,
+                    designationName,
+                    cancellationToken: cancellationToken))
                 throw new ConflictException(
                     AppConstants.ErrorMessages.ResourceConflict);
 

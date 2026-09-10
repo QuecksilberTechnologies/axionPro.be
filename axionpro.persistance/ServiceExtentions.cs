@@ -87,6 +87,7 @@ namespace axionpro.persistance
 
             // ✅ Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IBulkImportRepository, BulkImportRepository>();
 
             // ✅ All Repositories as Scoped
             services.AddScoped<IStoreProcedureRepository, StoreProcedureRepository>();

@@ -37,6 +37,43 @@ To watch the browser, set `Headless` to `false` in `automationsettings.json`, th
 
 ## Commands
 
+### Durable bulk master import and designation department scope
+
+`Category=BulkImport` covers Excel/CSV/paste parsing, column mapping, row errors,
+department-specific designation names, existing roles, endpoint authentication and
+the existing Department/Designation/Role permission behaviors.
+
+`Category=BulkImportDatabase` executes actual designation repository and database
+constraint checks, real persisted permission checks, confirmation idempotency,
+scheduled execution, parallel workers, interrupted-batch recovery, partial-failure
+retry, cancellation and the hosted background worker. Set `AXIONPRO_BULK_TEST_CONNECTION` to an isolated database named
+`axionpro_bulk_test`, restored from the workforce backup, then apply
+`database-scripts/EnforceDesignationDepartmentScope.sql` followed by
+`database-scripts/AddDurableMasterBulkImport.sql` to that isolated database.
+Never point these tests at production. Missing configuration is skipped explicitly;
+designation tests roll back their changes; durable tests commit to verify recovery
+and then remove only their own uniquely named records/jobs. The restored fixture
+needs an active tenant employee/role with existing grants for all three masters.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=BulkImport|Category=BulkImportDatabase" --logger "trx;LogFileName=bulk-import.trx" --results-directory artifacts/bulk-import
+```
+
+Department, Designation, Role and EmployeeType support saved previews, confirmation, durable
+background execution, history, retry, cancellation, templates and result reports.
+AI is disabled by user decision. Angular integration remains a separate frontend
+task. The single API/UI handoff and progress reference is
+`docs/AI_ASSISTED_BULK_IMPORT_REFERENCE.md`.
+
+EmployeeType is tenant-owned. Also apply `AddTenantEmployeeTypes.sql` and
+`SeedTenantEmployeeTypeModule.sql`, or run `database-scripts/ApplyBulkImportMigrations.ps1`
+with the intended API environment. EmployeeTypeDatabaseTests cover ownership,
+duplicate names, hidden legacy/foreign rows, onboarding and database assignment
+constraints. Durable tests include EmployeeType import and repeatable migration
+execution for both Development and Production selections, always overriding the
+connection to the isolated test database. These runner checks require PowerShell 7
+and psql; set AXIONPRO_TEST_PSQL_PATH if PostgreSQL is installed elsewhere.
+
 ```powershell
 # API tests only
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=API"
@@ -132,3 +169,110 @@ On a failed UI test, Playwright saves a screenshot and trace ZIP under the test 
 ```powershell
 pwsh .\axionpro.automationtests\bin\Debug\net10.0\playwright.ps1 show-trace <trace-file.zip>
 ```
+
+## Bulk validation checklist: read before every bulk-import session
+
+Continuing contract: [AI_ASSISTED_BULK_IMPORT_REFERENCE.md](../docs/AI_ASSISTED_BULK_IMPORT_REFERENCE.md).
+Read this checklist plus that reference before changes or deployment. Preserve
+existing permission pipelines, constants, enums, mappings and handler/repository
+patterns. Do not claim a target deployment or live HTTP acceptance pass from an
+isolated database or controller-contract test.
+
+### Source headers and filenames
+
+| Source header for designation names | Current behavior |
+| --- | --- |
+| DesignationName / designation name / Designation_Name | Auto-matches after case/space/punctuation normalization |
+| DesName / design name / DesignationType | Requires explicit manual mapping to DesignationName |
+| Several possible designation-name columns | User selects the correct source; do not guess or merge columns |
+
+Example ColumnMappingJson for source headers DesName and Dept:
+
+```json
+{"DesignationName":"DesName","DepartmentName":"Dept"}
+```
+
+For another alias, replace DesName with the exact source header. This is column
+mapping, not database schema renaming. If DesignationType actually means a category
+instead of a designation name, the user must select the correct column based on
+its values. Semantic meaning is not automatically validated by AI; AI is disabled.
+Unmapped required fields produce preview errors and CanCommit=false. Arbitrary
+unused source columns are ignored and should be visibly marked as unmapped in UI.
+
+The uploaded filename can be any name ending in .xlsx or .csv; it does not decide
+the master type. The selected /api/Department, /Designation, /Role or /EmployeeType
+route does. .cvs is not a supported extension. Raw files are not retained; normalized
+preview rows/mapping/results are persisted in BulkImportJob. Multiple-sheet XLSX
+requires the exact SheetName; no automatic semantic sheet selection exists.
+
+### Validation and acceptance matrix
+
+| Check | Required outcome |
+| --- | --- |
+| File versus pasted data | Exactly one source; empty input rejected |
+| CSV | Valid UTF-8, quoted commas/newlines preserved, consistent row widths |
+| XLSX | Valid bounded workbook, chosen sheet; reject formulas, error cells, merged cells and external worksheet links |
+| Limits | 5 MiB file, 25 MiB expanded workbook, 5,000 rows, 64 columns, 4,000 characters/cell, 1,000 ZIP entries |
+| Headers/mapping | Nonempty unique headers; supported targets only; one source column cannot populate several targets; required fields mapped |
+| Required values | DepartmentName; DesignationName + DepartmentName; RoleName + existing numeric RoleType; EmployeeType TypeName |
+| Text lengths | Department/Designation names 255; RoleName 100; Description 500 and Remark 200; EmployeeType fields each 255 |
+| IsActive | true/false only; missing/blank defaults true |
+| Source duplicates | Trim/case-insensitive identity duplicates invalidate all involved rows |
+| Existing active match | Skip existing record; preserve values; no overwrite/reactivation |
+| Inactive/ambiguous match | Preview error; no silent merge/reactivation |
+| Designation ownership | Same name allowed in different departments; parent must be active and belong to this tenant |
+| Role type | Existing Admin=1, Employee=2, Manager=3 only; conflicting existing type rejected; no role grants/employee assignment |
+| EmployeeType ownership | Tenant-only options/reads/import; hide shared legacy/foreign rows; existing references migrated; cross-tenant assignment rejected |
+| Authentication/permissions | Existing module/action grant required; client cannot choose TenantId/actor; View cannot confirm/create |
+| Job ownership | Other tenant or another actor cannot read, confirm, cancel, retry or download this job |
+| Confirmation | Only valid saved draft; no replacement rows; repeated Confirm does not create another job |
+| RequestId | Same source/sheet/mapping replay returns saved draft; changed input with same ID returns conflict |
+| Schedule | Null means eligible now; future UTC means not-before time; past time rejected |
+| Concurrent changes | Worker rechecks DB and permissions per batch; unique constraints protect races; changed parent/error rows reported |
+| Crash/restart | Master inserts and progress commit together; uncommitted batch rolls back; committed rows are not recreated |
+| Retry | Only Failed/CompletedWithErrors; created rows retained; failed/pending rows revalidated |
+| Cancel | Stops pending work at batch boundary; committed rows remain; no undo |
+| Reports | Quoted CSV, formula protection, row numbers/IDs/errors; downloads are files, not JSON success envelopes |
+| Infrastructure failure | Rollback/log/retry next poll; no attempt ceiling or automatic low-traffic detection implemented |
+
+These are the implemented validation contracts, not a guarantee that every possible
+conflict can be predicted at preview time. Another user can change data before the
+worker runs; revalidation, database constraints and row error reporting handle that.
+Structural validity also cannot prove a manually mapped column has the user's intended
+business meaning. UI must show mapped sample values and require confirmation.
+
+### Repeatable tests and target-deployment acceptance
+
+- BulkImportPreviewTests: parser and mapping cases, duplicates, required values,
+  master matching and the explicit designation alias examples across XLSX/CSV/paste.
+- BulkImportPermissionTests: routes, authentication, permission pipeline and action restrictions.
+- DesignationDepartmentDatabaseTests / EmployeeTypeDatabaseTests: real isolated-DB
+  ownership, duplicate and migration/reference constraints.
+- DurableBulkImportDatabaseTests: saved jobs, worker, replay, scheduling, concurrency,
+  recovery, retry/cancel/history and migration runner in both environment selections.
+
+```powershell
+# Focused aliases/canonical headers: no DB required.
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter 'FullyQualifiedName~Custom_designation_headers|FullyQualifiedName~Canonical_designation_headers' --logger 'trx;LogFileName=bulk-header-mapping.trx' --results-directory artifacts/bulk-import
+# Full backend suite: set AXIONPRO_BULK_TEST_CONNECTION to the isolated fixture first.
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter 'Category=BulkImport|Category=BulkImportDatabase' --logger 'trx;LogFileName=bulk-import.trx' --results-directory artifacts/bulk-import
+```
+
+Before a requested target deployment: identify the selected environment/connection
+without logging credentials, verify backup and existing data conflicts, drain old
+API/worker, apply the four scripts via ApplyBulkImportMigrations.ps1, start the new
+API, verify schema/worker logs and existing entitlements/grants. Use the intended
+authorized test tenant for authenticated XLSX/CSV/paste → preview → confirm → poll →
+report checks. Include alias mapping, duplicates, cross-tenant denial and retry.
+Verify actual persisted rows/counts against the job report and clean only explicitly
+identified test records. Record environment, test cases, results, failure/skip details
+and cleanup in the continuing reference. Never run the destructive isolated-DB
+automation suite against production.
+
+Current target migration/restart/live HTTP acceptance: PENDING. The user requested
+confirmation of this behavior and document names before giving the next instruction.
+
+Latest focused run (2026-09-10): 18 alias/canonical-header tests passed, zero failed
+or skipped. Result: artifacts/bulk-import/bulk-header-mapping.trx. Previous complete
+backend run: 88 bulk + 119 regression tests passed; no actual-target deployment or
+live HTTP validation was performed during this documentation/header review.
