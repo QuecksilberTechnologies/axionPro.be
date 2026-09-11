@@ -1512,3 +1512,32 @@ This checkpoint supersedes earlier WIP/blocker notes for the requested release.
   committed inserts remain. Terminal-job cancel does not change status. No bulk
   job TTL/automatic purge exists; parsed source data stays in PreviewJson.
 - Documentation only; no business code changed and no passed tests repeated.
+
+### Resend email verification — 2026-09-11
+
+- Brevo authenticated log review found 49 events in the selected date range.
+  Latest `axionvibe@gmail.com` attempt has `Sent` and `Delivered` at 22:09; earlier
+  `mca.deepesh@gmail.com` attempts also have Delivered/Open/Clicked events.
+- Historical `Error` events coexist with successful attempts. The screenshot's
+  success envelope plus error toast is consistent with multiple overlapping resend
+  requests; it is not evidence of one contradictory API response. No extra resend
+  was triggered during review.
+- The supplied Render log still records SMTP connect timeout on port 587. The
+  authenticated Brevo result confirms delivery is possible for some attempts, but
+  does not remove the intermittent-failure issue. Keep this item WIP until each
+  click maps to one request and the Render timeout/configuration is addressed.
+
+## 2026-09-12 — bulk menu seed correction (WIP)
+
+Complete seed now defines tenant-scope BULKUPLOAD as a root with five distinct
+bulk child modules, full menu metadata, View/Import mappings and inherited plan
+coverage. The prior block that reparented existing master modules was removed.
+No target database execution was performed for this change. git diff --check passed.
+Existing Add/Create duplicates are NOT merged by the existing normalization code;
+prior statements claiming that normalization removed duplicates were incorrect.
+Bulk mapping selection uses one active operation per required operation type.
+Pending: SQL integration tests, dependency-aware cleanup of pre-existing operation
+duplicates, and API permission compatibility for the new bulk ModuleIds. Employee
+bulk currently validates EMP_LIST, so the new child ModuleId cannot be substituted
+in API calls without a reviewed permission-pipeline change. Tenant sync is owned
+by the user as requested. Do not mark MyMenu/API acceptance COMPLETE yet.

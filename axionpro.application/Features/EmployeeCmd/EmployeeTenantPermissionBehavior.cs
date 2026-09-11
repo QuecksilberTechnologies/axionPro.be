@@ -48,13 +48,20 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
             return await next();
         }
 
+        var validation = await commonRequestService.ValidateTenantUserRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+        }
+
         var permissionRequest = ResolvePermissionRequest(request);
         if (permissionRequest is null)
         {
             logger.LogWarning(
                 "Employee request {EmployeeRequest} did not provide ModuleId and OperationId.",
                 typeof(TRequest).Name);
-            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
 
         var expectedModuleCode = ResolveExpectedModuleCode();
@@ -77,13 +84,6 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
                 moduleCode,
                 expectedModuleCode);
             throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
-        }
-
-        var validation = await commonRequestService.ValidateTenantUserRequestAsync();
-        if (!validation.Success)
-        {
-            throw new UnauthorizedAccessException(
-                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
         }
 
         long tenantId = validation.TenantId;

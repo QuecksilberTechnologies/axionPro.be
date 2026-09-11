@@ -363,3 +363,91 @@ cases pass (0 failed/skipped); evidence is
 Only these new cases ran; the existing 77 Employee cases were not repeated.
 EmployeeType live XLSX/CSV/paste bulk and DB/report verification also passed;
 manual CRUD update/delete and live Employee acceptance remain pending deployment.
+# Host tenant verification resend review — 2026-09-11
+
+## Supplied failure logs and target configuration — confirmed findings
+
+## Brevo account evidence — 2026-09-11
+
+- User-authenticated Brevo account opened successfully; Transactional → Email →
+  Logs shows 49 events for 04/09/2026–11/09/2026.
+- Latest recipient `axionvibe@gmail.com` has `Sent` and `Delivered` at 11/09/2026
+  22:09. Earlier attempts for `mca.deepesh@gmail.com` show Delivered at 09/09/2026
+  21:13, plus Sent/Clicked/Open events. This proves Brevo accepted and delivered
+  multiple welcome messages for this account; it does not prove every API attempt
+  succeeds.
+- Historical entries for `mca.deepesh@gmail.com` and `axionvibe@gmail.com` also show
+  `Error` events. Therefore the observed UI success response and error toast can be
+  separate overlapping requests/attempts, not one response with two states. UI must
+  correlate toast/request ID and avoid firing resend more than once per click.
+- Brevo usage showed 299 of 300 emails remaining after the latest activity. No
+  additional resend was triggered during this verification, avoiding duplicate mail.
+
+- User-supplied Render log reports `System.TimeoutException` in
+  `MailKit.Net.SocketUtils.ConnectAsync` / `SmtpClient.ConnectAsync`, at
+  `EmailService.cs:128`, for WELCOME_EMAIL / tenant 9. This failure is during
+  connection establishment, before SMTP authentication or message submission.
+- Read-only target DB inspection: tenant 9 has no TenantEmailConfig. Active Host
+  default is DefaultEmailConfig ID 2, smtp-relay.brevo.com, port 587. Another active
+  row (ID 1) is not default and is not selected by the repository. No secrets exported.
+  The earlier tenant-config preference hypothesis therefore does not explain this
+  tenant's current configuration.
+- Render documents that Free web services block outbound ports 25/465/587:
+  https://render.com/docs/free . Current instance plan still needs verification;
+  the connection timeout alone does not prove the platform restriction caused it.
+- Brevo documents port 2525 as the alternative when 587 is blocked:
+  https://help.brevo.com/hc/en-us/articles/10905415650322-Which-SMTP-port-should-I-use-Port-587-465-or-2525 .
+  Proposed configuration correction: select active default ID 2 through existing
+  Host configuration update flow and use 2525 with existing required STARTTLS.
+  Do not change credentials or disable TLS. Change has NOT been applied.
+- New screenshot shows one successful API envelope alongside a failed request and
+  error toast. It does not prove inbox delivery, a UI bug, or that the failed and
+  successful attempts used identical deployment/configuration. Correlate each request.
+- Authenticated Host session is still unavailable (browser inventory has no tabs).
+  Remaining: apply/verify configuration through existing permission flow, perform
+  one authenticated resend, correlate SMTP acceptance and recipient delivery.
+  No blanket automatic resend retry was added; uncertain delivery can duplicate mail.
+
+**WIP: authenticated live resend/root-cause verification remains blocked on Host
+login and Render logs. This is separate from Employee bulk invitations.**
+
+- Reviewed TenantController route, ResendTenantVerificationCommandHandler,
+  TenantManagementPermissionBehavior and EmailService before testing.
+- Added 6 regression cases in `Unit/HostApiRegressionTests.cs`: accepted delivery,
+  rejected delivery, empty token (no send), missing template, inactive template,
+  and unavailable tenant/Host SMTP configuration. All 6 passed, 0 failed/skipped.
+  Handler tests verify recipient/template/link, 30-minute token lifetime and that
+  resend does not mark the tenant or onboarding credential verified.
+- The first 3 cases use a fake email service; the other 3 exercise the real email
+  service with fake repositories and no network. These are not SMTP delivery tests.
+- Exact supplied Render POST route, without credentials, returned HTTP 401.
+  No authenticated resend/email was attempted; screenshot HTTP 500 root cause is
+  not yet confirmed. No production code/configuration changes were made.
+- Review observations to correlate with logs: registration forces Host SMTP;
+  resend prefers tenant SMTP. An apparently complete tenant configuration does
+  not fall back on SMTP authentication/delivery failure. Template/configuration/
+  transport failures return false and the handler converts false to generic 500.
+  These observations are not proof of which failure occurred on Render.
+- Next: use authenticated Host session for one resend, correlate response with
+  server logs, identify actual exception/configuration, then add a cause-specific
+  regression and verify any justified fix after deployment. Do not claim delivered
+  mail from mocked success or repeat send after an uncertain outcome without checking logs.
+
+Focused commands (each new group ran once; unrelated passed suites not rerun):
+
+```powershell
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter "FullyQualifiedName~Resend_delivery_result_is_truthful"
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter "FullyQualifiedName~Resend_email_service_rejects"
+```
+# Employee profile permission status mapping — 2026-09-11
+
+- Central `EmployeeTenantPermissionBehavior` now validates the authenticated
+  Tenant context first. A valid authenticated user whose Employee profile request
+  has no/incorrect permission data receives `403 Forbidden`; invalid/expired
+  authentication still receives `401 Unauthorized`.
+- This covers Employee Overview, Bank, Contact, Device, Work, Location,
+  Arrangement, Pattern and other `EmployeeCmd` profile request families through
+  their shared pipeline. Target employee data-scope denials remain 403.
+- Added and passed regression test:
+  `Tenant_permission_denial_is_forbidden_while_invalid_permission_context_is_unauthorized`.
+- No separate permission pipeline or endpoint-specific bypass was introduced.

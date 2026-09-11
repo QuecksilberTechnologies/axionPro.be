@@ -2,6 +2,7 @@ using System.Reflection;
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Models.Security;
 using axionpro.application.DTOS.RoleModulePermission;
+using axionpro.application.Common.Helpers;
 using axionpro.application.DTOS.Tenant;
 using axionpro.application.Exceptions;
 using axionpro.application.Features.TenantConfigurationCmd;
@@ -20,6 +21,15 @@ namespace axionpro.automationtests.Unit;
 [Category("EmployeeBulkCode")]
 public sealed class EmployeeCodePatternPermissionTests
 {
+    [Test]
+    public void Tenant_permission_denial_is_forbidden_while_invalid_permission_context_is_unauthorized()
+    {
+        Assert.Throws<ForbiddenAccessException>(() => TenantRuntimePermissionValidator.EnsureAllowed(
+            new TenantsUserPermissionCheckResponseDTO { ResultCode = 0 }));
+        Assert.Throws<UnauthorizedAccessException>(() => TenantRuntimePermissionValidator.EnsureAllowed(
+            new TenantsUserPermissionCheckResponseDTO { ResultCode = -1 }));
+    }
+
     [TestCase(true)]
     [TestCase(false)]
     public void Host_aggregate_cannot_bypass_pattern_preview(bool change)

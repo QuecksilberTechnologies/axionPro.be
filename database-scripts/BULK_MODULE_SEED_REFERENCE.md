@@ -1,0 +1,71 @@
+# Bulk module seed reference
+
+Updated: 2026-09-11. This note records which module/operation seed is authoritative
+for bulk onboarding and what each seed changes. It does not grant permissions.
+
+## Which seed to use?
+
+`database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql` is the
+canonical production module/operation seed. Use it for normal release execution.
+
+`database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`
+contains the same consolidated sections plus 38 backup-recovered `Module` rows:
+common menu/profile leaves, employee profile leaves, tenant/host hierarchy and
+device inventory/location leaves. It is a complete fresh/restore reference, not
+a drop-in production replacement; its extra rows can be environment-specific and
+IDs are generated. The later operation/mapping logic is otherwise the same, with
+shifted line numbers.
+
+## Bulk-related module entries
+
+| ModuleCode | Scope | Used by |
+|---|---:|---|
+| `EMP_LIST` | Tenant | Employee bulk preview/confirm/jobs/report/template/invitations |
+| `TENANT_DEPARTMENTS` | Tenant | Department bulk |
+| `TENANT_DESIGNATIONS` | Tenant | Designation bulk |
+| `TENANT_ROLES_PERMISSIONS` | Tenant | Role bulk |
+| `TENANT_EMPLOYEE_TYPES` | Tenant | EmployeeType bulk |
+| `TENANT_EMPLOYEE_CODE` | Tenant | Employee-code pattern add/update |
+
+`TENANT_EMPLOYEE_TYPES` is maintained by the idempotent
+`database-scripts/SeedTenantEmployeeTypeModule.sql`; the consolidated seed files
+do not yet contain that module. That script creates CRUD catalogue/plan coverage;
+tenant grants still use entitlement synchronization and the existing permission API.
+
+For the complete bulk catalogue, run the new idempotent
+`database-scripts/SeedBulkImportModules.sql`. It ensures the five bulk master
+modules, the Import operation (type 12), their `ModuleOperationMapping` rows and
+plan inheritance from `EMP_LIST`. It intentionally does not create
+`TenantEnabledModule`, `TenantEnabledOperation` or `RoleModuleAndPermission`
+grants; run the existing entitlement synchronization and role-permission command
+afterward to make Bulk Import appear in a tenant's menu.
+
+Bulk master import uses the existing Add/Import grant. Canonical CRUD operation
+types are View=4, Create/Add=1, Update=2, Delete=3; Import is enum value 12 when
+the environment has an Import operation. Do not hardcode IDs or grant roles in UI.
+
+## Tables changed
+
+| Seed section | Tables | Effect |
+|---|---|---|
+| Email setup | `DefaultEmailConfig`, `TenantEmailConfig` | Creates/upgrades email config and active defaults |
+| Module definitions | `Module` | Idempotently inserts missing metadata; parents resolve by ModuleCode |
+| Operation normalization | `Operation` | Ensures active CRUD metadata/icons |
+| Catalogue mappings | `ModuleOperationMapping` | Adds/updates module-operation catalogue rows |
+| Plan inheritance | `PlanModuleMapping` | Copies selected baseline modules to subscription plans |
+| EmployeeType add-on | `Module`, `ModuleOperationMapping`, `PlanModuleMapping`, `TenantEnabledOperation`, stale `RoleModuleAndPermission` | Adds CRUD catalogue, cleans stale EmployeeType rows; no role grant |
+| Host baseline | Host role/permission tables and related module tables | Normalizes existing Host hierarchy/baseline |
+
+Bulk job storage is separate: run `AddDurableMasterBulkImport.sql` and
+`AddEmployeeBulkImport.sql` for `axionpro.BulkImportJob` and Employee uniqueness
+constraints.
+
+## Recommended reference and order
+
+Use the canonical seed for deployment, then `SeedBulkImportModules.sql` (which
+covers EmployeeType catalogue too; the older EmployeeType-only script remains
+safe/idempotent),
+existing Host entitlement synchronization, existing tenant role-permission grants,
+and finally durable bulk migrations. Verify by stable ModuleCode and authenticated
+`my-menu`; never assume numeric IDs. Before merging the 38 backup-only modules into
+the canonical seed, review their product scope—they are not all bulk modules.

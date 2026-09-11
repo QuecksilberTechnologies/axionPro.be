@@ -18,6 +18,8 @@
 --                          operation mapping, and inherited plan mappings.
 --   7. Existing module / operation records ko normalize/update karna.
 --   8. Host administration hierarchy and Host authorization baseline.
+--   9. Bulk module planning is documented in BULK_MODULE_SEED_REFERENCE.md.
+--      EmployeeType catalogue is maintained by SeedTenantEmployeeTypeModule.sql.
 --   9. Identity / auto-increment sequence safely synchronize karna.
 --
 -- IMPORTANT:
@@ -3364,7 +3366,9 @@ WHERE "ModuleCode"
           'EMP_WORK_ARRANGEMENT',
           'EMP_WORK_PATTERN',
           'EMP_OVERRIDES',
-          'EMP_PASSWORD_MANAGEMENT'
+          'EMP_PASSWORD_MANAGEMENT',
+          'EMP_LIST', 'TENANT_DEPARTMENTS', 'TENANT_DESIGNATIONS',
+          'TENANT_ROLES_PERMISSIONS', 'TENANT_EMPLOYEE_TYPES', 'TENANT_EMPLOYEE_CODE'
       )
 
 ORDER BY

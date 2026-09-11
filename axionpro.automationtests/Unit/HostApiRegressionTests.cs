@@ -462,6 +462,116 @@ public sealed class HostApiRegressionTests
         Assert.That(exception!.Message, Is.EqualTo(AppConstants.ErrorMessages.TenantAlreadyVerified));
     }
 
+    [TestCase(true, true)]
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    public async Task Resend_delivery_result_is_truthful_and_preserves_pending_onboarding(
+        bool tokenAvailable,
+        bool deliveryAccepted)
+    {
+        var tenant = CreateTenant(isVerified: false, credentialIsOnboard: false);
+        var emailCalls = 0;
+        axionpro.application.DTOS.Token.GetTokenInfoDTO? issuedToken = null;
+        var handler = new ResendTenantVerificationCommandHandler(
+            CreateUnitOfWork(tenant),
+            CreateHostCommonRequestService(),
+            CreateProxy<ITokenService>((method, args) =>
+            {
+                Assert.That(method.Name, Is.EqualTo(nameof(ITokenService.GenerateTenantToken)));
+                issuedToken = (axionpro.application.DTOS.Token.GetTokenInfoDTO)args![0]!;
+                return Task.FromResult(tokenAvailable ? "test-onboarding-token" : string.Empty);
+            }),
+            CreateProxy<IIdEncoderService>((method, _) => method.Name switch
+            {
+                nameof(IIdEncoderService.DecodeId_long) => 71L,
+                nameof(IIdEncoderService.EncodeId_long) => "encoded-id",
+                nameof(IIdEncoderService.EncodeId_int) => "encoded-purpose",
+                _ => throw new AssertionException($"Unexpected identifier call: {method.Name}.")
+            }),
+            CreateProxy<IEmailService>((method, args) =>
+            {
+                emailCalls++;
+                Assert.That(method.Name, Is.EqualTo(nameof(IEmailService.SendTemplatedEmailAsync)));
+                Assert.That(args![0], Is.EqualTo(ConstantValues.WelcomeEmail));
+                Assert.That(args[1], Is.EqualTo(tenant.TenantEmail));
+                Assert.That(args[2], Is.EqualTo(tenant.Id));
+                var placeholders = (Dictionary<string, string>)args[3]!;
+                Assert.That(placeholders["VerificationUrl"],
+                    Is.EqualTo("https://ui.example.test/auth/set-password?token=test-onboarding-token"));
+                Assert.That(placeholders["LinkExpiryMinutes"], Is.EqualTo("30"));
+                return Task.FromResult(deliveryAccepted);
+            }),
+            new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["FrontEndWebURL:BaseUrl"] = "https://ui.example.test"
+            }).Build());
+        var request = new ResendTenantVerificationCommand(
+            "opaque-tenant-id", new PermissionRequestDTO { ModuleId = 33, OperationId = 2 });
+
+        if (tokenAvailable && deliveryAccepted)
+        {
+            var response = await handler.Handle(request, CancellationToken.None);
+            Assert.That(response.IsSucceeded, Is.True);
+            Assert.That(response.Data, Is.True);
+        }
+        else
+        {
+            Assert.ThrowsAsync<ApiException>(() => handler.Handle(request, CancellationToken.None));
+        }
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(emailCalls, Is.EqualTo(tokenAvailable ? 1 : 0));
+            Assert.That(tenant.IsVerified, Is.False);
+            Assert.That(tenant.Employee.Single().LoginCredential.Single().IsOnboard, Is.False);
+            Assert.That(issuedToken, Is.Not.Null);
+            Assert.That(issuedToken!.Email, Is.EqualTo(tenant.TenantEmail));
+            Assert.That(issuedToken.Expiry - issuedToken.IssuedAt,
+                Is.EqualTo(TimeSpan.FromMinutes(30)).Within(TimeSpan.FromSeconds(1)));
+        });
+    }
+
+    [TestCase(0)]
+    [TestCase(1)]
+    [TestCase(2)]
+    public async Task Resend_email_service_rejects_missing_template_or_configuration(int scenario)
+    {
+        var tenantReads = 0;
+        var hostReads = 0;
+        var service = new axionpro.infrastructure.MailService.EmailService(
+            CreateProxy<ITenantEmailConfigRepository>((_, _) =>
+            {
+                tenantReads++;
+                return Task.FromResult<TenantEmailConfig?>(null);
+            }),
+            CreateProxy<IDefaultEmailConfigRepository>((_, _) =>
+            {
+                hostReads++;
+                return Task.FromResult<DefaultEmailConfig?>(null);
+            }),
+            CreateProxy<IEmailTemplateRepository>((_, _) => Task.FromResult<EmailTemplate?>(
+                scenario == 0 ? null : new EmailTemplate
+                {
+                    IsActive = scenario == 2,
+                    Subject = "Verification",
+                    Body = "{{VerificationUrl}}"
+                })),
+            CreateProxy<ITenantKeyResolver>((_, _) => throw new InvalidOperationException("Unexpected key lookup.")),
+            CreateProxy<IEncryptionService>((_, _) => throw new InvalidOperationException("Unexpected decryption.")),
+            NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance);
+
+        var sent = await service.SendTemplatedEmailAsync(
+            ConstantValues.WelcomeEmail, "owner@example.test", 71,
+            new Dictionary<string, string>());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sent, Is.False);
+            Assert.That(tenantReads, Is.EqualTo(scenario == 2 ? 1 : 0));
+            Assert.That(hostReads, Is.EqualTo(scenario == 2 ? 1 : 0));
+        });
+    }
+
     [Test]
     public void Onboarding_credential_lookup_uses_only_the_current_tenant_email_and_active_employee()
     {
