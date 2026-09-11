@@ -1378,3 +1378,31 @@ change. Actual target migration/restart and authenticated acceptance remain pend
   add/update routes while the user's build runs. Fresh target backup started;
   completion and new migration are not yet claimed. Browser tooling could not
   attach the Render dashboard, so service/build status is not independently verified.
+
+- COMPLETE fresh target backup: custom archive
+  `C:/Users/qtech/AppData/Local/AxionPro/Backups/workforcedb-pre-employee-20260911-161759.dump`
+  (804094 bytes), archive listing and full archive read passed; restore not run.
+  SHA256: `9CFF12F60CEB540C5ABCC0267B9FA57EADA387C47F07289A122A6BD091A85869`.
+- Read-only migration preflight: zero duplicate normalized tenant employee-code
+  groups and zero duplicate normalized login groups. Both new unique indexes are
+  absent; queue constraint still allows masters 1–4. No migration applied yet.
+- Dashboard temporarily connected: deployment `dep-dai06o2d0e5s73972ka0` was Building
+  commit `3387971ee59de9a41cd10550d683758b3603c6b8`; old commit `d2754cd` remained
+  Live. This verifies build activity, not completion or service suspension.
+
+### Local release correction (2026-09-11)
+
+- The deployment above FAILED during `dotnet publish` (exit 1). Local Release
+  publish reproduced three compiler errors in EmployeeTypeHandlers: its response
+  DTO namespace differed from the repository's existing response DTO.
+- Fixed the handler with an explicit alias to the existing repository/mapping DTO;
+  no new DTO, folder or business rule was introduced. Release publish now passes
+  (exit 0); evidence: `artifacts/bulk-import/employee-release-build.log`.
+- User requested finishing local work before any further Render build/deployment.
+  Target migration, service suspension/restart and live Employee acceptance remain
+  pending. The failed build did not replace the previously live version.
+- COMPLETE focused regression: both new EmployeeType list response/paging cases
+  passed (2 passed, 0 failed, 0 skipped). They verify the existing repository DTO,
+  trusted tenant scope, inactive record visibility and empty out-of-range pages.
+  Evidence: `artifacts/bulk-import/employee-type-response-regression.trx`.
+  Earlier 77 Employee tests and passed master suites were not rerun.

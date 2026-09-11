@@ -5,6 +5,11 @@ Deployment and authenticated HTTP acceptance remain PENDING. Automatic approval
 review blocked the separate local API launch. This is not a Render acceptance pass.
 The exact test inventory is in `results/employee-automated-summary.json`.
 
+Release checkpoint (11 September): Render build `3387971` failed because the
+EmployeeType handler used a different response DTO namespace from its repository.
+The alias is corrected locally and Release publish passes. Per user direction,
+deployment is deferred until local work is finished; these routes are not live yet.
+
 ## Files and field mapping
 
 - `05-employees.xlsx`: choose worksheet `Employees`; row 1 contains 27 headers.

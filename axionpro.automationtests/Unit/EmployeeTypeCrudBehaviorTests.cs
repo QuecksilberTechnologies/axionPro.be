@@ -93,6 +93,58 @@ public sealed class EmployeeTypeCrudBehaviorTests
     #region API surface and seed contract
 
     /// <summary>
+    /// Verifies tenant-scoped paging preserves inactive master records and returns an empty page beyond the result set.
+    /// </summary>
+    [TestCase(1, 1)]
+    [TestCase(2, 0)]
+    public async Task List_preserves_repository_response_and_page_metadata(int pageNumber, int expectedCount)
+    {
+        var rows = new List<axionpro.application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>
+        {
+            new() { Id = 12, TypeName = "Inactive type", IsActive = false }
+        };
+        var repository = Proxy<IEmployeeTypeRepository>((method, args) =>
+        {
+            Assert.That(method.Name, Is.EqualTo(nameof(IEmployeeTypeRepository.GetAllAsync)));
+            Assert.That(args![0], Is.EqualTo(9L));
+            return Task.FromResult(rows);
+        });
+        var unitOfWork = Proxy<IUnitOfWork>((method, _) => method.Name == "get_EmployeeTypeRepository"
+            ? repository
+            : throw new InvalidOperationException("Unexpected UnitOfWork call: " + method.Name));
+        var common = Proxy<ICommonRequestService>((method, _) =>
+            method.Name == nameof(ICommonRequestService.ValidateTenantUserRequestAsync)
+                ? Task.FromResult(new CommonDecodedResult
+                {
+                    Success = true,
+                    TenantId = 9,
+                    LoggedInEmployeeId = 44,
+                    RoleId = 7
+                })
+                : throw new InvalidOperationException("Unexpected context call: " + method.Name));
+
+        var response = await new GetEmployeeTypesQueryHandler(unitOfWork, common).Handle(
+            new GetEmployeeTypesQuery(new GetEmployeeTypeRequestDTO
+            {
+                PageNumber = pageNumber,
+                PageSize = 1
+            }), CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(response.IsSucceeded, Is.True);
+            Assert.That(response.Data, Has.Count.EqualTo(expectedCount));
+            Assert.That(response.TotalRecords, Is.EqualTo(1));
+            Assert.That(response.TotalPages, Is.EqualTo(1));
+            if (expectedCount == 1)
+            {
+                Assert.That(response.Data![0].Id, Is.EqualTo(12));
+                Assert.That(response.Data[0].IsActive, Is.False);
+            }
+        });
+    }
+
+    /// <summary>
     /// Verifies the explicit authenticated update and delete endpoints required by the UI.
     /// </summary>
     [Test]

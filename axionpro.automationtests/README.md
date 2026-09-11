@@ -341,3 +341,14 @@ Authenticated HTTP/deployed acceptance remains PENDING. Automatic approval revie
 rejected a separate isolated API process launch with `blocked by policy`; no API
 was started by that command. Do not report repository/route tests as live HTTP
 passes. UI handoff: `../docs/bulk-upload/EMPLOYEE_IMPORT_UI.md`.
+
+### Release correction, 11 September 2026
+
+Release publish reproduced the EmployeeType handler/repository response namespace
+mismatch in commit `3387971`. The handler now aliases the existing repository DTO.
+Release publish passes. Two new `List_preserves_repository_response_and_page_metadata`
+cases pass (0 failed/skipped); evidence is
+`artifacts/bulk-import/employee-type-response-regression.trx`.
+Only these new cases ran; the existing 77 Employee cases were not repeated.
+EmployeeType live XLSX/CSV/paste bulk and DB/report verification also passed;
+manual CRUD update/delete and live Employee acceptance remain pending deployment.

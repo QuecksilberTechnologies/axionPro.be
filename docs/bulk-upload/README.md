@@ -1,6 +1,6 @@
 # Bulk upload: UI integration and tested development samples
 
-Validated on 10 September 2026 against https://axionpro-api.onrender.com.
+Validated on 10–11 September 2026 against https://axionpro-api.onrender.com.
 Swagger: https://axionpro-api.onrender.com/swagger/index.html.
 The user identifies this as the development server; Render labels its environment
 Production. The authorized test tenant is Quecksilber Technologies, tenant 8.
@@ -21,8 +21,8 @@ created master records to the downloaded CSV reports, including IDs, names,
 descriptions/remarks, role types, Designation parents and tenant ownership.
 
 Historical blocker, resolved for bulk acceptance on 11 September: module 79 (`TENANT_EMPLOYEE_TYPES`) had no
-TenantEnabledModule entry for tenant 8. It is absent from this user's my-menu;
-the authenticated template request returns 403. This is a blocked acceptance
+TenantEnabledModule entry for tenant 8. It was absent from this user's my-menu;
+the authenticated template request returned 403. This was a blocked acceptance
 test at that checkpoint. Host needed to synchronize the tenant's
 active-plan entitlements through the existing flow, then grant Add/View through
 the existing role-permission flow. Current authenticated my-menu includes Add,
@@ -210,9 +210,12 @@ code; never send DB credentials to the UI.
 
 ## Remaining release acceptance
 
-Enable EmployeeType through the existing Host entitlement and tenant role flows,
-refresh login/my-menu, then run its XLSX/CSV/paste checks and DB reconciliation.
-The first three masters are ready for UI integration with the supplied evidence.
+All four master bulk flows now have live evidence. EmployeeType manual CRUD
+update/delete acceptance remains pending; Delete is absent from the current menu.
+Employee import and pattern endpoints still need deployment, migration and live
+acceptance. The 11 September Render build of `3387971` failed during publish;
+the response DTO mismatch was corrected locally. User requested finishing local
+work before another deployment. Passed master imports must not be rerun.
 Retain sample data for UI review; any later cleanup should target only the named
 UIQA records and their jobs through an approved cleanup workflow.
 

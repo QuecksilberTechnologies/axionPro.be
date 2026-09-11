@@ -40,3 +40,11 @@ The delete API returns a conflict when a protected dependency exists. For tables
 - 2026-09-11: live database verification after the corrective seed confirmed that both
   `ModuleOperationMapping` and Tenant 8's `TenantEnabledOperation` have exactly the four canonical
   CRUD operations for `TENANT_EMPLOYEE_TYPES`.
+- 2026-09-11 release correction: handler response alias now uses the same existing
+  DTO as repository/AutoMapper. Release publish passed; two new list/paging
+  regressions passed with zero failures or skips. Evidence:
+  `artifacts/bulk-import/employee-type-response-regression.trx`.
+- Live bulk acceptance is complete: XLSX created two types; CSV/paste each skipped
+  both. DB/report reconciliation passed. My-menu contains Add/Update/View; Delete
+  grant and manual update/delete HTTP acceptance are still pending. The failed
+  Render build did not deploy these local CRUD changes.

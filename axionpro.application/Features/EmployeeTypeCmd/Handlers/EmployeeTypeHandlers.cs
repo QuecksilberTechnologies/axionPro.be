@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using GetEmployeeTypeResponseDTO = axionpro.application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Type;
 using axionpro.application.Exceptions;
