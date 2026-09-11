@@ -118,8 +118,41 @@
   },
   {
     "Master": "EmployeeType",
-    "Source": "All",
-    "Result": "BLOCKED",
-    "Reason": "Required module/Add/View grant absent from authenticated my-menu."
+    "Source": "xlsx",
+    "Result": "PASS",
+    "JobId": "63dfad16-5a2e-46cb-8106-cc5443b96109",
+    "ModuleId": 79,
+    "AddOperationId": 1,
+    "ViewOperationId": 4,
+    "Created": 2,
+    "Existing": 0,
+    "Failed": 0,
+    "ReportRows": 2
+  },
+  {
+    "Master": "EmployeeType",
+    "Source": "csv",
+    "Result": "PASS",
+    "JobId": "514cc50c-0bdb-4945-8708-a7097564a759",
+    "ModuleId": 79,
+    "AddOperationId": 1,
+    "ViewOperationId": 4,
+    "Created": 0,
+    "Existing": 2,
+    "Failed": 0,
+    "ReportRows": 2
+  },
+  {
+    "Master": "EmployeeType",
+    "Source": "paste",
+    "Result": "PASS",
+    "JobId": "88de3063-f0cc-43b0-b7ac-c0fdb9b445bc",
+    "ModuleId": 79,
+    "AddOperationId": 1,
+    "ViewOperationId": 4,
+    "Created": 0,
+    "Existing": 2,
+    "Failed": 0,
+    "ReportRows": 2
   }
 ]

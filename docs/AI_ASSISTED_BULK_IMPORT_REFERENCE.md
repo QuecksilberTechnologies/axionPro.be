@@ -1361,3 +1361,20 @@ change. Actual target migration/restart and authenticated acceptance remain pend
   migration, authenticated live upload -> preview -> confirm -> worker -> report
   -> target DB reconciliation. Earlier Render/master acceptance remains separate.
   Therefore overall Employee import acceptance remains WIP, not fully COMPLETE.
+
+### Live continuation (2026-09-11; deployment in progress)
+
+- User reports a Render build is running; no duplicate deployment was triggered.
+- COMPLETE EmployeeType bulk acceptance: authenticated my-menu now contains module
+  79 with Add/Update/View. XLSX created two sample types; CSV and paste each skipped
+  both existing rows. All three workers completed and both report rows matched.
+  Evidence: `docs/bulk-upload/results/EmployeeType-*-*.json` and report CSV files.
+- COMPLETE read-only DB reconciliation: all 12 saved master jobs and 8 sample
+  master records match report IDs, values, tenant ownership and status counts.
+  Earlier master uploads were not rerun; only their saved evidence was reconciled.
+- PENDING EmployeeType CRUD acceptance: Delete is absent from current my-menu;
+  latest update/delete routes are not yet visible in live Swagger.
+- PENDING Employee phase: current Swagger still lacks Employee bulk and pattern
+  add/update routes while the user's build runs. Fresh target backup started;
+  completion and new migration are not yet claimed. Browser tooling could not
+  attach the Render dashboard, so service/build status is not independently verified.

@@ -13,19 +13,22 @@ Credentials and tokens are intentionally absent from this handoff.
 | Department | PASS: 2 created | PASS: 2 existing, 0 created | PASS: 2 existing, 0 created | PASS |
 | Designation | PASS: 2 created | PASS: 2 existing, 0 created | PASS: 2 existing, 0 created | PASS |
 | Role | PASS: 2 created | PASS: 2 existing, 0 created | PASS: 2 existing, 0 created | PASS |
-| EmployeeType | BLOCKED: tenant entitlement absent | Not run | Not run | Not run |
+| EmployeeType | PASS: 2 created (11 September) | PASS: 2 existing, 0 created | PASS: 2 existing, 0 created | PASS |
 
-Nine live import flows passed with zero failures. Seven additional HTTP validation
-checks passed. Read-only reconciliation matched all nine completed jobs and six
+Twelve live import flows passed with zero failures. Seven additional HTTP validation
+checks passed. Read-only reconciliation matched all twelve completed jobs and eight
 created master records to the downloaded CSV reports, including IDs, names,
 descriptions/remarks, role types, Designation parents and tenant ownership.
 
-EmployeeType is deployed, but module 79 (`TENANT_EMPLOYEE_TYPES`) has no
+Historical blocker, resolved for bulk acceptance on 11 September: module 79 (`TENANT_EMPLOYEE_TYPES`) had no
 TenantEnabledModule entry for tenant 8. It is absent from this user's my-menu;
 the authenticated template request returns 403. This is a blocked acceptance
-test, not a successful EmployeeType import. Host must synchronize the tenant's
+test at that checkpoint. Host needed to synchronize the tenant's
 active-plan entitlements through the existing flow, then grant Add/View through
-the existing role-permission flow. Do not bypass this in the UI or database.
+the existing role-permission flow. Current authenticated my-menu includes Add,
+Update and View; the three EmployeeType bulk flows and DB verification now pass.
+Delete is still absent from my-menu, and live update/delete CRUD acceptance remains
+pending the current deployment and the existing Delete permission grant.
 
 ## Files and upload order
 

@@ -71,6 +71,30 @@
       "department_id": null,
       "department_name": null,
       "role_type": 3
+    },
+    {
+      "master": "EmployeeType",
+      "id": 9,
+      "tenant_id": 8,
+      "name": "UIQA-20260910-Contract",
+      "description": "Development contract type",
+      "remark": "Development acceptance",
+      "active": true,
+      "department_id": null,
+      "department_name": null,
+      "role_type": null
+    },
+    {
+      "master": "EmployeeType",
+      "id": 10,
+      "tenant_id": 8,
+      "name": "UIQA-20260910-Intern",
+      "description": "Development intern type",
+      "remark": "Development acceptance",
+      "active": true,
+      "department_id": null,
+      "department_name": null,
+      "role_type": null
     }
   ],
   "jobs": [
@@ -150,6 +174,27 @@
       "master": 2,
       "status": 1,
       "next_row": 0
+    },
+    {
+      "id": "63dfad16-5a2e-46cb-8106-cc5443b96109",
+      "tenant_id": 8,
+      "master": 4,
+      "status": 4,
+      "next_row": 2
+    },
+    {
+      "id": "514cc50c-0bdb-4945-8708-a7097564a759",
+      "tenant_id": 8,
+      "master": 4,
+      "status": 4,
+      "next_row": 2
+    },
+    {
+      "id": "88de3063-f0cc-43b0-b7ac-c0fdb9b445bc",
+      "tenant_id": 8,
+      "master": 4,
+      "status": 4,
+      "next_row": 2
     }
   ]
 }

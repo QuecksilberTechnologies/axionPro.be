@@ -70,5 +70,29 @@
     "Result": "PASS",
     "MatchedReportRows": 2,
     "TenantId": 8
+  },
+  {
+    "Master": "EmployeeType",
+    "Source": "xlsx",
+    "JobId": "63dfad16-5a2e-46cb-8106-cc5443b96109",
+    "Result": "PASS",
+    "MatchedReportRows": 2,
+    "TenantId": 8
+  },
+  {
+    "Master": "EmployeeType",
+    "Source": "csv",
+    "JobId": "514cc50c-0bdb-4945-8708-a7097564a759",
+    "Result": "PASS",
+    "MatchedReportRows": 2,
+    "TenantId": 8
+  },
+  {
+    "Master": "EmployeeType",
+    "Source": "paste",
+    "JobId": "88de3063-f0cc-43b0-b7ac-c0fdb9b445bc",
+    "Result": "PASS",
+    "MatchedReportRows": 2,
+    "TenantId": 8
   }
 ]
