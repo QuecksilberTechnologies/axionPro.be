@@ -21,6 +21,33 @@ namespace axionpro.automationtests.Unit;
 [Category("EmployeeBulkCode")]
 public sealed class EmployeeCodePatternPermissionTests
 {
+    [TestCase(LoginUserType.Host, "HOST_TENANT_LOCATION_LIST", true)]
+    [TestCase(LoginUserType.Host, "TENANT_LOCATIONS", false)]
+    [TestCase(LoginUserType.TenantEmployee, "TENANT_LOCATIONS", true)]
+    [TestCase(LoginUserType.TenantEmployee, "HOST_TENANT_LOCATION_LIST", false)]
+    public async Task Location_module_binding_separates_host_and_tenant(
+        LoginUserType userType, string moduleCode, bool allowed)
+    {
+        var common = Proxy<ICommonRequestService>((_, _) => Task.FromResult<string?>(moduleCode));
+        var unit = Proxy<IUnitOfWork>((_, _) => throw new AssertionException("Binding must not query permissions."));
+        var behavior = new TenantLocationPermissionBehavior<axionpro.application.Features.TenantConfigurationCmd.Handlers.GetTenantLocationsQuery, bool>(
+            unit, common, NullLogger<TenantLocationPermissionBehavior<axionpro.application.Features.TenantConfigurationCmd.Handlers.GetTenantLocationsQuery, bool>>.Instance);
+        var method = behavior.GetType().GetMethod("EnsureExpectedModuleCodeAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var task = (Task)method.Invoke(behavior, new object[]
+        {
+            new axionpro.application.DTOs.BaseDTO.PermissionRequestDTO { ModuleId = 78, OperationId = 4 },
+            CancellationToken.None, userType
+        })!;
+        if (allowed)
+        {
+            await task;
+        }
+        else
+        {
+            Assert.ThrowsAsync<ForbiddenAccessException>(async () => await task);
+        }
+    }
+
     [Test]
     public void Tenant_permission_denial_is_forbidden_while_invalid_permission_context_is_unauthorized()
     {

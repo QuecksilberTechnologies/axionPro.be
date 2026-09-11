@@ -451,3 +451,16 @@ dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restor
 - Added and passed regression test:
   `Tenant_permission_denial_is_forbidden_while_invalid_permission_context_is_unauthorized`.
 - No separate permission pipeline or endpoint-specific bypass was introduced.
+
+## 2026-09-12 TenantLocation Host regression
+
+Read-only target DB verification: module 78 is HOST_TENANT_LOCATION_LIST,
+ModuleScope=2, IsActive=true. TenantLocationPermissionBehavior incorrectly required
+TENANT_LOCATIONS after Host runtime authorization. Local fix selects the Host
+location module for Host callers and keeps TENANT_LOCATIONS for tenant callers.
+Existing persisted authorization is retained. Four binding regression cases added
+in EmployeeCodePatternPermissionTests. Target deployment/authenticated acceptance
+is still pending; no target data was modified for this investigation.
+Validation: focused EmployeeCodePatternPermissionTests passed 15/15, including four new Host/Tenant location binding cases. Output: artifacts/location-permission-test.log.
+
+2026-09-12 follow-up: six Host_location_list_pipeline cases exercise Handle and persisted Host permission invocation using request ModuleId=78/OperationId=4. Allowed, denied, invalid-session, stale-role, tenant-module and unrelated-host-module cases passed. Combined focused run: 21 passed, 0 failed, 0 skipped. Live authenticated acceptance remains pending.

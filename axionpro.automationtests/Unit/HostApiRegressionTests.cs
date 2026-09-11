@@ -62,6 +62,61 @@ namespace axionpro.automationtests.Unit;
 [Category("HostApi")]
 public sealed class HostApiRegressionTests
 {
+    [TestCase(1, "HOST_TENANT_LOCATION_LIST", true)]
+    [TestCase(0, "HOST_TENANT_LOCATION_LIST", false)]
+    [TestCase(-1, "HOST_TENANT_LOCATION_LIST", false)]
+    [TestCase(-2, "HOST_TENANT_LOCATION_LIST", false)]
+    [TestCase(1, "TENANT_LOCATIONS", false)]
+    [TestCase(1, "HOST_TENANT_LIST", false)]
+    public async Task Host_location_list_pipeline_enforces_grant_and_module(
+        int resultCode, string moduleCode, bool allowed)
+    {
+        var permissionCalls = 0;
+        var stored = CreateProxy<IStoreProcedureRepository>((method, args) =>
+        {
+            Assert.That(method.Name, Is.EqualTo("CheckHostUserPermissionAsync"));
+            Assert.That(args![0], Is.EqualTo(1L));
+            Assert.That(args[1], Is.EqualTo(1L));
+            Assert.That(args[2], Is.EqualTo(78));
+            Assert.That(args[3], Is.EqualTo(4));
+            permissionCalls++;
+            return Task.FromResult(new HostUserPermissionCheckResponseDTO { ResultCode = resultCode });
+        });
+        var unit = CreateProxy<IUnitOfWork>((method, _) => method.Name == "get_StoreProcedureRepository"
+            ? stored : throw new AssertionException("Unexpected repository access."));
+        var common = CreateHostCommonRequestService(1, moduleCode);
+        var behavior = new axionpro.application.Features.TenantConfigurationCmd.TenantLocationPermissionBehavior<
+            axionpro.application.Features.TenantConfigurationCmd.Handlers.GetTenantLocationsQuery, bool>(
+            unit, common, Microsoft.Extensions.Logging.Abstractions.NullLogger<
+                axionpro.application.Features.TenantConfigurationCmd.TenantLocationPermissionBehavior<
+                    axionpro.application.Features.TenantConfigurationCmd.Handlers.GetTenantLocationsQuery, bool>>.Instance);
+        var request = new axionpro.application.Features.TenantConfigurationCmd.Handlers.GetTenantLocationsQuery(
+            new axionpro.application.DTOS.TenantConfiguration.TenantLocationFilterRequestDTO
+            {
+                ModuleId = 78, OperationId = 4, TenantId = "78N5XZW2", PageNumber = 1, PageSize = 500
+            });
+        var reachedHandler = false;
+        Task<bool> Next(CancellationToken _)
+        {
+            reachedHandler = true;
+            return Task.FromResult(true);
+        }
+        if (allowed)
+        {
+            Assert.That(await behavior.Handle(request, Next, CancellationToken.None), Is.True);
+        }
+        else if (resultCode < 0)
+        {
+            Assert.ThrowsAsync<UnauthorizedAccessException>(async () => await behavior.Handle(request, Next, CancellationToken.None));
+        }
+        else
+        {
+            Assert.ThrowsAsync<ForbiddenAccessException>(async () => await behavior.Handle(request, Next, CancellationToken.None));
+        }
+        Assert.That(permissionCalls, Is.EqualTo(1));
+        Assert.That(reachedHandler, Is.EqualTo(allowed));
+    }
+
     [TestCase(false)]
     [TestCase(true)]
     public async Task Tenant_creation_real_database_rollback_probe(bool host)

@@ -60,7 +60,7 @@ public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
                 permissionRequest.OperationId,
                 cancellationToken);
 
-            await EnsureExpectedModuleCodeAsync(permissionRequest, cancellationToken);
+            await EnsureExpectedModuleCodeAsync(permissionRequest, cancellationToken, LoginUserType.Host);
             return await next();
         }
 
@@ -102,14 +102,17 @@ public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
     /// </summary>
     private async Task EnsureExpectedModuleCodeAsync(
         PermissionRequestDTO permissionRequest,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        LoginUserType userType = LoginUserType.TenantEmployee)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var moduleCode = await commonRequestService
             .GetModuleCodeAsync(permissionRequest.ModuleId);
         var expectedModuleCode = IsEmployeeCodePatternRequest()
             ? BulkImportConstants.EmployeeCodeModuleCode
-            : "TENANT_LOCATIONS";
+            : userType == LoginUserType.Host
+                ? "HOST_TENANT_LOCATION_LIST"
+                : "TENANT_LOCATIONS";
         if (string.Equals(moduleCode, expectedModuleCode, StringComparison.OrdinalIgnoreCase))
         {
             return;
