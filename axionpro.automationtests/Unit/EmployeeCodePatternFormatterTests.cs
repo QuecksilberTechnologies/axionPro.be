@@ -177,5 +177,27 @@ public sealed class EmployeeCodePatternFormatterTests
         };
     }
 
+    [TestCase(2026, true)]
+    [TestCase(2025, false)]
+    public void Legacy_creation_year_requires_exact_persisted_date(int creationYear, bool allowed)
+    {
+        var current = Pattern();
+        current.IncludeYear = true;
+        var employee = Employee(1, "QT/2026/0001");
+        employee.DateOfOnBoarding = new DateTime(2018, 7, 24);
+        employee.AddedDateTime = new DateTime(creationYear, 9, 9);
+
+        var preview = EmployeeCodePatternFormatter.PreviewChanges(8, current, current, new[] { employee });
+
+        Assert.That(preview.CanCommit, Is.EqualTo(allowed));
+        if (allowed)
+        {
+            Assert.That(preview.Employees[0].ProposedCode, Is.EqualTo("QT/2018/0001"));
+            employee.AddedDateTime = employee.AddedDateTime.AddDays(1);
+            var changed = EmployeeCodePatternFormatter.PreviewChanges(8, current, current, new[] { employee });
+            Assert.That(changed.PreviewHash, Is.Not.EqualTo(preview.PreviewHash));
+        }
+    }
+
     #endregion
 }

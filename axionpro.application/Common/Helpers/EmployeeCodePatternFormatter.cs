@@ -168,7 +168,14 @@ public static class EmployeeCodePatternFormatter
                 if (!matchesNew && (current is null || !TryGetRunningNumber(current, date,
                         employee.DepartmentId, employee.EmployementCode, out number)))
                 {
-                    throw new ArgumentException("Existing code does not match the current or selected pattern. Correct it before confirming.");
+                    // Legacy onboarding generated the code using account creation time.
+                    // Recognize only that exact persisted date; the new code still uses joining date.
+                    if (current is null || employee.AddedDateTime == default ||
+                        !TryGetRunningNumber(current, employee.AddedDateTime,
+                            employee.DepartmentId, employee.EmployementCode, out number))
+                    {
+                        throw new ArgumentException("Existing code does not match the current or selected pattern. Correct it before confirming.");
+                    }
                 }
 
                 row.ProposedCode = matchesNew
@@ -221,7 +228,7 @@ public static class EmployeeCodePatternFormatter
             employees = employees.OrderBy(employee => employee.Id).Select(employee => new
             {
                 employee.Id, employee.TenantId, employee.EmployementCode,
-                employee.DateOfOnBoarding, employee.DepartmentId, employee.UpdatedDateTime
+                employee.DateOfOnBoarding, employee.AddedDateTime, employee.DepartmentId, employee.UpdatedDateTime
             })
         });
         result.PreviewHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(snapshot)));
