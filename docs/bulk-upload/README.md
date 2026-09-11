@@ -1,5 +1,14 @@
 # Bulk upload: UI integration and tested development samples
 
+Start here: [Bulk API scenario guide](BULK_API_SCENARIOS.md) — all five modules,
+mandatory fields, request examples, storage/retention, completion and cancellation.
+
+> **Deferred for later by user:** same-email multi-tenant accounts, email-less
+> employee onboarding, and actual invitation-email live delivery testing.
+> Manager/location/policy/device bulk assignments are future scope.
+> COMPLETE below covers the approved base-import release only.
+> See [remaining gap register](../AI_ASSISTED_BULK_IMPORT_REFERENCE.md#highlighted-deferred-gaps--user-decision-2026-09-11).
+
 Validated on 10–11 September 2026 against https://axionpro-api.onrender.com.
 Swagger: https://axionpro-api.onrender.com/swagger/index.html.
 The user identifies this as the development server; Render labels its environment

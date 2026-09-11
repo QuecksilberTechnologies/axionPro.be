@@ -1,6 +1,6 @@
 # AxionPro bulk import: implementation reference and UI handoff
 
-Updated: 2026-09-10. Read this file before continuing bulk-import work in any session.
+Updated: 2026-09-11. Read this file before continuing bulk-import work in any session.
 Maintain user decisions, implementation sequence and COMPLETE / WIP / PENDING status.
 Follow AGENTS.md, Employee handler/repository conventions, regions, comments,
 endpoint documentation, existing permission pipelines, constants, enums and mappings.
@@ -8,6 +8,28 @@ Ask before implementing unclear business rules. COMPLETE below means the stated
 backend scope, not all future bulk modules or production deployment.
 
 Navigation: [Calling flow](#user-and-api-calling-flow) · [Endpoint contract](#endpoints-8-per-master-32-bulk-routes-total) · [All request/response examples](#copyable-request-and-response-examples-for-every-bulk-action) · [EmployeeType examples](#employeetype-manual-creation-and-bulk-examples) · [Local/production setup](#local-and-production-deployment-same-api-project) · [Progress](#implementation-sequence-and-status).
+
+## Highlighted deferred gaps — user decision 2026-09-11
+
+> **DEFERRED — do later, not part of the completed base-import release.**
+> User explicitly asked to retain these gaps in documentation for later work.
+> Do not mark them COMPLETE or begin implementation/testing without a new request.
+
+Original 15-gap review: **13 addressed within bulk-import scope; 2 design
+limitations remain.** This does not claim every separate manual onboarding flow
+was changed. FINAL release acceptance refers to the approved base-import scope.
+
+| Remaining item | Current behavior / evidence | Status |
+| --- | --- | --- |
+| Original gap 9: same email across multiple tenants | Login email remains globally unique; same-email multi-tenant accounts are not supported. Business/identity rules must be agreed before changing this. | DEFERRED — design + implementation |
+| Original gap 10: employees without official email | OfficialEmail remains mandatory; email-less onboarding is not supported. Alternative login/onboarding rules must be agreed first. | DEFERRED — design + implementation |
+| Actual welcome-invitation email delivery | Invitation tracking, separate dispatch/retry and automated coverage exist; no real invitation email was sent during live acceptance. | DEFERRED — live delivery test, NOT a pass |
+| Reporting-manager bulk mapping | Future assignment scope, including missing manager/self-reporting/cycle rules. | DEFERRED — next bulk scope |
+| Location/work arrangement and policy bulk assignments | Existing operational flows require dependency/rule review before bulk support. | DEFERRED — next bulk scope |
+| Attendance-device bulk enrollment | Employee account creation does not imply device enrollment. | DEFERRED — next bulk scope |
+
+UI work belongs to the separate UI developer and is excluded from this backend gap
+count. Existing passed tests need not be repeated merely to revisit this list.
 
 ## Approved decisions and current scope
 
@@ -1478,3 +1500,15 @@ This checkpoint supersedes earlier WIP/blocker notes for the requested release.
 - Requested deployment/import/recoding/EmployeeType acceptance is COMPLETE.
   Earlier passed unrelated suites were not rerun. Only changed/new legacy-date
   cases were run after the final code correction.
+
+### Scenario documentation — COMPLETE (2026-09-11)
+
+- Added `docs/bulk-upload/BULK_API_SCENARIOS.md` and linked the sample README.
+- Covers all five module examples, mandatory/optional inputs, template discovery,
+  shared API sequence, job/row statuses, retry, destination tables, retained draft
+  data, pattern approval and optional invitations.
+- Verified against DTOs, controllers, workflow/parser, repository and report code:
+  cancellation remains possible in Draft/Queued/Running at batch boundaries;
+  committed inserts remain. Terminal-job cancel does not change status. No bulk
+  job TTL/automatic purge exists; parsed source data stays in PreviewJson.
+- Documentation only; no business code changed and no passed tests repeated.

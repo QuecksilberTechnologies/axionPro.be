@@ -1,5 +1,12 @@
 # Employee import and code-pattern UI handoff
 
+> **Deferred gaps — do later (user confirmed 2026-09-11):** same-email accounts
+> across tenants and onboarding without OfficialEmail remain unsupported.
+> Actual invitation-email delivery is not live-tested. Reporting-manager,
+> location/policy and device bulk assignments remain future scope.
+> [Full gap register](../AI_ASSISTED_BULK_IMPORT_REFERENCE.md#highlighted-deferred-gaps--user-decision-2026-09-11).
+> These items are excluded from the completed base-import acceptance below.
+
 **FINAL: requested live release acceptance COMPLETE, 11 September 2026.**
 Live commit: `2c91b6eb`; Render deployment: `dep-dai0l23m8hqs73dmbdeg`.
 Migration/restart, CSV create, paste skip replay, DB/report matching, all-employee
