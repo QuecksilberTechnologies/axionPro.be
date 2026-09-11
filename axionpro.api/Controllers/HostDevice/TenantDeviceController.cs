@@ -27,6 +27,10 @@ public sealed class TenantDeviceController(IMediator mediator, ILogger<TenantDev
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
     /// <para>API endpoint purpose: creates tenant device.</para>
+    /// <para>Required permission fields in the JSON body: ModuleId and OperationId.
+    /// Use the device assignment module and its granted assignment action from MyMenu.
+    /// OperationId is the persisted action ID, not the OperationType enum value.
+    /// An omitted or zero OperationId is rejected with HTTP 400 before device insertion.</para>
     /// <para>Handler flow: CreateTenantDeviceCommand is processed by CreateTenantDeviceCommandHandler; operation(s): GetForUpdateAsync, AddAsync, SaveChangesAsync, GetByIdAsync.</para>
     /// <para>Response DTO property analysis: CreateTenantDeviceRequestDTO: No public properties were statically resolved.; ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantDeviceResponseDTO: TenantId (string), TenantLocationId (long), DeviceMasterId (long), DeviceCode (string), DeviceName (string?), InstalledDateTime (DateTime?), InstalledBy (long?), InstallationRemark (string?), IsAttendanceDevice (bool), Description (string?), Remark (string?), IsActive (bool), Id (long), TenantName (string?), TenantLocationName (string?), LocationCode (string?), DeviceMasterName (string?), DeviceMasterModelNo (string?), HasConfiguration (bool), AddedDateTime (DateTime), UpdatedDateTime (DateTime?)</para>
     /// <para>Angular function(s): TenantDeviceApi.addTenantDevice (app/core/services/tenant-device-api.ts:43).</para>

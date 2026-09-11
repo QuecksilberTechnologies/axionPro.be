@@ -62,6 +62,28 @@ namespace axionpro.automationtests.Unit;
 [Category("HostApi")]
 public sealed class HostApiRegressionTests
 {
+    [Test]
+    public void Tenant_device_create_payload_without_operation_is_rejected_before_database_write()
+    {
+        var dto = System.Text.Json.JsonSerializer.Deserialize<CreateTenantDeviceRequestDTO>(
+            """
+            {"tenantId":"78N5XZW2","tenantLocationId":5,"deviceMasterId":2,
+             "deviceCode":"QT-AI-06-AYUC24030780","deviceName":"QT-AI-82000",
+             "moduleId":35,"isActive":true,"isAttendanceDevice":true}
+            """, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+        Assert.That(dto.OperationId, Is.Zero);
+        var stored = CreateProxy<IStoreProcedureRepository>((_, _) =>
+            throw new AssertionException("Missing OperationId must be rejected before querying a grant."));
+        var unit = CreateProxy<IUnitOfWork>((method, _) => method.Name == "get_StoreProcedureRepository"
+            ? stored : throw new AssertionException("Invalid request must not write device data."));
+        var handler = new axionpro.application.Features.HostDeviceCmd.Handlers.CreateTenantDeviceCommandHandler(
+            unit, null!, CreateHostCommonRequestService(), null!,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<axionpro.application.Features.TenantConfigurationCmd.Handlers.TenantConfigurationHandlerBase>.Instance,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<axionpro.application.Features.HostDeviceCmd.Handlers.CreateTenantDeviceCommandHandler>.Instance);
+        Assert.ThrowsAsync<ValidationErrorException>(async () => await handler.Handle(
+            new axionpro.application.Features.HostDeviceCmd.Handlers.CreateTenantDeviceCommand(dto), CancellationToken.None));
+    }
+
     [TestCase(1, "HOST_TENANT_LOCATION_LIST", true)]
     [TestCase(0, "HOST_TENANT_LOCATION_LIST", false)]
     [TestCase(-1, "HOST_TENANT_LOCATION_LIST", false)]

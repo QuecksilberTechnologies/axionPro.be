@@ -464,3 +464,5 @@ is still pending; no target data was modified for this investigation.
 Validation: focused EmployeeCodePatternPermissionTests passed 15/15, including four new Host/Tenant location binding cases. Output: artifacts/location-permission-test.log.
 
 2026-09-12 follow-up: six Host_location_list_pipeline cases exercise Handle and persisted Host permission invocation using request ModuleId=78/OperationId=4. Allowed, denied, invalid-session, stale-role, tenant-module and unrelated-host-module cases passed. Combined focused run: 21 passed, 0 failed, 0 skipped. Live authenticated acceptance remains pending.
+
+2026-09-12 TenantDevice/create: reproduced omitted OperationId in actual CreateTenantDeviceCommandHandler. Focused regression passed 1/1, proving rejection before permission lookup/device write. Read-only DB: module 35 TENANT_DEVICES maps Assign=11, View=4, Update=2, Remove=12, Active=8, Inactive=9; no Add/Create mapping. UI must supply its granted assignment action ID from MyMenu. No live create executed; successful insertion is not verified. Evidence: artifacts/device-create-regression.log.
