@@ -1884,6 +1884,15 @@ namespace axionpro.persistance.Repositories
 
       public async Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync( Employee employee, LoginCredential loginCredential, UserRole userRole)
 {
+    // The allocator/import holds the tenant code lock until this account transaction commits.
+    await EmployeeCapacityGuard.EnsureSpaceAsync(_context, employee.TenantId ?? 0, CancellationToken.None);
+    var email = loginCredential.LoginId.Trim().ToUpperInvariant();
+    await _context.Database.ExecuteSqlInterpolatedAsync(
+        $"SELECT pg_advisory_xact_lock(hashtextextended({$"{BulkImportConstants.EmployeeLoginLockPrefix}{email}"}, 0))");
+    if (await _context.LoginCredentials.AnyAsync(item => item.LoginId.ToUpper() == email))
+    {
+        throw new axionpro.application.Exceptions.ValidationErrorException("OfficialEmail is unavailable.");
+    }
     // 1️⃣ Save entities
     await _context.Employees.AddAsync(employee);
 

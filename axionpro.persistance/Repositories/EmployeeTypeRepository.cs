@@ -23,6 +23,17 @@ public sealed class EmployeeTypeRepository(WorkforceDbContext context, IMapper m
             cancellationToken);
     }
 
+    /// <inheritdoc />
+    public Task<EmployeeType?> GetForUpdateAsync(long tenantId, int employeeTypeId,
+        CancellationToken cancellationToken)
+    {
+        return context.EmployeeTypes.SingleOrDefaultAsync(item =>
+            item.Id == employeeTypeId &&
+            item.TenantId == tenantId &&
+            item.IsSoftDeleted != true,
+            cancellationToken);
+    }
+
     public async Task<List<GetEmployeeTypeResponseDTO>> GetAllAsync(long tenantId,
         CancellationToken cancellationToken)
     {
@@ -34,6 +45,94 @@ public sealed class EmployeeTypeRepository(WorkforceDbContext context, IMapper m
             .Where(item => item.TenantId == tenantId && item.IsSoftDeleted != true)
             .OrderBy(item => item.TypeName).ThenBy(item => item.Id).ToListAsync(cancellationToken);
         return mapper.Map<List<GetEmployeeTypeResponseDTO>>(rows);
+    }
+
+    /// <inheritdoc />
+    public Task<bool> NameExistsAsync(long tenantId, string typeName,
+        int? excludeEmployeeTypeId, CancellationToken cancellationToken)
+    {
+        var normalizedName = typeName.Trim().ToLower();
+        return context.EmployeeTypes.AsNoTracking().AnyAsync(item =>
+            item.TenantId == tenantId &&
+            item.IsSoftDeleted != true &&
+            item.TypeName != null &&
+            item.TypeName.Trim().ToLower() == normalizedName &&
+            (!excludeEmployeeTypeId.HasValue || item.Id != excludeEmployeeTypeId.Value),
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> HasDeletionDependenciesAsync(long tenantId, int employeeTypeId,
+        CancellationToken cancellationToken)
+    {
+        if (await context.Employees.AsNoTracking().AnyAsync(employee =>
+                employee.TenantId == tenantId &&
+                employee.EmployeeTypeId == employeeTypeId &&
+                !employee.IsSoftDeleted,
+                cancellationToken))
+        {
+            return true;
+        }
+
+        if (await context.EmployeesChangedTypeHistories.AsNoTracking().AnyAsync(history =>
+                (history.OldEmployeeTypeId == employeeTypeId || history.NewEmployeeTypeId == employeeTypeId) &&
+                history.Employee.TenantId == tenantId &&
+                !history.Employee.IsSoftDeleted,
+                cancellationToken))
+        {
+            return true;
+        }
+
+        if (await context.UnStructuredPolicyTypeMappingWithEmployeeTypes.AsNoTracking().AnyAsync(mapping =>
+                mapping.TenantId == tenantId &&
+                mapping.EmployeeTypeId == employeeTypeId &&
+                !mapping.IsSoftDeleted,
+                cancellationToken))
+        {
+            return true;
+        }
+
+        if (await context.PolicyLeaveTypeMappings.AsNoTracking().AnyAsync(mapping =>
+                mapping.TenantId == tenantId &&
+                mapping.EmployeeTypeId == employeeTypeId &&
+                mapping.IsSoftDeleted != true,
+                cancellationToken))
+        {
+            return true;
+        }
+
+        if (await context.AccoumndationAllowancePolicyByDesignations.AsNoTracking().AnyAsync(mapping =>
+                mapping.EmployeeTypeId == employeeTypeId &&
+                mapping.Designation.TenantId == tenantId &&
+                mapping.IsSoftDelete != true,
+                cancellationToken))
+        {
+            return true;
+        }
+
+        if (await context.MealAllowancePolicyByDesignations.AsNoTracking().AnyAsync(mapping =>
+                mapping.EmployeeTypeId == employeeTypeId &&
+                mapping.Designation.TenantId == tenantId &&
+                mapping.IsSoftDelete != true,
+                cancellationToken))
+        {
+            return true;
+        }
+
+        if (await context.TravelAllowancePolicyByDesignations.AsNoTracking().AnyAsync(mapping =>
+                mapping.EmployeeTypeId == employeeTypeId &&
+                mapping.Designation.TenantId == tenantId &&
+                mapping.IsSoftDelete != true,
+                cancellationToken))
+        {
+            return true;
+        }
+
+        // EmployeeTypeBasicMenu has no soft-delete state. Preserving an existing mapping
+        // is required for a future EmployeeType restore, so every row blocks deletion.
+        return await context.EmployeeTypeBasicMenus.AsNoTracking().AnyAsync(mapping =>
+            mapping.EmployeeTypeId == employeeTypeId,
+            cancellationToken);
     }
     #endregion
 
@@ -74,6 +173,24 @@ public sealed class EmployeeTypeRepository(WorkforceDbContext context, IMapper m
             throw new ConflictException("EmployeeType already exists in this tenant.");
         }
         return mapper.Map<GetEmployeeTypeResponseDTO>(entity);
+    }
+
+    /// <inheritdoc />
+    public async Task<GetEmployeeTypeResponseDTO> UpdateAsync(EmployeeType entity,
+        CancellationToken cancellationToken)
+    {
+        await context.SaveChangesAsync(cancellationToken);
+        return mapper.Map<GetEmployeeTypeResponseDTO>(entity);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> SoftDeleteAsync(EmployeeType entity,
+        CancellationToken cancellationToken)
+    {
+        entity.IsSoftDeleted = true;
+        entity.IsActive = false;
+        await context.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     /// <summary>Preserves existing super-admin onboarding with one tenant-owned Permanent type, not six defaults.</summary>

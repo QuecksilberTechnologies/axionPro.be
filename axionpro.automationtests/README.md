@@ -302,3 +302,42 @@ entitlement/module 79 and Add/View grants; its successful import is not a pass.
 The existing passed test suites were not rerun. See `../docs/bulk-upload/README.md`
 for sample XLSX/CSV files, actual response/report evidence and the remaining
 EmployeeType-only command. No passwords or tokens are stored in those artifacts.
+
+### Employee phase: 2026-09-11
+
+77 distinct focused Employee-pattern/import/invitation tests passed. Zero remaining
+failures/skips. The inventory and exact source TRX files are listed in
+`../docs/bulk-upload/results/employee-automated-summary.json`. Changed locking and
+capacity paths were retested; unrelated previously passed master suites were not.
+
+New test categories: `EmployeeBulkCode`, `EmployeeBulkCodeDatabase`, `EmployeeImport`,
+`EmployeeImportDatabase`, `EmployeeImportInvitations`. Database cases require
+`AXIONPRO_BULK_TEST_CONNECTION` pointing to the disposable database named exactly
+`axionpro_bulk_test`. They must never run against the target/production database.
+The fixture requires existing tenant/admin/master data, a valid subscription and
+all five bulk SQL migrations. Fixtures restore their test changes.
+
+Focused command example (select only new/affected cases when continuing):
+
+```powershell
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj `
+  --artifacts-path artifacts/employee-code-tests `
+  --filter 'TestCategory=EmployeeImportInvitations' `
+  --logger 'trx;LogFileName=employee-invitations.trx' `
+  --results-directory artifacts/bulk-import
+```
+
+Separate artifact output avoids locking a developer's running API executable.
+For later runs, do not rerun all categories by default. Use the saved case inventory
+to select unresolved cases or tests directly affected by new code changes.
+
+Verified: original joining dates and Excel date systems; preserved suffixes and
+counter reservations; preview/confirm staleness; pattern and account transactions;
+tenant isolation; active references; Admin capacity count; role/image/contact
+creation; duplicate rejection; invitation claim/retry/idempotency and public
+response privacy. No real SMTP email was sent by these tests.
+
+Authenticated HTTP/deployed acceptance remains PENDING. Automatic approval review
+rejected a separate isolated API process launch with `blocked by policy`; no API
+was started by that command. Do not report repository/route tests as live HTTP
+passes. UI handoff: `../docs/bulk-upload/EMPLOYEE_IMPORT_UI.md`.

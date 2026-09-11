@@ -2,20 +2,22 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Defines client-editable fields for a tenant EmployeeType update.
+// Purpose : Defines the permission-aware request for tenant EmployeeType deletion.
 // ================================================================
+
+using axionpro.application.DTOs.BaseDTO;
 
 namespace axionpro.application.DTOS.Employee.Type;
 
 /// <summary>
-/// Represents the editable values for an existing tenant-owned EmployeeType.
+/// Represents a request to soft delete one tenant-owned EmployeeType.
 /// </summary>
-public sealed class UpdateEmployeeTypeRequestDTO : CreateEmployeeTypeDTO
+public sealed class DeleteEmployeeTypeRequestDTO : PermissionRequestDTO
 {
     #region Properties
 
     /// <summary>
-    /// Gets or sets the EmployeeType identifier to update.
+    /// Gets or sets the EmployeeType identifier to delete.
     /// </summary>
     public required int Id { get; set; }
 

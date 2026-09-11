@@ -1,32 +1,38 @@
-// ================================================================
-// Author  : Deepesh Gupta
-// Company : Quecksilber Technologies
-// Role    : CEO
-// Purpose : Exposes department endpoints and delegates application errors to middleware.
-// ================================================================
-
-using axionpro.application.DTOS.Employee.Type;
-
-using axionpro.application.Features.EmployeeTypeCmd.Handlers;
-using axionpro.application.Interfaces.ILogger;
-using axionpro.application.Wrappers;
-using MediatR;
+using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using Microsoft.AspNetCore.Mvc;
 
-namespace axionpro.api.Controllers.EmployeeType
+namespace axionpro.api.Controllers.Employee;
+
+public partial class EmployeeController
 {
-    [ApiController]
-    [Route("api/[controller]")]
+        #region Employee Invitations
 
-    public class EmployeeTypeController : ControllerBase    {
-        #region Bulk Import Preview
+        /// <summary>Sends pending or failed welcome invitations for a completed Employee import.</summary>
+        /// <remarks>
+        /// Angular integration pending. Requires Add or Import on EMP_LIST. Body: JobId, ModuleId, OperationId,
+        /// optional RowNumbers (up to 100). This is an explicit email-sending action; import confirmation sends no emails.
+        /// Sent rows are not resent. Sending or DeliveryUnknown rows require email-log review after interruption.
+        /// Tokens are generated at dispatch time. Account creation is not repeated when invitations are retried.
+        /// </remarks>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("bulk/send-invitations")]
+        public async Task<IActionResult> SendBulkInvitations(
+            [FromBody] axionpro.application.DTOS.Common.BulkImportJobRequestDTO dto,
+            CancellationToken cancellationToken)
+        {
+            return Ok(await _mediator.Send(new ManageEmployeeImportCommand(
+                dto, axionpro.application.Common.Enums.BulkImportAction.SendInvitations), cancellationToken));
+        }
 
-        /// <summary>Validates EmployeeType Excel/CSV or pasted data and saves a durable draft; master data is unchanged.</summary>
+        #endregion
+
+        #region Employee Import Preview
+        /// <summary>Validates Employee Excel/CSV or pasted data and saves a durable draft; master data is unchanged.</summary>
         /// <remarks>
         /// <para>Angular usage status: Not integrated yet.</para>
         /// <para>Send multipart/form-data with File OR PastedText, ModuleId, OperationId,
         /// optional SheetName and ColumnMappingJson (target field to source header).</para>
-        /// <para>Uses the existing EmployeeType permission pipeline and trusted login Tenant scope.</para>
+        /// <para>Uses the existing Employee permission pipeline and trusted login Tenant scope.</para>
         /// <para>Returns JobId, source row numbers, mappings, matches and errors.
         /// Confirm only when CanCommit is true. RequestId supports safe retries of the same upload.</para>
         /// </remarks>
@@ -39,7 +45,7 @@ namespace axionpro.api.Controllers.EmployeeType
             CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
-                new PreviewEmployeeTypeImportQuery(dto),
+                new PreviewEmployeeImportQuery(dto),
                 cancellationToken);
             return Ok(result);
         }
@@ -57,7 +63,7 @@ namespace axionpro.api.Controllers.EmployeeType
             [FromBody] axionpro.application.DTOS.Common.BulkImportJobRequestDTO dto,
             CancellationToken cancellationToken)
         {
-            return Ok(await _mediator.Send(new ManageEmployeeTypeImportCommand(
+            return Ok(await _mediator.Send(new ManageEmployeeImportCommand(
                 dto, axionpro.application.Common.Enums.BulkImportAction.Confirm), cancellationToken));
         }
 
@@ -70,7 +76,7 @@ namespace axionpro.api.Controllers.EmployeeType
             CancellationToken cancellationToken)
         {
             dto.JobId = jobId;
-            return Ok(await _mediator.Send(new ManageEmployeeTypeImportCommand(
+            return Ok(await _mediator.Send(new ManageEmployeeImportCommand(
                 dto, axionpro.application.Common.Enums.BulkImportAction.Get), cancellationToken));
         }
 
@@ -81,7 +87,7 @@ namespace axionpro.api.Controllers.EmployeeType
             [FromQuery] axionpro.application.DTOS.Common.BulkImportJobRequestDTO dto,
             CancellationToken cancellationToken)
         {
-            return Ok(await _mediator.Send(new ManageEmployeeTypeImportCommand(
+            return Ok(await _mediator.Send(new ManageEmployeeImportCommand(
                 dto, axionpro.application.Common.Enums.BulkImportAction.List), cancellationToken));
         }
 
@@ -92,7 +98,7 @@ namespace axionpro.api.Controllers.EmployeeType
             [FromBody] axionpro.application.DTOS.Common.BulkImportJobRequestDTO dto,
             CancellationToken cancellationToken)
         {
-            return Ok(await _mediator.Send(new ManageEmployeeTypeImportCommand(
+            return Ok(await _mediator.Send(new ManageEmployeeImportCommand(
                 dto, axionpro.application.Common.Enums.BulkImportAction.Retry), cancellationToken));
         }
 
@@ -103,7 +109,7 @@ namespace axionpro.api.Controllers.EmployeeType
             [FromBody] axionpro.application.DTOS.Common.BulkImportJobRequestDTO dto,
             CancellationToken cancellationToken)
         {
-            return Ok(await _mediator.Send(new ManageEmployeeTypeImportCommand(
+            return Ok(await _mediator.Send(new ManageEmployeeImportCommand(
                 dto, axionpro.application.Common.Enums.BulkImportAction.Cancel), cancellationToken));
         }
 
@@ -114,10 +120,10 @@ namespace axionpro.api.Controllers.EmployeeType
             [FromQuery] axionpro.application.DTOS.Common.BulkImportJobRequestDTO dto,
             CancellationToken cancellationToken)
         {
-            var response = await _mediator.Send(new ManageEmployeeTypeImportCommand(
+            var response = await _mediator.Send(new ManageEmployeeImportCommand(
                 dto, axionpro.application.Common.Enums.BulkImportAction.Template), cancellationToken);
             return File(System.Text.Encoding.UTF8.GetBytes((string)response.Data!),
-                "text/csv; charset=utf-8", "EmployeeType-template.csv");
+                "text/csv; charset=utf-8", "Employee-template.csv");
         }
 
         /// <summary>Downloads source row numbers, results and corrections for the caller's import.</summary>
@@ -129,77 +135,15 @@ namespace axionpro.api.Controllers.EmployeeType
             CancellationToken cancellationToken)
         {
             dto.JobId = jobId;
-            var response = await _mediator.Send(new ManageEmployeeTypeImportCommand(
+            var response = await _mediator.Send(new ManageEmployeeImportCommand(
                 dto, axionpro.application.Common.Enums.BulkImportAction.Get), cancellationToken);
             return File(axionpro.api.Common.BulkImportReport.Create(
                 (axionpro.application.DTOS.Common.BulkImportJobResponseDTO)response.Data!),
-                "text/csv; charset=utf-8", "EmployeeType-import-" + jobId + ".csv");
+                "text/csv; charset=utf-8", "Employee-import-" + jobId + ".csv");
         }
 
         #endregion
 
-        private readonly IMediator _mediator;
-        public EmployeeTypeController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
 
-        #region Tenant master operations
-        /// <summary>Creates one tenant-owned type. Requires Add on TENANT_EMPLOYEE_TYPES.</summary>
-        /// <remarks>Angular integration pending. Body: TypeName, Description, Remark, IsActive, ModuleId, OperationId.
-        /// Returns ApiResponse of the created type; ownership/audit IDs are server assigned.</remarks>
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        [HttpPost("add")]
-        public async Task<IActionResult> Create([FromBody] CreateEmployeeTypeDTO dto, CancellationToken cancellationToken)
-        {
-            return Ok(await _mediator.Send(new CreateEmployeeTypeCommand(dto), cancellationToken));
-        }
-
-        /// <summary>Returns paged database types for the authenticated tenant, including inactive types.</summary>
-        /// <remarks>Replaces the old hard-coded list. Query: ModuleId, OperationId, PageNumber=1, PageSize=20.</remarks>
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        [HttpGet("get")]
-        public async Task<IActionResult> Get([FromQuery] GetEmployeeTypeRequestDTO dto, CancellationToken cancellationToken)
-        {
-            return Ok(await _mediator.Send(new GetEmployeeTypesQuery(dto), cancellationToken));
-        }
-
-        /// <summary>Returns active, non-deleted EmployeeType options for this tenant only.</summary>
-        /// <remarks>Query now requires ModuleId and OperationId from the existing menu/permission context.</remarks>
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        [HttpGet("option")]
-        public async Task<IActionResult> Options([FromQuery] GetEmployeeTypeRequestDTO dto, CancellationToken cancellationToken)
-        {
-            return Ok(await _mediator.Send(new GetEmployeeTypeOptionQuery(dto), cancellationToken));
-        }
-
-        /// <summary>Updates one tenant-owned EmployeeType.</summary>
-        /// <remarks>
-        /// Requires Update permission on TENANT_EMPLOYEE_TYPES. The trusted request context supplies
-        /// the Tenant and audit actor; the body must contain Id, TypeName, ModuleId, and OperationId.
-        /// </remarks>
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> Update(
-            [FromBody] UpdateEmployeeTypeRequestDTO dto,
-            CancellationToken cancellationToken)
-        {
-            return Ok(await _mediator.Send(new UpdateEmployeeTypeCommand(dto), cancellationToken));
-        }
-
-        /// <summary>Soft deletes one unused tenant-owned EmployeeType.</summary>
-        /// <remarks>
-        /// Requires Delete permission on TENANT_EMPLOYEE_TYPES. Deletion returns 409 Conflict when
-        /// a non-soft-deleted business dependency or any EmployeeTypeBasicMenu mapping exists.
-        /// </remarks>
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        [HttpDelete("delete")]
-        public async Task<IActionResult> Delete(
-            [FromQuery] DeleteEmployeeTypeRequestDTO dto,
-            CancellationToken cancellationToken)
-        {
-            return Ok(await _mediator.Send(new DeleteEmployeeTypeCommand(dto), cancellationToken));
-        }
-        #endregion
-    }
 }
+

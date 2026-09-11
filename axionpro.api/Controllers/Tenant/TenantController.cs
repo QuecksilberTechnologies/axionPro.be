@@ -34,6 +34,41 @@ namespace axionpro.api.Controllers.Tenant;
 [ApiController]
 public class TenantController : ControllerBase
 {
+    #region Employee Code Pattern Changes
+
+    /// <summary>Previews or confirms insertion of the authenticated tenant's employee-code pattern.</summary>
+    /// <remarks>
+    /// Not-Used-In-Angular. Requires TENANT_EMPLOYEE_CODE Add permission. Send Confirm=false
+    /// for a read-only preview, then the same Pattern with Confirm=true and returned PreviewHash.
+    /// Response includes CanCommit, employee current/proposed codes, row errors and Applied.
+    /// An existing active pattern returns conflict; use update instead. Tenant comes from authentication.
+    /// </remarks>
+    [Authorize]
+    [HttpPost("add-employee-code-pattern")]
+    public async Task<IActionResult> AddEmployeeCodePattern(
+        [FromBody] SaveEmployeeCodePatternRequestDTO request, CancellationToken cancellationToken)
+    {
+        return Ok(await _mediator.Send(new CreateEmployeeCodePatternCommand(request), cancellationToken));
+    }
+
+    /// <summary>Previews or confirms a tenant pattern change and recodes existing employees, including the Admin.</summary>
+    /// <remarks>
+    /// Not-Used-In-Angular. Requires TENANT_EMPLOYEE_CODE Update permission. Preview uses existing
+    /// DateOfOnBoarding values as joining dates and preserves recognized running numbers.
+    /// Confirm=false never writes. Confirm=true requires the returned PreviewHash; changed data
+    /// requires a fresh preview (409). Invalid dates/codes/collisions block the entire operation.
+    /// Pattern and employee codes commit atomically. Login, role and employee identity are preserved.
+    /// </remarks>
+    [Authorize]
+    [HttpPut("update-employee-code-pattern")]
+    public async Task<IActionResult> UpdateEmployeeCodePattern(
+        [FromBody] SaveEmployeeCodePatternRequestDTO request, CancellationToken cancellationToken)
+    {
+        return Ok(await _mediator.Send(new UpdateEmployeeCodePatternCommand(request), cancellationToken));
+    }
+
+    #endregion
+
     #region Fields
 
     private readonly IMediator _mediator;

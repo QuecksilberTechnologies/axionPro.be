@@ -20,6 +20,8 @@ public sealed class BulkImportPreviewRequestDTO : PermissionRequestDTO
 /// <summary>A bounded source table. Row numbers preserve source locations for correction.</summary>
 public sealed class BulkImportTableDTO
 {
+    public bool IsExcel { get; set; }
+    public bool Uses1904DateSystem { get; set; }
     public List<string> Columns { get; set; } = new();
     public List<BulkImportSourceRowDTO> Rows { get; set; } = new();
 }
@@ -33,6 +35,9 @@ public sealed class BulkImportSourceRowDTO
 /// <summary>A saved draft preview; master records are created only after explicit confirmation.</summary>
 public sealed class BulkImportPreviewResponseDTO
 {
+    /// <summary>Employee pattern snapshot; confirmation rejects changed patterns or counters.</summary>
+    public string? EmployeePatternHash { get; set; }
+    public int? ReservedEmployeeSequence { get; set; }
     public Guid? JobId { get; set; }
     public BulkImportMaster Master { get; set; }
     public List<string> SourceColumns { get; set; } = new();
@@ -50,6 +55,8 @@ public sealed class BulkImportPreviewResponseDTO
 /// <summary>Acts only on saved server-side rows; confirmation accepts no replacement data.</summary>
 public sealed class BulkImportJobRequestDTO : PermissionRequestDTO
 {
+    /// <summary>Optional Employee invitation row selection. At most 100 per dispatch request.</summary>
+    public List<int>? RowNumbers { get; set; }
     public Guid JobId { get; set; }
     /// <summary>Null queues now. Future UTC time queues for that time.</summary>
     public DateTimeOffset? ScheduledAtUtc { get; set; }
@@ -76,6 +83,16 @@ public sealed class BulkImportJobResponseDTO
 
 public sealed class BulkImportPreviewRowDTO
 {
+    public string? ProposedEmployeeCode { get; set; }
+    public BulkImportInvitationStatus? InvitationStatus { get; set; }
+    public string? InvitationError { get; set; }
+    public DateTime? InvitationAttemptedAtUtc { get; set; }
+    /// <summary>Persistence only. Public response projection removes this identity.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public long? ImportedEmployeeId { get; set; }
+    /// <summary>Persistence only. Prevents stale send attempts from overwriting newer delivery results.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? InvitationAttemptId { get; set; }
     public bool Processed { get; set; }
     public int RowNumber { get; set; }
     public Dictionary<string, string> Values { get; set; } = new();
@@ -84,3 +101,6 @@ public sealed class BulkImportPreviewRowDTO
     public int? DepartmentId { get; set; }
     public List<string> Errors { get; set; } = new();
 }
+
+/// <summary>Server-side claimed invitation; never returned from the API.</summary>
+public sealed record EmployeeImportInvitationDTO(int RowNumber, Guid AttemptId, long EmployeeId, string Email, string FullName);

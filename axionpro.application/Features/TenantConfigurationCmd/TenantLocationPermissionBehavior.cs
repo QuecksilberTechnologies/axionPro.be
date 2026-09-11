@@ -2,7 +2,7 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Binds TenantLocation requests to their active module before the
+// Purpose : Binds TenantLocation and employee-code requests to their active module before the
 //           established Host or Tenant runtime permission flow is used.
 // ================================================================
 
@@ -20,7 +20,7 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.TenantConfigurationCmd;
 
 /// <summary>
-/// Centrally authorizes only the six TenantLocation commands and queries. Host
+/// Centrally authorizes the six TenantLocation requests and two employee-code writes. Host
 /// roles use persisted module-operation permissions and Tenant employees use
 /// the tenant permission function without changing endpoint contracts.
 /// </summary>
@@ -37,7 +37,7 @@ public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (!IsTenantLocationRequest())
+        if (!IsTenantLocationRequest() && !IsEmployeeCodePatternRequest())
         {
             return await next();
         }
@@ -48,6 +48,11 @@ public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
 
         if (principal.UserType == LoginUserType.Host)
         {
+            if (IsEmployeeCodePatternRequest())
+            {
+                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+            }
+
             await HostRuntimePermissionValidator.ValidateAsync(
                 commonRequestService,
                 unitOfWork.StoreProcedureRepository,
@@ -102,16 +107,20 @@ public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
         cancellationToken.ThrowIfCancellationRequested();
         var moduleCode = await commonRequestService
             .GetModuleCodeAsync(permissionRequest.ModuleId);
-        if (string.Equals(moduleCode, "TENANT_LOCATIONS", StringComparison.OrdinalIgnoreCase))
+        var expectedModuleCode = IsEmployeeCodePatternRequest()
+            ? BulkImportConstants.EmployeeCodeModuleCode
+            : "TENANT_LOCATIONS";
+        if (string.Equals(moduleCode, expectedModuleCode, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
         logger.LogWarning(
-            "TenantLocation module-code mismatch for {TenantLocationRequest}. ModuleId: {ModuleId}, ModuleCode: {ModuleCode}, ExpectedModuleCode: TENANT_LOCATIONS",
+            "Tenant configuration module-code mismatch for {Request}. ModuleId: {ModuleId}, ModuleCode: {ModuleCode}, ExpectedModuleCode: {ExpectedModuleCode}",
             typeof(TRequest).Name,
             permissionRequest.ModuleId,
-            moduleCode);
+            moduleCode,
+            expectedModuleCode);
         throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
     }
 
@@ -150,4 +159,11 @@ public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
         "UpdateTenantLocationStatusCommand" or
         "GetTenantLocationByIdQuery" or
         "GetTenantLocationsQuery";
+
+    /// <summary>Reuses this configuration pipeline for the two tenant pattern writes.</summary>
+    private static bool IsEmployeeCodePatternRequest()
+    {
+        return typeof(TRequest) == typeof(Configuration.EmployeeCodeCmd.Handlers.CreateEmployeeCodePatternCommand) ||
+               typeof(TRequest) == typeof(Configuration.EmployeeCodeCmd.Handlers.UpdateEmployeeCodePatternCommand);
+    }
 }

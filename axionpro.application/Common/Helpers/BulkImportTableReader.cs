@@ -159,7 +159,11 @@ public static class BulkImportTableReader
             throw new ValidationErrorException("Unmerge cells in the selected worksheet before importing.");
         }
 
-        var table = new BulkImportTableDTO();
+        var table = new BulkImportTableDTO
+        {
+            IsExcel = true,
+            Uses1904DateSystem = (string?)workbook.Root?.Element(ns + "workbookPr")?.Attribute("date1904") is "1" or "true"
+        };
         foreach (var row in sheetDocument.Descendants(ns + "sheetData").Elements(ns + "row"))
         {
             cancellationToken.ThrowIfCancellationRequested();

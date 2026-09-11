@@ -212,3 +212,11 @@ refresh login/my-menu, then run its XLSX/CSV/paste checks and DB reconciliation.
 The first three masters are ready for UI integration with the supplied evidence.
 Retain sample data for UI review; any later cleanup should target only the named
 UIQA records and their jobs through an approved cleanup workflow.
+
+## Employee import handoff
+
+Employee template: [05-employees.xlsx](05-employees.xlsx), [CSV](05-employees.csv).
+See [Employee UI and testing guide](EMPLOYEE_IMPORT_UI.md) for its nine routes,
+pattern preview/approval, field mapping, seat capacity and separate invitations.
+77 focused automated cases passed. This Employee phase is not deployed or live-HTTP
+accepted yet; the earlier master-import acceptance above remains separate.

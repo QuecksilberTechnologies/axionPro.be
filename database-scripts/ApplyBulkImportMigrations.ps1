@@ -76,7 +76,7 @@ $sslModes = @{ Disable='disable'; Allow='allow'; Prefer='prefer'; Require='requi
 $sslMode = Get-ConnectionValue @('SSL Mode', 'SslMode') 'Prefer'
 if (-not $sslModes.ContainsKey($sslMode)) { throw 'Unsupported SSL Mode; configure an explicit supported PostgreSQL SSL mode.' }
 $scripts = @('EnforceDesignationDepartmentScope.sql', 'AddDurableMasterBulkImport.sql',
-    'AddTenantEmployeeTypes.sql', 'SeedTenantEmployeeTypeModule.sql')
+    'AddTenantEmployeeTypes.sql', 'SeedTenantEmployeeTypeModule.sql', 'AddEmployeeBulkImport.sql')
 foreach ($script in $scripts) {
     if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $script))) { throw "Missing migration: $script" }
 }

@@ -324,6 +324,17 @@ public sealed class UpdateNewTenantCommandHandler
         NewTenantEmployeeCodePatternUpdateRequestDTO dto,
         EmployeeCodePattern pattern)
     {
+        // Aggregate edits cannot bypass the approved all-employee code preview.
+        // Validate against a copy so even rejected requests leave tracked values intact.
+        pattern = new EmployeeCodePattern
+        {
+            Prefix = pattern.Prefix,
+            Separator = pattern.Separator,
+            RunningNumberLength = pattern.RunningNumberLength,
+            IncludeYear = pattern.IncludeYear,
+            IncludeMonth = pattern.IncludeMonth,
+            IncludeDepartment = pattern.IncludeDepartment
+        };
         var changed = false;
         if (dto.Prefix is not null)
         {
@@ -365,7 +376,11 @@ public sealed class UpdateNewTenantCommandHandler
         if (dto.IncludeYear.HasValue && pattern.IncludeYear != dto.IncludeYear.Value) { pattern.IncludeYear = dto.IncludeYear.Value; changed = true; }
         if (dto.IncludeMonth.HasValue && pattern.IncludeMonth != dto.IncludeMonth.Value) { pattern.IncludeMonth = dto.IncludeMonth.Value; changed = true; }
         if (dto.IncludeDepartment.HasValue && pattern.IncludeDepartment != dto.IncludeDepartment.Value) { pattern.IncludeDepartment = dto.IncludeDepartment.Value; changed = true; }
-        return changed;
+        if (changed)
+        {
+            throw new ConflictException("Employee-code changes require preview approval. Use the tenant employee-code pattern endpoints before updating this aggregate.");
+        }
+        return false;
     }
 
     private static bool ApplyEmailConfiguration(

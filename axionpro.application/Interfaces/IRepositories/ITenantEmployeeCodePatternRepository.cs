@@ -45,7 +45,12 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Generates employee code from pattern (prefix/year/month/etc.)
         /// </summary>
-        Task<string> GenerateEmployeeCodeAsync(long tenantId, int? departmentId = null);
+        Task<string> GenerateEmployeeCodeAsync(long tenantId, int? departmentId = null, DateTime? joiningDate = null);
+
+        /// <summary>Previews or confirms a tenant pattern and employee-code change atomically.</summary>
+        Task<SaveEmployeeCodePatternResponseDTO> SaveWithEmployeeCodesAsync(
+            long tenantId, long actorId, EmployeeCodePattern proposed,
+            bool create, bool confirm, string? previewHash, CancellationToken cancellationToken);
     }
 
 }

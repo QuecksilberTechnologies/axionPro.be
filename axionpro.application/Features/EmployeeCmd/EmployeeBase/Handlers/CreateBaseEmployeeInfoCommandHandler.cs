@@ -136,7 +136,7 @@ public class CreateBaseEmployeeInfoCommandHandler
                 employee.TenantId = validation.TenantId;
                 employee.AddedById = validation.UserEmployeeId;
                 employee.AddedDateTime = DateTime.UtcNow;
-                employee.DateOfOnBoarding = DateTime.UtcNow;
+                employee.DateOfOnBoarding = request.DTO.DateOfOnBoarding ?? DateTime.UtcNow;
                 employee.IsActive = true;
                 employee.IsInfoVerified = false;
                 employee.IsEditAllowed = true;
@@ -149,7 +149,8 @@ public class CreateBaseEmployeeInfoCommandHandler
                     await _unitOfWork.TenantEmployeeCodePatternRepository
                         .GenerateEmployeeCodeAsync(
                             validation.TenantId,
-                            employee.DepartmentId);
+                            employee.DepartmentId,
+                            employee.DateOfOnBoarding);
 
                 // ===============================
                 // 8️⃣ DEFAULT ROLE

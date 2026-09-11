@@ -4,7 +4,7 @@ using axionpro.application.DTOs.BaseDTO;
 namespace axionpro.application.DTOS.Employee.Type;
 
 /// <summary>Tenant-owned type creation; ownership and audit fields come from the login context.</summary>
-public sealed class CreateEmployeeTypeDTO : PermissionRequestDTO
+public class CreateEmployeeTypeDTO : PermissionRequestDTO
 {
     [Required, StringLength(255)]
     public string TypeName { get; set; } = string.Empty;

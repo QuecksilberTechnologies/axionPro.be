@@ -1,0 +1,210 @@
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Verifies EmployeeType CRUD authorization surface and deletion safety rules.
+// ================================================================
+
+using System.Reflection;
+using axionpro.application.Common.Models.Security;
+using axionpro.application.DTOS.Employee.Type;
+using axionpro.application.Exceptions;
+using axionpro.application.Features.EmployeeTypeCmd.Handlers;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IRepositories;
+using axionpro.domain.Entity;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
+using NUnit.Framework;
+
+namespace axionpro.automationtests.Unit;
+
+/// <summary>
+/// Covers the EmployeeType manual CRUD behavior that does not require a database fixture.
+/// </summary>
+[TestFixture]
+[Category("EmployeeTypeCrud")]
+public sealed class EmployeeTypeCrudBehaviorTests
+{
+    #region Delete behavior
+
+    /// <summary>
+    /// Verifies that a repository-reported protected dependency prevents soft deletion.
+    /// </summary>
+    [Test]
+    public void Delete_blocks_when_a_protected_dependency_exists()
+    {
+        var employeeType = CreateEmployeeType();
+        var softDeleteCalled = false;
+        var handler = CreateDeleteHandler(employeeType, hasDependencies: true, () => softDeleteCalled = true);
+
+        var error = Assert.ThrowsAsync<ConflictException>(async () => await handler.Handle(
+            new DeleteEmployeeTypeCommand(new DeleteEmployeeTypeRequestDTO
+            {
+                Id = employeeType.Id,
+                ModuleId = 31,
+                OperationId = 3
+            }),
+            CancellationToken.None));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error!.Message, Does.Contain("cannot be deleted"));
+            Assert.That(softDeleteCalled, Is.False);
+            Assert.That(employeeType.IsSoftDeleted, Is.False);
+        });
+    }
+
+    /// <summary>
+    /// Verifies that an unused EmployeeType is soft deleted and retains the trusted audit actor.
+    /// </summary>
+    [Test]
+    public async Task Delete_soft_deletes_an_unused_employee_type_with_audit_values()
+    {
+        var employeeType = CreateEmployeeType();
+        var softDeleteCalled = false;
+        var handler = CreateDeleteHandler(employeeType, hasDependencies: false, () => softDeleteCalled = true);
+
+        var result = await handler.Handle(
+            new DeleteEmployeeTypeCommand(new DeleteEmployeeTypeRequestDTO
+            {
+                Id = employeeType.Id,
+                ModuleId = 31,
+                OperationId = 3
+            }),
+            CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSucceeded, Is.True);
+            Assert.That(softDeleteCalled, Is.True);
+            Assert.That(employeeType.SoftDeletedById, Is.EqualTo(44));
+            Assert.That(employeeType.UpdatedById, Is.EqualTo(44));
+            Assert.That(employeeType.IsSoftDeleted, Is.True);
+            Assert.That(employeeType.IsActive, Is.False);
+        });
+    }
+
+    #endregion
+
+    #region API surface and seed contract
+
+    /// <summary>
+    /// Verifies the explicit authenticated update and delete endpoints required by the UI.
+    /// </summary>
+    [Test]
+    public void Update_and_delete_routes_are_authenticated_and_explicit()
+    {
+        var controller = typeof(axionpro.api.Controllers.EmployeeType.EmployeeTypeController);
+        var update = controller.GetMethod("Update")!;
+        var delete = controller.GetMethod("Delete")!;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(update.GetCustomAttribute<AuthorizeAttribute>(), Is.Not.Null);
+            Assert.That(update.GetCustomAttribute<HttpPutAttribute>()!.Template, Is.EqualTo("update"));
+            Assert.That(delete.GetCustomAttribute<AuthorizeAttribute>(), Is.Not.Null);
+            Assert.That(delete.GetCustomAttribute<HttpDeleteAttribute>()!.Template, Is.EqualTo("delete"));
+        });
+    }
+
+    /// <summary>
+    /// Verifies the EmployeeType module remains tenant scoped under Employee Management with CRUD operations seeded.
+    /// </summary>
+    [Test]
+    public void Seed_script_declares_tenant_scope_employee_management_parent_and_crud_operations()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var script = File.ReadAllText(Path.Combine(repositoryRoot, "database-scripts", "SeedTenantEmployeeTypeModule.sql"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(script, Does.Contain("TENANT_EMPLOYEE_TYPES"));
+            Assert.That(script, Does.Contain("TENANT_DEPARTMENTS"));
+            Assert.That(script, Does.Contain("IN ('add','update','delete','view')"));
+            Assert.That(script, Does.Contain("DELETE FROM axionpro.\"TenantEnabledOperation\""));
+            Assert.That(script, Does.Contain("DELETE FROM axionpro.\"ModuleOperationMapping\""));
+        });
+    }
+
+    #endregion
+
+    #region Test helpers
+
+    private static DeleteEmployeeTypeCommandHandler CreateDeleteHandler(
+        EmployeeType employeeType,
+        bool hasDependencies,
+        Action onSoftDelete)
+    {
+        var repository = Proxy<IEmployeeTypeRepository>((method, _) => method.Name switch
+        {
+            nameof(IEmployeeTypeRepository.GetForUpdateAsync) => Task.FromResult<EmployeeType?>(employeeType),
+            nameof(IEmployeeTypeRepository.HasDeletionDependenciesAsync) => Task.FromResult(hasDependencies),
+            nameof(IEmployeeTypeRepository.SoftDeleteAsync) => SoftDeleteAsync(employeeType, onSoftDelete),
+            _ => throw new InvalidOperationException("Unexpected EmployeeType repository call: " + method.Name)
+        });
+        var unitOfWork = Proxy<IUnitOfWork>((method, _) => method.Name == "get_EmployeeTypeRepository"
+            ? repository
+            : throw new InvalidOperationException("Unexpected UnitOfWork call: " + method.Name));
+        var commonRequestService = Proxy<ICommonRequestService>((method, _) =>
+            method.Name == nameof(ICommonRequestService.ValidateTenantUserRequestAsync)
+                ? Task.FromResult(new CommonDecodedResult
+                {
+                    Success = true,
+                    TenantId = employeeType.TenantId!.Value,
+                    LoggedInEmployeeId = 44,
+                    RoleId = 7
+                })
+                : throw new InvalidOperationException("Unexpected common request call: " + method.Name));
+
+        return new DeleteEmployeeTypeCommandHandler(
+            unitOfWork,
+            commonRequestService,
+            NullLogger<DeleteEmployeeTypeCommandHandler>.Instance);
+    }
+
+    private static Task<bool> SoftDeleteAsync(EmployeeType employeeType, Action onSoftDelete)
+    {
+        onSoftDelete();
+        employeeType.IsSoftDeleted = true;
+        employeeType.IsActive = false;
+        return Task.FromResult(true);
+    }
+
+    private static EmployeeType CreateEmployeeType()
+    {
+        return new EmployeeType
+        {
+            Id = 12,
+            TenantId = 9,
+            TypeName = "Permanent",
+            IsActive = true,
+            IsSoftDeleted = false
+        };
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "AxionPro.sln")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate the repository root for seed script verification.");
+    }
+
+    private static T Proxy<T>(Func<MethodInfo, object?[]?, object?> invoke)
+        where T : class
+    {
+        var proxy = DispatchProxy.Create<T, BulkImportPermissionTests.TestProxy>();
+        ((BulkImportPermissionTests.TestProxy)(object)proxy).InvokeMethod = invoke;
+        return proxy;
+    }
+
+    #endregion
+}

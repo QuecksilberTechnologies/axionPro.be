@@ -27,7 +27,7 @@ namespace axionpro.api.Controllers.Employee
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class EmployeeController : ControllerBase
+    public partial class EmployeeController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;

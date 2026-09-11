@@ -6,7 +6,8 @@ public enum BulkImportMaster
     Department = 1,
     Designation = 2,
     Role = 3,
-    EmployeeType = 4
+    EmployeeType = 4,
+    Employee = 5
 }
 
 /// <summary>Preview outcomes only; Ready is not a persisted record.</summary>
@@ -37,5 +38,17 @@ public enum BulkImportAction
     List = 3,
     Retry = 4,
     Cancel = 5,
-    Template = 6
+    Template = 6,
+    SendInvitations = 7
+}
+
+/// <summary>Invitation delivery is separate from account creation and its retries.</summary>
+public enum BulkImportInvitationStatus
+{
+    Pending = 1,
+    Sending = 2,
+    Sent = 3,
+    Failed = 4,
+    DeliveryUnknown = 5,
+    NotRequired = 6
 }

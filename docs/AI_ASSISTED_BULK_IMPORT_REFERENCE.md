@@ -31,6 +31,9 @@ Navigation: [Calling flow](#user-and-api-calling-flow) · [Endpoint contract](#e
   permission function per batch. No Host bypass is introduced.
 - Angular bulk screens are not implemented in this backend task. This document
   supplies their API contract and integration sequence.
+- EmployeeType manual CRUD and deletion dependency rules are maintained in
+  `docs/EmployeeTypeRules.md`. EmployeeTypeBasicMenu has no soft-delete columns;
+  any mapping row blocks EmployeeType soft deletion. No dependency cascade or hard delete is permitted.
 
 ## User and API calling flow
 
@@ -62,7 +65,8 @@ execution, let the user select a local time and convert it to UTC before sending
 ## Endpoints: 8 per master, 32 bulk routes total
 
 Bases: `/api/Department`, `/api/Designation`, `/api/Role`, `/api/EmployeeType`.
-EmployeeType additionally has `/add`, `/get`, `/option` (35 current-phase routes including those three).
+EmployeeType additionally has `/add`, `/get`, `/option`, `/update`, and `/delete`
+(37 current-phase routes including those five manual CRUD routes).
 All routes require authentication and ModuleId + OperationId. Use real tenant-menu
 IDs; operation IDs are not necessarily equal to operation-type enum values.
 Mutations need an active Add or Import operation and its existing grant. Reads
@@ -399,7 +403,7 @@ execution are covered by automation below.
 | 8 | Current backend automation and consolidated UI handoff | COMPLETE |
 | 9 | Angular screens and authenticated end-to-end acceptance | UI DEVELOPER RESPONSIBILITY — backend handoff complete |
 | 10 | AI assistance | DEFERRED — user explicitly disabled |
-| 11 | Tenant-owned EmployeeType create/list/options, bulk, migration, onboarding | COMPLETE |
+| 11 | Tenant-owned EmployeeType CRUD, bulk, migration, onboarding | COMPLETE |
 | 11a | Environment-specific worker configuration, migration runner and release packaging | COMPLETE — tested with isolated database |
 | 12 | Applicable location/policy definitions and assignment flows | PENDING — verify dependencies/rules |
 | 13 | Employee bulk preview/import using existing onboarding rules | PENDING |
@@ -433,12 +437,14 @@ The application does not prepopulate all six global types for every tenant.
 - `/api/EmployeeType/get` now reads the database instead of a hard-coded list.
   `/option` returns active, non-deleted types for the current tenant. Both now need
   ModuleId/OperationId; update existing employee/tenant form lookup calls accordingly.
-- `/add` creates a type manually; the same eight bulk routes support larger lists.
-  No EmployeeType update/delete endpoint is introduced in this creation/import phase.
+- `/add`, `/get`, and `/option` provide manual create/read behavior; `/update` and `/delete`
+  complete the manual CRUD surface. Delete is a guarded soft delete; its dependency rules
+  are maintained in `docs/EmployeeTypeRules.md`.
 - Existing Employee create/update handlers verify active same-tenant EmployeeType.
   Permission authorization stays in the existing pipeline. Database checks also
   cover old policy/reference writers during tenant-specific migration.
-- Module code: TENANT_EMPLOYEE_TYPES, with existing Add/View/Import operations and
+- Module code: TENANT_EMPLOYEE_TYPES, with only Add/Update/Delete/View operations. Bulk endpoints
+  use the existing Add permission and do not require or create an Import operation mapping. The module has
   Department-equivalent plan coverage. The seed does not insert role grants.
   Existing tenants use their established entitlement synchronization and role
   permission assignment flow. New onboarding uses the existing plan/module setup.
@@ -1262,3 +1268,96 @@ change. Actual target migration/restart and authenticated acceptance remain pend
 - These business decisions are approved. Pattern insert/update endpoints,
   all-employee recoding, Employee import/template and their required tests remain
   implementation work; this confirmation alone is not an implementation/test pass.
+
+### Capacity and invitations (2026-09-11; user delegated design choice)
+
+- Count the initial Tenant Admin in the subscription MaxUsers limit. Employee
+  import must enforce capacity in the same tenant-scoped transaction as account
+  creation, including a commit-time recheck. Do not count the Host as a tenant seat.
+- Separate account creation from invitation dispatch. Import confirmation does
+  not automatically email all uploaded employees. An explicit Send invitations
+  action dispatches invitations after the account results have been reviewed.
+- Persist invitation pending/sent/failed state and retry invitations independently
+  of Employee creation. Generate password setup tokens at dispatch time using the
+  existing token flow. These decisions do not authorize sending emails now.
+- Implementation started with the shared EmployeeCodePatternFormatter and focused
+  tests in existing folders. Initial 14 formatter tests passed; subsequent preview
+  additions and endpoint/persistence integration are WIP, not yet verified.
+
+### Employee implementation checkpoint (2026-09-11; WIP)
+
+- COMPLETE validation milestone: 19 formatter/preview tests, 8 route/permission
+  tests and 7 isolated PostgreSQL pattern tests passed (34 distinct cases).
+  Two initial database failures were missing joining dates in the restored test
+  fixture; the disposable fixture now supplies explicit synthetic dates/codes.
+  Production behavior still rejects missing dates. A subsequent switch from global
+  table locks to tenant-specific locks requires the affected DB checks again.
+- WIP: POST `/api/Tenant/add-employee-code-pattern` and PUT
+  `/api/Tenant/update-employee-code-pattern`: `Confirm=false` previews all existing
+  employees; `Confirm=true` requires the unchanged `PreviewHash`. Code allocation
+  now shares a tenant lock with recoding and participates in the account transaction.
+- WIP: Employee preview/confirm/jobs/retry/cancel/template/report routes reuse the
+  existing durable queue and Employee permission pipeline (`EMP_LIST`). An explicit
+  `/api/Employee/bulk/send-invitations` action is separate from account creation.
+  New code is not deployed and its import/invitation tests are still in progress.
+- Confirm reserves the approved code range. A changed pattern/counter blocks
+  confirmation with a fresh-preview requirement. Cancellation can leave unused
+  sequence gaps; previously issued/reserved numbers are not recycled.
+- Shared capacity calculation counts all non-soft-deleted Employee records,
+  including initial Admin and suspended employees. Host users are not Employee
+  seats. A single valid active subscription/plan with positive MaxUsers is required.
+  Ordinary Employee creation also uses the same insertion-time capacity guard.
+- Optional contact/address columns map through the existing CreateContact DTO and
+  AutoMapper profile to primary personal EmployeeContact. ContactNumber is required
+  when that record is supplied. Unknown Employee source columns require explicit
+  mapping/removal rather than silent data loss.
+- Invitation states: Pending, Sending, Sent, Failed, DeliveryUnknown, NotRequired.
+  Pending/known-failed invitations can be explicitly dispatched again independently
+  of import. Sent rows are skipped. Interrupted/uncertain deliveries require log
+  review; they are never automatically resent. No real invitations have been sent.
+- COMPLETE artifact creation: `docs/bulk-upload/05-employees.xlsx` and matching
+  header-only CSV contain 27 columns. Both workbook sheets were visually inspected;
+  headers and no-data rows were inspected, with no formula errors. The workbook
+  currently labels the Employee API as pending until acceptance is complete.
+- Isolated fixture only: five bulk migrations, including AddEmployeeBulkImport.sql,
+  applied to `127.0.0.1:55439/axionpro_bulk_test`. The new migration expands the queue
+  master range and adds normalized login / tenant employee-code uniqueness. Existing
+  duplicates cause migration failure; no records are merged/deleted by migration.
+- PENDING: finish focused import/invitation tests, audit legacy Host aggregate
+  pattern edits for the preview requirement, update UI handoff with final evidence,
+  and perform authorized deployment/live acceptance. Prior passed master suites
+  remain untouched. Employee import is not marked COMPLETE at this checkpoint.
+
+### Employee validation results (2026-09-11; supersedes the WIP test checkpoint)
+
+- COMPLETE: 77 distinct focused automated cases passed, zero remaining failures
+  or skips. Breakdown: 19 formatter/preview, 10 pattern permission/Host-guard,
+  9 PostgreSQL pattern, 17 Employee parsing/XLSX, 9 Employee route-authentication,
+  8 Employee database workflow and 5 invitation-dispatch tests.
+  Evidence inventory: `docs/bulk-upload/results/employee-automated-summary.json`.
+- Changed tenant-lock and insertion-time capacity paths were retested because
+  implementation changed. Previously passed unrelated master suites were not
+  rerun. Initial invalid-fixture failures and compile errors were corrected;
+  they are not counted as additional successful cases.
+- COMPLETE local implementation/tests: pattern add/update preview and confirmation,
+  unchanged-code preservation, all non-deleted employee recoding (including Admin
+  and inactive employees), archived-code collision protection, transaction-safe
+  sequence allocation, Employee durable import, account/role/image/contact writes,
+  tenant/reference checks, capacity rechecks, reports, and independent invitations.
+  Host aggregate edits now reject pattern changes that would bypass preview.
+- Database acceptance used real PostgreSQL, existing AutoMapper profiles, the
+  existing Employee repository and actual EMP_LIST permission function. Assertions
+  reconciled created account/login/role/image/address records with job results,
+  checked preserved 0145/0200 -> 0201, capacity changes, stale drafts and cross-tenant
+  rejection. Invitation tests used recorded results/fake mail services; no real
+  invitation emails were sent.
+- COMPLETE: template and UI guide at `docs/bulk-upload/05-employees.xlsx`, matching
+  CSV and `EMPLOYEE_IMPORT_UI.md`. No new coding folders were introduced.
+- BLOCKED HTTP execution: automatic approval review rejected starting a separate
+  isolated local API process, returning only `blocked by policy`. That command did
+  not run. Route-attribute tests and repository tests are not represented as an
+  authenticated HTTP upload test.
+- PENDING: deployment of this Employee phase, target backup and new Employee
+  migration, authenticated live upload -> preview -> confirm -> worker -> report
+  -> target DB reconciliation. Earlier Render/master acceptance remains separate.
+  Therefore overall Employee import acceptance remains WIP, not fully COMPLETE.

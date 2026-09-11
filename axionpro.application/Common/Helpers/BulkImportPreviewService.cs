@@ -116,42 +116,7 @@ public sealed class BulkImportPreviewService(
             Master = master,
             SourceColumns = table.Columns.ToList()
         };
-        Dictionary<string, string> mapping;
-        try
-        {
-            mapping = string.IsNullOrWhiteSpace(mappingJson)
-                ? new Dictionary<string, string>()
-                : JsonSerializer.Deserialize<Dictionary<string, string>>(mappingJson)
-                    ?? throw new JsonException();
-        }
-        catch (JsonException)
-        {
-            throw new ValidationErrorException("ColumnMappingJson must be an object of target field to source header.");
-        }
-
-        foreach (var pair in mapping)
-        {
-            if (!allowed.Contains(pair.Key) || !table.Columns.Contains(pair.Value))
-            {
-                throw new ValidationErrorException("Column mapping contains an unknown target field or source header.");
-            }
-        }
-
-        foreach (var field in allowed.Where(field => !mapping.ContainsKey(field)))
-        {
-            // Deterministic exact header matching only. No AI or fuzzy semantic match is claimed.
-            var matches = table.Columns.Where(column => HeaderKey(column) == HeaderKey(field)).ToList();
-            if (matches.Count == 1)
-            {
-                mapping[field] = matches[0];
-            }
-        }
-
-        if (mapping.Values.Distinct(StringComparer.OrdinalIgnoreCase).Count() != mapping.Count)
-        {
-            throw new ValidationErrorException("One source column cannot map to multiple target fields.");
-        }
-
+        var mapping = ResolveColumnMapping(table, mappingJson, allowed);
         result.ColumnMapping = mapping;
         var required = new List<string> { nameField };
         if (master == BulkImportMaster.Designation)
@@ -283,6 +248,43 @@ public sealed class BulkImportPreviewService(
                 row.Errors.Add("Existing record is inactive; import will not reactivate it.");
             }
         }
+    }
+
+    /// <summary>Resolves explicit or deterministic canonical headers for every import module.</summary>
+    public static Dictionary<string, string> ResolveColumnMapping(
+        BulkImportTableDTO table, string? mappingJson, IReadOnlyCollection<string> allowed)
+    {
+        Dictionary<string, string> mapping;
+        try
+        {
+            mapping = string.IsNullOrWhiteSpace(mappingJson)
+                ? new Dictionary<string, string>()
+                : JsonSerializer.Deserialize<Dictionary<string, string>>(mappingJson) ?? throw new JsonException();
+        }
+        catch (JsonException)
+        {
+            throw new ValidationErrorException("ColumnMappingJson must be an object of target field to source header.");
+        }
+        foreach (var pair in mapping)
+        {
+            if (!allowed.Contains(pair.Key) || !table.Columns.Contains(pair.Value))
+            {
+                throw new ValidationErrorException("Column mapping contains an unknown target field or source header.");
+            }
+        }
+        foreach (var field in allowed.Where(field => !mapping.ContainsKey(field)))
+        {
+            var matches = table.Columns.Where(column => HeaderKey(column) == HeaderKey(field)).ToList();
+            if (matches.Count == 1)
+            {
+                mapping[field] = matches[0];
+            }
+        }
+        if (mapping.Values.Distinct(StringComparer.OrdinalIgnoreCase).Count() != mapping.Count)
+        {
+            throw new ValidationErrorException("One source column cannot map to multiple target fields.");
+        }
+        return mapping;
     }
 
     private static string HeaderKey(string value)

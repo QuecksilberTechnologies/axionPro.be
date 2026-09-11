@@ -6,15 +6,23 @@ using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.ITokenService;
+using axionpro.application.Interfaces.IEmail;
+using axionpro.application.Interfaces.IEncryptionService;
+using Microsoft.Extensions.Configuration;
 
 namespace axionpro.application.Common.Helpers;
 
 /// <summary>Coordinates authenticated durable imports behind existing module permission behaviors.</summary>
-public sealed class BulkImportWorkflowService(
+public sealed partial class BulkImportWorkflowService(
     BulkImportPreviewService previewService,
     IBulkImportRepository repository,
     ICommonRequestService commonRequestService,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    ITokenService? tokenService = null,
+    IEmailService? emailService = null,
+    IIdEncoderService? idEncoderService = null,
+    IConfiguration? configuration = null)
 {
     public async Task<BulkImportPreviewResponseDTO> PreviewAsync(
         BulkImportMaster master,
@@ -22,7 +30,11 @@ public sealed class BulkImportWorkflowService(
         CancellationToken cancellationToken)
     {
         var actor = await ValidateAsync(request.OperationId, false);
-        var preview = await previewService.PreviewAsync(master, request, cancellationToken);
+        var preview = master == BulkImportMaster.Employee
+            ? await repository.PreviewEmployeesAsync(
+                await BulkImportTableReader.ReadAsync(request, cancellationToken),
+                request.ColumnMappingJson, actor, cancellationToken)
+            : await previewService.PreviewAsync(master, request, cancellationToken);
         return await repository.SaveDraftAsync(preview, request, actor, cancellationToken);
     }
 
@@ -34,10 +46,19 @@ public sealed class BulkImportWorkflowService(
     {
         var actor = await ValidateAsync(request.OperationId,
             action is BulkImportAction.Get or BulkImportAction.List or BulkImportAction.Template);
+        if (action == BulkImportAction.SendInvitations)
+        {
+            if (master != BulkImportMaster.Employee)
+            {
+                throw new ValidationErrorException("Invitations are supported only for Employee imports.");
+            }
+            return await SendEmployeeInvitationsAsync(request, actor, cancellationToken);
+        }
         if (action == BulkImportAction.Template)
         {
             return master switch
             {
+                BulkImportMaster.Employee => string.Join(",", BulkImportConstants.EmployeeColumns) + "\r\n",
                 BulkImportMaster.Department => "DepartmentName,Description,Remark,IsActive\r\n",
                 BulkImportMaster.Designation => "DesignationName,DepartmentName,Description,IsActive\r\n",
                 BulkImportMaster.EmployeeType => string.Join(",", BulkImportConstants.TypeName,

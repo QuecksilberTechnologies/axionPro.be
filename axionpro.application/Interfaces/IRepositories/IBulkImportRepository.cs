@@ -6,6 +6,10 @@ namespace axionpro.application.Interfaces.IRepositories;
 
 public interface IBulkImportRepository
 {
+    Task<BulkImportPreviewResponseDTO> PreviewEmployeesAsync(
+        BulkImportTableDTO table, string? mappingJson, CommonDecodedResult actor,
+        CancellationToken cancellationToken);
+
     Task<BulkImportPreviewResponseDTO> SaveDraftAsync(
         BulkImportPreviewResponseDTO preview,
         BulkImportPreviewRequestDTO request,
@@ -26,4 +30,11 @@ public interface IBulkImportRepository
         CancellationToken cancellationToken);
 
     Task<bool> ProcessNextBatchAsync(CancellationToken cancellationToken);
+
+    Task<EmployeeImportInvitationDTO?> ClaimEmployeeInvitationAsync(
+        BulkImportJobRequestDTO request, CommonDecodedResult actor, IReadOnlyCollection<int> attemptedRows,
+        CancellationToken cancellationToken);
+
+    Task CompleteEmployeeInvitationAsync(BulkImportJobRequestDTO request, CommonDecodedResult actor,
+        EmployeeImportInvitationDTO invitation, BulkImportInvitationStatus status, CancellationToken cancellationToken);
 }

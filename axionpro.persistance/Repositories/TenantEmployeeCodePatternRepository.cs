@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOS.Tenant;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Common.Helpers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ using System.Text;
 
 namespace axionpro.persistance.Repositories
 {
-    public class TenantEmployeeCodePatternRepository : ITenantEmployeeCodePatternRepository
+    public partial class TenantEmployeeCodePatternRepository : ITenantEmployeeCodePatternRepository
     {
         private readonly WorkforceDbContext _context;
         private readonly ILogger<TenantEmployeeCodePatternRepository> _logger;
@@ -194,38 +195,38 @@ namespace axionpro.persistance.Repositories
         // ============================================================
         // 6️⃣ GENERATE FINAL EMPLOYEE CODE + UPDATE LastUsedNumber
         // ============================================================
-        public async Task<string> GenerateEmployeeCodeAsync(long tenantId, int? departmentId = null)
+        public async Task<string> GenerateEmployeeCodeAsync(long tenantId, int? departmentId = null, DateTime? joiningDate = null)
         {
             try
             {
+                if (_context.Database.CurrentTransaction is null)
+                {
+                    throw new InvalidOperationException("Employee code allocation requires the employee creation transaction.");
+                }
+
+                await LockTenantCodeAllocationAsync(tenantId, CancellationToken.None);
                 var pattern = await _context.EmployeeCodePatterns
-                    .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.IsActive);
+                    .FromSqlInterpolated($"SELECT * FROM axionpro.\"EmployeeCodePattern\" WHERE \"TenantId\" = {tenantId} AND \"IsActive\" = TRUE FOR UPDATE")
+                    .SingleOrDefaultAsync();
 
                 if (pattern == null)
                     throw new Exception("Employee code pattern not configured for tenant.");
 
-                pattern.LastUsedNumber += 1;
-                pattern.UpdatedDateTime = DateTime.UtcNow;
+                // A tracked pattern may have been read before another allocator committed.
+                await _context.Entry(pattern).ReloadAsync();
+                int nextSeq = checked(pattern.LastUsedNumber + 1);
+                var allocatedAt = DateTime.UtcNow;
+                await _context.EmployeeCodePatterns.Where(item => item.Id == pattern.Id)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(item => item.LastUsedNumber, nextSeq)
+                        .SetProperty(item => item.UpdatedDateTime, allocatedAt));
+                await _context.Entry(pattern).ReloadAsync();
 
-                int nextSeq = pattern.LastUsedNumber;
-
-                List<string> parts = new();
-
-                if (!string.IsNullOrWhiteSpace(pattern.Prefix))
-                    parts.Add(pattern.Prefix);
-
-                if (pattern.IncludeYear)
-                    parts.Add(DateTime.UtcNow.Year.ToString());
-
-                if (pattern.IncludeMonth)
-                    parts.Add(DateTime.UtcNow.ToString("MMM").ToUpper());
-
-                if (pattern.IncludeDepartment && departmentId.HasValue)
-                    parts.Add(departmentId.Value.ToString());
-
-                parts.Add(nextSeq.ToString().PadLeft(pattern.RunningNumberLength, '0'));
-
-                string employeeCode = string.Join(pattern.Separator, parts);
+                string employeeCode = EmployeeCodePatternFormatter.Format(
+                    pattern,
+                    joiningDate ?? DateTime.UtcNow,
+                    departmentId,
+                    nextSeq);
 
                 _logger.LogInformation(
                     "Employee code generated in DbContext for TenantId: {TenantId}, EmployeeCode: {EmployeeCode}",

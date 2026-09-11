@@ -37,7 +37,7 @@
 
   <ItemGroup>
     <!-- Ship only this feature's additive migrations; never run the broad reset seed during deployment. -->
-    <Content Include="..\database-scripts\EnforceDesignationDepartmentScope.sql;..\database-scripts\AddDurableMasterBulkImport.sql;..\database-scripts\AddTenantEmployeeTypes.sql;..\database-scripts\SeedTenantEmployeeTypeModule.sql;..\database-scripts\ApplyBulkImportMigrations.ps1">
+    <Content Include="..\database-scripts\EnforceDesignationDepartmentScope.sql;..\database-scripts\AddDurableMasterBulkImport.sql;..\database-scripts\AddTenantEmployeeTypes.sql;..\database-scripts\SeedTenantEmployeeTypeModule.sql;..\database-scripts\AddEmployeeBulkImport.sql;..\database-scripts\ApplyBulkImportMigrations.ps1">
       <Link>database-scripts\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

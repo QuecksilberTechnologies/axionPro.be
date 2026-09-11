@@ -152,5 +152,6 @@ BEGIN
 END $triggers$;
 
 ALTER TABLE axionpro."BulkImportJob" DROP CONSTRAINT IF EXISTS "BulkImportJob_Master_check";
-ALTER TABLE axionpro."BulkImportJob" ADD CONSTRAINT "BulkImportJob_Master_check" CHECK ("Master" BETWEEN 1 AND 4);
+-- Preserve Employee jobs when this idempotent migration runner is used again.
+ALTER TABLE axionpro."BulkImportJob" ADD CONSTRAINT "BulkImportJob_Master_check" CHECK ("Master" BETWEEN 1 AND 5);
 COMMIT;

@@ -22,11 +22,12 @@ using Npgsql;
 namespace axionpro.persistance.Repositories;
 
 /// <summary>Durable PostgreSQL queue; a job lock, its business inserts and cursor share one transaction.</summary>
-public sealed class BulkImportRepository(
+public sealed partial class BulkImportRepository(
     WorkforceDbContext context,
     IMapper mapper,
     IStoreProcedureRepository permissions,
-    IOptions<BulkImportOptions> options) : IBulkImportRepository
+    IOptions<BulkImportOptions> options,
+    IBaseEmployeeRepository? employeeRepository = null) : IBulkImportRepository
 {
     #region Draft and user actions
 
@@ -60,6 +61,7 @@ public sealed class BulkImportRepository(
                 throw new ConflictException("RequestId already belongs to a different preview. Use a new RequestId for corrected data.");
             }
             var saved = Deserialize(existing);
+            RemovePrivateEmployeeFields(saved);
             saved.JobId = id;
             saved.ConfirmationAvailable = existing.Status == (int)BulkImportJobStatus.Draft;
             await transaction.CommitAsync(cancellationToken);
@@ -136,6 +138,10 @@ public sealed class BulkImportRepository(
                 if (!preview.IsValid)
                 {
                     throw new ValidationErrorException("Correct all invalid rows and submit a new preview before confirmation.");
+                }
+                if (master == BulkImportMaster.Employee)
+                {
+                    await ConfirmEmployeesAsync(job, preview, cancellationToken);
                 }
                 Queue(job, request, actor);
                 break;
@@ -226,6 +232,12 @@ public sealed class BulkImportRepository(
         // Cross-job serialization by tenant/master plus unique DB indexes also protects manual-create races.
         await context.Database.ExecuteSqlInterpolatedAsync(
             $"SELECT pg_advisory_xact_lock(hashtextextended({$"bulk:{job.TenantId}:{job.Master}"}, 0))", cancellationToken);
+        if (job.Master == (int)BulkImportMaster.Employee)
+        {
+            await ProcessEmployeeBatchAsync(job, preview, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return true;
+        }
         var current = await CurrentMasters(job, cancellationToken);
         var end = Math.Min(preview.Rows.Count, job.NextRow + Math.Clamp(options.Value.BatchSize, 1, 200));
         for (var index = job.NextRow; index < end; index++)
@@ -339,6 +351,7 @@ public sealed class BulkImportRepository(
             BulkImportMaster.Department => "TENANT_DEPARTMENTS",
             BulkImportMaster.Designation => "TENANT_DESIGNATIONS",
             BulkImportMaster.EmployeeType => BulkImportConstants.EmployeeTypeModuleCode,
+            BulkImportMaster.Employee => BulkImportConstants.EmployeeModuleCode,
             _ => "TENANT_ROLES_PERMISSIONS"
         };
         var operation = await context.Operations.AsNoTracking().SingleOrDefaultAsync(item => item.Id == job.OperationId, cancellationToken);
@@ -498,6 +511,7 @@ public sealed class BulkImportRepository(
     {
         var preview = Deserialize(job);
         preview.ConfirmationAvailable = job.Status == (int)BulkImportJobStatus.Draft;
+        RemovePrivateEmployeeFields(preview);
         return new BulkImportJobResponseDTO
         {
             JobId = job.Id,
@@ -514,6 +528,15 @@ public sealed class BulkImportRepository(
             Error = job.Error,
             Preview = includeRows ? preview : null
         };
+    }
+
+    private static void RemovePrivateEmployeeFields(BulkImportPreviewResponseDTO preview)
+    {
+        foreach (var row in preview.Rows)
+        {
+            row.ImportedEmployeeId = null;
+            row.InvitationAttemptId = null;
+        }
     }
 
     #endregion

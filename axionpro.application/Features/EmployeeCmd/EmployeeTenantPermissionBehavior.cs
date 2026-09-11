@@ -298,6 +298,8 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
         return typeof(TRequest).Name switch
         {
             "CreateBaseEmployeeInfoCommand" or
+            "PreviewEmployeeImportQuery" or
+            "ManageEmployeeImportCommand" or
             "GetAllEmployeeInfoQuery" or
             "GetEmployeeSummaryQuery" or
             "DeleteEmployeeQuery" or
