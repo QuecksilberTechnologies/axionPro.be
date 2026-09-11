@@ -1,5 +1,23 @@
 # Employee import and code-pattern UI handoff
 
+**FINAL: requested live release acceptance COMPLETE, 11 September 2026.**
+Live commit: `2c91b6eb`; Render deployment: `dep-dai0l23m8hqs73dmbdeg`.
+Migration/restart, CSV create, paste skip replay, DB/report matching, all-employee
+pattern update/restore and EmployeeType CRUD/menu verification passed.
+Final codes: QT/2018/0001 (Admin), QT/2026/0145, QT/2026/0200; next number 0201.
+Add-pattern existing-tenant rejection was verified live; missing-pattern creation
+and XLSX parsing are covered by isolated automated tests. No real emails were sent.
+All older pending notes below are historical and superseded by this checkpoint.
+
+Latest live checkpoint (11 September): Employee migration and service restart are
+complete. CSV import created two employees, paste replay skipped both, and DB/report
+verification passed for codes, mobile, contact/address, login, role and image.
+Next-code preview returned QT/2026/0201. No invitations were sent.
+Pattern recoding awaits deployment of correction `2c91b6eb`: exact legacy codes
+generated from persisted account creation dates are recognized, while proposed
+codes use original joining dates. Overall acceptance is still WIP for this item.
+The older local-only checkpoints below are historical.
+
 Local implementation and 77 focused automated cases passed on 2026-09-11.
 Deployment and authenticated HTTP acceptance remain PENDING. Automatic approval
 review blocked the separate local API launch. This is not a Render acceptance pass.

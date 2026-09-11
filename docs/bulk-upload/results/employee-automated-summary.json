@@ -6,7 +6,7 @@
   "Passed": 77,
   "Failed": 0,
   "Skipped": 0,
-  "LiveHttpStatus": "PENDING: automatic approval review blocked separate local API launch",
+  "LiveHttpStatus": "COMPLETE: CSV create, paste skip replay, DB reconciliation, pattern recode/restore and EmployeeType CRUD/menu passed on 2026-09-11.",
   "Tests": [
     {
       "Test": "Address_requires_contact_number_and_reuses_personal_primary_contact_contract",
@@ -393,5 +393,9 @@
       "Outcome": "Passed",
       "Evidence": "employee-final-boundaries.trx"
     }
+  ],
+  "AdditionalFocusedEvidence": [
+    "employee-type-response-regression.trx: 2 new passes",
+    "employee-legacy-date.trx: 2 new passes and 1 affected existing pass"
   ]
 }

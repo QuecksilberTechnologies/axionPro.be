@@ -1,5 +1,12 @@
 # EmployeeType Rules
 
+Latest live acceptance, 11 September: COMPLETE. Existing role-permission API granted
+module 79/Delete to tenant Admin role 22. Fresh my-menu shows all four CRUD actions.
+Dedicated QA type create/update/deactivate/delete succeeded, and the deleted type
+is absent from list results. Bulk XLSX/CSV/paste and DB/report checks also passed.
+Evidence is in `docs/bulk-upload/results/employee-type-crud-*.json` and
+`employee-type-live-menu.json`. Earlier pending notes below are historical.
+
 ## Scope and ownership
 
 - `EmployeeType` is tenant-owned. The authenticated Tenant and employee audit actor are authoritative; clients never supply either value.

@@ -1406,3 +1406,75 @@ change. Actual target migration/restart and authenticated acceptance remain pend
   trusted tenant scope, inactive record visibility and empty out-of-range pages.
   Evidence: `artifacts/bulk-import/employee-type-response-regression.trx`.
   Earlier 77 Employee tests and passed master suites were not rerun.
+
+### Target Employee migration and deployment (2026-09-11)
+
+- COMPLETE: fix commit `bdd095d3e48a8283e10da803199839be13d079a5` already matched
+  local main_branch and remote main_branch. Render displayed Live deployment
+  `dep-dai0ak7qj5pc73aqlshg`; no duplicate commit/deployment was needed.
+- COMPLETE: live Swagger exposes all nine Employee bulk routes, pattern add/update
+  and EmployeeType update/delete. A cache-busting Swagger request verified this.
+- COMPLETE: Render service was explicitly suspended and Suspended status observed.
+  The pending `AddEmployeeBulkImport.sql` ran against workforcedb_34hi_duis and
+  committed both unique indexes and the master-range constraint update. Prior four
+  migrations were not rerun. Log: `artifacts/bulk-import/employee-target-migration.log`.
+- Resume service requested after successful commit. Authenticated post-restart
+  verification and remaining Employee/CRUD/pattern acceptance are in progress.
+
+### Live acceptance checkpoint (2026-09-11)
+
+- COMPLETE: service resumed; authenticated login and new routes work after migration.
+- COMPLETE Employee CSV upload -> preview -> confirm -> worker -> report: job
+  `abfc9cce-3561-4066-9b51-f2f95424c530` created 2, failed 0. Supplied codes
+  QT/2026/0145 and QT/2026/0200 were preserved. Both employees have exactly one
+  login, role 24 and initial image; tenant, mobile and personal contact/address
+  match the report. Evidence: `docs/bulk-upload/results/employee-live-*`.
+- COMPLETE paste replay: job `df2a388c-c78e-462e-8aca-504b2bc7fcd6` created 0,
+  existing 2, failed 0. Next-code preview produced QT/2026/0201; its draft was
+  cancelled without insertion. No invitation emails were sent.
+- COMPLETE EmployeeType CRUD: role 22 received only module 79/Delete through the
+  existing assign-role-permissions API. Fresh my-menu contains Add/Update/Delete/
+  View. A dedicated UIQA type was created, renamed/deactivated, then soft deleted;
+  it is absent from the tenant list. Evidence: `employee-type-crud-*.json` and
+  `employee-type-live-menu.json` under the results directory.
+- User supplied Admin joining date 24/07/2018. Saved through Employee official/update
+  with existing EMP_OVERVIEW module 9/Update; the initial module 8 request was
+  correctly rejected. No direct database patch was used.
+- Pattern preview exposed a legacy defect: the original Admin code uses account
+  creation year 2026. Fix recognizes only an exact current-pattern code using the
+  persisted AddedDateTime, preserves its sequence, and formats the proposed code
+  using original joining date. AddedDateTime is included in the preview fingerprint.
+  Unknown dates/codes remain blocked. Three focused tests passed (two new cases
+  and one affected missing-date case); unrelated passed tests were not rerun.
+- Fix committed as `2c91b6eb`; push is awaiting Git Credential Manager sign-in.
+  PENDING: deploy this correction, live pattern recoding confirmation and final
+  code/DB checks. Overall acceptance remains WIP until these finish.
+
+### FINAL acceptance — COMPLETE (2026-09-11)
+
+This checkpoint supersedes earlier WIP/blocker notes for the requested release.
+
+- Correction `2c91b6eb5908cabd39da19e04a77d9d48a67730b` pushed successfully.
+  Render deployment `dep-dai0l23m8hqs73dmbdeg` displayed Deploy succeeded | Live.
+- Backup, suspension, Employee migration, resume and authenticated API verification
+  complete. Both unique indexes exist on the target database.
+- Employee CSV create and paste replay worker/report checks passed: 2 created,
+  then 0 created/2 existing. DB reconciliation verifies tenant, codes, mobile,
+  contact/address and one login/role/image per employee. Next generated preview
+  is QT/2026/0201; unused test draft was cancelled. No invitations were sent.
+- Pattern update preview/confirm recoded all three tenant employees using a test
+  separator, then restored the original QT/year/slash/four-digit configuration.
+  Final DB codes: QT/2018/0001, QT/2026/0145, QT/2026/0200; LastUsedNumber=200.
+  Admin joining date is the user-confirmed 2018-07-24. No identity/login IDs changed.
+- Add-pattern endpoint correctly rejects an already configured tenant with 409.
+  Successful missing-pattern insertion is covered by existing isolated DB tests;
+  no live pattern was deleted merely to manufacture a missing-pattern fixture.
+- EmployeeType manual Create/Update/Delete/list and four CRUD my-menu actions pass.
+  The dedicated CRUD QA row is soft-deleted; the two bulk sample types remain.
+- Evidence: `docs/bulk-upload/results/employee-*.json` and reports; pattern apply/
+  restore responses and `employee-pattern-final-db.json` contain final results.
+  Live Employee input used CSV/paste; XLSX parsing/date systems remain covered by
+  automated tests. No live SMTP/invitation acceptance is claimed.
+- Requested deployment/import/recoding/EmployeeType acceptance is COMPLETE.
+  Earlier passed unrelated suites were not rerun. Only changed/new legacy-date
+  cases were run after the final code correction.

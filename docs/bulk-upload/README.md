@@ -8,6 +8,19 @@ Credentials and tokens are intentionally absent from this handoff.
 
 ## Current result
 
+**FINAL release acceptance COMPLETE (11 September):** Employee migration/restart,
+CSV create/paste replay, DB/report reconciliation, pattern recoding/restore, and
+EmployeeType CRUD plus all four menu grants passed on live commit `2c91b6eb`.
+See `EMPLOYEE_IMPORT_UI.md` and `results/employee-pattern-final-db.json`.
+Older pending checkpoint paragraphs below are retained as history only.
+
+11 September continuation: EmployeeType manual CRUD and all four menu grants now
+pass. Employee CSV import created two records; paste replay skipped both; report
+and DB match including contact/account records. Employee migration/restart complete.
+Only the legacy Admin code recoding correction deployment/live confirmation remains
+pending. See `EMPLOYEE_IMPORT_UI.md` and the main reference for current evidence;
+older pending checkpoints below are historical.
+
 | Master | XLSX upload and worker | CSV replay | Pasted CSV replay | DB/report comparison |
 | --- | --- | --- | --- | --- |
 | Department | PASS: 2 created | PASS: 2 existing, 0 created | PASS: 2 existing, 0 created | PASS |

@@ -344,6 +344,17 @@ passes. UI handoff: `../docs/bulk-upload/EMPLOYEE_IMPORT_UI.md`.
 
 ### Release correction, 11 September 2026
 
+FINAL: legacy fix `2c91b6eb` is deployed and live recoding/restore plus final DB
+verification passed. Employee import create/replay and EmployeeType CRUD/menu
+acceptance are COMPLETE. Add-existing-pattern rejection is live-verified;
+missing-pattern creation/XLSX remain automated coverage. No SMTP emails sent.
+The pending paragraphs below describe earlier checkpoints.
+
+Later live acceptance passed Employee create/replay/report/DB and EmployeeType CRUD
+and menu checks. Legacy Admin creation-year recognition required a further formatter
+fix: `employee-legacy-date.trx` contains 3 passing focused cases (2 new, 1 affected
+missing-date regression). This fix still needs deployment/live recoding acceptance.
+
 Release publish reproduced the EmployeeType handler/repository response namespace
 mismatch in commit `3387971`. The handler now aliases the existing repository DTO.
 Release publish passes. Two new `List_preserves_repository_response_and_page_metadata`
