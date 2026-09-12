@@ -7,6 +7,13 @@ endpoint documentation, existing permission pipelines, constants, enums and mapp
 Ask before implementing unclear business rules. COMPLETE below means the stated
 backend scope, not all future bulk modules or production deployment.
 
+> **Immutable PageName decision — user-confirmed 2026-09-13:** while changing
+> Module, child-module, Operation or ModuleOperationMapping seed data, never change
+> an existing Module `PageName`. Operations, mappings, hierarchy, display metadata
+> and other explicitly approved seed values may be changed, but `PageName` remains
+> the stable UI component-registration identity. New module rows must receive their
+> approved PageName once; later seed reruns must preserve it.
+
 Navigation: [Calling flow](#user-and-api-calling-flow) · [Endpoint contract](#endpoints-8-per-master-32-bulk-routes-total) · [All request/response examples](#copyable-request-and-response-examples-for-every-bulk-action) · [EmployeeType examples](#employeetype-manual-creation-and-bulk-examples) · [Local/production setup](#local-and-production-deployment-same-api-project) · [Progress](#implementation-sequence-and-status).
 
 ## Highlighted deferred gaps — user decision 2026-09-11
@@ -1574,6 +1581,9 @@ by the user as requested. Do not mark MyMenu/API acceptance COMPLETE yet.
   tenant hierarchy scope. It remains an explicitly recorded separate cleanup item.
 - Evidence: `artifacts/bulk-functional-parent-seed-run2.log` and
   `artifacts/bulk-functional-parent-seed-run3-idempotent.log`.
+- User reconfirmed that these Tenant bulk `PageName` values must remain unchanged:
+  `bulk-employees`, `bulk-departments`, `bulk-designations`, `bulk-roles` and
+  `bulk-employee-types`. Future operation/mapping seed work must not rewrite them.
 
 ## 2026-09-12 — Host CardBulk / DeviceBulk (WIP)
 

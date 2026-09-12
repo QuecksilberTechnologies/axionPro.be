@@ -3,6 +3,14 @@
 Updated: 2026-09-11. This note records which module/operation seed is authoritative
 for bulk onboarding and what each seed changes. It does not grant permissions.
 
+## Immutable PageName rule — user-confirmed 2026-09-13
+
+Never change an existing Module `PageName` while editing Module, child-module,
+Operation or ModuleOperationMapping seed sections. `PageName` is the stable UI
+component-registration identity, independent of URLPath and display metadata.
+Assign the approved value when a module is first inserted; every later seed rerun
+must preserve it. This applies to Tenant and Host module seeds.
+
 ## Which seed to use?
 
 `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql` is the
