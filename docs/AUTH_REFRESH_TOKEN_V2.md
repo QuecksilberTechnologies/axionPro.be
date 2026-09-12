@@ -1,5 +1,8 @@
 # Refresh API V2 — opt-in migration record
 
+> **CURRENT STATUS: WIP — extended testing found a reproducible concurrency defect (2026-09-13).**
+> Normal persistence/rotation works, but simultaneous requests using one token both succeed for Host and Tenant. Two failing regression tests are retained. Do not treat the earlier 20-case pass as complete acceptance. Legacy API remains untouched.
+
 ## User-approved decision — 2026-09-13
 
 **Keep the current refresh API unchanged. Build a NEW lightweight API on a NEW branch.**
@@ -72,7 +75,7 @@ Legacy failure semantics retained: blank input uses centralized validation (400)
 - Reduced data/query work is expected to help, but no production millisecond guarantee. Measure warm/cold latency and p50/p95 after deployment.
 - Old API removal: **PENDING explicit UI acceptance + user approval**.
 - UI migration, deployment and production latency measurement: **PENDING**.
-- Local implementation/build/focused tests: **COMPLETE**; evidence below. This is not production or UI acceptance.
+- Local implementation/build/basic tests completed; **extended acceptance WIP** due to the concurrency failures below. This is not production or UI acceptance.
 
 ## Local validation evidence — 2026-09-13
 
@@ -90,3 +93,20 @@ Legacy failure semantics retained: blank input uses centralized validation (400)
 ## Continuing-session checklist
 
 Read this file first. Preserve legacy. Check branch/status before editing. Record test results accurately, distinguish local from deployed evidence, and leave UI acceptance/old-route removal pending until confirmed.
+
+## Extended tests requested by user — 2026-09-13
+
+13 NEW cases executed; earlier 20 passing cases were not rerun. Results: **11 PASS, 2 FAIL, 0 skipped**. Across recorded runs: **31 passing / 2 failing distinct cases**.
+
+- 9 Tenant failure cases PASS: missing credential, changed login, inactive login, missing employee, missing/expired subscription, missing subscription expiry, missing primary role, missing encryption key. No rotation or presentation queries occur after rejection; identity/tenant arguments are checked.
+- 2 actual PostgreSQL rollback cases PASS (Host/Tenant): a 51-character IP causes `DbUpdateException` against the existing varchar(50) column during rotation. The transaction restores the original token to unrevoked with no replacement hash. This proves rollback, not acceptable oversized-input handling: centralized generic error handling would report 500; V2 input validation should address this in follow-up.
+- 2 actual PostgreSQL concurrency cases FAIL (Host/Tenant): independent DbContexts/connections are synchronized after reading the same unrevoked token; both requests issue replacements. Expected one success, observed two. This is a real read-before-write race in the reused rotation policy, not a test infrastructure failure.
+- Test names: `Tenant_failure_never_rotates_or_loads_menus`, `Database_write_failure_rolls_back_revocation`, `Concurrent_same_token_must_have_only_one_winner`.
+- Log: `artifacts/refresh-v2-extended-tests.log`. Test fixture tokens, including both concurrent replacement branches, cleaned; read-only check found 0 remaining `v2-test-%` markers.
+- Application/legacy code was not changed in this testing follow-up. Fix scope should remain V2-only unless the user separately authorizes changes to legacy rotation. Recommended next correction: an atomic DB conditional claim of an unrevoked/unexpired token within the replacement transaction; validate IP storage length before writes. Keep failing tests as regression gates.
+
+### What is stored in DB?
+
+Table: `axionpro."RefreshToken"` (EF property name is `RefreshTokens`). A successful rotation inserts the SHA-256 hash of the new opaque refresh token, owner type + immutable owner FK, LoginId, creation time, 7-day expiry and optional IP. The consumed row is retained, marked revoked, timestamped and linked to the replacement hash. The raw refresh token is returned to the client; it is not stored as plaintext. The access JWT is returned and is not stored by this refresh flow. Response refresh expiry equals the persisted expiry; access expiry equals the issued JWT expiration.
+
+No production DB was touched or verified in these local tests. The request/response examples above use placeholders deliberately.

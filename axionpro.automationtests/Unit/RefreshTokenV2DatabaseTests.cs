@@ -21,6 +21,10 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using MediatR;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.ITokenService;
+using System.Reflection;
 
 namespace axionpro.automationtests.Unit;
 
@@ -41,7 +45,21 @@ public sealed class RefreshTokenV2DatabaseTests
         await RunRefreshAsync(host, true);
     }
 
-    private static async Task RunRefreshAsync(bool host, bool http)
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task Database_write_failure_rolls_back_revocation(bool host)
+    {
+        await RunRefreshAsync(host, false, "write-failure");
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task Concurrent_same_token_must_have_only_one_winner(bool host)
+    {
+        await RunRefreshAsync(host, false, "concurrent");
+    }
+
+    private static async Task RunRefreshAsync(bool host, bool http, string? scenario = null)
     {
         var connection = Environment.GetEnvironmentVariable("AXIONPRO_BULK_TEST_CONNECTION");
         if (string.IsNullOrWhiteSpace(connection))
@@ -73,7 +91,8 @@ public sealed class RefreshTokenV2DatabaseTests
         services.AddPersistence(configuration);
         services.AddInfrastructure(configuration);
         // Use the quiet local test context; no sensitive SQL parameter logging or hosted workers.
-        services.AddScoped(_ => db);
+        services.AddScoped(_ => new WorkforceDbContext(
+            new DbContextOptionsBuilder<WorkforceDbContext>().UseNpgsql(connection).Options));
         services.AddTransient<RefreshTokenV2CommandHandler>();
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -99,9 +118,29 @@ public sealed class RefreshTokenV2DatabaseTests
         }
         db.Add(token);
         await db.SaveChangesAsync();
+        var marker = "v2-test-" + Guid.NewGuid().ToString("N");
         try
         {
             var handler = scope.ServiceProvider.GetRequiredService<RefreshTokenV2CommandHandler>();
+            if (scenario == "write-failure")
+            {
+                // Real varchar(50) constraint failure after recording the replacement hash.
+                Assert.ThrowsAsync<DbUpdateException>(async () => await handler.Handle(
+                    new RefreshTokenV2Command(new RefreshTokenRequestDTO
+                    {
+                        RefreshToken = raw,
+                        IpAddress = new string('1', 51)
+                    }), default));
+                var original = await db.RefreshTokens.AsNoTracking().SingleAsync(x => x.Id == token.Id);
+                Assert.That(original.IsRevoked, Is.False);
+                Assert.That(original.ReplacedByToken, Is.Null);
+                return;
+            }
+            if (scenario == "concurrent")
+            {
+                await VerifyConcurrencyAsync(provider, raw, marker);
+                return;
+            }
             Assert.ThrowsAsync<UnauthorizedAccessException>(async () => await handler.Handle(
                 new RefreshTokenV2Command(new RefreshTokenRequestDTO { RefreshToken = "invalid-fixture-token" }), default));
             var timer = System.Diagnostics.Stopwatch.StartNew();
@@ -148,7 +187,51 @@ public sealed class RefreshTokenV2DatabaseTests
                     .SingleOrDefaultAsync(x => x.Token == current.ReplacedByToken);
             }
             await db.RefreshTokens.Where(x => ids.Contains(x.Id)).ExecuteDeleteAsync();
+            await db.RefreshTokens.Where(x => x.CreatedByIp == marker).ExecuteDeleteAsync();
         }
+    }
+
+    private static async Task VerifyConcurrencyAsync(IServiceProvider provider, string raw, string marker)
+    {
+        var reads = 0;
+        var bothRead = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        async Task<bool> AttemptAsync()
+        {
+            using var scope = provider.CreateScope();
+            var service = scope.ServiceProvider;
+            var real = service.GetRequiredService<IRefreshTokenRepository>();
+            async Task<RefreshToken?> ReadAsync(string hash)
+            {
+                var row = await real.GetByHashedTokenAsync(hash);
+                if (Interlocked.Increment(ref reads) == 2)
+                {
+                    bothRead.TrySetResult();
+                }
+                await bothRead.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                return row;
+            }
+            var proxy = DispatchProxy.Create<IRefreshTokenRepository, BulkImportPermissionTests.TestProxy>();
+            ((BulkImportPermissionTests.TestProxy)(object)proxy).InvokeMethod = (method, args) =>
+                method.Name == "GetByHashedTokenAsync" ? ReadAsync((string)args![0]!) : method.Invoke(real, args);
+            var handler = new RefreshTokenV2CommandHandler(service.GetRequiredService<IUnitOfWork>(),
+                service.GetRequiredService<ITokenService>(), proxy, service.GetRequiredService<IIdEncoderService>(),
+                service.GetRequiredService<ILogger<RefreshTokenV2CommandHandler>>());
+            try
+            {
+                return (await handler.Handle(new RefreshTokenV2Command(new RefreshTokenRequestDTO
+                {
+                    RefreshToken = raw,
+                    IpAddress = marker
+                }), default)).IsSucceeded;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
+        var results = await Task.WhenAll(AttemptAsync(), AttemptAsync());
+        Assert.That(results.Count(x => x), Is.EqualTo(1),
+            "One consumed refresh token must not issue two successful replacement sessions.");
     }
 
     private static async Task VerifyHttpAsync(IServiceProvider services, string refreshToken)

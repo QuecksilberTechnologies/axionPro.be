@@ -11,6 +11,8 @@ using axionpro.application.Interfaces.ITokenService;
 using axionpro.domain.Entity;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
+using axionpro.application.DTOs.Tenant;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 
 namespace axionpro.automationtests.Unit;
 
@@ -141,6 +143,107 @@ public class RefreshTokenV2Tests
         {
             Assert.ThrowsAsync<InvalidOperationException>(async () => await handler.Handle(command, default));
             Assert.That(calls, Does.Contain("RollbackTransactionAsync").And.Not.Contain("CommitTransactionAsync"));
+        }
+    }
+
+    #endregion
+
+    #region Tenant Failure Coverage
+
+    [TestCase("missing-credential")]
+    [TestCase("changed-login")]
+    [TestCase("inactive-login")]
+    [TestCase("missing-employee")]
+    [TestCase("missing-subscription")]
+    [TestCase("expired-subscription")]
+    [TestCase("missing-expiry")]
+    [TestCase("missing-primary-role")]
+    [TestCase("missing-key")]
+    public async Task Tenant_failure_never_rotates_or_loads_menus(string condition)
+    {
+        var oldToken = new RefreshToken
+        {
+            LoginCredentialId = 12,
+            LoginId = "fixture",
+            UserType = (short)LoginUserType.TenantEmployee,
+            ExpiryDate = DateTime.UtcNow.AddHours(1)
+        };
+        var credential = new LoginCredential { Id = 12, LoginId = "fixture", IsActive = true };
+        if (condition == "changed-login")
+        {
+            credential.LoginId = "changed";
+        }
+        var users = Proxy<IUserLoginReopsitory>((_, args) =>
+        {
+            Assert.That(args![0], Is.EqualTo(12L));
+            return Task.FromResult(condition == "missing-credential" ? null : credential);
+        });
+        var procedures = Proxy<IStoreProcedureRepository>((method, _) =>
+        {
+            Assert.That(method.Name, Is.EqualTo("ValidateActiveUserLoginOnlyAsync"));
+            return Task.FromResult(condition == "inactive-login" ? 0L : 41L);
+        });
+        var employee = new GetMinimalEmployeeResponseDTO { Id = 41, TenantId = 8 };
+        var employees = Proxy<IBaseEmployeeRepository>((method, args) =>
+        {
+            Assert.That(method.Name, Is.EqualTo("GetSingleRecordAsync"));
+            Assert.That(args![0], Is.EqualTo(41L));
+            return Task.FromResult(condition == "missing-employee" ? null : employee);
+        });
+        var subscriptions = Proxy<ITenantSubscriptionRepository>((_, args) =>
+        {
+            Assert.That(((TenantSubscriptionPlanRequestDTO)args![0]!).TenantId, Is.EqualTo(8));
+            var subscription = new TenantSubscriptionPlanResponseDTO
+            {
+                SubscriptionEndDate = condition == "missing-expiry" ? null :
+                    DateTime.Today.AddDays(condition == "expired-subscription" ? -1 : 1)
+            };
+            return Task.FromResult(condition == "missing-subscription" ? null : subscription);
+        });
+        var roles = Proxy<IUserRoleRepository>((_, args) =>
+        {
+            Assert.That(args![0], Is.EqualTo(41L));
+            Assert.That(args[1], Is.EqualTo(8L));
+            return Task.FromResult(condition == "missing-primary-role" ? new List<UserRole>() :
+                new List<UserRole> { new() { RoleId = 3, IsActive = true, IsPrimaryRole = true, Role = new Role() } });
+        });
+        var keys = Proxy<ITenantEncryptionKeyRepository>((_, args) =>
+        {
+            Assert.That(args![0], Is.EqualTo(8L));
+            return Task.FromResult<TenantEncryptionKeys?>(null);
+        });
+        var unit = Proxy<IUnitOfWork>((method, _) => method.Name switch
+        {
+            "get_UserLoginRepository" => users,
+            "get_StoreProcedureRepository" => procedures,
+            "get_Employees" => employees,
+            "get_TenantSubscriptionRepository" => subscriptions,
+            "get_UserRoleRepository" => roles,
+            "get_TenantEncryptionKeyRepository" => keys,
+            _ => throw new AssertionException("Unexpected query/rotation: " + method.Name)
+        });
+        var repository = Proxy<IRefreshTokenRepository>((method, _) => method.Name == "GetByHashedTokenAsync"
+            ? Task.FromResult<RefreshToken?>(oldToken)
+            : throw new AssertionException("Failed eligibility must not rotate."));
+        var handler = Handler(unit, repository, Unexpected<ITokenService>());
+        var command = new RefreshTokenV2Command(new RefreshTokenRequestDTO { RefreshToken = "fixture" });
+        if (condition is "missing-employee" or "missing-subscription" or "expired-subscription" or "missing-expiry")
+        {
+            var response = await handler.Handle(command, default);
+            Assert.That(response.IsSucceeded, Is.False);
+            Assert.That(response.Data, Is.Null);
+        }
+        else if (condition == "missing-primary-role")
+        {
+            Assert.ThrowsAsync<NotFoundException>(async () => await handler.Handle(command, default));
+        }
+        else if (condition == "missing-key")
+        {
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await handler.Handle(command, default));
+        }
+        else
+        {
+            Assert.ThrowsAsync<UnauthorizedAccessException>(async () => await handler.Handle(command, default));
         }
     }
 

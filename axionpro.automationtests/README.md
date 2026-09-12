@@ -515,6 +515,8 @@ RefreshDatabase requires AXIONPRO_BULK_TEST_CONNECTION pointing to the isolated
 local axionpro_bulk_test; never point this fixture at production.
 # Opt-in refresh-token-v2 — 2026-09-13
 
+**Extended acceptance WIP:** 13 additional cases ran after the original 20 passes: 11 PASS, 2 FAIL. Host/Tenant simultaneous refresh reproduces two successful replacements for one token. See `docs/AUTH_REFRESH_TOKEN_V2.md` and `artifacts/refresh-v2-extended-tests.log`. Rollback works on actual DB constraint failure; oversized IP handling still needs validation. Do not report V2 production-ready.
+
 Continuing-session decision and UI instructions: [AUTH_REFRESH_TOKEN_V2.md](../docs/AUTH_REFRESH_TOKEN_V2.md).
 Branch: `codex/lightweight-refresh-api`. Legacy refresh stays unchanged pending explicit UI acceptance and user approval.
 
