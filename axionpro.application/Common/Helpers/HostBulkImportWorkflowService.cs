@@ -40,9 +40,16 @@ public sealed class HostBulkImportWorkflowService(
         var host = await AuthorizeAsync(master, request.ModuleId, request.OperationId, read, ct);
         if (action == BulkImportAction.Template)
         {
-            return master == BulkImportMaster.DeviceMaster
-                ? "SNo,DeviceCode,DeviceName,CompanyName,ModelNo,DeviceType,IsActive\r\n"
-                : string.Join(",", HostBulkImportTableMapper.CardColumns) + "\r\n";
+            var columns = master switch
+            {
+                BulkImportMaster.DeviceMaster => HostBulkImportTableMapper.DeviceColumns,
+                BulkImportMaster.TenantCard => HostBulkImportTableMapper.CardColumns,
+                BulkImportMaster.HostModule => HostBulkImportTableMapper.ModuleColumns,
+                BulkImportMaster.HostSubModule => HostBulkImportTableMapper.SubModuleColumns,
+                BulkImportMaster.HostOperation => HostBulkImportTableMapper.OperationColumns,
+                _ => HostBulkImportTableMapper.ModuleOperationColumns
+            };
+            return string.Join(",", columns) + "\r\n";
         }
         var actor = Owner(master, request.TenantId, host);
         if (action == BulkImportAction.List)
@@ -63,6 +70,10 @@ public sealed class HostBulkImportWorkflowService(
         {
             BulkImportMaster.DeviceMaster => BulkImportConstants.HostDeviceBulkModuleCode,
             BulkImportMaster.TenantCard => BulkImportConstants.HostCardBulkModuleCode,
+            BulkImportMaster.HostModule => BulkImportConstants.HostModuleBulkModuleCode,
+            BulkImportMaster.HostSubModule => BulkImportConstants.HostSubModuleBulkModuleCode,
+            BulkImportMaster.HostOperation => BulkImportConstants.HostOperationBulkModuleCode,
+            BulkImportMaster.HostModuleOperation => BulkImportConstants.HostModuleOperationBulkModuleCode,
             _ => throw new ValidationErrorException("Unsupported Host import target.")
         };
         var host = await HostRuntimePermissionValidator.ValidateAsync(
@@ -81,9 +92,9 @@ public sealed class HostBulkImportWorkflowService(
 
     private CommonDecodedResult Owner(BulkImportMaster master, string? tenantId, HostUserRequestContext host)
     {
-        if (master == BulkImportMaster.DeviceMaster && !string.IsNullOrWhiteSpace(tenantId))
+        if (master != BulkImportMaster.TenantCard && !string.IsNullOrWhiteSpace(tenantId))
         {
-            throw new ValidationErrorException("Device catalogue import does not accept a TenantId.");
+            throw new ValidationErrorException("This Host catalogue import does not accept a TenantId.");
         }
         // Shared queue stores an actor ID. Host-only master values partition the actor domain;
         // worker authorization uses Host permission lookup, never TenantEmployee permissions.

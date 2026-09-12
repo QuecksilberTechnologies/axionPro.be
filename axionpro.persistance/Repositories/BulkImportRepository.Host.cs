@@ -20,7 +20,9 @@ public sealed partial class BulkImportRepository
         BulkImportMaster master, BulkImportTableDTO table, string? mappingJson,
         long tenantId, HostUserRequestContext host, CancellationToken ct)
     {
-        if (master is not (BulkImportMaster.DeviceMaster or BulkImportMaster.TenantCard))
+        if (master is not (BulkImportMaster.DeviceMaster or BulkImportMaster.TenantCard or
+            BulkImportMaster.HostModule or BulkImportMaster.HostSubModule or
+            BulkImportMaster.HostOperation or BulkImportMaster.HostModuleOperation))
         {
             throw new ValidationErrorException("Unsupported Host import target.");
         }
@@ -28,16 +30,29 @@ public sealed partial class BulkImportRepository
         {
             await EnsureCardTenantAsync(tenantId, ct);
         }
-        var columns = master == BulkImportMaster.DeviceMaster
-            ? HostBulkImportTableMapper.DeviceColumns : HostBulkImportTableMapper.CardColumns;
+        var columns = master switch
+        {
+            BulkImportMaster.DeviceMaster => HostBulkImportTableMapper.DeviceColumns,
+            BulkImportMaster.TenantCard => HostBulkImportTableMapper.CardColumns,
+            BulkImportMaster.HostModule => HostBulkImportTableMapper.ModuleColumns,
+            BulkImportMaster.HostSubModule => HostBulkImportTableMapper.SubModuleColumns,
+            BulkImportMaster.HostOperation => HostBulkImportTableMapper.OperationColumns,
+            _ => HostBulkImportTableMapper.ModuleOperationColumns
+        };
         var mapping = HostBulkImportTableMapper.ResolveColumns(table.Columns, columns, mappingJson);
         var result = new BulkImportPreviewResponseDTO
         {
             Master = master, SourceColumns = table.Columns, ColumnMapping = mapping
         };
-        var required = master == BulkImportMaster.DeviceMaster
-            ? new[] { "SNo", "DeviceCode", "DeviceName", "CompanyName", "ModelNo", "DeviceType" }
-            : new[] { "CardNumber" };
+        var required = master switch
+        {
+            BulkImportMaster.DeviceMaster => new[] { "SNo", "DeviceCode", "DeviceName", "CompanyName", "ModelNo", "DeviceType" },
+            BulkImportMaster.TenantCard => new[] { "CardNumber" },
+            BulkImportMaster.HostModule => new[] { "ModuleCode", "ModuleName", "PageName", "ModuleScope" },
+            BulkImportMaster.HostSubModule => new[] { "ParentModuleCode", "ModuleCode", "ModuleName", "PageName", "ModuleScope" },
+            BulkImportMaster.HostOperation => new[] { "OperationName", "OperationType" },
+            _ => new[] { "ModuleCode", "OperationType" }
+        };
         foreach (var name in required.Where(name => !mapping.ContainsKey(name)))
         {
             result.Errors.Add($"Map the required {name} column.");
@@ -67,7 +82,7 @@ public sealed partial class BulkImportRepository
                     }
                     row.HostRecordId = await ExistingDeviceAsync(dto, ct);
                 }
-                else
+                else if (master == BulkImportMaster.TenantCard)
                 {
                     var dto = HostBulkImportTableMapper.ReadRow<CreateTenantCardMasterRequestDTO>(table, source, mapping);
                     TenantCardMasterHandlerBase.ValidateImport(dto, true);
@@ -81,6 +96,10 @@ public sealed partial class BulkImportRepository
                     row.CardCiphertext = (encryption ?? throw new InvalidOperationException("Card encryption service is unavailable."))
                         .Encrypt(number, host.TenantEncryptionKey);
                     row.HostRecordId = await ExistingCardAsync(tenantId, row.CardLookupHash, ct);
+                }
+                else
+                {
+                    row.HostRecordId = await PreviewHostCatalogueRowAsync(master, table, source, mapping, seen, ct);
                 }
                 if (row.HostRecordId.HasValue)
                 {
@@ -102,6 +121,72 @@ public sealed partial class BulkImportRepository
             }
         }
         return result;
+    }
+
+    private async Task<long?> PreviewHostCatalogueRowAsync(BulkImportMaster master, BulkImportTableDTO table,
+        BulkImportSourceRowDTO source, IReadOnlyDictionary<string, string> mapping, HashSet<string> seen, CancellationToken ct)
+    {
+        if (master is BulkImportMaster.HostModule or BulkImportMaster.HostSubModule)
+        {
+            var dto = master == BulkImportMaster.HostModule
+                ? HostBulkImportTableMapper.ReadRow<HostModuleImportRowDTO>(table, source, mapping)
+                : HostBulkImportTableMapper.ReadRow<HostSubModuleImportRowDTO>(table, source, mapping);
+            if (string.IsNullOrWhiteSpace(dto.ModuleCode) || string.IsNullOrWhiteSpace(dto.ModuleName) ||
+                string.IsNullOrWhiteSpace(dto.PageName) || dto.ModuleScope is not (1 or 2))
+            {
+                throw new ValidationErrorException("ModuleCode, ModuleName, PageName and a supported ModuleScope are required.");
+            }
+            if (!seen.Add("module:" + dto.ModuleCode.Trim()))
+            {
+                throw new ValidationErrorException("Duplicate ModuleCode in this upload.");
+            }
+            if (master == BulkImportMaster.HostSubModule)
+            {
+                var child = (HostSubModuleImportRowDTO)dto;
+                if (string.IsNullOrWhiteSpace(child.ParentModuleCode) || !await context.Modules.AsNoTracking()
+                    .AnyAsync(x => x.ModuleCode == child.ParentModuleCode.Trim() && x.IsActive &&
+                        x.ModuleScope == child.ModuleScope, ct))
+                {
+                    throw new ValidationErrorException("Active parent ModuleCode in the same scope was not found.");
+                }
+            }
+            return await context.Modules.AsNoTracking().Where(x => x.ModuleCode == dto.ModuleCode.Trim() &&
+                x.ModuleScope == dto.ModuleScope).Select(x => (long?)x.Id).FirstOrDefaultAsync(ct);
+        }
+        if (master == BulkImportMaster.HostOperation)
+        {
+            var dto = HostBulkImportTableMapper.ReadRow<HostOperationImportRowDTO>(table, source, mapping);
+            if (string.IsNullOrWhiteSpace(dto.OperationName) || dto.OperationType <= 0)
+            {
+                throw new ValidationErrorException("OperationName and a positive OperationType are required.");
+            }
+            if (!seen.Add("operation:" + dto.OperationType))
+            {
+                throw new ValidationErrorException("Duplicate OperationType in this upload.");
+            }
+            var existing = await context.Operations.AsNoTracking().FirstOrDefaultAsync(x => x.OperationType == dto.OperationType, ct);
+            if (existing != null && !string.Equals(existing.OperationName, dto.OperationName.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ValidationErrorException("OperationType already exists with a different immutable OperationName.");
+            }
+            return existing?.Id;
+        }
+        var map = HostBulkImportTableMapper.ReadRow<HostModuleOperationImportRowDTO>(table, source, mapping);
+        if (string.IsNullOrWhiteSpace(map.ModuleCode) || map.OperationType <= 0 ||
+            !seen.Add($"mapping:{map.ModuleCode.Trim()}:{map.OperationType}"))
+        {
+            throw new ValidationErrorException("Unique ModuleCode and positive OperationType are required.");
+        }
+        var moduleId = await context.Modules.AsNoTracking().Where(x => x.ModuleCode == map.ModuleCode.Trim() && x.IsActive)
+            .Select(x => (int?)x.Id).SingleOrDefaultAsync(ct);
+        var operationId = await context.Operations.AsNoTracking().Where(x => x.OperationType == map.OperationType && x.IsActive)
+            .OrderBy(x => x.Id).Select(x => (int?)x.Id).FirstOrDefaultAsync(ct);
+        if (!moduleId.HasValue || !operationId.HasValue)
+        {
+            throw new ValidationErrorException("Active ModuleCode or OperationType dependency was not found.");
+        }
+        return await context.ModuleOperationMappings.AsNoTracking().Where(x => x.ModuleId == moduleId && x.OperationId == operationId)
+            .Select(x => (long?)x.Id).FirstOrDefaultAsync(ct);
     }
 
     private void ValidateLengths<TEntity>(object dto)
@@ -187,7 +272,7 @@ public sealed partial class BulkImportRepository
                         row.Status = BulkImportRowStatus.Existing;
                     }
                 }
-                else
+                else if (job.Master == (int)BulkImportMaster.TenantCard)
                 {
                     await EnsureCardTenantAsync(job.TenantId, ct);
                     var dto = HostBulkImportTableMapper.ReadRow<CreateTenantCardMasterRequestDTO>(table, source, mapping);
@@ -217,6 +302,10 @@ public sealed partial class BulkImportRepository
                         row.Status = BulkImportRowStatus.Existing;
                     }
                 }
+                else
+                {
+                    await ProcessHostCatalogueRowAsync(job, table, source, mapping, row, ct);
+                }
                 row.Errors.Clear();
                 await transaction.ReleaseSavepointAsync("host_bulk_row", ct);
             }
@@ -237,6 +326,75 @@ public sealed partial class BulkImportRepository
             : (int)(preview.Rows.Any(row => row.Status == BulkImportRowStatus.Failed)
                 ? BulkImportJobStatus.CompletedWithErrors : BulkImportJobStatus.Completed);
         await SaveProgress(job, preview, ct);
+    }
+
+    private async Task ProcessHostCatalogueRowAsync(BulkImportJob job, BulkImportTableDTO table,
+        BulkImportSourceRowDTO source, IReadOnlyDictionary<string, string> mapping,
+        BulkImportPreviewRowDTO row, CancellationToken ct)
+    {
+        var master = (BulkImportMaster)job.Master;
+        row.HostRecordId = await PreviewHostCatalogueRowAsync(master, table, source, mapping,
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase), ct);
+        if (row.HostRecordId.HasValue)
+        {
+            row.Status = BulkImportRowStatus.Existing;
+            return;
+        }
+        if (master is BulkImportMaster.HostModule or BulkImportMaster.HostSubModule)
+        {
+            var dto = master == BulkImportMaster.HostModule
+                ? HostBulkImportTableMapper.ReadRow<HostModuleImportRowDTO>(table, source, mapping)
+                : HostBulkImportTableMapper.ReadRow<HostSubModuleImportRowDTO>(table, source, mapping);
+            var entity = new Module
+            {
+                ModuleCode = dto.ModuleCode.Trim(), ModuleName = dto.ModuleName.Trim(), PageName = dto.PageName.Trim(),
+                DisplayName = dto.DisplayName, Urlpath = dto.URLPath, IsLeafNode = master == BulkImportMaster.HostSubModule,
+                IsModuleDisplayInUI = dto.IsModuleDisplayInUI, IsCommonMenu = dto.IsCommonMenu,
+                ModuleScope = dto.ModuleScope, IsActive = dto.IsActive, ImageIconWeb = dto.ImageIconWeb,
+                ImageIconMobile = dto.ImageIconMobile, ItemPriority = dto.ItemPriority, Remark = dto.Remark,
+                AddedById = job.ActorId, AddedDateTime = DateTime.UtcNow
+            };
+            if (master == BulkImportMaster.HostSubModule)
+            {
+                var child = (HostSubModuleImportRowDTO)dto;
+                entity.ParentModuleId = await context.Modules.Where(x => x.ModuleCode == child.ParentModuleCode.Trim() &&
+                    x.ModuleScope == child.ModuleScope && x.IsActive).Select(x => x.Id).SingleAsync(ct);
+            }
+            context.Modules.Add(entity);
+            await context.SaveChangesAsync(ct);
+            row.HostRecordId = entity.Id;
+        }
+        else if (master == BulkImportMaster.HostOperation)
+        {
+            var dto = HostBulkImportTableMapper.ReadRow<HostOperationImportRowDTO>(table, source, mapping);
+            var entity = new Operation
+            {
+                OperationName = dto.OperationName.Trim(), OperationType = dto.OperationType, Remark = dto.Remark,
+                IsActive = dto.IsActive, IconImage = dto.IconImage, AddedById = job.ActorId, AddedDateTime = DateTime.UtcNow
+            };
+            context.Operations.Add(entity);
+            await context.SaveChangesAsync(ct);
+            row.HostRecordId = entity.Id;
+        }
+        else
+        {
+            var dto = HostBulkImportTableMapper.ReadRow<HostModuleOperationImportRowDTO>(table, source, mapping);
+            var entity = new ModuleOperationMapping
+            {
+                ModuleId = await context.Modules.Where(x => x.ModuleCode == dto.ModuleCode.Trim() && x.IsActive)
+                    .Select(x => x.Id).SingleAsync(ct),
+                OperationId = await context.Operations.Where(x => x.OperationType == dto.OperationType && x.IsActive)
+                    .OrderBy(x => x.Id).Select(x => x.Id).FirstAsync(ct),
+                DataViewStructureId = dto.DataViewStructureId, PageTypeId = dto.PageTypeId, PageUrl = dto.PageURL,
+                IconUrl = dto.IconURL, IsCommonItem = dto.IsCommonItem, IsOperational = dto.IsOperational,
+                Priority = dto.Priority, Remark = dto.Remark, IsActive = dto.IsActive,
+                AddedById = job.ActorId, AddedDateTime = DateTime.UtcNow
+            };
+            context.ModuleOperationMappings.Add(entity);
+            await context.SaveChangesAsync(ct);
+            row.HostRecordId = entity.Id;
+        }
+        row.Status = BulkImportRowStatus.Created;
     }
 
     #endregion

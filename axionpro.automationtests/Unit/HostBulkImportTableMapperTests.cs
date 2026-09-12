@@ -3,6 +3,9 @@ using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Host;
 using axionpro.application.Exceptions;
 using NUnit.Framework;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using axionpro.api.Controllers.HostDevice;
 
 namespace axionpro.automationtests.Unit;
 
@@ -78,5 +81,63 @@ public sealed class HostBulkImportTableMapperTests
     {
         Assert.Throws<ValidationErrorException>(() => HostBulkImportTableMapper.ResolveColumns(
             new[] { "CardNumber", "cardnumber" }, HostBulkImportTableMapper.CardColumns, null));
+    }
+
+    [Test]
+    public void Catalogue_contracts_use_stable_codes_and_exclude_database_identity_fields()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(HostBulkImportTableMapper.ModuleColumns, Does.Contain("ModuleCode").And.Contain("PageName"));
+            Assert.That(HostBulkImportTableMapper.SubModuleColumns, Does.Contain("ParentModuleCode"));
+            Assert.That(HostBulkImportTableMapper.OperationColumns, Does.Contain("OperationType").And.Contain("OperationName"));
+            Assert.That(HostBulkImportTableMapper.ModuleOperationColumns,
+                Does.Contain("ModuleCode").And.Contain("OperationType"));
+            Assert.That(HostBulkImportTableMapper.ModuleOperationColumns, Does.Not.Contain("ModuleId").And.Not.Contain("OperationId"));
+        });
+    }
+
+    [Test]
+    public void Catalogue_rows_parse_typed_values_without_numeric_database_references()
+    {
+        var table = new BulkImportTableDTO
+        {
+            Columns = ["ParentModuleCode", "ModuleCode", "ModuleName", "PageName", "ModuleScope", "IsActive"],
+            Rows = [new() { RowNumber = 2, Values = ["HOST_MODULES", "QA_CHILD", "QA Child", "qa-child", "2", "true"] }]
+        };
+        var mapping = HostBulkImportTableMapper.ResolveColumns(table.Columns,
+            HostBulkImportTableMapper.SubModuleColumns, null);
+        var dto = HostBulkImportTableMapper.ReadRow<HostSubModuleImportRowDTO>(table, table.Rows[0], mapping);
+        Assert.Multiple(() =>
+        {
+            Assert.That(dto.ParentModuleCode, Is.EqualTo("HOST_MODULES"));
+            Assert.That(dto.ModuleScope, Is.EqualTo(2));
+            Assert.That(dto.IsActive, Is.True);
+        });
+    }
+
+    [TestCase("ModuleId")]
+    [TestCase("OperationId")]
+    [TestCase("ParentModuleId")]
+    public void Catalogue_spreadsheets_cannot_supply_database_ids(string field)
+    {
+        Assert.Throws<ValidationErrorException>(() => HostBulkImportTableMapper.ResolveColumns(
+            new[] { field }, HostBulkImportTableMapper.ModuleOperationColumns, null));
+    }
+
+    [TestCase(typeof(HostModuleBulkImportController), "api/Module/import")]
+    [TestCase(typeof(HostSubModuleBulkImportController), "api/SubModule/import")]
+    [TestCase(typeof(HostOperationBulkImportController), "api/Operation/import")]
+    [TestCase(typeof(HostModuleOperationBulkImportController), "api/ModuleOperation/import")]
+    public void Catalogue_controllers_publish_the_shared_eight_endpoint_contract(Type controller, string route)
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(controller.GetCustomAttributes(typeof(RouteAttribute), true)
+                .Cast<RouteAttribute>().Single().Template, Is.EqualTo(route));
+            Assert.That(typeof(HostBulkImportController).GetMethods()
+                .Count(method => method.GetCustomAttributes(true).Any(attribute =>
+                    attribute is HttpMethodAttribute)), Is.EqualTo(8));
+        });
     }
 }

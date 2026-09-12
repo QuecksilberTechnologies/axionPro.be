@@ -527,3 +527,16 @@ dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restor
 ```
 
 Validation: 18/18 PASS initially (14 V2 unit, 2 V2 PostgreSQL, 2 existing legacy PostgreSQL regression cases), followed by 2/2 additional Host/Tenant loopback HTTP interoperability cases. Total 20 distinct PASS, no skipped cases. Old → V2 → old replacement-token compatibility and HTTP 400/401 verified. Deployment/UI acceptance remains pending; see the V2 reference for evidence and limits.
+## Host catalogue bulk imports (2026-09-13)
+
+Apply `AddHostBulkImport.sql` and `SeedHostBulkImportModules.sql` to the isolated
+`axionpro_bulk_test` fixture, then run:
+
+```powershell
+$env:AXIONPRO_BULK_TEST_CONNECTION='Host=127.0.0.1;Port=55439;Database=axionpro_bulk_test;Username=postgres'
+dotnet test --filter "FullyQualifiedName~HostBulkImportTableMapperTests|FullyQualifiedName~HostBulkImportPermissionTests|FullyQualifiedName~HostBulkImportDatabaseTests"
+```
+
+The catalogue database case validates Module → Child Module → Operation → Mapping
+creation and replay-as-existing. Contract tests verify all four controllers expose
+the shared eight-route lifecycle.

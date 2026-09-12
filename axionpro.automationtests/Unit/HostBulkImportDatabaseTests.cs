@@ -82,7 +82,11 @@ public sealed class HostBulkImportDatabaseTests
         _operation = await _db.Operations.Where(x => x.IsActive && x.OperationType == 12).Select(x => x.Id).FirstAsync();
         _modules = new();
         foreach (var pair in new[] { (BulkImportMaster.DeviceMaster, BulkImportConstants.HostDeviceBulkModuleCode),
-            (BulkImportMaster.TenantCard, BulkImportConstants.HostCardBulkModuleCode) })
+            (BulkImportMaster.TenantCard, BulkImportConstants.HostCardBulkModuleCode),
+            (BulkImportMaster.HostModule, BulkImportConstants.HostModuleBulkModuleCode),
+            (BulkImportMaster.HostSubModule, BulkImportConstants.HostSubModuleBulkModuleCode),
+            (BulkImportMaster.HostOperation, BulkImportConstants.HostOperationBulkModuleCode),
+            (BulkImportMaster.HostModuleOperation, BulkImportConstants.HostModuleOperationBulkModuleCode) })
         {
             var module = await _db.Modules.SingleAsync(x => x.ModuleCode == pair.Item2);
             _modules[pair.Item1] = module.Id;
@@ -108,7 +112,15 @@ public sealed class HostBulkImportDatabaseTests
         await _db.Set<BulkImportJob>().Where(x => _jobs.Contains(x.Id)).ExecuteDeleteAsync();
         await _db.DeviceMasters.Where(x => x.DeviceCode.StartsWith(_prefix)).ExecuteDeleteAsync();
         await _db.TenantCardMasters.Where(x => x.CardReference != null && x.CardReference.StartsWith(_prefix)).ExecuteDeleteAsync();
+        var testModules = await _db.Modules.Where(x => x.ModuleCode != null && x.ModuleCode.StartsWith(_prefix))
+            .Select(x => x.Id).ToListAsync();
+        var testOperations = await _db.Operations.Where(x => x.OperationName.StartsWith(_prefix))
+            .Select(x => x.Id).ToListAsync();
+        await _db.ModuleOperationMappings.Where(x => testModules.Contains(x.ModuleId) || testOperations.Contains(x.OperationId))
+            .ExecuteDeleteAsync();
         await _db.Set<HostRoleModuleAndPermission>().Where(x => _grants.Contains(x.Id)).ExecuteDeleteAsync();
+        await _db.Modules.Where(x => testModules.Contains(x.Id)).ExecuteDeleteAsync();
+        await _db.Operations.Where(x => testOperations.Contains(x.Id)).ExecuteDeleteAsync();
         await _db.DisposeAsync();
         _db = null!;
         _jobs.Clear();
@@ -273,6 +285,53 @@ public sealed class HostBulkImportDatabaseTests
             DeviceInput().Replace("Test device", new string('d', 1001)));
         Assert.That(device.InvalidCount, Is.EqualTo(1));
         Assert.That(device.CanCommit, Is.False);
+    }
+
+    [Test]
+    public async Task Catalogue_imports_create_parent_child_operation_and_mapping_then_skip_replay()
+    {
+        var operationType = 800000 + Math.Abs(_prefix.GetHashCode() % 100000);
+        var parent = await Complete(BulkImportMaster.HostModule,
+            $"ModuleCode,ModuleName,PageName,ModuleScope,IsActive\n{_prefix},{_prefix},{_prefix.ToLowerInvariant()},2,true");
+        var childCode = _prefix + "-child";
+        var child = await Complete(BulkImportMaster.HostSubModule,
+            $"ParentModuleCode,ModuleCode,ModuleName,PageName,ModuleScope,IsActive\n{_prefix},{childCode},{childCode},{childCode.ToLowerInvariant()},2,true");
+        var operation = await Complete(BulkImportMaster.HostOperation,
+            $"OperationName,OperationType,IsActive\n{_prefix},{operationType},true");
+        var mapping = await Complete(BulkImportMaster.HostModuleOperation,
+            $"ModuleCode,OperationType,IsOperational,IsActive\n{childCode},{operationType},true,true");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(parent.CreatedCount, Is.EqualTo(1));
+            Assert.That(child.CreatedCount, Is.EqualTo(1));
+            Assert.That(operation.CreatedCount, Is.EqualTo(1));
+            Assert.That(mapping.CreatedCount, Is.EqualTo(1));
+        });
+        var parentEntity = await _db.Modules.SingleAsync(x => x.ModuleCode == _prefix);
+        var childEntity = await _db.Modules.SingleAsync(x => x.ModuleCode == childCode);
+        var operationEntity = await _db.Operations.SingleAsync(x => x.OperationType == operationType);
+        Assert.Multiple(() =>
+        {
+            Assert.That(parentEntity.ParentModuleId, Is.Null);
+            Assert.That(parentEntity.PageName, Is.EqualTo(_prefix.ToLowerInvariant()));
+            Assert.That(childEntity.ParentModuleId, Is.EqualTo(parentEntity.Id));
+            Assert.That(operationEntity.OperationName, Is.EqualTo(_prefix));
+            Assert.That(_db.ModuleOperationMappings.Any(x => x.ModuleId == childEntity.Id &&
+                x.OperationId == operationEntity.Id), Is.True);
+        });
+        var replay = await Draft(BulkImportMaster.HostOperation,
+            $"OperationName,OperationType,IsActive\n{_prefix},{operationType},true");
+        Assert.That(replay.ExistingCount, Is.EqualTo(1));
+    }
+
+    private async Task<BulkImportJobResponseDTO> Complete(BulkImportMaster master, string input)
+    {
+        var preview = await Draft(master, input);
+        Assert.That(preview.CanCommit, Is.True, string.Join("; ", preview.Errors.Concat(preview.Rows.SelectMany(x => x.Errors))));
+        await Act(preview, BulkImportAction.Confirm);
+        await _repo.ProcessNextBatchAsync(default);
+        return await Act(preview, BulkImportAction.Get);
     }
 
     private string DeviceInput()

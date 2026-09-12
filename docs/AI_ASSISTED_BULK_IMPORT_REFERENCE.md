@@ -7,6 +7,21 @@ endpoint documentation, existing permission pipelines, constants, enums and mapp
 Ask before implementing unclear business rules. COMPLETE below means the stated
 backend scope, not all future bulk modules or production deployment.
 
+> **Mandatory test-before-handoff rule — user-confirmed 2026-09-13:** never hand
+> over a bulk SQL file, migration, seed, API change or release as ready/complete
+> based only on code review or compilation. Run the relevant automated tests and,
+> for SQL, execute it against the isolated PostgreSQL fixture on both first run and
+> rerun to prove FK ordering and idempotency. Record exact pass/fail/skip counts.
+> A skipped, unavailable, manually inspected or unexecuted test is NOT a pass.
+> If the required environment is unavailable, label the work UNTESTED/BLOCKED and
+> do not tell the user it is production-ready.
+
+> **Current SQL regression — 2026-09-13:** a module/operation seed failed with
+> PostgreSQL 23503 while deleting Module Id 80 because child Module rows still
+> referenced it through `FK_Module_ParentModule`. That script is NOT accepted or
+> production-ready until child hierarchy/mappings are handled in FK-safe order and
+> clean-fixture first-run plus rerun both pass.
+
 > **Immutable PageName decision — user-confirmed 2026-09-13:** while changing
 > Module, child-module, Operation or ModuleOperationMapping seed data, never change
 > an existing Module `PageName`. Operations, mappings, hierarchy, display metadata
@@ -1660,6 +1675,41 @@ The earlier mapper-only status above is superseded by this section.
 - COMPLETE: backend solution build passed with zero errors; focused Employee profile suite passed 16/16.
 - BLOCKED (environment): Angular dependencies are absent and global npm is broken; Angular compilation is not recorded as passed.
 - PENDING: EmployeeBulk assignment writers for Work Locations, Devices, Work Arrangement, Work Pattern, and Overrides require explicit import row contracts and DB acceptance tests.
+
+### Host catalogue bulk imports — COMPLETE locally (2026-09-13)
+
+- Added four scope-2 bulk children: `HOST_MODULE_CATALOGUE_BULK` under
+  `HOST_MODULES`, `HOST_SUBMODULE_CATALOGUE_BULK` under `HOST_SUBMODULES`,
+  `HOST_OPERATION_CATALOGUE_BULK` under `HOST_OPERATIONS`, and
+  `HOST_MODULE_OPERATION_CATALOGUE_BULK` under `HOST_MODULE_OPERATIONS`.
+- Each child reuses canonical View=4, Export=11 and Import=12 operations. The seed
+  creates no aliases or subscription-plan mappings and preserves stored
+  `Module.PageName` and `Operation.OperationName` on reruns.
+- Added eight durable routes beneath each base: `/api/Module/import`,
+  `/api/SubModule/import`, `/api/Operation/import`, and
+  `/api/ModuleOperation/import`. Suffixes are `preview`, `confirm`, `job`, `jobs`,
+  `retry`, `cancel`, `template`, and `report`.
+- Parent/child identity uses `ModuleCode`; a child also uses `ParentModuleCode`.
+  Operation identity uses `OperationType`; mapping identity uses
+  `ModuleCode + OperationType`. Database identity, tenant, permission and audit
+  columns are rejected. Existing records are skipped without overwrite. A reused
+  OperationType with a different immutable OperationName is invalid. Missing
+  mapping dependencies are invalid and never auto-created.
+- `AddHostBulkImport.sql` permits durable master values 1–11. Both targeted and
+  consolidated seeds contain the four definitions and mappings.
+- Validation: 35 mapper/permission/controller tests and one focused PostgreSQL
+  catalogue lifecycle test passed, all with zero failures/skips. The pre-final
+  affected Host regression run also passed 42/42; already-passed cases were not
+  repeated after documentation-only changes.
+  Isolated PostgreSQL created Module → Child → Operation → Mapping, then replayed
+  as Existing. Seed ran twice and retained correct parent/scope/page identity and
+  exactly three operation types per child. Evidence: `artifacts/host-catalogue-bulk-*`.
+- Local implementation is COMPLETE. Production migration/seed, Host grants and
+  deployed authenticated smoke testing are pending release activities.
+- UI/API handoff with inputs and call order: `docs/bulk-upload/HOST_CATALOGUE_IMPORT.md`.
+  The targeted Host seed passed twice. A full consolidated-seed test was blocked
+  earlier by its existing mandatory TenantEmailConfig prerequisite, before the
+  embedded Host section; it is not recorded as a full consolidated-seed pass.
 
 - New Employee profile characterization/permission tests passed 14/14 with zero skips.
 - Related Work/Device and EmployeeBulk unit regressions passed 181/181 with zero skips.

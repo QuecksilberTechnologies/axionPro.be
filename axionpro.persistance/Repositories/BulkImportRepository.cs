@@ -240,7 +240,7 @@ public sealed partial class BulkImportRepository(
             await transaction.CommitAsync(cancellationToken);
             return true;
         }
-        if (job.Master is (int)BulkImportMaster.DeviceMaster or (int)BulkImportMaster.TenantCard)
+        if (job.Master is >= (int)BulkImportMaster.DeviceMaster and <= (int)BulkImportMaster.HostModuleOperation)
         {
             await ProcessHostBatchAsync(job, preview, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -362,6 +362,10 @@ public sealed partial class BulkImportRepository(
             BulkImportMaster.Employee => BulkImportConstants.EmployeeModuleCode,
             BulkImportMaster.DeviceMaster => BulkImportConstants.HostDeviceBulkModuleCode,
             BulkImportMaster.TenantCard => BulkImportConstants.HostCardBulkModuleCode,
+            BulkImportMaster.HostModule => BulkImportConstants.HostModuleBulkModuleCode,
+            BulkImportMaster.HostSubModule => BulkImportConstants.HostSubModuleBulkModuleCode,
+            BulkImportMaster.HostOperation => BulkImportConstants.HostOperationBulkModuleCode,
+            BulkImportMaster.HostModuleOperation => BulkImportConstants.HostModuleOperationBulkModuleCode,
             _ => "TENANT_ROLES_PERMISSIONS"
         };
         var operation = await context.Operations.AsNoTracking().SingleOrDefaultAsync(item => item.Id == job.OperationId, cancellationToken);
@@ -371,7 +375,7 @@ public sealed partial class BulkImportRepository(
             throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
         // Same persisted permission function and result validator as the existing MediatR pipelines.
-        if (job.Master is (int)BulkImportMaster.DeviceMaster or (int)BulkImportMaster.TenantCard)
+        if (job.Master is >= (int)BulkImportMaster.DeviceMaster and <= (int)BulkImportMaster.HostModuleOperation)
         {
             if (module.ModuleScope != 2 || !module.IsActive || operation.OperationType != (int)OperationType.Import)
             {

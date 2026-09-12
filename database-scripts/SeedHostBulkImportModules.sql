@@ -13,7 +13,11 @@ DECLARE
 BEGIN
     FOR definition IN SELECT * FROM (VALUES
         ('HOST_CARD_BULK','Card-Bulk','Card Bulk','/app/tenant-card-inventory/bulk','host-card-bulk','HOST_TENANT_RFID_MANAGEMENT',535),
-        ('HOST_DEVICE_BULK','Device-Bulk','Device Bulk','/app/device-masters/bulk','host-device-bulk','HOST_DEVICE_SETUP',515)
+        ('HOST_DEVICE_BULK','Device-Bulk','Device Bulk','/app/device-masters/bulk','host-device-bulk','HOST_DEVICE_SETUP',515),
+        ('HOST_MODULE_CATALOGUE_BULK','Module-Bulk','Module Bulk','/app/modules/bulk','host-module-bulk','HOST_MODULES',725),
+        ('HOST_SUBMODULE_CATALOGUE_BULK','ChildModule-Bulk','Child Module Bulk','/app/modules/submodules/bulk','host-submodule-bulk','HOST_SUBMODULES',735),
+        ('HOST_OPERATION_CATALOGUE_BULK','Operation-Bulk','Operation Bulk','/app/modules/operations/bulk','host-operation-bulk','HOST_OPERATIONS',745),
+        ('HOST_MODULE_OPERATION_CATALOGUE_BULK','OperationMapping-Bulk','Operation Mapping Bulk','/app/modules/module-operations/bulk','host-module-operation-bulk','HOST_MODULE_OPERATIONS',755)
     ) AS x(code,name,display_name,url,page_name,parent_code,priority)
     LOOP
         SELECT "Id" INTO STRICT parent_id FROM axionpro."Module"
@@ -33,14 +37,14 @@ BEGIN
         WHERE "Id"=child_id;
         -- Catalogue remains navigable with a child; preserve existing names, URL and page identity.
         UPDATE axionpro."Module" SET "IsLeafNode"=FALSE WHERE "Id"=parent_id;
-        FOREACH operation_type IN ARRAY ARRAY[4,12]
+        FOREACH operation_type IN ARRAY ARRAY[4,11,12]
         LOOP
             SELECT "Id" INTO operation_id FROM axionpro."Operation"
             WHERE "OperationType"=operation_type ORDER BY "IsActive" DESC,"Id" LIMIT 1;
             IF operation_id IS NULL THEN
                 INSERT INTO axionpro."Operation"
                     ("OperationName","OperationType","Remark","IsActive","IconImage","AddedById","AddedDateTime")
-                VALUES (CASE operation_type WHEN 4 THEN 'View' ELSE 'Import' END,operation_type,
+                VALUES (CASE operation_type WHEN 4 THEN 'View' WHEN 11 THEN 'Export' ELSE 'Import' END,operation_type,
                     'Read or execute bulk imports.',TRUE,'upload',1,CURRENT_TIMESTAMP)
                 RETURNING "Id" INTO operation_id;
             END IF;
@@ -63,5 +67,6 @@ SELECT m."Id",m."ModuleCode",m."ModuleScope",m."ParentModuleId",m."PageName",o."
 FROM axionpro."Module" m
 JOIN axionpro."ModuleOperationMapping" mm ON mm."ModuleId"=m."Id" AND mm."IsActive"
 JOIN axionpro."Operation" o ON o."Id"=mm."OperationId" AND o."IsActive"
-WHERE m."ModuleCode" IN ('HOST_CARD_BULK','HOST_DEVICE_BULK')
+WHERE m."ModuleCode" IN ('HOST_CARD_BULK','HOST_DEVICE_BULK','HOST_MODULE_CATALOGUE_BULK',
+    'HOST_SUBMODULE_CATALOGUE_BULK','HOST_OPERATION_CATALOGUE_BULK','HOST_MODULE_OPERATION_CATALOGUE_BULK')
 ORDER BY m."ModuleCode",o."OperationType";

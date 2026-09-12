@@ -5,6 +5,10 @@ public static class BulkImportConstants
 {
     public const string HostDeviceBulkModuleCode = "HOST_DEVICE_BULK";
     public const string HostCardBulkModuleCode = "HOST_CARD_BULK";
+    public const string HostModuleBulkModuleCode = "HOST_MODULE_CATALOGUE_BULK";
+    public const string HostSubModuleBulkModuleCode = "HOST_SUBMODULE_CATALOGUE_BULK";
+    public const string HostOperationBulkModuleCode = "HOST_OPERATION_CATALOGUE_BULK";
+    public const string HostModuleOperationBulkModuleCode = "HOST_MODULE_OPERATION_CATALOGUE_BULK";
     public const int MaxFileBytes = 5 * 1024 * 1024;
     public const int MaxExpandedBytes = 25 * 1024 * 1024;
     public const int MaxRows = 5000;

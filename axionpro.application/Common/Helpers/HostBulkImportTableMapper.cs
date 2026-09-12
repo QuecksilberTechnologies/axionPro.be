@@ -17,6 +17,11 @@ public static class HostBulkImportTableMapper
 
     public static IReadOnlyList<string> DeviceColumns => Columns(typeof(DeviceMasterRequestDTO));
     public static IReadOnlyList<string> CardColumns => Columns(typeof(TenantCardMasterRequestDTO));
+    public static IReadOnlyList<string> ModuleColumns => Columns(typeof(HostModuleImportRowDTO));
+    public static IReadOnlyList<string> SubModuleColumns => ModuleColumns.Concat(
+        Columns(typeof(HostSubModuleImportRowDTO))).ToArray();
+    public static IReadOnlyList<string> OperationColumns => Columns(typeof(HostOperationImportRowDTO));
+    public static IReadOnlyList<string> ModuleOperationColumns => Columns(typeof(HostModuleOperationImportRowDTO));
 
     private static IReadOnlyList<string> Columns(Type contract)
     {
@@ -38,7 +43,7 @@ public static class HostBulkImportTableMapper
         var protectedColumns = new[]
         {
             "TenantId", "ModuleId", "OperationId", "AddedById", "UpdatedById",
-            "HostUserId", "Id", "IsOccupied", "TenantDeviceId", "TenantLocationId"
+            "HostUserId", "Id", "ParentModuleId", "IsOccupied", "TenantDeviceId", "TenantLocationId"
         };
         if (sourceColumns.Any(column => protectedColumns.Contains(column, StringComparer.OrdinalIgnoreCase)))
         {
@@ -103,8 +108,8 @@ public static class HostBulkImportTableMapper
             ? typeof(DeviceMasterRequestDTO)
             : typeof(T) == typeof(CreateTenantCardMasterRequestDTO)
                 ? typeof(TenantCardMasterRequestDTO)
-                : throw new ArgumentException("Unsupported Host bulk contract.");
-        var allowed = contract.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                : typeof(T);
+        var allowed = contract.GetProperties(BindingFlags.Public | BindingFlags.Instance);
         var dto = new T();
         foreach (var entry in mapping)
         {
@@ -146,6 +151,7 @@ public static class HostBulkImportTableMapper
         if (type == typeof(string)) return value;
         if (type == typeof(bool)) return bool.Parse(value);
         if (type == typeof(int)) return int.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
+        if (type == typeof(short)) return short.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
         if (type == typeof(decimal)) return decimal.Parse(value, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture);
         if (type == typeof(DateOnly)) return DateOnly.ParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture);
         if (type.IsEnum)

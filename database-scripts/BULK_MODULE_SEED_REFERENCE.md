@@ -100,3 +100,18 @@ existing Host entitlement synchronization, existing tenant role-permission grant
 and finally durable bulk migrations. Verify by stable ModuleCode and authenticated
 `my-menu`; never assume numeric IDs. Before merging the 38 backup-only modules into
 the canonical seed, review their product scope—they are not all bulk modules.
+## Host catalogue bulk seed — 2026-09-13
+
+`SeedHostBulkImportModules.sql` and the embedded consolidated complete-seed block
+add these scope-2 children without `PlanModuleMapping` rows:
+
+| Child code | Parent code | PageName |
+| --- | --- | --- |
+| HOST_MODULE_CATALOGUE_BULK | HOST_MODULES | host-module-bulk |
+| HOST_SUBMODULE_CATALOGUE_BULK | HOST_SUBMODULES | host-submodule-bulk |
+| HOST_OPERATION_CATALOGUE_BULK | HOST_OPERATIONS | host-operation-bulk |
+| HOST_MODULE_OPERATION_CATALOGUE_BULK | HOST_MODULE_OPERATIONS | host-module-operation-bulk |
+
+Each child maps one canonical View (4), Export (11), and Import (12). Grant them
+through the existing Host role permission flow. The seed ran twice on the isolated
+`axionpro_bulk_test`; identities and counts remained stable.

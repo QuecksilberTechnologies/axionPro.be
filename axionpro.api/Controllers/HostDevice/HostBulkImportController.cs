@@ -24,6 +24,26 @@ public sealed class DeviceMasterBulkImportController(IMediator mediator)
 public sealed class TenantCardBulkImportController(IMediator mediator)
     : HostBulkImportController(mediator, BulkImportMaster.TenantCard);
 
+/// <summary>Host-only parent Module catalogue imports.</summary>
+[Authorize, ApiController, Route("api/Module/import")]
+public sealed class HostModuleBulkImportController(IMediator mediator)
+    : HostBulkImportController(mediator, BulkImportMaster.HostModule);
+
+/// <summary>Host-only direct child Module catalogue imports.</summary>
+[Authorize, ApiController, Route("api/SubModule/import")]
+public sealed class HostSubModuleBulkImportController(IMediator mediator)
+    : HostBulkImportController(mediator, BulkImportMaster.HostSubModule);
+
+/// <summary>Host-only Operation catalogue imports.</summary>
+[Authorize, ApiController, Route("api/Operation/import")]
+public sealed class HostOperationBulkImportController(IMediator mediator)
+    : HostBulkImportController(mediator, BulkImportMaster.HostOperation);
+
+/// <summary>Host-only Module-Operation mapping imports.</summary>
+[Authorize, ApiController, Route("api/ModuleOperation/import")]
+public sealed class HostModuleOperationBulkImportController(IMediator mediator)
+    : HostBulkImportController(mediator, BulkImportMaster.HostModuleOperation);
+
 /// <summary>Shared durable import protocol. Permission IDs come from the scope-2 bulk menu.</summary>
 public abstract class HostBulkImportController(IMediator mediator, BulkImportMaster master) : ControllerBase
 {

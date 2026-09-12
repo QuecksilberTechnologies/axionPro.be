@@ -9,7 +9,11 @@ public enum BulkImportMaster
     EmployeeType = 4,
     Employee = 5,
     DeviceMaster = 6,
-    TenantCard = 7
+    TenantCard = 7,
+    HostModule = 8,
+    HostSubModule = 9,
+    HostOperation = 10,
+    HostModuleOperation = 11
 }
 
 /// <summary>Preview outcomes only; Ready is not a persisted record.</summary>
