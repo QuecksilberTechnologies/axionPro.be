@@ -12,6 +12,16 @@ Preserve the existing permission pipeline, constants, regions and business behav
 Verified information must not remain employee-editable. Admin configuration must not
 be confused with employee self-service. Do not invent country laws or spouse limits.
 
+## Mandatory verification rule (user-confirmed 2026-09-13)
+
+Never deliver an Employee feature, SQL migration/seed or release as complete without
+executing its relevant automated tests. SQL must pass on the isolated PostgreSQL
+fixture on first execution and rerun. Report exact pass/fail/skip counts; skipped or
+unavailable execution is not a pass. Compilation alone is insufficient. If runtime
+or database access is unavailable, mark the item UNTESTED/BLOCKED rather than ready.
+The observed Module seed FK failure (`FK_Module_ParentModule`, Module Id 80) remains
+a failing regression until corrected and verified through actual database execution.
+
 ## Workspace
 
 - Backend: C:/AxionProCodeBase/QuecksilberTechnologies
