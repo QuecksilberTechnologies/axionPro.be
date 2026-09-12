@@ -5344,13 +5344,43 @@ BEGIN
     WHERE "ModuleCode"='BULKUPLOAD' AND "ModuleScope"=1;
 
     IF obsolete_bulk_parent_id IS NOT NULL THEN
+        -- Older releases placed Host bulk pages under BULKUPLOAD. Reparent every
+        -- known page before removing that obsolete parent so the self-FK remains valid.
+        UPDATE axionpro."Module" child
+        SET "ParentModuleId"=destination."Id","UpdatedById"=1,
+            "UpdatedDateTime"=CURRENT_TIMESTAMP
+        FROM (VALUES
+            ('HOST_CARD_BULK','HOST_TENANT_RFID_MANAGEMENT'),
+            ('HOST_DEVICE_BULK','HOST_DEVICE_SETUP'),
+            ('HOST_MODULE_CATALOGUE_BULK','HOST_MODULES'),
+            ('HOST_SUBMODULE_CATALOGUE_BULK','HOST_SUBMODULES'),
+            ('HOST_OPERATION_CATALOGUE_BULK','HOST_OPERATIONS'),
+            ('HOST_MODULE_OPERATION_CATALOGUE_BULK','HOST_MODULE_OPERATIONS')
+        ) AS move(child_code,parent_code)
+        JOIN axionpro."Module" destination
+          ON destination."ModuleCode"=move.parent_code
+         AND destination."ModuleScope"=2
+        WHERE child."ParentModuleId"=obsolete_bulk_parent_id
+          AND child."ModuleCode"=move.child_code;
+
         DELETE FROM axionpro."RoleModuleAndPermission" WHERE "ModuleId"=obsolete_bulk_parent_id;
         DELETE FROM axionpro."TenantEnabledOperation" WHERE "ModuleId"=obsolete_bulk_parent_id;
         DELETE FROM axionpro."TenantEnabledModule"
         WHERE "ModuleId"=obsolete_bulk_parent_id OR "ParentModuleId"=obsolete_bulk_parent_id;
         DELETE FROM axionpro."PlanModuleMapping" WHERE "ModuleId"=obsolete_bulk_parent_id;
         DELETE FROM axionpro."ModuleOperationMapping" WHERE "ModuleId"=obsolete_bulk_parent_id;
-        DELETE FROM axionpro."Module" WHERE "Id"=obsolete_bulk_parent_id;
+        -- Never violate FK_Module_ParentModule for an unrecognized legacy child.
+        -- Known children above are moved; an unknown child keeps a hidden inactive
+        -- compatibility parent for explicit review instead of aborting the seed.
+        IF NOT EXISTS (SELECT 1 FROM axionpro."Module"
+                       WHERE "ParentModuleId"=obsolete_bulk_parent_id) THEN
+            DELETE FROM axionpro."Module" WHERE "Id"=obsolete_bulk_parent_id;
+        ELSE
+            UPDATE axionpro."Module"
+            SET "IsActive"=FALSE,"IsModuleDisplayInUI"=FALSE,"IsLeafNode"=FALSE,
+                "UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP
+            WHERE "Id"=obsolete_bulk_parent_id;
+        END IF;
     END IF;
 END $bulk_menu_hierarchy$;
 

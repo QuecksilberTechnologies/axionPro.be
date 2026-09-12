@@ -115,3 +115,8 @@ add these scope-2 children without `PlanModuleMapping` rows:
 Each child maps one canonical View (4), Export (11), and Import (12). Grant them
 through the existing Host role permission flow. The seed ran twice on the isolated
 `axionpro_bulk_test`; identities and counts remained stable.
+
+The consolidated seed reparents known legacy Host bulk children before deleting
+the obsolete `BULKUPLOAD` root. This prevents `FK_Module_ParentModule` failures on
+databases seeded by an earlier hierarchy. If an unknown legacy child remains, the
+root is hidden/deactivated and retained for review instead of aborting the seed.

@@ -1710,6 +1710,14 @@ The earlier mapper-only status above is superseded by this section.
   The targeted Host seed passed twice. A full consolidated-seed test was blocked
   earlier by its existing mandatory TenantEmailConfig prerequisite, before the
   embedded Host section; it is not recorded as a full consolidated-seed pass.
+- Production-shaped legacy cleanup regression fixed on 2026-09-13: an existing
+  `BULKUPLOAD` parent with `HOST_CARD_BULK` still attached previously failed with
+  `FK_Module_ParentModule`. The complete seed now reparents all known Host bulk
+  children before deletion. The exact legacy state was reproduced on isolated
+  PostgreSQL; the block completed, removed the obsolete root and placed CardBulk
+  under `HOST_TENANT_RFID_MANAGEMENT`. Unknown legacy children retain a hidden,
+  inactive compatibility parent for explicit review instead of failing the seed.
+  Evidence: `artifacts/host-catalogue-bulk-fk-cleanup-*`.
 
 - New Employee profile characterization/permission tests passed 14/14 with zero skips.
 - Related Work/Device and EmployeeBulk unit regressions passed 181/181 with zero skips.
