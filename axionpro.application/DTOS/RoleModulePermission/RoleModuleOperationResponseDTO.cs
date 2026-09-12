@@ -20,10 +20,11 @@ namespace axionpro.application.DTOs.RoleModulePermission
         public string? ImageIconMobile { get; set; } // ✅ From Module
 
         public string? SubModuleName { get; set; }
-        public int ParentModuleId { get; set; }
+        /// <summary>Root modules have no parent; preserve SQL NULL rather than failing materialization.</summary>
+        public int? ParentModuleId { get; set; }
 
         public string? MainModuleName { get; set; }
-        public int MainModuleId { get; set; }
+        public int? MainModuleId { get; set; }
 
         public int OperationId { get; set; }
         public string? OperationName { get; set; }
@@ -36,14 +37,14 @@ namespace axionpro.application.DTOs.RoleModulePermission
 
     public class MainModuleDto
     {
-        public int MainModuleId { get; set; }
+        public int? MainModuleId { get; set; }
         public string? MainModuleName { get; set; }
         public List<SubModuleDto>? SubModules { get; set; }
     }
 
     public class SubModuleDto
     {
-        public int SubModuleId { get; set; }
+        public int? SubModuleId { get; set; }
         public string? SubModuleName { get; set; }
         public List<ModuleDto>? Modules { get; set; }
     }

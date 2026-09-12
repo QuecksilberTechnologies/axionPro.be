@@ -262,7 +262,9 @@ public class RoleRepository : IRoleRepository
         long tenantId,
         CancellationToken cancellationToken = default)
     {
-        return _context.Roles.FirstOrDefaultAsync(
+        return _context.Roles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
             role => role.Id == id &&
                     role.TenantId == tenantId &&
                     role.IsSoftDeleted != true,

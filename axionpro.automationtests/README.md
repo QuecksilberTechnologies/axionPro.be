@@ -496,3 +496,20 @@ before running. Tests use temporary Host grants and remove their own records.
 Evidence logs: artifacts/host-bulk-workflow-tests.log,
 artifacts/host-bulk-http-regression-tests.log, artifacts/host-bulk-final-edge-tests.log.
 Release/API examples: docs/bulk-upload/HOST_CARD_DEVICE_IMPORT.md.
+
+## Refresh and authentication status regression
+
+RefreshTokenDatabaseRegressionTests reproduces the actual Tenant refresh null
+ParentModuleId materialization failure and validates fixed Tenant/Host rotation,
+including invalid/reused token rejection. AuthenticationStatusRegressionTests
+checks 403 permission denial, 401 stale/invalid authentication, and 400 missing
+action IDs using the API error middleware. Eleven focused cases passed across
+the final runs, including three existing EmployeeMutationPermission tests.
+See docs/AUTH_REFRESH_TOKEN_FIX.md for evidence, fixture setup and deployment status.
+
+```powershell
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter 'Category=RefreshDatabase|Category=AuthenticationStatus|Category=EmployeeMutationPermission'
+```
+
+RefreshDatabase requires AXIONPRO_BULK_TEST_CONNECTION pointing to the isolated
+local axionpro_bulk_test; never point this fixture at production.

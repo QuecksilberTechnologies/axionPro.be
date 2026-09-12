@@ -230,11 +230,8 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
 
                 // 🔹 Address Basics
                 IsFilled(contact.HouseNo),
-                IsFilled(contact.ContactName),
-                IsFilled(contact.ContactNumber),
                   // 🔥 Business Rule
                 contact.IsPrimary == false?  0  : 1,
-                contact.ContactType > 0 ? 1 : 0,
 
                 // 🔹 Address Info
                 contact.CountryId > 0 ? 1 : 0,
@@ -267,9 +264,6 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
 
                 // 🔹 Address Basics
                 IsFilled(contact.HouseNo),
-                IsFilled(contact.ContactName),
-                IsFilled(contact.ContactNumber),
-                contact.ContactType > 0 ? 1 : 0,
 
                 // 🔹 Address Info
                 contact.CountryId > 0 ? 1 : 0,

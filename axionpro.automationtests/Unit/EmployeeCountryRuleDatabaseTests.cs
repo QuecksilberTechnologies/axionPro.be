@@ -33,6 +33,43 @@ public sealed class EmployeeCountryRuleDatabaseTests
     #region Country eligibility
 
     [Test]
+    public async Task Tenant_role_loaded_for_update_is_detached_and_persists_changed_name()
+    {
+        await using var context = CreateContext();
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        var employee = await context.Employees.FirstAsync(x => !x.IsSoftDeleted && x.TenantId != null);
+        var role = new Role
+        {
+            TenantId = employee.TenantId!.Value,
+            RoleName = "Role update test " + Guid.NewGuid().ToString("N"),
+            RoleType = 2,
+            IsActive = true,
+            IsSoftDeleted = false,
+            AddedById = employee.Id,
+            AddedDateTime = DateTime.UtcNow
+        };
+        context.Roles.Add(role);
+        await context.SaveChangesAsync();
+
+        var repository = new RoleRepository(context, NullLogger<RoleRepository>.Instance, null!, null!);
+        var loaded = await repository.GetByIdForTenantAsync(role.Id, role.TenantId!.Value);
+        Assert.That(loaded, Is.Not.Null);
+        Assert.That(context.Entry(loaded!).State, Is.EqualTo(EntityState.Detached));
+
+        loaded.RoleName += " changed";
+        loaded.UpdatedById = employee.Id;
+        loaded.UpdatedDateTime = DateTime.UtcNow;
+        Assert.That(await repository.UpdateAsync(loaded), Is.True);
+
+        var savedName = await context.Roles.AsNoTracking()
+            .Where(x => x.Id == role.Id)
+            .Select(x => x.RoleName)
+            .SingleAsync();
+        Assert.That(savedName, Does.EndWith(" changed"));
+        await transaction.RollbackAsync();
+    }
+
+    [Test]
     public async Task Verified_bank_cannot_be_reopened_and_foreign_tenant_bulk_update_is_rejected()
     {
         await using var context = CreateContext();

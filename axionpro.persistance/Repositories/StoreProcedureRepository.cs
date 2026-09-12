@@ -394,6 +394,13 @@ namespace axionpro.persistance.Repositories
                 int operationId,
                 CancellationToken cancellationToken = default)
         {
+            // Request action identifiers are not authentication credentials. Avoid the
+            // stored function's INVALID_ROLE_CONTEXT result (401) for malformed input.
+            if (moduleId <= 0 || operationId <= 0)
+            {
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    "ModuleId and OperationId must be positive.");
+            }
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
