@@ -3,6 +3,8 @@ namespace axionpro.application.Constants;
 /// <summary>Central parsing limits and column contracts for master import previews.</summary>
 public static class BulkImportConstants
 {
+    public const string HostDeviceBulkModuleCode = "HOST_DEVICE_BULK";
+    public const string HostCardBulkModuleCode = "HOST_CARD_BULK";
     public const int MaxFileBytes = 5 * 1024 * 1024;
     public const int MaxExpandedBytes = 25 * 1024 * 1024;
     public const int MaxRows = 5000;

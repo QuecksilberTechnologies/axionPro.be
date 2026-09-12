@@ -12,6 +12,7 @@ namespace axionpro.application
         {
             services.AddScoped<Common.Helpers.BulkImportPreviewService>();
             services.AddScoped<Common.Helpers.BulkImportWorkflowService>();
+            services.AddScoped<Common.Helpers.HostBulkImportWorkflowService>();
             // Registration the services
             //
             services.AddAutoMapper(Assembly.GetExecutingAssembly());

@@ -16,7 +16,7 @@ public static class BulkImportReport
         foreach (var row in job.Preview?.Rows ?? new())
         {
             csv.Append(row.RowNumber).Append(',').Append(row.Status).Append(',')
-                .Append(row.ExistingId).Append(',').Append(Cell(JsonSerializer.Serialize(row.Values)))
+                .Append(row.HostRecordId ?? row.ExistingId).Append(',').Append(Cell(JsonSerializer.Serialize(row.Values)))
                 .Append(',').Append(Cell(string.Join(" | ", row.Errors)));
             if (employee)
             {

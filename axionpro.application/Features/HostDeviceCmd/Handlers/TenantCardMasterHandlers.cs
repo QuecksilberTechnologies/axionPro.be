@@ -29,6 +29,23 @@ public abstract class TenantCardMasterHandlerBase(IUnitOfWork u, ICommonRequestS
     : TenantDeviceAccessHandlerBase(u, c, ids, l)
 {
     protected IEncryptionService Encryption { get; } = encryption;
+    /// <summary>Reuses the manual procurement validation for import preview and worker.</summary>
+    public static void ValidateImport(TenantCardMasterRequestDTO request, bool numberRequired)
+    {
+        Validate(request, numberRequired);
+    }
+
+    /// <summary>Uses the same inventory lookup identity as manual creation.</summary>
+    public static string ImportHash(string number, string key)
+    {
+        return Hash(number, key);
+    }
+
+    /// <summary>Applies the existing procurement calculation and field mapping.</summary>
+    public static void ApplyImport(TenantCardMaster entity, TenantCardMasterRequestDTO request)
+    {
+        Apply(entity, request);
+    }
     protected static string Hash(string number, string key) => Convert.ToHexString(HMACSHA256.HashData(Encoding.UTF8.GetBytes(key), Encoding.UTF8.GetBytes(number))).ToLowerInvariant();
     protected static void Validate(TenantCardMasterRequestDTO d, bool numberRequired)
     {

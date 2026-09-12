@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 namespace axionpro.application.DTOS.Common;
 
 /// <summary>One uploaded workbook/CSV or pasted table, with optional explicit column mapping.</summary>
-public sealed class BulkImportPreviewRequestDTO : PermissionRequestDTO
+public class BulkImportPreviewRequestDTO : PermissionRequestDTO
 {
     /// <summary>Optional client-generated identifier for retrying the same preview request safely.</summary>
     public Guid? RequestId { get; set; }
@@ -53,7 +53,7 @@ public sealed class BulkImportPreviewResponseDTO
 }
 
 /// <summary>Acts only on saved server-side rows; confirmation accepts no replacement data.</summary>
-public sealed class BulkImportJobRequestDTO : PermissionRequestDTO
+public class BulkImportJobRequestDTO : PermissionRequestDTO
 {
     /// <summary>Optional Employee invitation row selection. At most 100 per dispatch request.</summary>
     public List<int>? RowNumbers { get; set; }
@@ -83,6 +83,13 @@ public sealed class BulkImportJobResponseDTO
 
 public sealed class BulkImportPreviewRowDTO
 {
+    /// <summary>Persistence only; removed from public previews and reports.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? CardCiphertext { get; set; }
+    /// <summary>Persistence only; removed from public previews and reports.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? CardLookupHash { get; set; }
+    public long? HostRecordId { get; set; }
     public string? ProposedEmployeeCode { get; set; }
     public BulkImportInvitationStatus? InvitationStatus { get; set; }
     public string? InvitationError { get; set; }

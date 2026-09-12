@@ -30,3 +30,14 @@ The complete seed-data file is a reference/restore script, not an automatic repl
 - EmployeeType operations remain CRUD plus the required `Import` operation.
 - Bulk mappings are added for Employee, Department, Designation, Role/Permission, and EmployeeType.
 - Role grants and tenant enablement remain on the existing permission pipeline.
+
+## Host bulk validation — 2026-09-12
+
+AddHostBulkImport.sql and SeedHostBulkImportModules.sql were executed successfully
+twice against the isolated local PostgreSQL database axionpro_bulk_test on port
+55439. Both runs succeeded; two Host modules and four View/Import mappings remained.
+No target production database execution occurred in this session.
+Both consolidated seed references contain the same Host menu block. Existing
+production installations should use the two targeted scripts or the migration
+runner's -HostBulkOnly option. No tenant plan mappings or role grants are inserted
+by this scope-2 seed; the existing Host role permission flow owns grants.

@@ -7,7 +7,9 @@ public enum BulkImportMaster
     Designation = 2,
     Role = 3,
     EmployeeType = 4,
-    Employee = 5
+    Employee = 5,
+    DeviceMaster = 6,
+    TenantCard = 7
 }
 
 /// <summary>Preview outcomes only; Ready is not a persisted record.</summary>

@@ -6,6 +6,9 @@ namespace axionpro.application.Interfaces.IRepositories;
 
 public interface IBulkImportRepository
 {
+    Task<BulkImportPreviewResponseDTO> PreviewHostAsync(
+        BulkImportMaster master, BulkImportTableDTO table, string? mappingJson,
+        long tenantId, HostUserRequestContext host, CancellationToken cancellationToken);
     Task<BulkImportPreviewResponseDTO> PreviewEmployeesAsync(
         BulkImportTableDTO table, string? mappingJson, CommonDecodedResult actor,
         CancellationToken cancellationToken);

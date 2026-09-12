@@ -27,7 +27,8 @@ public sealed partial class BulkImportRepository(
     IMapper mapper,
     IStoreProcedureRepository permissions,
     IOptions<BulkImportOptions> options,
-    IBaseEmployeeRepository? employeeRepository = null) : IBulkImportRepository
+    IBaseEmployeeRepository? employeeRepository = null,
+    axionpro.application.Interfaces.IEncryptionService.IEncryptionService? encryption = null) : IBulkImportRepository
 {
     #region Draft and user actions
 
@@ -86,6 +87,7 @@ public sealed partial class BulkImportRepository(
         });
         await context.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
+        RemovePrivateEmployeeFields(preview);
         return preview;
     }
 
@@ -238,6 +240,12 @@ public sealed partial class BulkImportRepository(
             await transaction.CommitAsync(cancellationToken);
             return true;
         }
+        if (job.Master is (int)BulkImportMaster.DeviceMaster or (int)BulkImportMaster.TenantCard)
+        {
+            await ProcessHostBatchAsync(job, preview, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return true;
+        }
         var current = await CurrentMasters(job, cancellationToken);
         var end = Math.Min(preview.Rows.Count, job.NextRow + Math.Clamp(options.Value.BatchSize, 1, 200));
         for (var index = job.NextRow; index < end; index++)
@@ -352,6 +360,8 @@ public sealed partial class BulkImportRepository(
             BulkImportMaster.Designation => "TENANT_DESIGNATIONS",
             BulkImportMaster.EmployeeType => BulkImportConstants.EmployeeTypeModuleCode,
             BulkImportMaster.Employee => BulkImportConstants.EmployeeModuleCode,
+            BulkImportMaster.DeviceMaster => BulkImportConstants.HostDeviceBulkModuleCode,
+            BulkImportMaster.TenantCard => BulkImportConstants.HostCardBulkModuleCode,
             _ => "TENANT_ROLES_PERMISSIONS"
         };
         var operation = await context.Operations.AsNoTracking().SingleOrDefaultAsync(item => item.Id == job.OperationId, cancellationToken);
@@ -361,6 +371,20 @@ public sealed partial class BulkImportRepository(
             throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
         // Same persisted permission function and result validator as the existing MediatR pipelines.
+        if (job.Master is (int)BulkImportMaster.DeviceMaster or (int)BulkImportMaster.TenantCard)
+        {
+            if (module.ModuleScope != 2 || !module.IsActive || operation.OperationType != (int)OperationType.Import)
+            {
+                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+            }
+            var hostPermission = await permissions.CheckHostUserPermissionAsync(
+                job.ActorId, job.RoleId, job.ModuleId, job.OperationId, cancellationToken);
+            if (hostPermission.ResultCode != 1)
+            {
+                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+            }
+            return;
+        }
         var result = await permissions.CheckTenantEmployeePermissionAsync(
             job.TenantId, job.ActorId, job.RoleId, job.ModuleId, job.OperationId, cancellationToken);
         TenantRuntimePermissionValidator.EnsureAllowed(result);
@@ -536,6 +560,8 @@ public sealed partial class BulkImportRepository(
         {
             row.ImportedEmployeeId = null;
             row.InvitationAttemptId = null;
+            row.CardCiphertext = null;
+            row.CardLookupHash = null;
         }
     }
 

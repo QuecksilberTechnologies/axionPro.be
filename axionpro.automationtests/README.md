@@ -466,3 +466,33 @@ Validation: focused EmployeeCodePatternPermissionTests passed 15/15, including f
 2026-09-12 follow-up: six Host_location_list_pipeline cases exercise Handle and persisted Host permission invocation using request ModuleId=78/OperationId=4. Allowed, denied, invalid-session, stale-role, tenant-module and unrelated-host-module cases passed. Combined focused run: 21 passed, 0 failed, 0 skipped. Live authenticated acceptance remains pending.
 
 2026-09-12 TenantDevice/create: reproduced omitted OperationId in actual CreateTenantDeviceCommandHandler. Focused regression passed 1/1, proving rejection before permission lookup/device write. Read-only DB: module 35 TENANT_DEVICES maps Assign=11, View=4, Update=2, Remove=12, Active=8, Inactive=9; no Add/Create mapping. UI must supply its granted assignment action ID from MyMenu. No live create executed; successful insertion is not verified. Evidence: artifacts/device-create-regression.log.
+
+## Host bulk mapper — 2026-09-12
+
+`dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter Category=HostBulkImport`
+
+11 passed, zero failed/skipped. Covers protected field injection, card leading zeros,
+ISO dates/decimal parsing, invalid enums, explicit header mapping and duplicate headers.
+This result does not establish API, persistence or worker completion; those remain pending.
+
+## Host bulk completed local validation — 2026-09-12
+
+The mapper-only note above is superseded: 14 mapper + 12 Host permission + 10
+PostgreSQL/local HTTP tests passed (36 distinct Host tests), with zero skips.
+75 shared bulk regression tests also passed. Card/device insertion and reports,
+encrypted snapshots, cross-owner/tenant denial, revoked permission/retry,
+invalid mappings/lengths and cancellation before/after a committed batch are covered.
+HTTP tests use actual controllers and handlers with signed test JWT and a fixture
+Host context; they are not production login/deployment tests.
+
+```powershell
+$env:AXIONPRO_BULK_TEST_CONNECTION='Host=127.0.0.1;Port=55439;Database=axionpro_bulk_test;Username=postgres'
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter 'Category=HostBulkImport|Category=HostBulkPermission|Category=HostBulkDatabase'
+```
+
+The database fixture refuses non-local hosts or databases not named axionpro_bulk_test.
+Apply AddHostBulkImport.sql and SeedHostBulkImportModules.sql to the isolated clone
+before running. Tests use temporary Host grants and remove their own records.
+Evidence logs: artifacts/host-bulk-workflow-tests.log,
+artifacts/host-bulk-http-regression-tests.log, artifacts/host-bulk-final-edge-tests.log.
+Release/API examples: docs/bulk-upload/HOST_CARD_DEVICE_IMPORT.md.

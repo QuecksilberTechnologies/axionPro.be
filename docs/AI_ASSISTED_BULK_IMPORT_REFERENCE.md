@@ -1541,3 +1541,65 @@ duplicates, and API permission compatibility for the new bulk ModuleIds. Employe
 bulk currently validates EMP_LIST, so the new child ModuleId cannot be substituted
 in API calls without a reviewed permission-pipeline change. Tenant sync is owned
 by the user as requested. Do not mark MyMenu/API acceptance COMPLETE yet.
+
+## 2026-09-12 — Host CardBulk / DeviceBulk (WIP)
+
+User-approved scope: CardBulk under Tenant RFID Management and DeviceBulk under
+Device Catalogue, both ModuleScope=2. No Host/Tenant scope conversion is authorized.
+Reviewed existing CreateTenantCardMaster and CreateDeviceMaster handlers, request
+DTOs, bulk queue ownership and worker architecture. Device catalogue target is
+DeviceMaster; it is not TenantDevice installation or attendance-device enrollment.
+Device required fields follow current handler: SNo, DeviceCode, DeviceName,
+CompanyName, ModelNo and valid DeviceType. Card number stays text (leading zeros),
+encrypted at rest, and masked in responses; existing numeric/price rules apply.
+Card upload tenant selection is confirmed: exactly one Host-selected tenant per
+upload/job; mixed-tenant rows are rejected. Tenant-Device assignment is deliberately
+outside this import and remains manual. Existing durable queue uses TenantEmployee
+actor ownership, so Host job ownership and persisted Host permission revalidation
+need explicit implementation.
+Implementation and new feature tests are PENDING; no feature-complete claim and
+no database migration/deployment have been performed for these two imports.
+
+### Host bulk implementation progress — 2026-09-12
+
+Confirmed decision: CardBulk imports into exactly one Host-selected tenant per job.
+Added HostBulkImportTableMapper using existing Host DTO property definitions;
+forbids spreadsheet permission/tenant/audit fields, preserves string identifiers,
+requires explicit mapping for unfamiliar headers, and parses ISO invoice dates,
+invariant decimals and defined enums without echoing private cell values.
+Validation: HostBulkImportTableMapperTests passed 11/11, zero failures/skips.
+Evidence: artifacts/host-bulk-import-tests.log. These are mapper tests only.
+Remaining: Host preview persistence, encryption-safe card staging, duplicate checks,
+Host job ownership and worker authorization, both endpoint sets, scope-2 menu seed,
+and workflow/database tests. Feature status remains WIP; not deployed or usable yet.
+
+### Host CardBulk / DeviceBulk completed locally — 2026-09-12
+
+The earlier mapper-only status above is superseded by this section.
+
+- COMPLETE: both scope-2 endpoint sets (preview, confirm, job, jobs, retry,
+  cancel, template, report), existing Host runtime permission checks,
+  owner/tenant isolation, worker permission recheck and row savepoints.
+- COMPLETE: DeviceMaster insertion with manual TenantDevice assignment;
+  one-selected-tenant Card inventory insertion with encrypted staging,
+  masked output, existing procurement mapping and duplicate protection.
+- COMPLETE: AddHostBulkImport.sql, targeted SeedHostBulkImportModules.sql,
+  both consolidated menu seed references, publish inclusion and migration
+  runner -HostBulkOnly. Host grants use the existing role permission flow.
+  Scope-2 modules intentionally have no PlanModuleMapping.
+- Validation: 36 distinct Host tests passed (14 mapper, 12 permission, 10
+  PostgreSQL/local HTTP), plus 75 shared bulk regression tests. Zero skips.
+  Both HTTP upload -> preview -> confirm -> worker -> report flows reconciled
+  with actual rows in the isolated database. JWT/Host context is a test fixture.
+- Migration and targeted seed applied twice to local PostgreSQL
+  127.0.0.1:55439/axionpro_bulk_test; second run preserved module identities.
+- PENDING RELEASE: target DB backup/migration, production publish/restart,
+  Host role grants/menu refresh and production authenticated smoke verification.
+  No production deployment/test is claimed for this implementation.
+- Handoff: docs/bulk-upload/HOST_CARD_DEVICE_IMPORT.md. Evidence:
+  artifacts/host-bulk-build.log, host-bulk-workflow-tests.log,
+  host-bulk-http-regression-tests.log and host-bulk-final-edge-tests.log.
+- Release publish succeeded to artifacts/host-bulk-release with both Host SQL
+  files included. The migration runner -HostBulkOnly passed on the isolated clone.
+  Enable BulkImport__WorkerEnabled=true after migration. Release/runner evidence:
+  artifacts/host-bulk-release-build.log and artifacts/host-bulk-migration-runner.log.

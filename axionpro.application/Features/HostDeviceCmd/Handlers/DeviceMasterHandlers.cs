@@ -67,7 +67,17 @@ public sealed class CreateDeviceMasterCommandHandler : IRequestHandler<CreateDev
         return ApiResponse<DeviceMasterResponseDTO>.Success(_mapper.Map<DeviceMasterResponseDTO>(entity), AppConstants.SuccessMessages.DeviceMasterCreated);
     }
     #endregion
-    private static void Validate(CreateDeviceMasterRequestDTO? dto) { if (dto is null || string.IsNullOrWhiteSpace(dto.SNo) || string.IsNullOrWhiteSpace(dto.DeviceCode) || string.IsNullOrWhiteSpace(dto.DeviceName) || string.IsNullOrWhiteSpace(dto.CompanyName) || string.IsNullOrWhiteSpace(dto.ModelNo) || !Enum.IsDefined(dto.DeviceType)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest); }
+    /// <summary>Shared manual-create and bulk-import required-field validation.</summary>
+    public static void Validate(CreateDeviceMasterRequestDTO? dto)
+    {
+        if (dto is null || string.IsNullOrWhiteSpace(dto.SNo) ||
+            string.IsNullOrWhiteSpace(dto.DeviceCode) || string.IsNullOrWhiteSpace(dto.DeviceName) ||
+            string.IsNullOrWhiteSpace(dto.CompanyName) || string.IsNullOrWhiteSpace(dto.ModelNo) ||
+            !Enum.IsDefined(dto.DeviceType))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        }
+    }
 }
 
 /// <summary>Handles updates to Host-managed device models.</summary>

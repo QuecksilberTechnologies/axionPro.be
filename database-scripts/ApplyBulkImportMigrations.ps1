@@ -13,6 +13,7 @@ param(
     [ValidateSet('Development', 'Production', 'Staging')]
     [string] $Environment,
     [string] $PsqlPath = 'psql',
+    [switch] $HostBulkOnly,
     [switch] $ValidateOnly
 )
 $ErrorActionPreference = 'Stop'
@@ -77,6 +78,10 @@ $sslMode = Get-ConnectionValue @('SSL Mode', 'SslMode') 'Prefer'
 if (-not $sslModes.ContainsKey($sslMode)) { throw 'Unsupported SSL Mode; configure an explicit supported PostgreSQL SSL mode.' }
 $scripts = @('EnforceDesignationDepartmentScope.sql', 'AddDurableMasterBulkImport.sql',
     'AddTenantEmployeeTypes.sql', 'SeedTenantEmployeeTypeModule.sql', 'AddEmployeeBulkImport.sql')
+if ($HostBulkOnly) {
+    # Existing Employee bulk deployments need only the additive Host upgrade and menu catalogue.
+    $scripts = @('AddHostBulkImport.sql', 'SeedHostBulkImportModules.sql')
+}
 foreach ($script in $scripts) {
     if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $script))) { throw "Missing migration: $script" }
 }
@@ -103,7 +108,12 @@ try {
         & $PsqlPath --no-psqlrc --no-password --set ON_ERROR_STOP=1 --file (Join-Path $PSScriptRoot $script)
         if ($LASTEXITCODE -ne 0) { throw "Migration failed: $script. Later scripts were not run; fix the reported data/schema problem before retrying." }
     }
-    Write-Output 'Bulk migrations complete. Start/restart this environment API; synchronize existing tenant entitlements and grant EmployeeType access through existing flows.'
+    if ($HostBulkOnly) {
+        Write-Output 'Host bulk migrations complete. Start/restart the API and worker; grant View/Import through the existing Host role permission flow.'
+    }
+    else {
+        Write-Output 'Bulk migrations complete. Start/restart this environment API; synchronize existing tenant entitlements and grant EmployeeType access through existing flows.'
+    }
 }
 finally {
     foreach ($key in $savedSettings.Keys) {

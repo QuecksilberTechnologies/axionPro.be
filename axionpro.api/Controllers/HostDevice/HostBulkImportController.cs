@@ -1,0 +1,96 @@
+using System.Text;
+using axionpro.api.Common;
+using axionpro.application.Common.Enums;
+using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Host;
+using axionpro.application.Features.HostDeviceCmd.Handlers;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace axionpro.api.Controllers.HostDevice;
+
+/// <summary>Host-only device catalogue imports; does not assign devices to tenants.</summary>
+[Authorize]
+[ApiController]
+[Route("api/DeviceMaster/import")]
+public sealed class DeviceMasterBulkImportController(IMediator mediator)
+    : HostBulkImportController(mediator, BulkImportMaster.DeviceMaster);
+
+/// <summary>Host-only card inventory imports for exactly one selected tenant.</summary>
+[Authorize]
+[ApiController]
+[Route("api/TenantCardMaster/import")]
+public sealed class TenantCardBulkImportController(IMediator mediator)
+    : HostBulkImportController(mediator, BulkImportMaster.TenantCard);
+
+/// <summary>Shared durable import protocol. Permission IDs come from the scope-2 bulk menu.</summary>
+public abstract class HostBulkImportController(IMediator mediator, BulkImportMaster master) : ControllerBase
+{
+    #region Preview and confirmation
+
+    /// <summary>Not-Used-In-Angular. Upload Excel/CSV or PastedText with Import permission; saves a draft only.</summary>
+    [HttpPost("preview")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Preview([FromForm] HostBulkImportPreviewRequestDTO request, CancellationToken ct)
+    {
+        return Ok(await mediator.Send(new PreviewHostBulkImportQuery(master, request), ct));
+    }
+
+    /// <summary>Not-Used-In-Angular. Queues the saved valid draft; accepts no replacement rows.</summary>
+    [HttpPost("confirm")]
+    public async Task<IActionResult> Confirm([FromBody] HostBulkImportJobRequestDTO request, CancellationToken ct)
+    {
+        return Ok(await mediator.Send(new ManageHostBulkImportCommand(master, BulkImportAction.Confirm, request), ct));
+    }
+
+    #endregion
+
+    #region Job lifecycle and downloads
+
+    /// <summary>Not-Used-In-Angular. Reads owned job status, row results and completion counts.</summary>
+    [HttpGet("job")]
+    public async Task<IActionResult> Job([FromQuery] HostBulkImportJobRequestDTO request, CancellationToken ct)
+    {
+        return Ok(await mediator.Send(new ManageHostBulkImportCommand(master, BulkImportAction.Get, request), ct));
+    }
+
+    /// <summary>Not-Used-In-Angular. Lists only the authenticated Host user's jobs for this target and tenant.</summary>
+    [HttpGet("jobs")]
+    public async Task<IActionResult> Jobs([FromQuery] HostBulkImportJobRequestDTO request, CancellationToken ct)
+    {
+        return Ok(await mediator.Send(new ManageHostBulkImportCommand(master, BulkImportAction.List, request), ct));
+    }
+
+    /// <summary>Not-Used-In-Angular. Retries failed rows; committed rows are never inserted again.</summary>
+    [HttpPost("retry")]
+    public async Task<IActionResult> Retry([FromBody] HostBulkImportJobRequestDTO request, CancellationToken ct)
+    {
+        return Ok(await mediator.Send(new ManageHostBulkImportCommand(master, BulkImportAction.Retry, request), ct));
+    }
+
+    /// <summary>Not-Used-In-Angular. Cancels Draft/Queued/Running jobs at batch boundaries; committed rows remain.</summary>
+    [HttpPost("cancel")]
+    public async Task<IActionResult> Cancel([FromBody] HostBulkImportJobRequestDTO request, CancellationToken ct)
+    {
+        return Ok(await mediator.Send(new ManageHostBulkImportCommand(master, BulkImportAction.Cancel, request), ct));
+    }
+
+    /// <summary>Not-Used-In-Angular. Downloads supported starter headers using View or Import permission.</summary>
+    [HttpGet("template")]
+    public async Task<IActionResult> Template([FromQuery] HostBulkImportJobRequestDTO request, CancellationToken ct)
+    {
+        var response = await mediator.Send(new ManageHostBulkImportCommand(master, BulkImportAction.Template, request), ct);
+        return File(Encoding.UTF8.GetBytes((string)response.Data!), "text/csv", $"{master}-template.csv");
+    }
+
+    /// <summary>Not-Used-In-Angular. Downloads owned job results; card numbers are masked.</summary>
+    [HttpGet("report")]
+    public async Task<IActionResult> Report([FromQuery] HostBulkImportJobRequestDTO request, CancellationToken ct)
+    {
+        var response = await mediator.Send(new ManageHostBulkImportCommand(master, BulkImportAction.Get, request), ct);
+        return File(BulkImportReport.Create((BulkImportJobResponseDTO)response.Data!), "text/csv", $"{master}-{request.JobId}.csv");
+    }
+
+    #endregion
+}
