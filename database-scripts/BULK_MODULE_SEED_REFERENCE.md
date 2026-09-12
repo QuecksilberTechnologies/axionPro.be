@@ -11,6 +11,14 @@ component-registration identity, independent of URLPath and display metadata.
 Assign the approved value when a module is first inserted; every later seed rerun
 must preserve it. This applies to Tenant and Host module seeds.
 
+## Immutable OperationName rule — user-confirmed 2026-09-13
+
+Never rename or overwrite an existing `Operation.OperationName` in Module,
+child-module, Operation or ModuleOperationMapping seed work. Reuse the existing
+canonical operation/type. If an operation type is genuinely missing, insert its
+approved initial name once; subsequent reruns must preserve the stored name and
+must not introduce an alias or duplicate operation.
+
 ## Which seed to use?
 
 `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql` is the

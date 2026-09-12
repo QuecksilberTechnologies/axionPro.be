@@ -13,6 +13,12 @@ backend scope, not all future bulk modules or production deployment.
 > and other explicitly approved seed values may be changed, but `PageName` remains
 > the stable UI component-registration identity. New module rows must receive their
 > approved PageName once; later seed reruns must preserve it.
+>
+> **Immutable OperationName decision — user-confirmed 2026-09-13:** never rename
+> or overwrite an existing `Operation.OperationName` through Module/Operation seed
+> work. Resolve and reuse the canonical operation by its existing identity/type.
+> A missing operation may be inserted with its approved initial name, but later
+> reruns must preserve that stored name and must not create a naming alias/duplicate.
 
 Navigation: [Calling flow](#user-and-api-calling-flow) · [Endpoint contract](#endpoints-8-per-master-32-bulk-routes-total) · [All request/response examples](#copyable-request-and-response-examples-for-every-bulk-action) · [EmployeeType examples](#employeetype-manual-creation-and-bulk-examples) · [Local/production setup](#local-and-production-deployment-same-api-project) · [Progress](#implementation-sequence-and-status).
 
