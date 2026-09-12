@@ -4612,7 +4612,8 @@ VALUES
     FALSE
 );
 
--- PasswordHash is ASP.NET Core Identity PasswordHasher V3 for 12344321.
+-- Both canonical Host Admin accounts use the ASP.NET Core Identity PasswordHasher V3
+-- hash below for the initial password 12344321. Change it after first login.
 INSERT INTO axionpro."HostUser"
 (
     "Id", "HostRoleId", "Name", "LoginId", "PasswordHash", "Email", "MobileNumber",
@@ -4628,6 +4629,23 @@ VALUES
     'AQAAAAIAAYagAAAAEEDpT6tXHxx4OhhP394Aqp4vlsVunbyd3qQGOnszn4oghxYFlkERmuDjy0ATNqawgw==',
     'mca.deepesh@gmail.com',
     '9111161399',
+    TRUE,
+    FALSE,
+    1,
+    CURRENT_TIMESTAMP,
+    1,
+    CURRENT_TIMESTAMP,
+    NULL,
+    NULL
+),
+(
+    2,
+    1,
+    'Sujeet',
+    'sujeet@axionpro.com',
+    'AQAAAAIAAYagAAAAEEDpT6tXHxx4OhhP394Aqp4vlsVunbyd3qQGOnszn4oghxYFlkERmuDjy0ATNqawgw==',
+    'sujeet@axionpro.com',
+    NULL,
     TRUE,
     FALSE,
     1,
