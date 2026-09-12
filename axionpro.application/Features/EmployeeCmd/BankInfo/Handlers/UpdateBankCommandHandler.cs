@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Bank;
@@ -162,7 +163,7 @@ public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiRe
                     bank.BranchName = dto.BranchName.Trim();
 
                 if (!string.IsNullOrWhiteSpace(dto.AccountType))
-                    bank.AccountType = dto.AccountType.Trim();
+                    bank.AccountType = AccountTypeHelper.Normalize(dto.AccountType);
 
                 if (!string.IsNullOrWhiteSpace(dto.UPIId))
                     bank.Upiid = dto.UPIId.Trim();

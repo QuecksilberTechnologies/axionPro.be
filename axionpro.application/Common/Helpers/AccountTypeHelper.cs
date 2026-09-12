@@ -17,7 +17,8 @@ namespace axionpro.application.Common.Helpers
 
             input = input.Trim();
 
-            if (input.Equals("saving", StringComparison.OrdinalIgnoreCase))
+            if (input.Equals("saving", StringComparison.OrdinalIgnoreCase) ||
+                input.Equals("savings", StringComparison.OrdinalIgnoreCase))
                 return "saving";
 
             if (input.Equals("salary", StringComparison.OrdinalIgnoreCase))

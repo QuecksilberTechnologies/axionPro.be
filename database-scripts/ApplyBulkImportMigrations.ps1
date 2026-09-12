@@ -78,7 +78,7 @@ $sslMode = Get-ConnectionValue @('SSL Mode', 'SslMode') 'Prefer'
 if (-not $sslModes.ContainsKey($sslMode)) { throw 'Unsupported SSL Mode; configure an explicit supported PostgreSQL SSL mode.' }
 $scripts = @('EnforceDesignationDepartmentScope.sql', 'AddDurableMasterBulkImport.sql',
     'AddTenantEmployeeTypes.sql', 'SeedTenantEmployeeTypeModule.sql', 'AddEmployeeBulkImport.sql',
-    'EmployeeProductionSeed.sql')
+    'EmployeeIdentityResetMigrationAndSeed.sql')
 if ($HostBulkOnly) {
     # Existing Employee bulk deployments need only the additive Host upgrade and menu catalogue.
     $scripts = @('AddHostBulkImport.sql', 'SeedHostBulkImportModules.sql')
