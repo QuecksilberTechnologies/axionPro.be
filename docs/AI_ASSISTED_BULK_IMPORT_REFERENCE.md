@@ -35,6 +35,17 @@ backend scope, not all future bulk modules or production deployment.
 > A missing operation may be inserted with its approved initial name, but later
 > reruns must preserve that stored name and must not create a naming alias/duplicate.
 
+> **UI developer handoff rule — user-confirmed 2026-09-13:** whenever the user
+> requests a new API or endpoint, its implementation is not ready for handoff
+> until a corresponding document exists under `docs/UIdeveloperDoc`. That document
+> must describe the feature and UI behavior, authentication/permission discovery,
+> every endpoint and HTTP method, mandatory/optional fields, request JSON or
+> multipart FormData, Excel/CSV headers and examples where applicable, representative
+> success/error response JSON, enum/status meanings, polling/retry/cancel behavior,
+> destination/persistence behavior, and tested versus pending deployment status.
+> Numeric ModuleId/OperationId examples must be labelled illustrative; UI must
+> resolve current IDs through the existing authenticated menu/permission flow.
+
 Navigation: [Calling flow](#user-and-api-calling-flow) · [Endpoint contract](#endpoints-8-per-master-32-bulk-routes-total) · [All request/response examples](#copyable-request-and-response-examples-for-every-bulk-action) · [EmployeeType examples](#employeetype-manual-creation-and-bulk-examples) · [Local/production setup](#local-and-production-deployment-same-api-project) · [Progress](#implementation-sequence-and-status).
 
 ## Highlighted deferred gaps — user decision 2026-09-11
