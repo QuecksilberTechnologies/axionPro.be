@@ -81,6 +81,29 @@ namespace axionpro.api.Controllers.Login
             return Ok(result);
         }
 
+        #region Opt-in Lightweight Refresh
+
+        /// <summary>Opt-in token-only refresh for Host and Tenant sessions; legacy refresh-token remains supported.</summary>
+        /// <remarks>
+        /// POST /api/Auth/refresh-token-v2. Required: refreshToken; optional: ipAddress.
+        /// Returns ApiResponse containing token, refreshToken, tokenExpiry and refreshTokenExpiresAtUtc.
+        /// Does not return profiles, menus or permission lists. No ModuleId/OperationId is required.
+        /// UI must opt in and check isSucceeded before saving tokens. See docs/AUTH_REFRESH_TOKEN_V2.md.
+        /// Do not retire the legacy route until explicit UI acceptance and user approval.
+        /// </remarks>
+        [AllowAnonymous]
+        [HttpPost("refresh-token-v2")]
+        [ProducesResponseType(typeof(ApiResponse<RefreshTokenV2ResponseDTO>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> RefreshTokenV2(
+            [FromBody] RefreshTokenRequestDTO request,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new RefreshTokenV2Command(request), cancellationToken);
+            return Ok(result);
+        }
+
+        #endregion
+
         //[HttpPost("AccessDetails")]
         //[Authorize] // Ensures the user is authenticated via token
         //public async Task<IActionResult> UserAccessDetailsAsync([FromBody] AccessDetailRequestDTO accessDetailsDTO)

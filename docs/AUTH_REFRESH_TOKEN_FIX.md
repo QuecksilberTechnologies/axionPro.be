@@ -60,3 +60,6 @@ Older publish output, including the earlier Host bulk release, predates this fix
 After deployment verify the authorized Tenant refresh request and the reported
 permission-denied endpoints. Production root cause/live success is not claimed
 solely from the local reproduction.
+# Opt-in V2 coexistence decision — 2026-09-13
+
+See [AUTH_REFRESH_TOKEN_V2.md](AUTH_REFRESH_TOKEN_V2.md) before future refresh work. The user requested a **new API on a separate branch**. Existing `/api/Auth/refresh-token` must remain unchanged until the UI developer confirms consistency and the user approves retirement. V2 implementation is not authorization to remove the old endpoint or switch UI consumers.

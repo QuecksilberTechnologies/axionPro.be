@@ -513,3 +513,15 @@ dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restor
 
 RefreshDatabase requires AXIONPRO_BULK_TEST_CONNECTION pointing to the isolated
 local axionpro_bulk_test; never point this fixture at production.
+# Opt-in refresh-token-v2 — 2026-09-13
+
+Continuing-session decision and UI instructions: [AUTH_REFRESH_TOKEN_V2.md](../docs/AUTH_REFRESH_TOKEN_V2.md).
+Branch: `codex/lightweight-refresh-api`. Legacy refresh stays unchanged pending explicit UI acceptance and user approval.
+
+Focused tests (the DB categories require `AXIONPRO_BULK_TEST_CONNECTION` pointing only to the isolated local `axionpro_bulk_test` database):
+
+```powershell
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter 'TestCategory=RefreshV2|TestCategory=RefreshV2Database|TestCategory=RefreshDatabase'
+```
+
+Validation: 18/18 PASS initially (14 V2 unit, 2 V2 PostgreSQL, 2 existing legacy PostgreSQL regression cases), followed by 2/2 additional Host/Tenant loopback HTTP interoperability cases. Total 20 distinct PASS, no skipped cases. Old → V2 → old replacement-token compatibility and HTTP 400/401 verified. Deployment/UI acceptance remains pending; see the V2 reference for evidence and limits.
