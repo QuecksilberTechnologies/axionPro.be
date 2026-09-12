@@ -27,9 +27,24 @@ shifted line numbers.
 | `TENANT_EMPLOYEE_TYPES` | Tenant | EmployeeType bulk |
 | `TENANT_EMPLOYEE_CODE` | Tenant | Employee-code pattern add/update |
 
-`TENANT_EMPLOYEE_TYPES` is maintained by the idempotent
-`database-scripts/SeedTenantEmployeeTypeModule.sql`; the consolidated seed files
-do not yet contain that module. That script creates CRUD catalogue/plan coverage;
+The complete seed's approved navigation hierarchy is now functional-parent based:
+`BULK_EMPLOYEES` under `EMP_MGMT`; Department, Designation, Role and EmployeeType
+bulk children under their corresponding existing tenant modules. There is no
+standalone tenant `BULKUPLOAD` parent. Each bulk child has View (4), Export (11)
+and Import (12) catalogue mappings. Export is seed permission metadata only; its
+UI implementation belongs to the UI developer.
+
+Local integration verification (2026-09-13): the entire complete seed ran twice
+successfully on an isolated clone after adding its required test-only email-config
+fixture. Both runs produced five bulk children, no `BULKUPLOAD` root, exactly 15
+active tenant bulk mappings, and five plan mappings per child. Both canonical Host
+Admin accounts were present. No production DB was used. Existing duplicate Host
+Card/Device Import mappings in the baseline are recorded separately and were not
+altered by this tenant-only hierarchy decision.
+
+`TENANT_EMPLOYEE_TYPES` is also maintained by the idempotent
+`database-scripts/SeedTenantEmployeeTypeModule.sql`; the current complete consolidated
+seed contains that module as well. That script creates CRUD catalogue/plan coverage;
 tenant grants still use entitlement synchronization and the existing permission API.
 
 For the complete bulk catalogue, run the new idempotent

@@ -5288,48 +5288,70 @@ BEGIN
 END $explicit_tenant_modules$;
 
 -- ============================================================================
--- BULKUPLOAD MENU HIERARCHY (tenant scope, identity IDs resolved by code)
+-- BULK MENU CHILDREN UNDER THEIR EXISTING FUNCTIONAL MODULES
+-- There is deliberately no standalone BULKUPLOAD parent.
 -- ============================================================================
 DO $bulk_menu_hierarchy$
 DECLARE
-    bulk_parent_id integer;
+    definition record;
+    parent_id integer;
+    child_id integer;
+    obsolete_bulk_parent_id integer;
 BEGIN
-    INSERT INTO axionpro."Module"
-    ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId",
-     "IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","IsActive",
-     "ImageIconWeb","ImageIconMobile","ItemPriority","Remark",
-     "AddedById","AddedDateTime","UpdatedById","UpdatedDateTime","ModuleScope","PageName")
-    SELECT NULL,'BULKUPLOAD','BULKUPLOAD','Bulk Upload','/app/bulk-upload',NULL,
-           FALSE,TRUE,FALSE,TRUE,'bi bi-upload','upload',560,
-           'Tenant bulk upload menus for supported employee and master imports.',
-           1,CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP,1,'bulk-upload'
-    WHERE NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode"='BULKUPLOAD');
+    FOR definition IN SELECT * FROM (VALUES
+        ('BULK_EMPLOYEES','Bulk-Employees','Employee Bulk','/app/bulk-upload/employees',560,'Employee bulk upload, preview, confirmation, export and job reports.','bulk-employees','EMP_MGMT'),
+        ('BULK_DEPARTMENTS','Bulk-Departments','Department Bulk','/app/bulk-upload/departments',560,'Department bulk upload, preview, confirmation, export and job reports.','bulk-departments','TENANT_DEPARTMENTS'),
+        ('BULK_DESIGNATIONS','Bulk-Designations','Designation Bulk','/app/bulk-upload/designations',560,'Designation bulk upload, preview, confirmation, export and job reports.','bulk-designations','TENANT_DESIGNATIONS'),
+        ('BULK_ROLES','Bulk-Roles','Role Bulk','/app/bulk-upload/roles',560,'Role bulk upload, preview, confirmation, export and job reports.','bulk-roles','TENANT_ROLES_PERMISSIONS'),
+        ('BULK_EMPLOYEE_TYPES','Bulk-Employee-Types','Employee Type Bulk','/app/bulk-upload/employee-types',560,'EmployeeType bulk upload, preview, confirmation, export and job reports.','bulk-employee-types','TENANT_EMPLOYEE_TYPES')
+    ) AS seed(code,name,label,url,priority,remark,page,parent_code)
+    LOOP
+        SELECT "Id" INTO STRICT parent_id
+        FROM axionpro."Module"
+        WHERE "ModuleCode"=definition.parent_code AND "ModuleScope"=1;
 
-    UPDATE axionpro."Module"
-    SET "ParentModuleId"=NULL,"ModuleScope"=1,"IsLeafNode"=FALSE,
-        "ImageIconWeb"='bi bi-upload',"ImageIconMobile"='upload',
-        "Remark"='Tenant bulk upload menus for supported employee and master imports.'
-    WHERE "ModuleCode"='BULKUPLOAD';
+        INSERT INTO axionpro."Module"
+        ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId",
+         "IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","IsActive",
+         "ImageIconWeb","ImageIconMobile","ItemPriority","Remark",
+         "AddedById","AddedDateTime","UpdatedById","UpdatedDateTime","ModuleScope","PageName")
+        SELECT NULL,definition.code,definition.name,definition.label,definition.url,parent_id,
+               TRUE,TRUE,FALSE,TRUE,'bi bi-upload','upload',definition.priority,
+               definition.remark,1,CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP,1,definition.page
+        WHERE NOT EXISTS
+        (SELECT 1 FROM axionpro."Module" existing WHERE existing."ModuleCode"=definition.code);
 
-    SELECT "Id" INTO STRICT bulk_parent_id FROM axionpro."Module"
+        SELECT "Id" INTO STRICT child_id FROM axionpro."Module"
+        WHERE "ModuleCode"=definition.code AND "ModuleScope"=1;
+
+        UPDATE axionpro."Module"
+        SET "ParentModuleId"=parent_id,"IsLeafNode"=TRUE,"IsModuleDisplayInUI"=TRUE,
+            "IsCommonMenu"=FALSE,"IsActive"=TRUE,"ImageIconWeb"='bi bi-upload',
+            "ImageIconMobile"='upload',"ItemPriority"=definition.priority,
+            "Remark"=definition.remark,"ModuleScope"=1,"UpdatedById"=1,
+            "UpdatedDateTime"=CURRENT_TIMESTAMP
+        WHERE "Id"=child_id;
+
+        UPDATE axionpro."Module" SET "IsLeafNode"=FALSE WHERE "Id"=parent_id;
+
+        UPDATE axionpro."TenantEnabledModule"
+        SET "ParentModuleId"=parent_id,"IsLeafNode"=TRUE,"UpdatedById"=1,
+            "UpdatedDateTime"=CURRENT_TIMESTAMP
+        WHERE "ModuleId"=child_id;
+    END LOOP;
+
+    SELECT "Id" INTO obsolete_bulk_parent_id FROM axionpro."Module"
     WHERE "ModuleCode"='BULKUPLOAD' AND "ModuleScope"=1;
 
-    INSERT INTO axionpro."Module"
-    ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId",
-     "IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","IsActive",
-     "ImageIconWeb","ImageIconMobile","ItemPriority","Remark",
-     "AddedById","AddedDateTime","UpdatedById","UpdatedDateTime","ModuleScope","PageName")
-    SELECT NULL,seed.code,seed.name,seed.label,seed.url,bulk_parent_id,
-           TRUE,TRUE,FALSE,TRUE,'bi bi-upload','upload',seed.priority,
-           seed.remark,1,CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP,1,seed.page
-    FROM (VALUES
-        ('BULK_EMPLOYEES','Bulk-Employees','Employees','/app/bulk-upload/employees',10,'Employee bulk upload, preview, confirmation and job reports.','bulk-employees'),
-        ('BULK_DEPARTMENTS','Bulk-Departments','Departments','/app/bulk-upload/departments',20,'Department bulk upload, preview, confirmation and job reports.','bulk-departments'),
-        ('BULK_DESIGNATIONS','Bulk-Designations','Designations','/app/bulk-upload/designations',30,'Designation bulk upload, preview, confirmation and job reports.','bulk-designations'),
-        ('BULK_ROLES','Bulk-Roles','Roles','/app/bulk-upload/roles',40,'Role bulk upload, preview, confirmation and job reports.','bulk-roles'),
-        ('BULK_EMPLOYEE_TYPES','Bulk-Employee-Types','Employee Types','/app/bulk-upload/employee-types',50,'EmployeeType bulk upload, preview, confirmation and job reports.','bulk-employee-types')
-    ) AS seed(code,name,label,url,priority,remark,page)
-    WHERE NOT EXISTS (SELECT 1 FROM axionpro."Module" existing WHERE existing."ModuleCode"=seed.code);
+    IF obsolete_bulk_parent_id IS NOT NULL THEN
+        DELETE FROM axionpro."RoleModuleAndPermission" WHERE "ModuleId"=obsolete_bulk_parent_id;
+        DELETE FROM axionpro."TenantEnabledOperation" WHERE "ModuleId"=obsolete_bulk_parent_id;
+        DELETE FROM axionpro."TenantEnabledModule"
+        WHERE "ModuleId"=obsolete_bulk_parent_id OR "ParentModuleId"=obsolete_bulk_parent_id;
+        DELETE FROM axionpro."PlanModuleMapping" WHERE "ModuleId"=obsolete_bulk_parent_id;
+        DELETE FROM axionpro."ModuleOperationMapping" WHERE "ModuleId"=obsolete_bulk_parent_id;
+        DELETE FROM axionpro."Module" WHERE "Id"=obsolete_bulk_parent_id;
+    END IF;
 END $bulk_menu_hierarchy$;
 
 -- Bulk module/operation/mapping/plan entries. This is the same idempotent
@@ -5459,8 +5481,21 @@ WHERE module."ModuleCode" IN ('EMP_LIST','TENANT_DEPARTMENTS','TENANT_DESIGNATIO
 ORDER BY module."ModuleCode", operation."OperationType";
 
 -- END INLINE BULK MODULE SEED
--- Tenant bulk navigation catalogue: no tenant/role grants are inserted here.
+-- Tenant bulk child catalogue: no tenant/role grants are inserted here.
 BEGIN;
+INSERT INTO axionpro."Operation"
+("OperationName","Remark","OperationType","IsActive","AddedById","AddedDateTime","IconImage")
+SELECT 'Export','Export authorized module data for spreadsheet use.',11,TRUE,1,CURRENT_TIMESTAMP,'download'
+WHERE NOT EXISTS
+(SELECT 1 FROM axionpro."Operation" WHERE "OperationType"=11);
+
+UPDATE axionpro."Operation"
+SET "IsActive"=TRUE,"UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP
+WHERE "Id" IN
+(SELECT DISTINCT ON ("OperationType") "Id" FROM axionpro."Operation"
+ WHERE "OperationType" IN (4,11,12)
+ ORDER BY "OperationType","IsActive" DESC,"Id");
+
 INSERT INTO axionpro."ModuleOperationMapping"
 ("ModuleId","OperationId","PageURL","IconURL","IsCommonItem","IsOperational",
  "Priority","Remark","IsActive","AddedById","AddedDateTime")
@@ -5470,14 +5505,13 @@ SELECT m."Id",o.id,m."URLPath",o.icon,FALSE,TRUE,o.priority,
 FROM axionpro."Module" m
 CROSS JOIN (
     SELECT DISTINCT ON ("OperationType") "Id" AS id,"OperationType" AS type,
-           "IconImage" AS icon,CASE WHEN "OperationType"=4 THEN 10 ELSE 20 END AS priority
+           "IconImage" AS icon,CASE "OperationType" WHEN 4 THEN 10 WHEN 12 THEN 20 ELSE 30 END AS priority
     FROM axionpro."Operation"
-    WHERE "IsActive"=TRUE AND "OperationType" IN (4,12)
+    WHERE "IsActive"=TRUE AND "OperationType" IN (4,11,12)
     ORDER BY "OperationType","Id"
 ) o
 WHERE m."ModuleScope"=1
-  AND (m."ModuleCode" IN ('BULK_EMPLOYEES','BULK_DEPARTMENTS','BULK_DESIGNATIONS','BULK_ROLES','BULK_EMPLOYEE_TYPES')
-       OR (m."ModuleCode"='BULKUPLOAD' AND o.type=4))
+  AND m."ModuleCode" IN ('BULK_EMPLOYEES','BULK_DEPARTMENTS','BULK_DESIGNATIONS','BULK_ROLES','BULK_EMPLOYEE_TYPES')
   AND NOT EXISTS (SELECT 1 FROM axionpro."ModuleOperationMapping" existing
                   WHERE existing."ModuleId"=m."Id" AND existing."OperationId"=o.id);
 
@@ -5486,9 +5520,7 @@ INSERT INTO axionpro."PlanModuleMapping"
 SELECT DISTINCT plan."SubscriptionPlanId",target."Id",TRUE,
        'Bulk navigation inherits the corresponding master subscription coverage.',1,CURRENT_TIMESTAMP
 FROM (VALUES
-    ('BULKUPLOAD','EMP_LIST'),('BULKUPLOAD','TENANT_DEPARTMENTS'),
-    ('BULKUPLOAD','TENANT_DESIGNATIONS'),('BULKUPLOAD','TENANT_ROLES_PERMISSIONS'),
-    ('BULKUPLOAD','TENANT_EMPLOYEE_TYPES'),('BULK_EMPLOYEES','EMP_LIST'),
+    ('BULK_EMPLOYEES','EMP_LIST'),
     ('BULK_DEPARTMENTS','TENANT_DEPARTMENTS'),('BULK_DESIGNATIONS','TENANT_DESIGNATIONS'),
     ('BULK_ROLES','TENANT_ROLES_PERMISSIONS'),('BULK_EMPLOYEE_TYPES','TENANT_EMPLOYEE_TYPES')
 ) seed(target_code,source_code)

@@ -1529,10 +1529,10 @@ This checkpoint supersedes earlier WIP/blocker notes for the requested release.
 
 ## 2026-09-12 — bulk menu seed correction (WIP)
 
-Complete seed now defines tenant-scope BULKUPLOAD as a root with five distinct
-bulk child modules, full menu metadata, View/Import mappings and inherited plan
-coverage. The prior block that reparented existing master modules was removed.
-No target database execution was performed for this change. git diff --check passed.
+Superseded by the user-approved hierarchy below: the standalone `BULKUPLOAD`
+parent must not be retained. Each distinct bulk page is a child of its related
+existing functional module. Existing functional module names, routes, CRUD
+operations and catalogue identities remain unchanged.
 Existing Add/Create duplicates are NOT merged by the existing normalization code;
 prior statements claiming that normalization removed duplicates were incorrect.
 Bulk mapping selection uses one active operation per required operation type.
@@ -1541,6 +1541,39 @@ duplicates, and API permission compatibility for the new bulk ModuleIds. Employe
 bulk currently validates EMP_LIST, so the new child ModuleId cannot be substituted
 in API calls without a reviewed permission-pipeline change. Tenant sync is owned
 by the user as requested. Do not mark MyMenu/API acceptance COMPLETE yet.
+
+### 2026-09-13 — approved tenant bulk hierarchy seed (COMPLETE locally)
+
+- Remove the obsolete tenant-scope `BULKUPLOAD` root and its direct catalogue,
+  plan, entitlement and role-grant references.
+- `BULK_EMPLOYEES` is a child of `EMP_MGMT`.
+- `BULK_DEPARTMENTS` is a child of `TENANT_DEPARTMENTS`.
+- `BULK_DESIGNATIONS` is a child of `TENANT_DESIGNATIONS`.
+- `BULK_ROLES` is a child of `TENANT_ROLES_PERMISSIONS`.
+- `BULK_EMPLOYEE_TYPES` is a child of `TENANT_EMPLOYEE_TYPES`.
+- Each bulk child maps the existing operation types View=4, Export=11 and
+  Import=12. The seed creates Export/Import only when that operation type is
+  absent; it does not create Add/Create aliases. Export here is permission/menu
+  catalogue metadata; the UI developer owns the export implementation.
+- Bulk child plan coverage inherits from its corresponding existing functional
+  plan source. Tenant entitlement and role grants remain owned by the existing
+  synchronization/permission flows.
+- Functional parents become non-leaf so MyMenu can return their bulk child. The
+  UI developer owns rendering the existing functional parent page plus its child.
+- No Host Card/Device bulk hierarchy is changed by this decision.
+- Full consolidated seed executed twice successfully on the isolated clone
+  `axionpro_seed_hierarchy_test` after supplying its required test-only active
+  TenantEmailConfig prerequisite. Production DB was not used. Final verification:
+  five tenant bulk children, zero `BULKUPLOAD` rows, 15 active child mappings
+  (exactly one View/Export/Import per child), five active plan mappings per child,
+  correct parents/non-leaf parent state, and two active canonical Host Admin users.
+  The second run retained the same counts, proving this tenant section idempotent.
+- Existing Host Card/Device data in the cloned baseline contains two active Import
+  mappings per Host bulk module (operation IDs 13 and 23). This was visible in the
+  consolidated seed output and is not caused by, or changed within, the approved
+  tenant hierarchy scope. It remains an explicitly recorded separate cleanup item.
+- Evidence: `artifacts/bulk-functional-parent-seed-run2.log` and
+  `artifacts/bulk-functional-parent-seed-run3-idempotent.log`.
 
 ## 2026-09-12 — Host CardBulk / DeviceBulk (WIP)
 
