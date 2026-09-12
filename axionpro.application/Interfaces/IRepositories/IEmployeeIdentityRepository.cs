@@ -21,6 +21,9 @@ public interface IEmployeeIdentityRepository
  
     public Task<GetEmployeeIdentityResponseDTO> GetInfo(GetIdentityRequestDTO dto);
     public Task<bool> CreateAsync(IEnumerable<EmployeeIdentity> entities);
+
+    /// <summary>Validates a selected document against the employee's persisted country catalogue.</summary>
+    Task<bool> IsDocumentAllowedAsync(long employeeId, long tenantId, int documentId, CancellationToken cancellationToken);
     //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);
        public Task<EmployeeIdentity> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
        public Task<bool> IsEmployeeIdentityExistsAsync(long Id, bool? IsActive);  // Ensure this returns 

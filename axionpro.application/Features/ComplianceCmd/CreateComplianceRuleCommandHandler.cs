@@ -112,7 +112,12 @@ public class CreateComplianceRuleCommandHandler
                         validation.TenantId,
                         dto.EffectiveFrom);
                 ComplianceRule complianceRule = new ComplianceRule();
-                if (existingRule != null)
+                // A fallback global/state rule belongs to a different scope and must never
+                // be shortened when creating a tenant-specific version.
+                if (existingRule != null &&
+                    existingRule.TenantId == validation.TenantId &&
+                    existingRule.StateId == dto.StateId &&
+                    existingRule.EffectiveFrom < dto.EffectiveFrom)
                 {
                     existingRule.EffectiveTo = dto.EffectiveFrom.AddDays(-1);
                     existingRule.UpdatedDateTime = DateTime.UtcNow;

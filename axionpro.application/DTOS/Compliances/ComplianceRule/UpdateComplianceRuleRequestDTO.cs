@@ -18,9 +18,14 @@ namespace axionpro.application.DTOS.Compliances.ComplianceRule
     /// </summary>
     public class UpdateComplianceRuleRequestDTO
     {
+        public long Id { get; set; }
         public int ComplianceTypeId { get; set; }
         public int CountryId { get; set; }
         public int? StateId { get; set; }
-
+        public object RuleJson { get; set; }
+        public int Priority { get; set; }
+        public DateOnly EffectiveFrom { get; set; }
+        public DateOnly? EffectiveTo { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

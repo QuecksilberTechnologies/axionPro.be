@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Exceptions;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
@@ -73,6 +74,18 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
                 if (existing == null)
                     throw new ApiException("Bank record not found.", 404);
+
+                if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                        validation, existing.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken))
+                {
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+                }
+
+                if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin &&
+                    (existing.IsInfoVerified || !existing.IsEditAllowed))
+                {
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+                }
 
                 // ===============================
                 // 5️⃣ SOFT DELETE

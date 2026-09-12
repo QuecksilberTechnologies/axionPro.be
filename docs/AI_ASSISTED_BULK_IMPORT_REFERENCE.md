@@ -1603,3 +1603,21 @@ The earlier mapper-only status above is superseded by this section.
   files included. The migration runner -HostBulkOnly passed on the isolated clone.
   Enable BulkImport__WorkerEnabled=true after migration. Release/runner evidence:
   artifacts/host-bulk-release-build.log and artifacts/host-bulk-migration-runner.log.
+
+### 2026-09-12 — Employee Phase 0/1 regression rerun
+
+- COMPLETE: common profile calculator, 13-section response, overall percentage metadata, and verified-implies-locked persistence invariant.
+- COMPLETE: Angular response/request contract corrected (`data`, numeric `tabInfoType`).
+- COMPLETE: backend solution build passed with zero errors; focused Employee profile suite passed 16/16.
+- BLOCKED (environment): Angular dependencies are absent and global npm is broken; Angular compilation is not recorded as passed.
+- PENDING: EmployeeBulk assignment writers for Work Locations, Devices, Work Arrangement, Work Pattern, and Overrides require explicit import row contracts and DB acceptance tests.
+
+- New Employee profile characterization/permission tests passed 14/14 with zero skips.
+- Related Work/Device and EmployeeBulk unit regressions passed 181/181 with zero skips.
+- Employee import/type/code isolated PostgreSQL tests passed 17/17 with zero skips against
+  `axionpro_bulk_test` on port 55439.
+- A full isolated-database suite rerun produced 424 passes, 10 failures and 7 skips. The failures are
+  HostBulk fixture migration drift: the current `BulkImportJob_Master_check` in that test database
+  rejects newer Host bulk master values. This is explicitly a failed HostBulk acceptance rerun, not
+  an EmployeeBulk pass or an Employee profile regression. Reapply/verify the Host bulk migration on
+  the isolated fixture before claiming the full suite green.

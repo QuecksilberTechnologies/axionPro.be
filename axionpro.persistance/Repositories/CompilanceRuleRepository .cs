@@ -44,9 +44,12 @@ namespace axionpro.infrastructure.Repositories
                     );
 
                 var result = await query
-                    .OrderByDescending(x => x.TenantId)   // tenant override
-                    .ThenByDescending(x => x.StateId)     // state override
-                    .ThenByDescending(x => x.Priority)    // priority
+                    // PostgreSQL DESC puts NULL first; rank specificity explicitly.
+                    .OrderByDescending(x => x.TenantId.HasValue)
+                    .ThenByDescending(x => x.StateId.HasValue)
+                    .ThenByDescending(x => x.Priority ?? 0)
+                    .ThenByDescending(x => x.EffectiveFrom)
+                    .ThenByDescending(x => x.Id)
                     .FirstOrDefaultAsync();
 
                 return result;

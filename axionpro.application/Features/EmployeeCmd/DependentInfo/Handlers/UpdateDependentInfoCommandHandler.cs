@@ -93,6 +93,15 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 if (dependent == null)
                     throw new ApiException("Dependent record not found.", 404);
 
+                if (!dependent.EmployeeId.HasValue ||
+                    !await _commonRequestService.CanAccessEmployeeDataAsync(
+                        validation, dependent.EmployeeId.Value, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken))
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
+                if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin &&
+                    (dependent.IsInfoVerified == true || dependent.IsEditAllowed != true))
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
                 // ===============================
                 // 5️⃣ START TRANSACTION
                 // ===============================

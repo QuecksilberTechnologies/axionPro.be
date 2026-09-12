@@ -92,6 +92,9 @@ public class UpdateContactInfoCommandHandler
             if (existing.EmployeeId != loggedInEmployeeId)
                 throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
 
+            if (existing.IsInfoVerified == true || existing.IsEditAllowed != true)
+                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
             // ===============================
             // 6️⃣ START TRANSACTION
             // ===============================

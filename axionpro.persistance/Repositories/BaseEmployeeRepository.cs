@@ -39,6 +39,31 @@ namespace axionpro.persistance.Repositories
 
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
+
+        #region Operational Section Defaults
+
+        public async Task<bool> IsOperationalSectionEditAllowedAsync(long tenantId, string moduleCode, CancellationToken ct)
+        {
+            return await _context.Set<TenantEmployeeSectionDefault>()
+                .AnyAsync(item => item.TenantId == tenantId && item.ModuleCode == moduleCode && item.IsEditAllowed, ct);
+        }
+
+        public async Task SetOperationalSectionDefaultAsync(
+            long tenantId, string moduleCode, bool isEditAllowed, long actorId, CancellationToken ct)
+        {
+            await _context.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO axionpro."TenantEmployeeSectionDefault"
+                    ("TenantId", "ModuleCode", "IsEditAllowed", "UpdatedById", "UpdatedDateTime")
+                VALUES ({tenantId}, {moduleCode}, {isEditAllowed}, {actorId}, {DateTime.UtcNow})
+                ON CONFLICT ("TenantId", "ModuleCode") DO UPDATE
+                SET "IsEditAllowed" = EXCLUDED."IsEditAllowed",
+                    "UpdatedById" = EXCLUDED."UpdatedById",
+                    "UpdatedDateTime" = EXCLUDED."UpdatedDateTime"
+                """, ct);
+        }
+
+        #endregion
+
         public BaseEmployeeRepository(WorkforceDbContext context, IMapper mapper, ILogger<BaseEmployeeRepository> logger,
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
@@ -101,7 +126,7 @@ namespace axionpro.persistance.Repositories
                     affected = await _context.Employees
                         .Where(x => x.Id == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
-                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified && !p.IsInfoVerified)
                             .SetProperty(p => p.UpdatedById, userEmployeeId)
                             .SetProperty(p => p.UpdatedDateTime, now), ct);
                     break;
@@ -110,7 +135,7 @@ namespace axionpro.persistance.Repositories
                     affected = await _context.EmployeeBankDetails
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
-                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified && !p.IsInfoVerified)
                             .SetProperty(p => p.UpdatedById, userEmployeeId)
                             .SetProperty(p => p.UpdatedDateTime, now), ct);
                     break;
@@ -119,7 +144,7 @@ namespace axionpro.persistance.Repositories
                     affected = await _context.EmployeeContacts
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
-                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified && p.IsInfoVerified != true)
                             .SetProperty(p => p.UpdatedById, userEmployeeId)
                             .SetProperty(p => p.UpdatedDateTime, now), ct);
                     break;
@@ -128,7 +153,7 @@ namespace axionpro.persistance.Repositories
                     affected = await _context.EmployeeExperienceDetails
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
-                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified && p.IsInfoVerified != true)
                             .SetProperty(p => p.UpdatedById, userEmployeeId)
                             .SetProperty(p => p.UpdatedDateTime, now), ct);
                     break;
@@ -137,7 +162,7 @@ namespace axionpro.persistance.Repositories
                     affected = await _context.EmployeeIdentities
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
-                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified && !p.IsInfoVerified)
                             .SetProperty(p => p.UpdatedById, userEmployeeId)
                             .SetProperty(p => p.UpdatedDateTime, now), ct);
                     break;
@@ -146,7 +171,7 @@ namespace axionpro.persistance.Repositories
                     affected = await _context.EmployeeEducations
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
-                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified && p.IsInfoVerified != true)
                             .SetProperty(p => p.UpdatedById, userEmployeeId)
                             .SetProperty(p => p.UpdatedDateTime, now), ct);
                     break;
@@ -155,7 +180,7 @@ namespace axionpro.persistance.Repositories
                     affected = await _context.EmployeeDependents
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
-                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified && p.IsInfoVerified != true)
                             .SetProperty(p => p.UpdatedById, userEmployeeId)
                             .SetProperty(p => p.UpdatedDateTime, now), ct);
                     break;
@@ -187,6 +212,7 @@ namespace axionpro.persistance.Repositories
                         .Where(x => x.Id == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified ? false : p.IsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
                     break;
@@ -196,6 +222,7 @@ namespace axionpro.persistance.Repositories
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified ? false : p.IsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
                     break;
@@ -205,6 +232,7 @@ namespace axionpro.persistance.Repositories
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified ? false : p.IsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
                     break;
@@ -214,6 +242,7 @@ namespace axionpro.persistance.Repositories
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified ? false : p.IsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
                     break;
@@ -223,6 +252,7 @@ namespace axionpro.persistance.Repositories
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified ? false : p.IsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
                     break;
@@ -232,6 +262,7 @@ namespace axionpro.persistance.Repositories
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified ? false : p.IsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
                     break;
@@ -241,6 +272,7 @@ namespace axionpro.persistance.Repositories
                         .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, p => isVerified ? false : p.IsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
                     break;
@@ -309,11 +341,38 @@ namespace axionpro.persistance.Repositories
             if (!Enum.IsDefined(typeof(TabInfoType), tabInfoType))
                 return false;
 
+            bool belongsToTenant = await _context.Employees
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.Id == employeeId &&
+                    x.TenantId == tenantId &&
+                    x.IsSoftDeleted != true,
+                    ct);
+
+            if (!belongsToTenant)
+                return false;
+
             DateTime now = DateTime.UtcNow;
             int affected = 0;
+            bool effectiveIsEditAllowed = !isVerified && isEditAllowed;
 
             switch ((TabInfoType)tabInfoType)
             {
+                // ================= OVERVIEW =================
+                case TabInfoType.Employee:
+                    affected = await _context.Employees
+                        .Where(x =>
+                            x.Id == employeeId &&
+                            x.TenantId == tenantId &&
+                            x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, effectiveIsEditAllowed)
+                            .SetProperty(p => p.InfoVerifiedById, userId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now),
+                            ct);
+                    break;
+
                 // ================= EDUCATION =================
                 case TabInfoType.Education:
                     affected = await _context.EmployeeEducations
@@ -322,7 +381,7 @@ namespace axionpro.persistance.Repositories
                             x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
-                            .SetProperty(p => p.IsEditAllowed, isEditAllowed)
+                            .SetProperty(p => p.IsEditAllowed, effectiveIsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now),
                             ct);
@@ -336,7 +395,7 @@ namespace axionpro.persistance.Repositories
                             x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
-                            .SetProperty(p => p.IsEditAllowed, isEditAllowed)
+                            .SetProperty(p => p.IsEditAllowed, effectiveIsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now),
                             ct);
@@ -351,7 +410,49 @@ namespace axionpro.persistance.Repositories
                             x.IsSoftDeleted != true)
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.IsInfoVerified, isVerified)
-                            .SetProperty(p => p.IsEditAllowed, isEditAllowed)
+                            .SetProperty(p => p.IsEditAllowed, effectiveIsEditAllowed)
+                            .SetProperty(p => p.InfoVerifiedById, userId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now),
+                            ct);
+                    break;
+
+                // ================= CONTACT =================
+                case TabInfoType.Contact:
+                    affected = await _context.EmployeeContacts
+                        .Where(x =>
+                            x.EmployeeId == employeeId &&
+                            x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, effectiveIsEditAllowed)
+                            .SetProperty(p => p.InfoVerifiedById, userId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now),
+                            ct);
+                    break;
+
+                // ================= IDENTITY =================
+                case TabInfoType.Identity:
+                    affected = await _context.EmployeeIdentities
+                        .Where(x =>
+                            x.EmployeeId == employeeId &&
+                            x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, effectiveIsEditAllowed)
+                            .SetProperty(p => p.InfoVerifiedById, userId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now),
+                            ct);
+                    break;
+
+                // ================= DEPENDENT =================
+                case TabInfoType.Dependent:
+                    affected = await _context.EmployeeDependents
+                        .Where(x =>
+                            x.EmployeeId == employeeId &&
+                            x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, effectiveIsEditAllowed)
                             .SetProperty(p => p.InfoVerifiedById, userId)
                             .SetProperty(p => p.InfoVerifiedDateTime, now),
                             ct);
@@ -1653,12 +1754,156 @@ namespace axionpro.persistance.Repositories
                     })
                     .ToListAsync();
                 #endregion
-                //  Calculate completion %
-                var educationSection = eduList.CalculateEducationCompletionDTO();
-                 var bankSection = bankList.CalculateBankCompletionDTO();
-                 var contactSection = contactList.CalculateContactCompletionDTO();
+                #region Remaining Profile And Assignment Sections
 
-                return new List<CompletionSectionDTO> { educationSection, bankSection, contactSection };
+                var employee = await _context.Employees
+                    .AsNoTracking()
+                    .Where(x => x.Id == employeeId && x.IsSoftDeleted != true)
+                    .Select(x => new
+                    {
+                        x.FirstName,
+                        x.LastName,
+                        x.DateOfBirth,
+                        x.DateOfOnBoarding,
+                        x.DesignationId,
+                        x.DepartmentId,
+                        x.OfficialEmail,
+                        x.IsInfoVerified,
+                        x.IsEditAllowed
+                    })
+                    .SingleOrDefaultAsync();
+
+                var experienceRows = await _context.EmployeeExperienceDetails
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                    .Select(x => new
+                    {
+                        x.CompanyName,
+                        x.Designation,
+                        x.StartDate,
+                        x.EndDate,
+                        x.IsInfoVerified,
+                        x.IsEditAllowed
+                    })
+                    .ToListAsync();
+
+                var identityRows = await _context.EmployeeIdentities
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                    .Select(x => new
+                    {
+                        x.IdentityCategoryDocumentId,
+                        x.IdentityValue,
+                        x.HasIdentityUploaded,
+                        x.IsInfoVerified,
+                        x.IsEditAllowed
+                    })
+                    .ToListAsync();
+
+                var dependentRows = await _context.EmployeeDependents
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                    .Select(x => new
+                    {
+                        x.DependentName,
+                        x.Relation,
+                        x.DateOfBirth,
+                        x.HasProofUploaded,
+                        x.IsInfoVerified,
+                        x.IsEditAllowed
+                    })
+                    .ToListAsync();
+
+                bool hasInsurance = await _context.EmployeePolicyEnrollment
+                    .AsNoTracking()
+                    .AnyAsync(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
+                bool hasWorkLocation = await _context.EmployeeLocationAssignments
+                    .AsNoTracking()
+                    .AnyAsync(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
+                bool hasDevice = await _context.EmployeeDeviceEnrollments
+                    .AsNoTracking()
+                    .AnyAsync(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
+                bool hasWorkArrangement = await _context.EmployeeWorkArrangements
+                    .AsNoTracking()
+                    .AnyAsync(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
+                bool hasWorkPattern = await _context.EmployeeWorkPatterns
+                    .AsNoTracking()
+                    .AnyAsync(x =>
+                        x.EmployeeWorkArrangement.EmployeeId == employeeId &&
+                        x.IsSoftDeleted != true);
+                bool hasOverride = await _context.EmployeeWorkModeOverrideRequests
+                    .AsNoTracking()
+                    .AnyAsync(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
+
+                #endregion
+
+                // Existing Education, Bank and Contact formulas are intentionally preserved.
+                var educationSection = eduList.CalculateEducationCompletionDTO();
+                var bankSection = bankList.CalculateBankCompletionDTO();
+                var contactSection = contactList.CalculateContactCompletionDTO();
+
+                var overviewPercentages = employee == null
+                    ? Array.Empty<double>()
+                    : new[]
+                    {
+                        EmployeeProfileCompletionCalculator.CalculateRowPercentage(
+                            !string.IsNullOrWhiteSpace(employee.FirstName),
+                            !string.IsNullOrWhiteSpace(employee.LastName),
+                            employee.DateOfBirth.HasValue,
+                            employee.DateOfOnBoarding.HasValue,
+                            employee.DesignationId > 0,
+                            employee.DepartmentId > 0,
+                            !string.IsNullOrWhiteSpace(employee.OfficialEmail))
+                    };
+
+                var overviewSection = EmployeeProfileCompletionCalculator.CreateSection(
+                    "Overview",
+                    overviewPercentages,
+                    employee == null ? null : new bool?[] { employee.IsInfoVerified },
+                    employee == null ? null : new bool?[] { employee.IsEditAllowed });
+                var experienceSection = EmployeeProfileCompletionCalculator.CreateSection(
+                    "Experience",
+                    experienceRows.Select(x => EmployeeProfileCompletionCalculator.CalculateRowPercentage(
+                        !string.IsNullOrWhiteSpace(x.CompanyName),
+                        !string.IsNullOrWhiteSpace(x.Designation),
+                        x.StartDate.HasValue,
+                        x.EndDate.HasValue)).ToArray(),
+                    experienceRows.Select(x => x.IsInfoVerified).ToArray(),
+                    experienceRows.Select(x => x.IsEditAllowed).ToArray());
+                var identitySection = EmployeeProfileCompletionCalculator.CreateSection(
+                    "Identity",
+                    identityRows.Select(x => EmployeeProfileCompletionCalculator.CalculateRowPercentage(
+                        x.IdentityCategoryDocumentId > 0,
+                        !string.IsNullOrWhiteSpace(x.IdentityValue),
+                        x.HasIdentityUploaded)).ToArray(),
+                    identityRows.Select(x => (bool?)x.IsInfoVerified).ToArray(),
+                    identityRows.Select(x => (bool?)x.IsEditAllowed).ToArray());
+                var dependentSection = EmployeeProfileCompletionCalculator.CreateSection(
+                    "Dependent",
+                    dependentRows.Select(x => EmployeeProfileCompletionCalculator.CalculateRowPercentage(
+                        !string.IsNullOrWhiteSpace(x.DependentName),
+                        x.Relation > 0,
+                        x.DateOfBirth.HasValue,
+                        x.HasProofUploaded == true)).ToArray(),
+                    dependentRows.Select(x => x.IsInfoVerified).ToArray(),
+                    dependentRows.Select(x => x.IsEditAllowed).ToArray());
+
+                return new List<CompletionSectionDTO>
+                {
+                    overviewSection,
+                    bankSection,
+                    contactSection,
+                    experienceSection,
+                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Insurance", hasInsurance),
+                    identitySection,
+                    educationSection,
+                    dependentSection,
+                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Work Locations", hasWorkLocation),
+                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Devices", hasDevice),
+                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Work Arrangement", hasWorkArrangement),
+                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Work Pattern", hasWorkPattern),
+                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Overrides", hasOverride)
+                };
             }
             catch (Exception ex)
             {
@@ -1667,8 +1912,9 @@ namespace axionpro.persistance.Repositories
                     "Error in GetEmployeeCompletionAsync for EmployeeId: {EmployeeId}",
                     employeeId);
 
-                // Never throw — return empty list to avoid API crash
-                return new List<CompletionSectionDTO>();
+                // Central middleware reports database failures; an empty successful profile
+                // would incorrectly represent a failed lookup as zero completion.
+                throw;
             }
         }
 

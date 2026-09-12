@@ -21,6 +21,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
+
 #region Query
 
 
@@ -126,13 +128,19 @@ public class GetEmployeeProfileStatusQueryHandler
             // ===============================
             // 6️⃣ SUCCESS
             // ===============================
-            return ApiResponse<List<CompletionSectionDTO>>
+            var response = ApiResponse<List<CompletionSectionDTO>>
                 .Success(
                     result,
                     result.Any()
                         ? "Employee profile completion retrieved."
                         : "No profile completion data found."
                 );
+
+            response.CompletionPercentage = result.Count == 0
+                ? 0
+                : Math.Round(result.Average(section => section.CompletionPercent ?? 0), 0);
+
+            return response;
         }
         catch (Exception ex)
         {

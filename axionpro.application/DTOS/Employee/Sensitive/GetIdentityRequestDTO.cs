@@ -23,6 +23,10 @@ namespace axionpro.application.DTOS.Employee.Sensitive
     {
              
       
-        public required  int CountryNationalityId { get; set; }
+        /// <summary>Optional encoded target employee; omitted for self-service compatibility.</summary>
+        public string? EmployeeId { get; set; }
+
+        /// <summary>Legacy client hint. The persisted employee country controls document eligibility.</summary>
+        public required int CountryNationalityId { get; set; }
     }
 }

@@ -316,6 +316,27 @@ namespace axionpro.persistance.Repositories
             return true; // SaveChanges UnitOfWork karega
         }
 
+        /// <inheritdoc />
+        public async Task<bool> IsDocumentAllowedAsync(
+            long employeeId,
+            long tenantId,
+            int documentId,
+            CancellationToken cancellationToken)
+        {
+            return await (
+                from employee in _context.Employees
+                join rule in _context.CountryIdentityRules on employee.CountryId equals rule.CountryId
+                where employee.Id == employeeId &&
+                      employee.TenantId == tenantId &&
+                      !employee.IsSoftDeleted &&
+                      rule.IdentityCategoryDocumentId == documentId &&
+                      rule.IsActive &&
+                      rule.IdentityCategoryDocument.IsActive &&
+                      rule.IdentityCategoryDocument.IdentityCategory.IsActive
+                select rule.Id
+            ).AnyAsync(cancellationToken);
+        }
+
     }
 
 

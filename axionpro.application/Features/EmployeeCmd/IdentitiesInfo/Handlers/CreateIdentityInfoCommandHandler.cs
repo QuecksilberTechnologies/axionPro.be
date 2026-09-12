@@ -109,6 +109,26 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                         throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
                     }
 
+                    if (string.IsNullOrWhiteSpace(identity.IdentityValue) || identity.IdentityValue.Length > 100)
+                    {
+                        throw new ValidationErrorException("Identity value must contain between 1 and 100 characters.");
+                    }
+
+                    if (!await _unitOfWork.EmployeeIdentityRepository.IsDocumentAllowedAsync(
+                            employeeId,
+                            validation.TenantId,
+                            identity.IdentityCategoryDocumentId,
+                            cancellationToken))
+                    {
+                        throw new ValidationErrorException("Identity document is not configured for this employee's country.");
+                    }
+
+                    var effectiveFrom = identity.EffectiveFrom ?? DateOnly.FromDateTime(DateTime.UtcNow);
+                    if (identity.EffectiveTo.HasValue && identity.EffectiveTo.Value < effectiveFrom)
+                    {
+                        throw new ValidationErrorException("Identity expiry cannot precede its effective date.");
+                    }
+
                     string? documentPath = null;
                     string? documentName = null;
 
@@ -166,8 +186,8 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                         DocumentFileName = documentName,
                         DocumentFilePath = documentPath,
 
-                        EffectiveFrom = identity.EffectiveFrom ?? DateOnly.FromDateTime(DateTime.UtcNow),
-                        EffectiveTo = identity.EffectiveTo ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                        EffectiveFrom = effectiveFrom,
+                        EffectiveTo = identity.EffectiveTo,
 
                         HasIdentityUploaded = documentPath != null,
                         IsEditAllowed = true,

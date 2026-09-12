@@ -9,6 +9,7 @@ using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Exceptions;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -122,6 +123,10 @@ public class UpdateBaseEmployeeCommandHandler : IRequestHandler<UpdateEmployeeCo
 
                 if (employee == null)
                     throw new ApiException("Employee not found.", 404);
+
+                if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin &&
+                    (employee.IsInfoVerified || !employee.IsEditAllowed))
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
 
                 // ===============================
                 // 5️⃣ START TRANSACTION

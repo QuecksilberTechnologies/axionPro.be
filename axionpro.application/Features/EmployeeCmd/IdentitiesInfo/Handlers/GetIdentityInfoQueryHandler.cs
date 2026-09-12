@@ -79,19 +79,39 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                 // ===============================
                 // 3️⃣ DECODE EMPLOYEE ID
                 // ===============================
-                var employeeId = validation.UserEmployeeId;
+                var employeeId = string.IsNullOrWhiteSpace(request.DTO.EmployeeId)
+                    ? validation.LoggedInEmployeeId
+                    : RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
 
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
+
+                if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                        validation,
+                        employeeId,
+                        EmployeeDataAccessRequirement.PersonalDetails,
+                        cancellationToken))
+                {
+                    throw new ForbiddenAccessException("Employee identity access denied.");
+                }
+
+                var employee = await _unitOfWork.Employees.GetByIdAsync(
+                    employeeId,
+                    validation.TenantId,
+                    track: false)
+                    ?? throw new NotFoundException("Employee not found.");
                 // 5️⃣ FETCH DATA
                 // ===============================
                 var spRecords =
                     await _unitOfWork.StoreProcedureRepository
                         .GetIdentityRecordAsync(
                             employeeId,
-                            request.DTO.CountryNationalityId,
+                            employee.CountryId,
                             true);
 
                 // ===============================

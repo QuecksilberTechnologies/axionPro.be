@@ -117,6 +117,14 @@ public class UpdateEducationInfoCommandHandler : IRequestHandler<UpdateEducation
                 if (existing == null)
                     throw new ApiException("Education record not found.", 404);
 
+                if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                        validation, existing.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken))
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
+                if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin &&
+                    (existing.IsInfoVerified == true || existing.IsEditAllowed != true))
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
                 // ===============================
                 // 5️⃣ START TRANSACTION
                 // ===============================

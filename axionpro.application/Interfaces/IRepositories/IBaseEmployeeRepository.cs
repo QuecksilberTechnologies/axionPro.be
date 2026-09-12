@@ -30,6 +30,12 @@ public interface IBaseEmployeeRepository
 {
     #region Employee-Base-info
 
+    /// <summary>Returns false until the tenant explicitly allows operational self-service.</summary>
+    Task<bool> IsOperationalSectionEditAllowedAsync(long tenantId, string moduleCode, CancellationToken ct);
+
+    /// <summary>Persists a tenant-wide operational self-service default.</summary>
+    Task SetOperationalSectionDefaultAsync(long tenantId, string moduleCode, bool isEditAllowed, long actorId, CancellationToken ct);
+
     Task<bool> UpdateSectionVerifyStatusAsync(
         int sectionName,
         long employeeId,

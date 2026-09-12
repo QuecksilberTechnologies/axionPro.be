@@ -82,6 +82,9 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 if (existing.EmployeeId != validation.UserEmployeeId)
                     throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
 
+                if (existing.IsInfoVerified == true || existing.IsEditAllowed != true)
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
                 // ===============================
                 // 6️⃣ SOFT DELETE
                 // ===============================

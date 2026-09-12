@@ -131,6 +131,19 @@ public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiRe
                 if (bank == null)
                     throw new ApiException("Bank record not found.", 404);
 
+                if (bank.EmployeeId != employeeId ||
+                    !await _commonRequestService.CanAccessEmployeeDataAsync(
+                        validation, bank.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken))
+                {
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+                }
+
+                if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin &&
+                    (bank.IsInfoVerified || !bank.IsEditAllowed))
+                {
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+                }
+
                 var dto = request.DTO;
 
                 // ===============================

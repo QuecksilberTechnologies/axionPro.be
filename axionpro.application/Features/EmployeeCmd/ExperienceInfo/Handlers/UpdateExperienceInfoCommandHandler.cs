@@ -9,6 +9,7 @@ using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.Exceptions;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -103,6 +104,14 @@ public class UpdateExperienceInfoCommandHandler
 
                 if (existing == null)
                     throw new ApiException("Experience not found", 404);
+
+                if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                        validation, existing.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken))
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
+                if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin &&
+                    (existing.IsInfoVerified == true || existing.IsEditAllowed != true))
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
 
                 // ===============================
                 // 4️⃣ START TRANSACTION

@@ -6,6 +6,9 @@
 // ================================================================
 
 using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Enums;
+using axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler;
+using axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.Exceptions;
@@ -65,6 +68,26 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
         }
 
         var expectedModuleCode = ResolveExpectedModuleCode();
+        int? statusTab = request switch
+        {
+            UpdateEditableStatusCommand edit => edit.DTO.TabInfoType,
+            UpdateVerificationStatusCommand verify => verify.DTO.TabInfoType,
+            _ => null
+        };
+        if (statusTab.HasValue)
+        {
+            expectedModuleCode = (TabInfoType)statusTab.Value switch
+            {
+                TabInfoType.Employee => "EMP_OVERVIEW",
+                TabInfoType.Bank => "EMP_BANK",
+                TabInfoType.Contact => "EMP_CONTACT",
+                TabInfoType.Experience => "EMP_EXPERIENCE",
+                TabInfoType.Identity => "EMP_IDENTITY",
+                TabInfoType.Education => "EMP_EDUCATION",
+                TabInfoType.Dependent => "EMP_DEPENDENTS",
+                _ => null
+            };
+        }
         if (string.IsNullOrWhiteSpace(expectedModuleCode))
         {
             logger.LogWarning(
@@ -112,6 +135,17 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
                 cancellationToken);
 
         TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
+
+        // Operational defaults constrain employee self-service, including record-id commands.
+        // Existing role/action and target-ownership checks remain mandatory.
+        if (validation.RoleTypeId == ConstantValues.RoleTypeEmployee &&
+            EmployeeOperationalSections.ModuleCodes.Contains(expectedModuleCode) &&
+            typeof(TRequest).Name.EndsWith("Command", StringComparison.Ordinal) &&
+            !await unitOfWork.Employees.IsOperationalSectionEditAllowedAsync(
+                tenantId, expectedModuleCode, cancellationToken))
+        {
+            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+        }
 
         await EnsureEmployeeTargetAccessAsync(
             request,
@@ -305,6 +339,8 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
             "DeleteEmployeeQuery" or
             "ActivateAllEmployeeQuery" or
             "UpdateSectionBulkCommand" => "EMP_LIST",
+
+            "UpdateEmployeeSectionDefaultsCommand" => "EMP_LIST",
 
             "GetBaseEmployeeInfoQuery" or
             "UpdateEmployeeCommand" or

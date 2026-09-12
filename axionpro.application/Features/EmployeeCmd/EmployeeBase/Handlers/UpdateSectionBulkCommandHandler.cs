@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.Common.Enums;
+using axionpro.application.Constants;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Exceptions;
@@ -89,6 +90,9 @@ public class UpdateSectionBulkCommandHandler
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+                if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin)
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
                 // ===============================
                 // 2️⃣ NULL SAFETY
                 // ===============================
@@ -112,6 +116,16 @@ public class UpdateSectionBulkCommandHandler
                 // ===============================
                 if (request.DTO.Sections == null || !request.DTO.Sections.Any())
                     throw new ValidationErrorException("No section selected.");
+
+                if (request.DTO.Sections.Any(section =>
+                        !Enum.IsDefined(typeof(TabInfoType), section.TabInfoType) ||
+                        section.TabInfoType == (int)TabInfoType.Insurance))
+                    throw new ValidationErrorException("Unsupported verification section.");
+
+                if (request.DTO.Sections.Select(section => section.TabInfoType).Distinct().Count() != request.DTO.Sections.Count)
+                    throw new ValidationErrorException("A section may only appear once.");
+
+                await _unitOfWork.BeginTransactionAsync();
                 // 6️⃣ LOOP (OPTIMIZED)
                 // ===============================
                 foreach (var section in request.DTO.Sections)
@@ -145,8 +159,11 @@ public class UpdateSectionBulkCommandHandler
                             section.TabInfoType,
                             employeeId
                         );
+                        throw new ValidationErrorException("A selected section has no editable records or does not belong to this tenant.");
                     }
                 }
+
+                await _unitOfWork.CommitTransactionAsync();
 
                 _logger.LogInformation("UpdateSectionBulk success");
 
@@ -159,6 +176,7 @@ public class UpdateSectionBulkCommandHandler
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 _logger.LogError(ex, "UpdateSectionBulk failed");
 
                 throw; //  MUST

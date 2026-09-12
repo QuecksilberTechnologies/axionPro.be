@@ -365,6 +365,34 @@ namespace axionpro.persistance.Data.Context
 
       protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        #region Compliance Mapping
+
+        modelBuilder.Entity<TenantEmployeeSectionDefault>(entity =>
+        {
+            entity.ToTable("TenantEmployeeSectionDefault", "axionpro");
+            entity.HasKey(item => new { item.TenantId, item.ModuleCode });
+            entity.Property(item => item.ModuleCode).HasMaxLength(64);
+        });
+
+        modelBuilder.Entity<ComplianceTypeMaster>(entity =>
+        {
+            entity.ToTable("ComplianceTypeMaster", "axionpro");
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<ComplianceRule>(entity =>
+        {
+            entity.ToTable("ComplianceRule", "axionpro");
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.RuleJson).HasColumnType("jsonb");
+            entity.HasOne(item => item.ComplianceType)
+                .WithMany(item => item.ComplianceRule)
+                .HasForeignKey(item => item.ComplianceTypeId);
+        });
+
+        #endregion
+
         modelBuilder.Entity<BulkImportJob>(entity =>
         {
             entity.ToTable("BulkImportJob", "axionpro");

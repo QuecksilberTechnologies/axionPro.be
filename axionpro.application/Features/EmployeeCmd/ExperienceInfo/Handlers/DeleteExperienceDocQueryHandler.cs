@@ -99,6 +99,11 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 // 4️⃣ ALREADY DELETED CHECK
                 // ===============================
+                if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin &&
+                    (existing.EmployeeExperience.IsInfoVerified == true ||
+                     existing.EmployeeExperience.IsEditAllowed != true))
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
                 if (existing.IsSoftDeleted)
                 {
                     _logger.LogWarning("⚠️ Already deleted | Id: {Id}", request.DTO.Id);

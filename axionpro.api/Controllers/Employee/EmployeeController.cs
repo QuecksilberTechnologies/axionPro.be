@@ -32,6 +32,17 @@ namespace axionpro.api.Controllers.Employee
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;
 
+        /// <summary>Sets edit defaults for Work Locations, Devices, Work Arrangement, Work Pattern and Overrides.</summary>
+        /// <remarks>Requires tenant Admin plus existing EMP_LIST action permission. Applies to current and future employees.</remarks>
+        [Authorize]
+        [HttpPost("section-defaults")]
+        public async Task<IActionResult> UpdateSectionDefaults(
+            [FromBody] UpdateEmployeeSectionDefaultsRequestDTO dto,
+            CancellationToken cancellationToken)
+        {
+            return Ok(await _mediator.Send(new UpdateEmployeeSectionDefaultsCommand(dto), cancellationToken));
+        }
+
         public EmployeeController(IMediator mediator, ILoggerService logger)
         {
             _mediator = mediator;

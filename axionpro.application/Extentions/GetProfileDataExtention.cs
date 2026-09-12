@@ -41,7 +41,7 @@ namespace axionpro.application.Extentions
                 SectionName = "Education",
                 CompletionPercent = finalPercent,
                 IsInfoVerified = first.IsInfoVerified,
-                IsEditAllowed = first.IsEditAllowed,
+                IsEditAllowed = first.IsInfoVerified == true ? false : first.IsEditAllowed,
                 IsSectionCreate = true
             };
         }
@@ -79,7 +79,7 @@ namespace axionpro.application.Extentions
                 SectionName = "Education",
                 CompletionPercent = Math.Round(totalPercent / items.Count()),
                 IsInfoVerified = first.IsInfoVerified,
-                IsEditAllowed = first.IsEditAllowed,
+                IsEditAllowed = first.IsInfoVerified == true ? false : first.IsEditAllowed,
                 IsSectionCreate = true
             };
         }
@@ -145,7 +145,7 @@ namespace axionpro.application.Extentions
                 IsInfoVerified = items.All(x => x.IsInfoVerified == true),
 
                 // ✅ Editable if ANY row editable
-                IsEditAllowed = items.Any(x => x.IsEditAllowed == true),
+                IsEditAllowed = items.Any(x => x.IsEditAllowed == true && x.IsInfoVerified != true),
 
                 IsSectionCreate = true
             };
@@ -199,7 +199,7 @@ namespace axionpro.application.Extentions
                 IsInfoVerified = items.All(x => x.IsInfoVerified == true),
 
                 // ✅ Editable if ANY row editable
-                IsEditAllowed = items.Any(x => x.IsEditAllowed == true),
+                IsEditAllowed = items.Any(x => x.IsEditAllowed == true && x.IsInfoVerified != true),
 
                 IsSectionCreate = true
             };

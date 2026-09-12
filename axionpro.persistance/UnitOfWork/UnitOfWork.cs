@@ -496,7 +496,10 @@ public class UnitOfWork : IUnitOfWork
 
     #endregion
 
-    public ICompilanceRuleRepository CompilanceRuleRepository => throw new NotImplementedException();
+    public ICompilanceRuleRepository CompilanceRuleRepository =>
+        _compilanceRuleRepository ??= new axionpro.infrastructure.Repositories.CompilanceRuleRepository(
+            _context,
+            _loggerFactory.CreateLogger<axionpro.infrastructure.Repositories.CompilanceRuleRepository>());
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

@@ -3,6 +3,7 @@ using axionpro.application.Exceptions;
 using axionpro.application.Features.ComplianceCmd;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Constants;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -17,8 +18,8 @@ namespace axionpro.application.Features.ComplianceCmd
         public required UpdateComplianceRuleRequestDTO DTO { get; set; }
     }
 }
-    //public class UpdateComplianceRuleCommandHandler: IRequestHandler<UpdateComplianceRuleCommand, ApiResponse<UpdateComplianceRuleReponseDTO>>
-    //{
+    public class UpdateComplianceRuleCommandHandler: IRequestHandler<UpdateComplianceRuleCommand, ApiResponse<UpdateComplianceRuleReponseDTO>>
+    {
     //    private readonly IUnitOfWork _unitOfWork;
     //    private readonly ILogger<UpdateComplianceRuleCommandHandler> _logger;
     //    private readonly ICommonRequestService _commonRequestService;
@@ -93,5 +94,52 @@ namespace axionpro.application.Features.ComplianceCmd
     //            throw;
     //        }
     //    }
-    //}
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<UpdateComplianceRuleCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+
+        public UpdateComplianceRuleCommandHandler(IUnitOfWork unitOfWork, ILogger<UpdateComplianceRuleCommandHandler> logger, ICommonRequestService commonRequestService)
+        {
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _commonRequestService = commonRequestService;
+        }
+
+        public async Task<ApiResponse<UpdateComplianceRuleReponseDTO>> Handle(UpdateComplianceRuleCommand request, CancellationToken cancellationToken)
+        {
+            var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
+            if (!validation.Success) throw new UnauthorizedAccessException(validation.ErrorMessage);
+            if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin)
+                throw new UnauthorizedAccessException("Only tenant administrators can update compliance rules");
+            if (request?.DTO == null || request.DTO.Id <= 0) throw new ValidationErrorException("Invalid compliance rule request");
+            if (request.DTO.EffectiveTo.HasValue && request.DTO.EffectiveFrom > request.DTO.EffectiveTo.Value)
+                throw new ValidationErrorException("EffectiveFrom cannot be greater than EffectiveTo");
+
+            var entity = await _unitOfWork.CompilanceRuleRepository.GetByIdAsync(request.DTO.Id);
+            if (entity == null || (entity.TenantId.HasValue && entity.TenantId != validation.TenantId))
+                throw new NotFoundException("Compliance rule not found");
+
+            entity.ComplianceTypeId = request.DTO.ComplianceTypeId;
+            entity.CountryId = request.DTO.CountryId;
+            entity.StateId = request.DTO.StateId;
+            entity.RuleJson = System.Text.Json.JsonSerializer.Serialize(request.DTO.RuleJson);
+            entity.Priority = request.DTO.Priority;
+            entity.EffectiveFrom = request.DTO.EffectiveFrom;
+            entity.EffectiveTo = request.DTO.EffectiveTo;
+            entity.IsActive = request.DTO.IsActive;
+            entity.UpdatedById = validation.LoggedInEmployeeId;
+            entity.UpdatedDateTime = DateTime.UtcNow;
+
+            await _unitOfWork.CompilanceRuleRepository.UpdateAsync(entity);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return ApiResponse<UpdateComplianceRuleReponseDTO>.Success(new UpdateComplianceRuleReponseDTO
+            {
+                Id = entity.Id, ComplianceTypeId = entity.ComplianceTypeId, CountryId = entity.CountryId,
+                StateId = entity.StateId, RuleJson = entity.RuleJson, Priority = entity.Priority ?? 0,
+                TenantId = entity.TenantId, EffectiveFrom = entity.EffectiveFrom, EffectiveTo = entity.EffectiveTo,
+                IsActive = entity.IsActive
+            }, "Compliance rule updated successfully");
+        }
+    }
 

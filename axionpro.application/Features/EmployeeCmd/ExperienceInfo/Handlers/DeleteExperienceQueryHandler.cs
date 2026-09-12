@@ -93,6 +93,9 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 // 5️⃣ ALREADY DELETED CHECK 🔥
                 // ===============================
+                if (existing.IsInfoVerified == true || existing.IsEditAllowed != true)
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
                 if (existing.IsSoftDeleted  )
                 {
                     _logger.LogWarning("⚠️ DeleteExperience skipped | Already deleted | Id: {Id}", request.DTO.Id);
