@@ -81,6 +81,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
+            if (request.DTO.IpAddress?.Length > 50)
+            {
+                throw new ValidationErrorException("IpAddress must not exceed 50 characters.");
+            }
+
             var oldToken = await _refreshTokenRepository.GetByHashedTokenAsync(
                 HashHelper.Sha256(request.DTO.RefreshToken));
             if (oldToken == null || oldToken.IsRevoked == true || oldToken.ExpiryDate <= DateTime.UtcNow)
@@ -256,8 +261,12 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
-                await _refreshTokenRepository.UpdateReplacedByTokenAsync(oldToken.Id, hash);
-                await _refreshTokenRepository.RevokeAsync(oldToken.Id, ipAddress);
+                var claimed = await _refreshTokenRepository.TryClaimForRotationAsync(
+                    oldToken.Id, hash, ipAddress, DateTime.UtcNow, cancellationToken);
+                if (!claimed)
+                {
+                    throw new UnauthorizedAccessException("Refresh token expired or already consumed.");
+                }
                 var inserted = await _refreshTokenRepository.InsertAsync(new RefreshToken
                 {
                     LoginId = oldToken.LoginId,

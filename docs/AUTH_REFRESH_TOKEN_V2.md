@@ -1,7 +1,7 @@
 # Refresh API V2 — opt-in migration record
 
-> **CURRENT STATUS: WIP — extended testing found a reproducible concurrency defect (2026-09-13).**
-> Normal persistence/rotation works, but simultaneous requests using one token both succeed for Host and Tenant. Two failing regression tests are retained. Do not treat the earlier 20-case pass as complete acceptance. Legacy API remains untouched.
+> **CURRENT STATUS: V2 fixes COMPLETE locally; 35/35 regression cases PASS; Release publish build PASS.**
+> V2 uses an atomic database claim and rejects oversized IP input before database access. Historical failures below are retained as evidence, not current acceptance results. Legacy endpoint/handler and legacy rotation methods remain unchanged.
 
 ## User-approved decision — 2026-09-13
 
@@ -27,7 +27,7 @@ Body (same request DTO as legacy):
 }
 ```
 
-`refreshToken` is required and must be nonblank. `ipAddress` is optional and follows the existing storage policy. ModuleId, OperationId and a valid access JWT are not required: refresh-token ownership authenticates this operation. Never put real tokens in documentation/logs.
+`refreshToken` is required and must be nonblank. `ipAddress` is optional, maximum 50 characters (matching existing storage); larger input gets HTTP 400 before any DB access. ModuleId, OperationId and a valid access JWT are not required: refresh-token ownership authenticates this operation. Never put real tokens in documentation/logs.
 
 Successful response, showing relevant envelope fields:
 
@@ -69,13 +69,14 @@ Legacy failure semantics retained: blank input uses centralized validation (400)
 
 ## Limits and acceptance gates
 
-- Existing transaction/repository rotation writes are reused. This change does not claim to resolve simultaneous cross-tab/cross-client refresh races; the legacy read-then-write rotation does not provide an atomic single-winner claim. No shared persistence changes were made because legacy behaviour must remain untouched.
-- Existing IP storage limits/policy are unchanged.
+- V2 calls the new additive repository method `TryClaimForRotationAsync` inside the replacement transaction. One conditional PostgreSQL update claims only an unrevoked/unexpired row; a concurrent loser gets 401, and failed replacement persistence rolls back the claim. No schema migration is needed. Existing legacy methods are unchanged.
+- Concurrent V2 requests are covered by the fix. **Do not send the same token concurrently to old and new endpoints**: the old route deliberately retains its previous rotation algorithm. Sequential switching with the latest replacement token is supported.
+- Existing IP storage width remains unchanged; V2 validates that width before database access. It does not introduce a new IP parsing/proxy trust policy.
 - No cache of subscription/role eligibility was introduced.
 - Reduced data/query work is expected to help, but no production millisecond guarantee. Measure warm/cold latency and p50/p95 after deployment.
 - Old API removal: **PENDING explicit UI acceptance + user approval**.
 - UI migration, deployment and production latency measurement: **PENDING**.
-- Local implementation/build/basic tests completed; **extended acceptance WIP** due to the concurrency failures below. This is not production or UI acceptance.
+- Local V2 fixes and final regressions COMPLETE (35/35 PASS). This is not deployed/UI acceptance.
 
 ## Local validation evidence — 2026-09-13
 
@@ -110,3 +111,17 @@ Read this file first. Preserve legacy. Check branch/status before editing. Recor
 Table: `axionpro."RefreshToken"` (EF property name is `RefreshTokens`). A successful rotation inserts the SHA-256 hash of the new opaque refresh token, owner type + immutable owner FK, LoginId, creation time, 7-day expiry and optional IP. The consumed row is retained, marked revoked, timestamped and linked to the replacement hash. The raw refresh token is returned to the client; it is not stored as plaintext. The access JWT is returned and is not stored by this refresh flow. Response refresh expiry equals the persisted expiry; access expiry equals the issued JWT expiration.
 
 No production DB was touched or verified in these local tests. The request/response examples above use placeholders deliberately.
+
+## Final V2 correction validation — 2026-09-13
+
+Both reported V2 defects are fixed. The final run has **35 PASS, 0 FAIL, 0 skipped**: 25 unit cases, 8 V2 PostgreSQL/loopback HTTP cases, and 2 legacy regression cases. Affected tests were rerun because the rotation implementation changed; unrelated project suites were not repeated.
+
+- Host and Tenant simultaneous-request tests now pass with exactly one successful refresh; the other request receives the unauthorized exception mapped to 401.
+- PostgreSQL claim rollback verified when replacement insertion is rejected: original token remains unrevoked, with no replacement hash.
+- Oversized IP (51/200 characters) rejects before database access; HTTP 51-character request returns 400 and a subsequent 50-character request with the same token succeeds. Optional IP and existing proxy-chain input continue to work.
+- Normal persistence, JWT/DB expiry agreement, hashed storage, owner retention, invalid/reused tokens, Tenant eligibility failures and sequential old/V2 interoperability pass.
+- Legacy endpoint/handler/DTO and existing repository methods remain unchanged. New repository method is called only by V2; no migration.
+- Test command: `dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter 'TestCategory=RefreshV2|TestCategory=RefreshV2Database|TestCategory=RefreshDatabase'` with the isolated local connection environment variable.
+- Evidence: `artifacts/refresh-v2-fixed-tests.log`. Earlier failure evidence is historical and superseded by this run.
+- Release publish: PASS (exit 0). Command: `dotnet publish axionpro.api/axionpro.api.csproj -c Release --no-restore -o artifacts/refresh-v2-release`. Output: `artifacts/refresh-v2-release/`; evidence: `artifacts/refresh-v2-release.log`. Existing project warnings remain. This is a local publish output, not a server deployment.
+- Publish only the intended branch `codex/lightweight-refresh-api`. UI must explicitly opt in and exclude V2 from refresh/module-operation interceptor recursion. Production deployment, deployed smoke verification and UI acceptance remain pending; do not retire legacy.

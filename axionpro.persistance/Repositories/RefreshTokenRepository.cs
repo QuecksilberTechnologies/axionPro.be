@@ -125,6 +125,30 @@ namespace axionpro.persistance.Repositories
 
         #endregion
 
+        #region V2 Atomic Rotation Claim
+
+        /// <inheritdoc />
+        public async Task<bool> TryClaimForRotationAsync(
+            long refreshTokenId, string replacementHash, string? ipAddress,
+            DateTime now, CancellationToken cancellationToken = default)
+        {
+            if (_context.Database.CurrentTransaction == null)
+            {
+                throw new InvalidOperationException("Refresh rotation requires an active transaction.");
+            }
+
+            var affected = await _context.RefreshTokens
+                .Where(token => token.Id == refreshTokenId && token.IsRevoked != true && token.ExpiryDate > now)
+                .ExecuteUpdateAsync(update => update
+                    .SetProperty(token => token.IsRevoked, true)
+                    .SetProperty(token => token.RevokedAt, now)
+                    .SetProperty(token => token.RevokedByIp, ipAddress)
+                    .SetProperty(token => token.ReplacedByToken, replacementHash), cancellationToken);
+            return affected == 1;
+        }
+
+        #endregion
+
         #region Owner Validation
 
         /// <summary>

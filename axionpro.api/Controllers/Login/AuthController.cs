@@ -85,10 +85,11 @@ namespace axionpro.api.Controllers.Login
 
         /// <summary>Opt-in token-only refresh for Host and Tenant sessions; legacy refresh-token remains supported.</summary>
         /// <remarks>
-        /// POST /api/Auth/refresh-token-v2. Required: refreshToken; optional: ipAddress.
+        /// POST /api/Auth/refresh-token-v2. Required: refreshToken; optional: ipAddress (maximum 50 characters).
         /// Returns ApiResponse containing token, refreshToken, tokenExpiry and refreshTokenExpiresAtUtc.
         /// Does not return profiles, menus or permission lists. No ModuleId/OperationId is required.
         /// UI must opt in and check isSucceeded before saving tokens. See docs/AUTH_REFRESH_TOKEN_V2.md.
+        /// Invalid/consumed tokens return 401; oversized IP input returns 400. Concurrent V2 rotation has one winner.
         /// Do not retire the legacy route until explicit UI acceptance and user approval.
         /// </remarks>
         [AllowAnonymous]

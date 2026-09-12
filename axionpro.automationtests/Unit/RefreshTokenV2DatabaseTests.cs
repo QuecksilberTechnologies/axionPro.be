@@ -124,12 +124,20 @@ public sealed class RefreshTokenV2DatabaseTests
             var handler = scope.ServiceProvider.GetRequiredService<RefreshTokenV2CommandHandler>();
             if (scenario == "write-failure")
             {
-                // Real varchar(50) constraint failure after recording the replacement hash.
-                Assert.ThrowsAsync<DbUpdateException>(async () => await handler.Handle(
+                // Force replacement rejection after the real PostgreSQL conditional claim.
+                var service = scope.ServiceProvider;
+                var real = service.GetRequiredService<IRefreshTokenRepository>();
+                var failing = DispatchProxy.Create<IRefreshTokenRepository, BulkImportPermissionTests.TestProxy>();
+                ((BulkImportPermissionTests.TestProxy)(object)failing).InvokeMethod = (method, args) =>
+                    method.Name == "InsertAsync" ? Task.FromResult(false) : method.Invoke(real, args);
+                handler = new RefreshTokenV2CommandHandler(service.GetRequiredService<IUnitOfWork>(),
+                    service.GetRequiredService<ITokenService>(), failing, service.GetRequiredService<IIdEncoderService>(),
+                    service.GetRequiredService<ILogger<RefreshTokenV2CommandHandler>>());
+                Assert.ThrowsAsync<InvalidOperationException>(async () => await handler.Handle(
                     new RefreshTokenV2Command(new RefreshTokenRequestDTO
                     {
                         RefreshToken = raw,
-                        IpAddress = new string('1', 51)
+                        IpAddress = "127.0.0.1"
                     }), default));
                 var original = await db.RefreshTokens.AsNoTracking().SingleAsync(x => x.Id == token.Id);
                 Assert.That(original.IsRevoked, Is.False);
@@ -275,6 +283,12 @@ public sealed class RefreshTokenV2DatabaseTests
         using var blank = await client.PostAsJsonAsync("/api/Auth/refresh-token-v2",
             new RefreshTokenRequestDTO { RefreshToken = " " });
         Assert.That(blank.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        using var oversized = await client.PostAsJsonAsync("/api/Auth/refresh-token-v2",
+            new RefreshTokenRequestDTO { RefreshToken = refreshToken, IpAddress = new string('1', 51) });
+        Assert.That(oversized.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        using var boundary = await client.PostAsJsonAsync("/api/Auth/refresh-token-v2",
+            new RefreshTokenRequestDTO { RefreshToken = refreshToken, IpAddress = new string('1', 50) });
+        Assert.That(boundary.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         await app.StopAsync();
     }
 

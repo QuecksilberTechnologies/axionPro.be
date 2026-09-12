@@ -113,8 +113,7 @@ public class RefreshTokenV2Tests
             switch (method.Name)
             {
                 case "GetByHashedTokenAsync": return Task.FromResult<RefreshToken?>(HostToken());
-                case "UpdateReplacedByTokenAsync":
-                case "RevokeAsync": return Task.CompletedTask;
+                case "TryClaimForRotationAsync": return Task.FromResult(true);
                 case "InsertAsync":
                     inserted = (RefreshToken)args![0]!;
                     return Task.FromResult(insertionSucceeds);
@@ -149,6 +148,19 @@ public class RefreshTokenV2Tests
     #endregion
 
     #region Tenant Failure Coverage
+
+    [TestCase(51)]
+    [TestCase(200)]
+    public void Oversized_ip_rejected_before_database_access(int length)
+    {
+        var handler = Handler(Unexpected<IUnitOfWork>(), Unexpected<IRefreshTokenRepository>(), Unexpected<ITokenService>());
+        Assert.ThrowsAsync<ValidationErrorException>(async () => await handler.Handle(
+            new RefreshTokenV2Command(new RefreshTokenRequestDTO
+            {
+                RefreshToken = "fixture",
+                IpAddress = new string('1', length)
+            }), default));
+    }
 
     [TestCase("missing-credential")]
     [TestCase("changed-login")]

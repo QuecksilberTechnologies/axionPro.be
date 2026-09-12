@@ -45,6 +45,10 @@ namespace axionpro.application.Interfaces.ITokenService
         /// <param name="replacedByHashedToken">The hash of the replacement token.</param>
         Task UpdateReplacedByTokenAsync(long refreshTokenId, string replacedByHashedToken);
 
+        /// <summary>V2 only: atomically claims an unrevoked, unexpired token inside the caller's replacement transaction.</summary>
+        Task<bool> TryClaimForRotationAsync(long refreshTokenId, string replacementHash, string? ipAddress,
+            DateTime now, CancellationToken cancellationToken = default);
+
         #endregion
     }
 }
