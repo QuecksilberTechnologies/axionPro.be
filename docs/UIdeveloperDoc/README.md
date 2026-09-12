@@ -4,6 +4,8 @@
   Host Admin catalogue bulk screens, API lifecycle, Excel contracts and UI examples.
 - [Host Card and Device Bulk Upload](../bulk-upload/HOST_CARD_DEVICE_IMPORT.md)
 - [Tenant and Employee Bulk API Scenarios](../bulk-upload/BULK_API_SCENARIOS.md)
+- [Tenant Device Permission Contract](TENANT_DEVICE_PERMISSION_CONTRACT.md) — exact
+  menu-operation mapping and screen-load API sequence.
 
 Treat Module `PageName` and Operation `OperationName` as immutable identities during
 seed and catalogue integration. Resolve permission IDs dynamically from the

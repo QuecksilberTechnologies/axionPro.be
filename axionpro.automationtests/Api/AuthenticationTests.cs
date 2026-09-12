@@ -72,6 +72,7 @@ public sealed class AuthenticationTests : ApiTestBase
             ["TENANT_DEVICE_CONFIG"] = m => $"/api/TenantDeviceConfiguration/get-all?PageNumber=1&PageSize=10&ModuleId={Property(m,"id")}&OperationId={ViewOperation(m)}",
             ["TENANT_DEVICES"] = m => $"/api/TenantDevice/get-all?PageNumber=1&PageSize=10&ModuleId={Property(m,"id")}&OperationId={ViewOperation(m)}",
             ["HOST_TENANT_LIST"] = m => $"/api/Tenant/get-all-tenants?PageNumber=1&PageSize=10&ModuleId={Property(m,"id")}&OperationId={ViewOperation(m)}",
+            ["HOST_TENANT_LOCATION_LIST"] = m => $"/api/TenantLocation/get-all?IsActive=true&PageNumber=1&PageSize=500&TenantId={tenantKey}&ModuleId={Property(m,"id")}&OperationId={ViewOperation(m)}",
             ["HOST_USERS"] = m => $"/api/Host/get-all-host-users?PageNumber=1&PageSize=10&ModuleId={Property(m,"id")}&OperationId={ViewOperation(m)}",
             ["HOST_ROLES"] = m => $"/api/Host/get-all-host-roles?PageNumber=1&PageSize=10&ModuleId={Property(m,"id")}&OperationId={ViewOperation(m)}",
             ["HOST_MODULES"] = m => $"/api/Host/get-host-modules?ModuleId={Property(m,"id")}&OperationId={ViewOperation(m)}",
