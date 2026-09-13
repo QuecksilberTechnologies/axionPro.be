@@ -284,7 +284,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     throw new InvalidOperationException("The refresh token could not be persisted.");
                 }
                 await _unitOfWork.CommitTransactionAsync(cancellationToken);
-            }
+            } 
             catch (Exception exception)
             {
                 await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
