@@ -44,10 +44,26 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             /// Gets or sets the configured maximum number of roles that may be assigned to this Employee.
             /// </summary>
             public int MaxRoleAssigned { get; set; }
+
+            /// <summary>
+            /// Gets the Employee's current active role assignments for the same Tenant.
+            /// </summary>
+            public List<AssignedEmployeeRoleDTO> AssignedRoles { get; set; } = new();
         //   public SummaryEmployeeInfo SummaryEmployeeInfo { get; set; } = new SummaryEmployeeInfo();
 
 
 
+    }
+
+    /// <summary>
+    /// Represents one active role assigned to an Employee-list row.
+    /// </summary>
+    public class AssignedEmployeeRoleDTO
+    {
+        public int Id { get; set; }
+        public string Code { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
     }
 
   

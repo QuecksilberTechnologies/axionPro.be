@@ -1,4 +1,5 @@
 using axionpro.domain.Entity;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.infrastructure.Repositories;
 using axionpro.persistance.Data.Context;
 using axionpro.persistance.Repositories;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using NUnit.Framework;
+using System.Text.Json;
 
 namespace axionpro.automationtests.Unit;
 
@@ -31,6 +33,132 @@ public sealed class EmployeeCountryRuleDatabaseTests
     #endregion
 
     #region Country eligibility
+
+    [Test]
+    public async Task Employee_list_returns_distinct_active_tenant_roles_with_stable_contract()
+    {
+        await using var context = CreateContext();
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        var employee = await context.Employees.FirstAsync(x => !x.IsSoftDeleted && x.TenantId != null);
+        var tenantId = employee.TenantId!.Value;
+        var uniqueName = "Quality Assurance " + Guid.NewGuid().ToString("N")[..8];
+        var role = new Role
+        {
+            TenantId = tenantId,
+            RoleName = uniqueName,
+            RoleType = 2,
+            IsActive = true,
+            IsSystemDefault = false,
+            IsSoftDeleted = false,
+            AddedById = employee.Id,
+            AddedDateTime = DateTime.UtcNow
+        };
+        var systemRole = new Role
+        {
+            TenantId = tenantId,
+            RoleName = "System Reviewer " + Guid.NewGuid().ToString("N")[..8],
+            RoleType = 1,
+            IsActive = true,
+            IsSystemDefault = true,
+            IsSoftDeleted = false,
+            AddedById = employee.Id,
+            AddedDateTime = DateTime.UtcNow
+        };
+        var inactiveRole = new Role
+        {
+            TenantId = tenantId,
+            RoleName = "Inactive Reviewer " + Guid.NewGuid().ToString("N")[..8],
+            RoleType = 2,
+            IsActive = false,
+            IsSystemDefault = false,
+            IsSoftDeleted = false,
+            AddedById = employee.Id,
+            AddedDateTime = DateTime.UtcNow
+        };
+        context.Roles.AddRange(role, systemRole, inactiveRole);
+        await context.SaveChangesAsync();
+        context.UserRoles.AddRange(
+            CreateUserRole(employee.Id, role.Id, employee.Id, true),
+            CreateUserRole(employee.Id, role.Id, employee.Id, true),
+            CreateUserRole(employee.Id, systemRole.Id, employee.Id, true),
+            CreateUserRole(employee.Id, inactiveRole.Id, employee.Id, true));
+        await context.SaveChangesAsync();
+
+        var repository = new BaseEmployeeRepository(
+            context,
+            null!,
+            NullLogger<BaseEmployeeRepository>.Instance,
+            null!,
+            null!);
+        var response = await repository.GetAllInfo(
+            tenantId,
+            employee.Id,
+            new GetAllEmployeeInfoRequestDTO { PageNumber = 1, PageSize = 10 },
+            employee.Id,
+            1);
+
+        var row = response.Data.Single();
+        var assignedRole = row.AssignedRoles.Single(x => x.Id == role.Id);
+        var assignedSystemRole = row.AssignedRoles.Single(x => x.Id == systemRole.Id);
+        Assert.Multiple(() =>
+        {
+            Assert.That(row.AssignedRoles.Count(x => x.Id == role.Id), Is.EqualTo(1));
+            Assert.That(assignedRole.Name, Is.EqualTo(uniqueName));
+            Assert.That(assignedRole.Code, Is.EqualTo(uniqueName.ToUpperInvariant().Replace(' ', '_')));
+            Assert.That(assignedRole.Type, Is.EqualTo("CUSTOM"));
+            Assert.That(assignedSystemRole.Type, Is.EqualTo("SYSTEM"));
+            Assert.That(row.AssignedRoles, Has.None.Matches<AssignedEmployeeRoleDTO>(x => x.Id == inactiveRole.Id));
+        });
+        await transaction.RollbackAsync();
+    }
+
+    [Test]
+    public void Employee_list_role_contract_serializes_assigned_roles_and_empty_array()
+    {
+        var emptyResponse = new GetAllEmployeeInfoResponseDTO();
+        var assignedResponse = new GetAllEmployeeInfoResponseDTO
+        {
+            AssignedRoles =
+            [
+                new AssignedEmployeeRoleDTO
+                {
+                    Id = 1,
+                    Code = "SUPER_ADMIN",
+                    Name = "Super Admin",
+                    Type = "SYSTEM"
+                }
+            ]
+        };
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        var emptyJson = JsonSerializer.Serialize(emptyResponse, options);
+        var assignedJson = JsonSerializer.Serialize(assignedResponse, options);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(emptyJson, Does.Contain("\"assignedRoles\":[]"));
+            Assert.That(assignedJson, Does.Contain("\"id\":1"));
+            Assert.That(assignedJson, Does.Contain("\"code\":\"SUPER_ADMIN\""));
+            Assert.That(assignedJson, Does.Contain("\"name\":\"Super Admin\""));
+            Assert.That(assignedJson, Does.Contain("\"type\":\"SYSTEM\""));
+        });
+    }
+
+    private static UserRole CreateUserRole(
+        long employeeId,
+        int roleId,
+        long actorId,
+        bool isActive)
+    {
+        return new UserRole
+        {
+            EmployeeId = employeeId,
+            RoleId = roleId,
+            IsActive = isActive,
+            IsSoftDeleted = false,
+            AddedById = actorId,
+            AddedDateTime = DateTime.UtcNow
+        };
+    }
 
     [Test]
     public async Task Tenant_role_loaded_for_update_is_detached_and_persists_changed_name()

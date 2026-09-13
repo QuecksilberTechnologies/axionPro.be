@@ -560,3 +560,7 @@ tests solely for documentation.
   complete seed first-run/rerun passed on isolated PostgreSQL; focused
   `BulkModuleOperationSeed`, `HostBulkPermission` and `HostBulkImport` run passed
   36/36 with zero failures/skips. Target DB reconciliation is recorded there.
+- [Employee get-all assigned roles](../docs/testing/employee/get-all-assigned-roles/2026-09-13.md):
+  JSON response/empty-array contract passed locally. The distinct active
+  same-Tenant role database case is implemented and skipped unless the isolated
+  `axionpro_bulk_test` connection is configured; deployed acceptance is pending.

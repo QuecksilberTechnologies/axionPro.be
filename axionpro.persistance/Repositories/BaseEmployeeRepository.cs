@@ -1335,14 +1335,58 @@ namespace axionpro.persistance.Repositories
                     .Select(i => i.EmployeeId)
                     .ToHashSet();
 
+                // ----------------------------------------------------
+                // 5️⃣ ACTIVE TENANT ROLE ASSIGNMENTS
+                // Load the roles for the current page in one query. Duplicate active
+                // assignments are collapsed by RoleId in the response.
+                // ----------------------------------------------------
+                var roleAssignments = await _context.UserRoles
+                    .AsNoTracking()
+                    .Where(userRole =>
+                        userRole.EmployeeId.HasValue &&
+                        userRole.RoleId.HasValue &&
+                        ids.Contains(userRole.EmployeeId.Value) &&
+                        userRole.IsActive &&
+                        userRole.IsSoftDeleted != true &&
+                        userRole.Role != null &&
+                        userRole.Role.TenantId == tenantId &&
+                        userRole.Role.IsActive &&
+                        userRole.Role.IsSoftDeleted != true)
+                    .Select(userRole => new
+                    {
+                        EmployeeId = userRole.EmployeeId!.Value,
+                        RoleId = userRole.RoleId!.Value,
+                        RoleName = userRole.Role!.RoleName ?? string.Empty,
+                        IsSystemDefault = userRole.Role.IsSystemDefault == true
+                    })
+                    .ToListAsync();
+
+                var roleLookup = roleAssignments
+                    .GroupBy(role => role.EmployeeId)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group
+                            .GroupBy(role => role.RoleId)
+                            .Select(roleGroup => roleGroup.First())
+                            .OrderBy(role => role.RoleId)
+                            .Select(role => new AssignedEmployeeRoleDTO
+                            {
+                                Id = role.RoleId,
+                                Code = BuildRoleCode(role.RoleName),
+                                Name = role.RoleName,
+                                Type = role.IsSystemDefault ? "SYSTEM" : "CUSTOM"
+                            })
+                            .ToList());
+
 
                 // ----------------------------------------------------
-                // 5️⃣ BUILD RESPONSE
+                // 6️⃣ BUILD RESPONSE
                 // ----------------------------------------------------
                 var result = pagedEmployees.Select(x =>
                 {
                     imgLookup.TryGetValue(x.emp.Id, out var img);
                     bool hasPrimary = hasPrimaryLookup.Contains(x.emp.Id);
+                    roleLookup.TryGetValue(x.emp.Id, out var assignedRoles);
 
                     double completionPercentage = CompletionCalculatorHelper.EmployeePropCalculate(x.emp, hasPrimary);
 
@@ -1411,6 +1455,7 @@ namespace axionpro.persistance.Repositories
                         EmployeeImagePath = img?.FilePath,
                         HasImagePicUploaded = hasPrimary,
                         IsActive = x.emp.IsActive,
+                        AssignedRoles = assignedRoles ?? new List<AssignedEmployeeRoleDTO>(),
                       //  SummaryEmployeeInfo = summaryEmployeeInfo  , //  THIS WAS MISSING
                         CompletionPercentage = completionPercentage
                     };
@@ -1440,6 +1485,26 @@ namespace axionpro.persistance.Repositories
                     TotalPages = 0
                 };
             }
+        }
+
+        private static string BuildRoleCode(string roleName)
+        {
+            if (string.IsNullOrWhiteSpace(roleName))
+            {
+                return string.Empty;
+            }
+
+            var characters = roleName
+                .Trim()
+                .Select(character => char.IsLetterOrDigit(character)
+                    ? char.ToUpperInvariant(character)
+                    : '_')
+                .ToArray();
+
+            return string.Join(
+                '_',
+                new string(characters)
+                    .Split('_', StringSplitOptions.RemoveEmptyEntries));
         }
 
         public async Task<SummaryEmployeeInfo?> BuildEmployeeSummaryAsync(
