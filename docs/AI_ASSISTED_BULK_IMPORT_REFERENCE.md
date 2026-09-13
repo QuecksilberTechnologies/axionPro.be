@@ -9,7 +9,7 @@ backend scope, not all future bulk modules or production deployment.
 
 ## 2026-09-13 issue audit
 
-- Role retry root cause confirmed from the target DB: the reported rows are inactive (`IsActive=false`) but not soft-deleted. Multiple older soft-deleted versions also exist. The current approved import rule blocks inactive matches rather than overwriting/reactivating them. Reactivation behavior is pending explicit business confirmation before changing all durable master imports.
+- **COMPLETE locally — inactive durable-master retry:** target DB evidence showed the reported Role rows were inactive (`IsActive=false`) but not soft-deleted, with multiple older soft-deleted versions. An incoming `IsActive=true` row now previews the current inactive, non-deleted Department, Designation, Role or EmployeeType as `willReactivate`, and confirmation reactivates only that row without overwriting its other fields. Truly soft-deleted rows remain excluded and therefore import as new records. Reports expose `reactivatedCount`; worker-time conflicts become row errors. Focused preview/database suite: 50 passed, 18 isolated-DB tests explicitly skipped because `AXIONPRO_BULK_TEST_CONNECTION` was not configured.
 - Employee profile verification payload fix is independent of import: the completion response now supplies nullable `tabInfoType` and `canUpdateVerificationStatus`, preventing assignment-summary rows from being sent to `/api/Employee/update-bulk`.
 
 > **Mandatory test-before-handoff rule — user-confirmed 2026-09-13:** never hand

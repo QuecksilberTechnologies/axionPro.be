@@ -75,6 +75,7 @@ public sealed class BulkImportJobResponseDTO
     public int TotalRows { get; set; }
     public int ProcessedRows { get; set; }
     public int CreatedCount { get; set; }
+    public int ReactivatedCount { get; set; }
     public int ExistingCount { get; set; }
     public int FailedCount { get; set; }
     public string? Error { get; set; }
@@ -101,6 +102,8 @@ public sealed class BulkImportPreviewRowDTO
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public Guid? InvitationAttemptId { get; set; }
     public bool Processed { get; set; }
+    public bool WillReactivate { get; set; }
+    public bool WasReactivated { get; set; }
     public int RowNumber { get; set; }
     public Dictionary<string, string> Values { get; set; } = new();
     public BulkImportRowStatus Status { get; set; }

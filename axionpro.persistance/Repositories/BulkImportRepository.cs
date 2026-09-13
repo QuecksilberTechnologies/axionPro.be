@@ -339,6 +339,24 @@ public sealed partial class BulkImportRepository(
                     await transaction.ReleaseSavepointAsync("bulk_row", cancellationToken);
                 }
             }
+            else if (fresh.Status == BulkImportRowStatus.Existing && fresh.WillReactivate)
+            {
+                await transaction.CreateSavepointAsync("bulk_row", cancellationToken);
+                try
+                {
+                    await Reactivate(job, fresh, cancellationToken);
+                    fresh.WasReactivated = true;
+                    await transaction.ReleaseSavepointAsync("bulk_row", cancellationToken);
+                }
+                catch (ValidationErrorException error)
+                {
+                    await transaction.RollbackToSavepointAsync("bulk_row", cancellationToken);
+                    context.ChangeTracker.Clear();
+                    fresh.Status = BulkImportRowStatus.Failed;
+                    fresh.Errors.Add(error.Message);
+                    await transaction.ReleaseSavepointAsync("bulk_row", cancellationToken);
+                }
+            }
             fresh.Processed = true;
             job.NextRow = index + 1;
         }
@@ -482,6 +500,57 @@ public sealed partial class BulkImportRepository(
         context.ChangeTracker.Clear();
     }
 
+    private async Task Reactivate(
+        BulkImportJob job,
+        BulkImportPreviewRowDTO row,
+        CancellationToken cancellationToken)
+    {
+        if (!row.ExistingId.HasValue)
+        {
+            throw new ValidationErrorException("The inactive master record no longer exists.");
+        }
+
+        var updatedAtUtc = DateTime.UtcNow;
+        var affected = job.Master switch
+        {
+            (int)BulkImportMaster.Department => await context.Departments
+                .Where(item => item.Id == row.ExistingId && item.TenantId == job.TenantId &&
+                    !item.IsSoftDeleted && !item.IsActive)
+                .ExecuteUpdateAsync(update => update
+                    .SetProperty(item => item.IsActive, true)
+                    .SetProperty(item => item.UpdatedById, job.ActorId)
+                    .SetProperty(item => item.UpdatedDateTime, updatedAtUtc), cancellationToken),
+            (int)BulkImportMaster.Designation => await context.Designations
+                .Where(item => item.Id == row.ExistingId && item.TenantId == job.TenantId &&
+                    !item.IsSoftDeleted && !item.IsActive)
+                .ExecuteUpdateAsync(update => update
+                    .SetProperty(item => item.IsActive, true)
+                    .SetProperty(item => item.UpdatedById, job.ActorId)
+                    .SetProperty(item => item.UpdatedDateTime, updatedAtUtc), cancellationToken),
+            (int)BulkImportMaster.EmployeeType => await context.EmployeeTypes
+                .Where(item => item.Id == row.ExistingId && item.TenantId == job.TenantId &&
+                    item.IsSoftDeleted != true && item.IsActive != true)
+                .ExecuteUpdateAsync(update => update
+                    .SetProperty(item => item.IsActive, true)
+                    .SetProperty(item => item.UpdatedById, job.ActorId)
+                    .SetProperty(item => item.UpdatedDateTime, updatedAtUtc), cancellationToken),
+            _ => await context.Roles
+                .Where(item => item.Id == row.ExistingId && item.TenantId == job.TenantId &&
+                    item.IsSoftDeleted != true && !item.IsActive)
+                .ExecuteUpdateAsync(update => update
+                    .SetProperty(item => item.IsActive, true)
+                    .SetProperty(item => item.UpdatedById, job.ActorId)
+                    .SetProperty(item => item.UpdatedDateTime, updatedAtUtc), cancellationToken)
+        };
+
+        if (affected != 1)
+        {
+            throw new ValidationErrorException("The inactive master record changed during import. Create a new preview.");
+        }
+
+        context.ChangeTracker.Clear();
+    }
+
     private async Task<(List<GetDepartmentResponseDTO> Departments, List<GetDesignationResponseDTO> Designations,
         List<GetRoleResponseDTO> Roles, List<axionpro.application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO> EmployeeTypes)> CurrentMasters(BulkImportJob job, CancellationToken cancellationToken)
     {
@@ -551,6 +620,7 @@ public sealed partial class BulkImportRepository(
             TotalRows = preview.Rows.Count,
             ProcessedRows = preview.Rows.Count(row => row.Processed),
             CreatedCount = preview.Rows.Count(row => row.Status == BulkImportRowStatus.Created),
+            ReactivatedCount = preview.Rows.Count(row => row.WasReactivated),
             ExistingCount = preview.Rows.Count(row => row.Processed && row.Status == BulkImportRowStatus.Existing),
             FailedCount = preview.Rows.Count(row => row.Status == BulkImportRowStatus.Failed),
             Error = job.Error,

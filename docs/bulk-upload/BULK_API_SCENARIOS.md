@@ -342,3 +342,6 @@ invitation delivery live tested nahi. Documentation-only update mein tests repea
 Detailed evidence: [Employee handoff](EMPLOYEE_IMPORT_UI.md), [sample/readme](README.md),
 [final summary](results/employee-final-summary.json). This guide describes current
 behavior; older WIP entries in historical docs do not override FINAL acceptance.
+# Inactive master re-import
+
+For Department, Designation, Role and EmployeeType, an exact current match that is inactive and an uploaded `IsActive=true` value produces `willReactivate: true`. Confirming the draft changes only `IsActive` plus audit fields; uploaded description, remark and other fields do not overwrite the record. The final job response includes `reactivatedCount`. Soft-deleted historical matches are excluded and a new record is inserted. If the current row changes after preview, the worker reports the row failure.

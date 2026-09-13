@@ -239,6 +239,58 @@ public sealed class BulkImportPreviewTests
         Assert.That(preview.ExistingCount, Is.EqualTo(1));
     }
 
+    [TestCase(BulkImportMaster.Department)]
+    [TestCase(BulkImportMaster.Designation)]
+    [TestCase(BulkImportMaster.Role)]
+    [TestCase(BulkImportMaster.EmployeeType)]
+    public async Task Active_upload_marks_matching_inactive_master_for_reactivation(BulkImportMaster master)
+    {
+        var table = master switch
+        {
+            BulkImportMaster.Department => await Read("DepartmentName,IsActive\nInactive,true"),
+            BulkImportMaster.Designation => await Read("DesignationName,DepartmentName,IsActive\nInactive,IT,true"),
+            BulkImportMaster.Role => await Read($"RoleName,RoleType,IsActive\nInactive,{ConstantValues.RoleTypeEmployee},true"),
+            _ => await Read("TypeName,IsActive\nInactive,true")
+        };
+        var preview = BulkImportPreviewService.Build(master, null, table,
+            Departments(),
+            new[] { new GetDesignationResponseDTO { Id = 21, DepartmentId = 10, DesignationName = "Inactive", IsActive = false } },
+            new[] { new GetRoleResponseDTO { Id = 22, RoleName = "Inactive", RoleType = ConstantValues.RoleTypeEmployee, IsActive = false } },
+            new[] { new global::axionpro.application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO { Id = 23, TypeName = "Inactive", IsActive = false } });
+
+        if (master == BulkImportMaster.Department)
+        {
+            preview = BulkImportPreviewService.Build(master, null, table,
+                new[] { new GetDepartmentResponseDTO { Id = 20, DepartmentName = "Inactive", IsActive = false } },
+                Array.Empty<GetDesignationResponseDTO>(), Array.Empty<GetRoleResponseDTO>());
+        }
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(preview.IsValid, Is.True);
+            Assert.That(preview.Rows.Single().Status, Is.EqualTo(BulkImportRowStatus.Existing));
+            Assert.That(preview.Rows.Single().WillReactivate, Is.True);
+            Assert.That(preview.Rows.Single().Errors, Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task Inactive_upload_keeps_matching_inactive_role_without_reactivation()
+    {
+        var table = await Read($"RoleName,RoleType,IsActive\nInactive,{ConstantValues.RoleTypeEmployee},false");
+        var preview = BulkImportPreviewService.Build(BulkImportMaster.Role, null, table,
+            Departments(), Array.Empty<GetDesignationResponseDTO>(), new[]
+            {
+                new GetRoleResponseDTO { Id = 22, RoleName = "Inactive", RoleType = ConstantValues.RoleTypeEmployee, IsActive = false }
+            });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(preview.IsValid, Is.True);
+            Assert.That(preview.Rows.Single().WillReactivate, Is.False);
+        });
+    }
+
     [TestCase("999")]
     [TestCase("custom")]
     [TestCase("")]

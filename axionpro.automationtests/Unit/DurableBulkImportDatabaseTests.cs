@@ -177,6 +177,46 @@ public sealed class DurableBulkImportDatabaseTests
     }
 
     [Test]
+    public async Task Active_role_import_reactivates_current_record_without_overwriting_fields()
+    {
+        var roleName = $"{_prefix}-Inactive";
+        await using (var arrange = Context())
+        {
+            arrange.Roles.Add(new Role
+            {
+                TenantId = _actor.TenantId,
+                RoleName = roleName,
+                RoleType = ConstantValues.RoleTypeEmployee,
+                Remark = "keep-existing-remark",
+                IsActive = false,
+                IsSoftDeleted = false,
+                IsSystemDefault = false,
+                AddedById = _actor.LoggedInEmployeeId,
+                AddedDateTime = DateTime.UtcNow
+            });
+            await arrange.SaveChangesAsync();
+        }
+
+        var preview = await Draft(BulkImportMaster.Role,
+            $"RoleName,RoleType,Remark,IsActive\n{roleName},{ConstantValues.RoleTypeEmployee},uploaded-remark,true");
+        Assert.That(preview.Rows.Single().WillReactivate, Is.True);
+        await Act(preview, BulkImportAction.Confirm);
+        await Drain(preview);
+
+        var report = await Act(preview, BulkImportAction.Get);
+        await using var verify = Context();
+        var role = await verify.Roles.SingleAsync(item =>
+            item.TenantId == _actor.TenantId && item.RoleName == roleName && item.IsSoftDeleted != true);
+        Assert.Multiple(() =>
+        {
+            Assert.That(report.ReactivatedCount, Is.EqualTo(1));
+            Assert.That(report.CreatedCount, Is.Zero);
+            Assert.That(role.IsActive, Is.True);
+            Assert.That(role.Remark, Is.EqualTo("keep-existing-remark"));
+        });
+    }
+
+    [Test]
     public async Task Same_request_id_reuses_saved_preview_and_rejects_changed_input()
     {
         var id = Guid.NewGuid();

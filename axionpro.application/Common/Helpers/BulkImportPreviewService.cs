@@ -243,11 +243,17 @@ public sealed class BulkImportPreviewService(
         {
             row.ExistingId = matches[0].Id;
             row.Status = BulkImportRowStatus.Existing;
-            if (!matches[0].Active)
+            if (!matches[0].Active && IsRequestedActive(row))
             {
-                row.Errors.Add("Existing record is inactive; import will not reactivate it.");
+                row.WillReactivate = true;
             }
         }
+    }
+
+    private static bool IsRequestedActive(BulkImportPreviewRowDTO row)
+    {
+        return !row.Values.TryGetValue(BulkImportConstants.IsActive, out var raw) ||
+            string.IsNullOrWhiteSpace(raw) || bool.TryParse(raw, out var active) && active;
     }
 
     /// <summary>Resolves explicit or deterministic canonical headers for every import module.</summary>
