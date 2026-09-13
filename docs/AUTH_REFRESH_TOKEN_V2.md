@@ -125,3 +125,26 @@ Both reported V2 defects are fixed. The final run has **35 PASS, 0 FAIL, 0 skipp
 - Evidence: `artifacts/refresh-v2-fixed-tests.log`. Earlier failure evidence is historical and superseded by this run.
 - Release publish: PASS (exit 0). Command: `dotnet publish axionpro.api/axionpro.api.csproj -c Release --no-restore -o artifacts/refresh-v2-release`. Output: `artifacts/refresh-v2-release/`; evidence: `artifacts/refresh-v2-release.log`. Existing project warnings remain. This is a local publish output, not a server deployment.
 - Publish only the intended branch `codex/lightweight-refresh-api`. UI must explicitly opt in and exclude V2 from refresh/module-operation interceptor recursion. Production deployment, deployed smoke verification and UI acceptance remain pending; do not retire legacy.
+
+## Deployed API verification — 2026-09-13
+
+API-only verification against the Render development service is COMPLETE for the
+following cases. This does not retire the legacy endpoint or switch any UI client.
+
+- Host legacy refresh: HTTP 200; approximately 15.8 KB response; observed 1660 ms.
+- Host V2 refresh using the legacy replacement: HTTP 200; 843-byte response;
+  observed 780 ms; exactly the four documented data fields.
+- Reuse of consumed legacy and V2 tokens: HTTP 401 `UNAUTHORIZED`.
+- Blank V2 token: HTTP 400 `VALIDATION_ERROR`; invalid token: HTTP 401.
+- 51-character IP: HTTP 400; the same unconsumed token then succeeded with the
+  50-character boundary value.
+- Tenant legacy refresh: HTTP 200, observed 2779 ms; its V2 replacement refresh:
+  HTTP 200, observed 989 ms.
+- Two simultaneous V2 requests using one fresh Host token produced exactly one
+  HTTP 200 and one HTTP 401 in 779 ms total.
+- Production DB rows showed the consumed Host token chain revoked and linked to
+  replacements, with the final replacement active, unexpired, and Host-owned.
+
+These are individual development-server samples rather than a latency benchmark.
+The V2 payload reduction and rotation correctness are deployed and verified; UI
+opt-in acceptance and legacy retirement remain PENDING.

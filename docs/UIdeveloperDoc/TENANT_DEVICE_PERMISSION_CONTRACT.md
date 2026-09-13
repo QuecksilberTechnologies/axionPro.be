@@ -51,3 +51,19 @@ dependencies: TenantDevice list, Tenant list, Tenant locations, and Device
 catalogue. TenantDevice returned zero records, so the empty-state table was the
 correct data result. The existing Host live automation suite passed 3/3 tests; its
 menu-driven coverage now also includes the Tenant Location lookup.
+
+An additional disposable real-data lifecycle then passed every deployed API step:
+Assign, filtered list, get-by-id, update, deactivate, activate, and Remove. The
+database row was checked after cleanup and was inactive plus soft-deleted. The
+automation project now contains this complete HostLive lifecycle instead of relying
+only on controller/read characterization.
+
+### Open backend permission finding
+
+The deployed endpoint correctly returns HTTP 400 when permission IDs are absent
+and HTTP 403 when `TENANT_DEVICES` is paired with its unavailable `Add` action.
+However, it currently accepts the granted `HOST_DEVICE_SETUP` + `View` pair for a
+TenantDevice list call and returns HTTP 200. The shared Host permission pipeline
+checks that the role owns the supplied pair, but this handler does not bind that
+pair to the expected `TENANT_DEVICES` module. This is a confirmed cross-module
+substitution gap; it was not changed during API-only verification.

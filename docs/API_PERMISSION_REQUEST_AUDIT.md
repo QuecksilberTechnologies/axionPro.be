@@ -7,6 +7,11 @@ All 442 deployed Swagger endpoints were inspected on 2026-09-12. See API_PERMISS
 1. POST /api/TenantDevice/create: Add lookup cannot resolve; catalogue provides Assign. Supplied live screenshot confirms missing OperationId.
 2. DELETE /api/TenantDevice/delete/{id}: Delete lookup cannot resolve; catalogue provides Remove. Live call not executed.
 3. DELETE /api/TenantDeviceConfiguration/delete/{id}: selected TENANT_DEVICE_CONFIG has no Delete action. Ownership/module/grant review required. Live call not executed.
+4. GET /api/TenantDevice/get-all accepts a granted `HOST_DEVICE_SETUP` + `View`
+   pair and returns HTTP 200. The Host grant check does not bind the supplied
+   module to the TenantDevice endpoint's expected `TENANT_DEVICES` module. Confirmed
+   by authenticated deployed API testing on 2026-09-13; API-only test scope did not
+   change the permission implementation.
 
 ## 14 endpoints with UI service callers but no automatic ID mapping
 

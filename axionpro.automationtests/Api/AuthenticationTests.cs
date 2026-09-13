@@ -10,6 +10,162 @@ namespace AxionPro.AutomationTests.Api;
 [Category("API")]
 public sealed class AuthenticationTests : ApiTestBase
 {
+    [Test]
+    [Category("HostLive")]
+    public async Task Tenant_device_live_api_supports_the_complete_assignment_lifecycle()
+    {
+        using var client = await CreateAuthenticatedHostClientAsync();
+        var modules = await GetHostMenuModulesAsync(client);
+        var tenantDeviceModule = Module(modules, "TENANT_DEVICES");
+        var tenantListModule = Module(modules, "HOST_TENANT_LIST");
+        var tenantLocationModule = Module(modules, "HOST_TENANT_LOCATION_LIST");
+        var deviceCatalogueModule = Module(modules, "HOST_DEVICE_SETUP");
+
+        var tenants = await GetSuccessfulPayloadAsync(
+            client,
+            $"/api/Tenant/get-all-tenants?PageNumber=1&PageSize=10&ModuleId={Property(tenantListModule, "id")}&OperationId={Operation(tenantListModule, "View")}");
+        var tenantId = Property(Property(tenants.RootElement, "data").EnumerateArray().First(), "id").GetString()!;
+
+        var locations = await GetSuccessfulPayloadAsync(
+            client,
+            $"/api/TenantLocation/get-all?IsActive=true&PageNumber=1&PageSize=10&TenantId={tenantId}&ModuleId={Property(tenantLocationModule, "id")}&OperationId={Operation(tenantLocationModule, "View")}");
+        var tenantLocationId = Property(Property(locations.RootElement, "data").EnumerateArray().First(), "id").GetInt64();
+
+        var catalogue = await GetSuccessfulPayloadAsync(
+            client,
+            $"/api/DeviceMaster/get-all?IsActive=true&PageNumber=1&PageSize=10&ModuleId={Property(deviceCatalogueModule, "id")}&OperationId={Operation(deviceCatalogueModule, "View")}");
+        var deviceMasterId = Property(Property(catalogue.RootElement, "data").EnumerateArray().First(), "id").GetInt64();
+
+        var code = $"API-TD-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+        string? tenantDeviceId = null;
+
+        try
+        {
+            var created = await PostSuccessfulPayloadAsync(client, "/api/TenantDevice/create", new
+            {
+                tenantId,
+                tenantLocationId,
+                deviceMasterId,
+                deviceCode = code,
+                deviceName = "Automated TenantDevice lifecycle",
+                installedDateTime = DateTime.UtcNow,
+                installationRemark = "Disposable HostLive API test",
+                isAttendanceDevice = true,
+                description = "Created by automated API verification",
+                remark = "Removed by test cleanup",
+                isActive = true,
+                moduleId = Property(tenantDeviceModule, "id").GetInt32(),
+                operationId = Operation(tenantDeviceModule, "Assign")
+            });
+            tenantDeviceId = Property(Property(created.RootElement, "data"), "id").GetString();
+
+            using var listed = await GetSuccessfulPayloadAsync(
+                client,
+                $"/api/TenantDevice/get-all?Search={Uri.EscapeDataString(code)}&PageNumber=1&PageSize=10&ModuleId={Property(tenantDeviceModule, "id")}&OperationId={Operation(tenantDeviceModule, "View")}");
+            Assert.That(Property(listed.RootElement, "totalRecords").GetInt32(), Is.EqualTo(1));
+
+            using var read = await GetSuccessfulPayloadAsync(
+                client,
+                $"/api/TenantDevice/get-by-id/{tenantDeviceId}?TenantId={tenantId}&ModuleId={Property(tenantDeviceModule, "id")}&OperationId={Operation(tenantDeviceModule, "View")}");
+            Assert.That(Property(Property(read.RootElement, "data"), "deviceCode").GetString(), Is.EqualTo(code));
+
+            await PostSuccessfulPayloadAsync(client, "/api/TenantDevice/update", new
+            {
+                id = tenantDeviceId,
+                tenantId,
+                tenantLocationId,
+                deviceMasterId,
+                deviceCode = code,
+                deviceName = "Automated TenantDevice lifecycle updated",
+                isAttendanceDevice = true,
+                isActive = true,
+                moduleId = Property(tenantDeviceModule, "id").GetInt32(),
+                operationId = Operation(tenantDeviceModule, "Update")
+            });
+
+            await PostSuccessfulPayloadAsync(client, "/api/TenantDevice/update-status", new
+            {
+                id = tenantDeviceId,
+                tenantId,
+                isActive = false,
+                moduleId = Property(tenantDeviceModule, "id").GetInt32(),
+                operationId = Operation(tenantDeviceModule, "Inactive")
+            });
+
+            await PostSuccessfulPayloadAsync(client, "/api/TenantDevice/update-status", new
+            {
+                id = tenantDeviceId,
+                tenantId,
+                isActive = true,
+                moduleId = Property(tenantDeviceModule, "id").GetInt32(),
+                operationId = Operation(tenantDeviceModule, "Active")
+            });
+        }
+        finally
+        {
+            if (!string.IsNullOrWhiteSpace(tenantDeviceId))
+            {
+                using var removed = await client.DeleteAsync(
+                    $"/api/TenantDevice/delete/{tenantDeviceId}?TenantId={tenantId}&ModuleId={Property(tenantDeviceModule, "id")}&OperationId={Operation(tenantDeviceModule, "Remove")}");
+                Assert.That(removed.IsSuccessStatusCode, Is.True, await removed.Content.ReadAsStringAsync());
+            }
+        }
+    }
+
+    [Test]
+    [Category("HostLive")]
+    public async Task Refresh_apis_rotate_a_fresh_host_token_and_return_the_expected_payloads()
+    {
+        var loginId = RequiredEnvironment("AXIONPRO_HOST_LOGIN_ID");
+        var password = RequiredEnvironment("AXIONPRO_HOST_LOGIN_PASSWORD");
+        using var client = new HttpClient
+        {
+            BaseAddress = new Uri(TestSettings.ApiBaseUrl),
+            Timeout = TimeSpan.FromSeconds(60)
+        };
+        using var loginResponse = await client.PostAsJsonAsync("/api/NewLogin/login", LoginBody(loginId, password));
+        Assert.That(loginResponse.IsSuccessStatusCode, Is.True, await loginResponse.Content.ReadAsStringAsync());
+        using var login = JsonDocument.Parse(await loginResponse.Content.ReadAsStringAsync());
+        var originalRefreshToken = Property(Property(login.RootElement, "data"), "refreshToken").GetString()!;
+
+        using var legacyResponse = await client.PostAsJsonAsync("/api/Auth/refresh-token", new
+        {
+            refreshToken = originalRefreshToken,
+            ipAddress = "127.0.0.1"
+        });
+        Assert.That((int)legacyResponse.StatusCode, Is.EqualTo(200), await legacyResponse.Content.ReadAsStringAsync());
+        using var legacy = JsonDocument.Parse(await legacyResponse.Content.ReadAsStringAsync());
+        Assert.That(Property(legacy.RootElement, "isSucceeded").GetBoolean(), Is.True);
+        var legacyReplacement = Property(Property(legacy.RootElement, "data"), "refreshToken").GetString()!;
+
+        using var reusedLegacy = await client.PostAsJsonAsync("/api/Auth/refresh-token", new
+        {
+            refreshToken = originalRefreshToken,
+            ipAddress = "127.0.0.1"
+        });
+        Assert.That((int)reusedLegacy.StatusCode, Is.EqualTo(401));
+
+        using var v2Response = await client.PostAsJsonAsync("/api/Auth/refresh-token-v2", new
+        {
+            refreshToken = legacyReplacement,
+            ipAddress = "127.0.0.1"
+        });
+        Assert.That((int)v2Response.StatusCode, Is.EqualTo(200), await v2Response.Content.ReadAsStringAsync());
+        using var v2 = JsonDocument.Parse(await v2Response.Content.ReadAsStringAsync());
+        Assert.That(Property(v2.RootElement, "isSucceeded").GetBoolean(), Is.True);
+        var v2Data = Property(v2.RootElement, "data");
+        Assert.That(
+            v2Data.EnumerateObject().Select(property => property.Name).OrderBy(name => name),
+            Is.EqualTo(new[] { "refreshToken", "refreshTokenExpiresAtUtc", "token", "tokenExpiry" }.OrderBy(name => name)));
+
+        using var reusedV2 = await client.PostAsJsonAsync("/api/Auth/refresh-token-v2", new
+        {
+            refreshToken = legacyReplacement,
+            ipAddress = "127.0.0.1"
+        });
+        Assert.That((int)reusedV2.StatusCode, Is.EqualTo(401));
+    }
+
     [TestCase("TenantDevice", "AXIONPRO_HOST_DEVICE_MODULE_ID")]
     [TestCase("TenantDeviceConfiguration", "AXIONPRO_HOST_CONFIGURATION_MODULE_ID")]
     [Category("HostLive")]
@@ -42,6 +198,78 @@ public sealed class AuthenticationTests : ApiTestBase
 
     private static JsonElement Property(JsonElement element, string name) =>
         element.EnumerateObject().First(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).Value;
+
+    private static string RequiredEnvironment(string name) =>
+        Environment.GetEnvironmentVariable(name) is { Length: > 0 } value
+            ? value
+            : throw new IgnoreException($"HostLive requires {name}.");
+
+    private static object LoginBody(string loginId, string password) => new
+    {
+        LoginId = loginId,
+        Password = password,
+        IpAddressLocal = "127.0.0.1",
+        IpAddressPublic = string.Empty,
+        MacAddress = string.Empty,
+        LoginDevice = 1,
+        Latitude = 0,
+        Longitude = 0
+    };
+
+    private static async Task<HttpClient> CreateAuthenticatedHostClientAsync()
+    {
+        var client = new HttpClient
+        {
+            BaseAddress = new Uri(TestSettings.ApiBaseUrl),
+            Timeout = TimeSpan.FromSeconds(60)
+        };
+        using var response = await client.PostAsJsonAsync(
+            "/api/NewLogin/login",
+            LoginBody(RequiredEnvironment("AXIONPRO_HOST_LOGIN_ID"), RequiredEnvironment("AXIONPRO_HOST_LOGIN_PASSWORD")));
+        Assert.That(response.IsSuccessStatusCode, Is.True, await response.Content.ReadAsStringAsync());
+        using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            Property(Property(payload.RootElement, "data"), "accessToken").GetString());
+        return client;
+    }
+
+    private static async Task<List<JsonElement>> GetHostMenuModulesAsync(HttpClient client)
+    {
+        using var payload = await GetSuccessfulPayloadAsync(client, "/api/Navigation/my-menu");
+        return FlattenModules(Property(Property(payload.RootElement, "data"), "items"))
+            .Select(module => module.Clone())
+            .ToList();
+    }
+
+    private static JsonElement Module(IEnumerable<JsonElement> modules, string code) =>
+        modules.First(module => string.Equals(Property(module, "moduleCode").GetString(), code, StringComparison.OrdinalIgnoreCase));
+
+    private static int Operation(JsonElement module, string name) =>
+        Property(module, "operations").EnumerateArray()
+            .First(operation => string.Equals(Property(operation, "name").GetString(), name, StringComparison.OrdinalIgnoreCase))
+            .GetProperty("id")
+            .GetInt32();
+
+    private static async Task<JsonDocument> GetSuccessfulPayloadAsync(HttpClient client, string url)
+    {
+        using var response = await client.GetAsync(url);
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.That(response.IsSuccessStatusCode, Is.True, content);
+        var payload = JsonDocument.Parse(content);
+        Assert.That(Property(payload.RootElement, "isSucceeded").GetBoolean(), Is.True, content);
+        return payload;
+    }
+
+    private static async Task<JsonDocument> PostSuccessfulPayloadAsync(HttpClient client, string url, object body)
+    {
+        using var response = await client.PostAsJsonAsync(url, body);
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.That(response.IsSuccessStatusCode, Is.True, content);
+        var payload = JsonDocument.Parse(content);
+        Assert.That(Property(payload.RootElement, "isSucceeded").GetBoolean(), Is.True, content);
+        return payload;
+    }
 
     [Test]
     [Category("HostLive")]
