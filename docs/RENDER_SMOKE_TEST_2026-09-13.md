@@ -27,3 +27,8 @@ Therefore the live service is not yet serving the latest `8dfcaea2` artifact. Em
 4. Confirm and poll the job; verify `reactivatedCount=1`, no new Role row, and existing Remark/RoleType remain unchanged.
 5. Restore/clean the disposable test Role through the normal API flow.
 
+## China/USA Employee identity check
+
+- Created China employee `78N5XZW2` through `POST /api/Employee/create`; the Employee list confirms CountryId `2`, CountryCode `CN`, Nationality `China`.
+- Live `GET /api/Employee/Sensitive/get` returned HTTP 500 for that employee. Root cause is the read path's dependency on the manually maintained PostgreSQL `GetEmployeeIdentityByCountryRule` function; that function is stored only in `axionpro.application/DTOS/SPFunctions.txt` and is absent from executable migration/seed scripts, so deployed database-function drift produces a generic 500. The repository has been changed locally to an EF tenant-safe country-rule query, eliminating that deployment dependency. Date columns now use `DateOnly`, and the response projection's EffectiveTo copy/paste defect is corrected.
+- Live Country options contain only India and China. United States/USA is absent, so a valid USA Employee cannot currently be created. Existing identity seed mappings include USA/SSN only when a matching active Country row already exists; they do not create that Country row.

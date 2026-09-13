@@ -90,8 +90,8 @@ namespace axionpro.application.DTOS.StoreProcedures
         public bool? IsEditAllowed { get; set; }
         public bool? HasIdentityUploaded { get; set; }
 
-        public DateTime? EffectiveFrom { get; set; }
-        public DateTime? EffectiveTo { get; set; }
+        public DateOnly? EffectiveFrom { get; set; }
+        public DateOnly? EffectiveTo { get; set; }
 
         public bool? IsActive { get; set; }
     }

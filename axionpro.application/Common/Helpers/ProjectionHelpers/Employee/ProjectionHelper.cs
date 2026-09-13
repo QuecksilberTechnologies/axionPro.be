@@ -175,10 +175,10 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
                 // 📆 Validity
                 EffectiveFrom = e.EffectiveFrom.HasValue
-                   ? DateTime.SpecifyKind(e.EffectiveFrom.Value, DateTimeKind.Utc)
+                   ? e.EffectiveFrom.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
                    : null,
                   EffectiveTo = e.EffectiveTo.HasValue
-                   ? DateTime.SpecifyKind(e.EffectiveFrom.Value, DateTimeKind.Utc)
+                   ? e.EffectiveTo.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
                    : null,
 
                 IsActive = e.IsActive

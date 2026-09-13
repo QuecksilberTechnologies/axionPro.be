@@ -634,22 +634,46 @@ namespace axionpro.persistance.Repositories
                     "Fetching Employee Identity records. EmployeeId: {EmployeeId}, CountryId: {CountryId}",
                     employeeId, countryId);
 
-                var parameters = new[]
-                {
-            new NpgsqlParameter("p_employeeid", employeeId),
-            new NpgsqlParameter("p_countryid", countryId),
-            new NpgsqlParameter("p_isactive", isActive)
-        };
-
-                var result = await _context
-                    .Set<GetEmployeeIdentitySp>()
-                    .FromSqlRaw(
-                        @"SELECT * 
-                  FROM axionpro.""GetEmployeeIdentityByCountryRule""(
-                    @p_employeeid,
-                    @p_countryid,
-                    @p_isactive)",
-                        parameters)
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                var result = await (
+                    from rule in _context.CountryIdentityRules
+                    join identityRecord in _context.EmployeeIdentities
+                            .Where(item =>
+                                item.EmployeeId == employeeId &&
+                                item.IsActive == isActive &&
+                                !item.IsSoftDeleted &&
+                                (!item.EffectiveTo.HasValue || item.EffectiveTo >= today))
+                        on rule.IdentityCategoryDocumentId equals identityRecord.IdentityCategoryDocumentId
+                        into identityRecords
+                    from identityRecord in identityRecords.DefaultIfEmpty()
+                    where rule.CountryId == countryId &&
+                          rule.IsActive == true &&
+                          rule.Country.IsActive == true &&
+                          rule.IdentityCategoryDocument.IsActive &&
+                          rule.IdentityCategoryDocument.IdentityCategory.IsActive
+                    orderby rule.IdentityCategoryDocument.IdentityCategory.Name,
+                        rule.IdentityCategoryDocument.DocumentName
+                    select new GetEmployeeIdentitySp
+                    {
+                        Id = identityRecord == null ? null : identityRecord.Id,
+                        EmployeeId = identityRecord == null ? null : identityRecord.EmployeeId,
+                        CountryCode = rule.Country.CountryCode,
+                        CountryName = rule.Country.CountryName,
+                        IdentityCategoryName = rule.IdentityCategoryDocument.IdentityCategory.Name,
+                        IdentityCategoryDocumentId = rule.IdentityCategoryDocumentId,
+                        DocumentCode = rule.IdentityCategoryDocument.Code,
+                        DocumentName = rule.IdentityCategoryDocument.DocumentName,
+                        Description = rule.IdentityCategoryDocument.Description,
+                        IsMandatory = rule.IsMandatory,
+                        EmployeeIdentityId = identityRecord == null ? null : identityRecord.Id,
+                        IdentityValue = identityRecord == null ? null : identityRecord.IdentityValue,
+                        IsVerified = identityRecord == null ? null : identityRecord.IsInfoVerified,
+                        IsEditAllowed = identityRecord == null ? null : identityRecord.IsEditAllowed,
+                        HasIdentityUploaded = identityRecord == null ? null : identityRecord.HasIdentityUploaded,
+                        EffectiveFrom = identityRecord == null ? null : identityRecord.EffectiveFrom,
+                        EffectiveTo = identityRecord == null ? null : identityRecord.EffectiveTo,
+                        IsActive = identityRecord == null ? null : identityRecord.IsActive
+                    })
                     .AsNoTracking()
                     .ToListAsync();
 

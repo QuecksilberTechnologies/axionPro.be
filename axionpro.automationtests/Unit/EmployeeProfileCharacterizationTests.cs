@@ -9,14 +9,17 @@
 using System.Reflection;
 using axionpro.api.Controllers.Employee;
 using axionpro.application.Common.Enums;
+using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOs.BaseDTO;
+using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.Extentions;
 using axionpro.application.Features.EmployeeCmd;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -313,6 +316,30 @@ public sealed class EmployeeProfileCharacterizationTests
         Assert.That(actualRoutes, Is.EquivalentTo(expectedRoutes));
     }
 
+    [Test]
+    public void Identity_projection_keeps_distinct_effective_from_and_to_dates()
+    {
+        var source = new[]
+        {
+            new GetEmployeeIdentitySp
+            {
+                EmployeeId = 42,
+                EffectiveFrom = new DateOnly(2026, 1, 2),
+                EffectiveTo = new DateOnly(2031, 3, 4)
+            }
+        };
+        var result = ProjectionHelper
+            .ToGetIdentityResponseDTO(source, new TestIdEncoder(), "tenant-key")
+            .Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.EmployeeId, Is.EqualTo("42"));
+            Assert.That(result.EffectiveFrom, Is.EqualTo(new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc)));
+            Assert.That(result.EffectiveTo, Is.EqualTo(new DateTime(2031, 3, 4, 0, 0, 0, DateTimeKind.Utc)));
+        });
+    }
+
     #endregion
 
     #region Test helpers
@@ -347,6 +374,16 @@ public sealed class EmployeeProfileCharacterizationTests
         }
 
         return false;
+    }
+
+    private sealed class TestIdEncoder : IIdEncoderService
+    {
+        public string EncodeId_long(long id, string tenantKey) => id.ToString();
+        public long DecodeId_long(string? encodedId, string tenantKey) => long.Parse(encodedId!);
+        public int DecodeId_int(string? encodedId, string tenantKey) => int.Parse(encodedId!);
+        public string EncodeId_int(int id, string tenantKey) => id.ToString();
+        public string EncodeString(string input, string tenantKey) => input;
+        public string DecodeString(string input, string tenantKey) => input;
     }
 
     #endregion
