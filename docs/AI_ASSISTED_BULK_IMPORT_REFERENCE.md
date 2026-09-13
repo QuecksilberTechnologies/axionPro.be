@@ -7,6 +7,11 @@ endpoint documentation, existing permission pipelines, constants, enums and mapp
 Ask before implementing unclear business rules. COMPLETE below means the stated
 backend scope, not all future bulk modules or production deployment.
 
+## 2026-09-13 issue audit
+
+- Role retry root cause confirmed from the target DB: the reported rows are inactive (`IsActive=false`) but not soft-deleted. Multiple older soft-deleted versions also exist. The current approved import rule blocks inactive matches rather than overwriting/reactivating them. Reactivation behavior is pending explicit business confirmation before changing all durable master imports.
+- Employee profile verification payload fix is independent of import: the completion response now supplies nullable `tabInfoType` and `canUpdateVerificationStatus`, preventing assignment-summary rows from being sent to `/api/Employee/update-bulk`.
+
 > **Mandatory test-before-handoff rule — user-confirmed 2026-09-13:** never hand
 > over a bulk SQL file, migration, seed, API change or release as ready/complete
 > based only on code review or compilation. Run the relevant automated tests and,

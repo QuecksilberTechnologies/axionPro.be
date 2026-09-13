@@ -1888,22 +1888,23 @@ namespace axionpro.persistance.Repositories
                     dependentRows.Select(x => x.IsInfoVerified).ToArray(),
                     dependentRows.Select(x => x.IsEditAllowed).ToArray());
 
-                return new List<CompletionSectionDTO>
-                {
-                    overviewSection,
-                    bankSection,
-                    contactSection,
-                    experienceSection,
-                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Insurance", hasInsurance),
-                    identitySection,
-                    educationSection,
-                    dependentSection,
-                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Work Locations", hasWorkLocation),
-                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Devices", hasDevice),
-                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Work Arrangement", hasWorkArrangement),
-                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Work Pattern", hasWorkPattern),
-                    EmployeeProfileCompletionCalculator.CreateAssignmentSection("Overrides", hasOverride)
-                };
+                return EmployeeProfileCompletionCalculator.ApplyVerificationContract(
+                    new List<CompletionSectionDTO>
+                    {
+                        overviewSection,
+                        bankSection,
+                        contactSection,
+                        experienceSection,
+                        EmployeeProfileCompletionCalculator.CreateAssignmentSection("Insurance", hasInsurance),
+                        identitySection,
+                        educationSection,
+                        dependentSection,
+                        EmployeeProfileCompletionCalculator.CreateAssignmentSection("Work Locations", hasWorkLocation),
+                        EmployeeProfileCompletionCalculator.CreateAssignmentSection("Devices", hasDevice),
+                        EmployeeProfileCompletionCalculator.CreateAssignmentSection("Work Arrangement", hasWorkArrangement),
+                        EmployeeProfileCompletionCalculator.CreateAssignmentSection("Work Pattern", hasWorkPattern),
+                        EmployeeProfileCompletionCalculator.CreateAssignmentSection("Overrides", hasOverride)
+                    });
             }
             catch (Exception ex)
             {

@@ -6,6 +6,8 @@
 - [Tenant and Employee Bulk API Scenarios](../bulk-upload/BULK_API_SCENARIOS.md)
 - [Tenant Device Permission Contract](TENANT_DEVICE_PERMISSION_CONTRACT.md) — exact
   menu-operation mapping and screen-load API sequence.
+- [Employee Profile Verification API](EMPLOYEE_PROFILE_VERIFICATION_API.md) — supported
+  section identifiers, read-only rows and the update-bulk payload contract.
 
 Treat Module `PageName` and Operation `OperationName` as immutable identities during
 seed and catalogue integration. Resolve permission IDs dynamically from the

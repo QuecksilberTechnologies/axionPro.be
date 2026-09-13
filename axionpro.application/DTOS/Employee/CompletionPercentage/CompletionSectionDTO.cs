@@ -17,6 +17,12 @@ namespace axionpro.application.DTOS.Employee.CompletionPercentage
         public bool? IsInfoVerified { get; set; }
         public bool? IsEditAllowed { get; set; }
         public bool IsSectionCreate { get; set; }
+        /// <summary>
+        /// Numeric value accepted by Employee/update-bulk for this section.
+        /// Null means that the section is display-only in the verification dialog.
+        /// </summary>
+        public int? TabInfoType { get; set; }
+        public bool CanUpdateVerificationStatus { get; set; }
     }
 
 

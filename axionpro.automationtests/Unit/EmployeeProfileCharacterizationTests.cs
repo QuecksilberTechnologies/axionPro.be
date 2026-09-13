@@ -267,6 +267,29 @@ public sealed class EmployeeProfileCharacterizationTests
         }));
     }
 
+    [Test]
+    public void Profile_status_exposes_update_bulk_ids_only_for_persisted_verification_sections()
+    {
+        var names = new[]
+        {
+            "Overview", "Bank", "Contact", "Experience", "Insurance", "Identity", "Education",
+            "Dependent", "Work Locations", "Devices", "Work Arrangement", "Work Pattern", "Overrides"
+        };
+        var sections = EmployeeProfileCompletionCalculator.ApplyVerificationContract(
+            names.Select(name => new CompletionSectionDTO { SectionName = name }).ToList());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sections.Where(section => section.CanUpdateVerificationStatus)
+                .Select(section => section.TabInfoType), Is.EqualTo(new int?[] { 1, 2, 3, 4, 5, 6, 7 }));
+            Assert.That(sections.Where(section => !section.CanUpdateVerificationStatus)
+                .Select(section => section.SectionName), Is.EqualTo(new[]
+                { "Insurance", "Work Locations", "Devices", "Work Arrangement", "Work Pattern", "Overrides" }));
+            Assert.That(sections.Where(section => !section.CanUpdateVerificationStatus)
+                .All(section => section.TabInfoType is null), Is.True);
+        });
+    }
+
     /// <summary>
     /// Verifies each legacy Employee profile controller keeps its currently published CRUD routes.
     /// </summary>
