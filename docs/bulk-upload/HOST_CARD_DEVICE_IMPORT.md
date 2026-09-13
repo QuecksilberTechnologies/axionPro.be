@@ -7,15 +7,15 @@ smoke verification are separate release steps; no production run is claimed here
 
 | Import | Parent | ModuleCode | Scope | Destination |
 |---|---|---|---:|---|
-| Card Bulk | Tenant RFID Management | HOST_CARD_BULK | 2 | TenantCardMaster, one selected tenant |
-| Device Bulk | Device Catalogue | HOST_DEVICE_BULK | 2 | DeviceMaster, global catalogue |
+| Card Bulk | Tenant RFID Management | HOST_TENANT_RFID_MANAGEMENT | 2 | TenantCardMaster, one selected tenant |
+| Device Bulk | Device Catalogue | HOST_DEVICE_SETUP | 2 | DeviceMaster, global catalogue |
 
 Read module/operation IDs from the authenticated Host menu; IDs differ by database.
 Use Import (operation type 12) for preview/confirm/retry/cancel; View (type 4) or
 Import for template/job/jobs/report. These are operation **types**, not IDs.
 The existing Host permission function validates current grants, including Super Admin.
 Host modules do not use subscription PlanModuleMapping or tenant entitlement sync.
-Grant these two modules through the existing Host role permission screen.
+Grant Import/Export on these existing modules through the Host role permission screen.
 Device import does not assign, occupy or install a device. Tenant-Device remains manual.
 
 ## URLs and mandatory request fields

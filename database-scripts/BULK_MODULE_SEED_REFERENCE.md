@@ -3,6 +3,40 @@
 Updated: 2026-09-11. This note records which module/operation seed is authoritative
 for bulk onboarding and what each seed changes. It does not grant permissions.
 
+## Existing-module operation model — user-confirmed 2026-09-13
+
+Separate Tenant and Host `*BULK*` navigation Module rows are retired. Bulk features
+use Import (`OperationType=12`) and Export (`OperationType=11`) mappings on their
+existing functional modules. Existing Module `PageName` and Operation
+`OperationName` values remain unchanged.
+
+| Bulk feature | Permission ModuleCode |
+| --- | --- |
+| Employee | `EMP_LIST` |
+| Department | `TENANT_DEPARTMENTS` |
+| Designation | `TENANT_DESIGNATIONS` |
+| Role | `TENANT_ROLES_PERMISSIONS` |
+| EmployeeType | `TENANT_EMPLOYEE_TYPES` |
+| Host Card catalogue | `HOST_TENANT_RFID_MANAGEMENT` |
+| Host Device catalogue | `HOST_DEVICE_SETUP` |
+| Host Module / Child Module / Operation / Mapping | `HOST_MODULES` / `HOST_SUBMODULES` / `HOST_OPERATIONS` / `HOST_MODULE_OPERATIONS` |
+
+`SeedBulkImportModules.sql` and `SeedHostBulkImportModules.sql` migrate matching
+existing grants to the functional modules, remove obsolete dependencies from
+`TenantEnabledModule`, `TenantEnabledOperation`, role, mapping and plan tables,
+then delete the obsolete Module rows in FK-safe order. The complete seed embeds
+the same logic and no longer inserts bulk child modules.
+
+Validation: the complete seed ran successfully twice on isolated
+`axionpro_bulk_test`; 36 focused tests passed with zero failures/skips. Target DB
+was backed up, both targeted seeds completed, and reconciliation returned zero
+bulk-named Module rows, zero orphan tenant entitlement rows, 22 active functional
+Import/Export mappings and zero duplicates. Evidence and command details:
+`docs/testing/bulk/module-operation-cleanup/2026-09-13.md`.
+
+The older child-module sections below are historical and superseded by this
+decision wherever they describe the current menu/permission contract.
+
 ## Immutable PageName rule — user-confirmed 2026-09-13
 
 Never change an existing Module `PageName` while editing Module, child-module,
@@ -43,7 +77,7 @@ shifted line numbers.
 | `TENANT_EMPLOYEE_TYPES` | Tenant | EmployeeType bulk |
 | `TENANT_EMPLOYEE_CODE` | Tenant | Employee-code pattern add/update |
 
-The complete seed's approved navigation hierarchy is now functional-parent based:
+Historical implementation (superseded): the complete seed previously used a functional-parent hierarchy:
 `BULK_EMPLOYEES` under `EMP_MGMT`; Department, Designation, Role and EmployeeType
 bulk children under their corresponding existing tenant modules. There is no
 standalone tenant `BULKUPLOAD` parent. Each bulk child has View (4), Export (11)
@@ -100,7 +134,7 @@ existing Host entitlement synchronization, existing tenant role-permission grant
 and finally durable bulk migrations. Verify by stable ModuleCode and authenticated
 `my-menu`; never assume numeric IDs. Before merging the 38 backup-only modules into
 the canonical seed, review their product scope—they are not all bulk modules.
-## Host catalogue bulk seed — 2026-09-13
+## Host catalogue bulk seed — 2026-09-13 (superseded child-module design)
 
 `SeedHostBulkImportModules.sql` and the embedded consolidated complete-seed block
 add these scope-2 children without `PlanModuleMapping` rows:

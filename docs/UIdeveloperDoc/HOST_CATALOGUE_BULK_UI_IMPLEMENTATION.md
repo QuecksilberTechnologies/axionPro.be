@@ -14,16 +14,16 @@ current values from the authenticated Host user's existing menu/permission data.
 
 | Screen | Menu module code | Parent menu | API base | Destination table |
 | --- | --- | --- | --- | --- |
-| Module Bulk | `HOST_MODULE_CATALOGUE_BULK` | `HOST_MODULES` | `/api/Module/import` | `axionpro.Module` |
-| Child Module Bulk | `HOST_SUBMODULE_CATALOGUE_BULK` | `HOST_SUBMODULES` | `/api/SubModule/import` | `axionpro.Module` |
-| Operation Bulk | `HOST_OPERATION_CATALOGUE_BULK` | `HOST_OPERATIONS` | `/api/Operation/import` | `axionpro.Operation` |
-| Operation Mapping Bulk | `HOST_MODULE_OPERATION_CATALOGUE_BULK` | `HOST_MODULE_OPERATIONS` | `/api/ModuleOperation/import` | `axionpro.ModuleOperationMapping` |
+| Module Bulk | `HOST_MODULES` | Host Modules | `/api/Module/import` | `axionpro.Module` |
+| Child Module Bulk | `HOST_SUBMODULES` | Host Submodules | `/api/SubModule/import` | `axionpro.Module` |
+| Operation Bulk | `HOST_OPERATIONS` | Host Operations | `/api/Operation/import` | `axionpro.Operation` |
+| Operation Mapping Bulk | `HOST_MODULE_OPERATIONS` | Host Module Operations | `/api/ModuleOperation/import` | `axionpro.ModuleOperationMapping` |
 
 All four screens support CSV, XLSX and pasted tab/comma-delimited data, explicit
 column mapping, saved preview, confirmation, background execution, scheduling,
 job history, progress polling, cancellation, retry and result-report download.
 
-The menu modules are scope `2` and map canonical View (`OperationType=4`), Export
+The existing functional modules are scope `2` and map canonical View (`OperationType=4`), Export
 (`11`) and Import (`12`) operations. Export currently represents menu/permission
 metadata. These controllers do not expose catalogue-export business endpoints.
 
@@ -43,7 +43,7 @@ Illustrative menu values only:
 
 ```ts
 const permission = {
-  moduleCode: 'HOST_MODULE_CATALOGUE_BULK',
+  moduleCode: 'HOST_MODULES',
   moduleId: moduleFromMyMenu.id,
   viewOperationId: moduleFromMyMenu.operations.find(x => x.operationType === 4)!.id,
   importOperationId: moduleFromMyMenu.operations.find(x => x.operationType === 12)!.id

@@ -32,3 +32,9 @@ This handoff is part of the endpoint's completion checklist so another UI develo
 Claude or Codex can implement the frontend without guessing backend behavior.
 
 Latest Render API evidence: [2026-09-13 smoke test](../RENDER_SMOKE_TEST_2026-09-13.md).
+
+Scenario test evidence is organized by module, scenario and date under
+[docs/testing](../testing/README.md). Every tested scenario must have a report
+there using the [scenario template](../testing/SCENARIO_TEMPLATE.md), with exact
+local/live status, inputs, expected/actual results and outstanding checks.
+Current Employee example: [China/USA identity options](../testing/employee/country-identity/2026-09-13.md).

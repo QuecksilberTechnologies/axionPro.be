@@ -1,7 +1,7 @@
 # Host catalogue bulk import handoff
 
 Updated: 2026-09-13. These APIs are Host-only and use the existing Host role
-permission pipeline. Grant View/Import on the matching scope-2 bulk child first.
+permission pipeline. Grant View/Import on the matching existing scope-2 module first.
 Export is catalogue permission metadata; no export business endpoint was added.
 
 ## Shared API lifecycle
@@ -11,10 +11,10 @@ Each base exposes `POST preview`, `POST confirm`, `GET job`, `GET jobs`,
 
 | Import | Base URL | Permission module code |
 | --- | --- | --- |
-| Parent Module | `/api/Module/import` | `HOST_MODULE_CATALOGUE_BULK` |
-| Child Module | `/api/SubModule/import` | `HOST_SUBMODULE_CATALOGUE_BULK` |
-| Operation | `/api/Operation/import` | `HOST_OPERATION_CATALOGUE_BULK` |
-| Operation mapping | `/api/ModuleOperation/import` | `HOST_MODULE_OPERATION_CATALOGUE_BULK` |
+| Parent Module | `/api/Module/import` | `HOST_MODULES` |
+| Child Module | `/api/SubModule/import` | `HOST_SUBMODULES` |
+| Operation | `/api/Operation/import` | `HOST_OPERATIONS` |
+| Operation mapping | `/api/ModuleOperation/import` | `HOST_MODULE_OPERATIONS` |
 
 Preview is multipart form data containing `ModuleId`, `OperationId`, one `File`
 or `PastedText`, optional `RequestId`, `SheetName`, and `ColumnMappingJson`.
@@ -72,7 +72,7 @@ rows remain and terminal jobs cannot be undone.
 1. Back up the intended database and stop the API/worker.
 2. Run `AddHostBulkImport.sql`.
 3. Run the consolidated complete seed or `SeedHostBulkImportModules.sql`.
-4. Grant each required bulk child through the existing Host role permission flow.
+4. Grant Import/Export on each required existing module through the Host role permission flow.
 5. Restart and perform authenticated preview/confirm/job/report smoke tests.
 
 Local evidence is in `artifacts/host-catalogue-bulk-*`. The targeted seed passed

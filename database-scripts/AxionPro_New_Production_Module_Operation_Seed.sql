@@ -3505,70 +3505,132 @@ ORDER BY
     plan_mapping."SubscriptionPlanId",
     module."ModuleCode";
 
--- Host bulk menu catalogue. Run after baseline module seed; safe to re-run in pgAdmin.
--- Scope 2 only. Host modules do not belong in subscription PlanModuleMapping.
+-- HOST BULK OPERATIONS ON EXISTING FUNCTIONAL MODULES
+-- Host bulk permissions use Import/Export on existing functional modules.
+-- Separate *_BULK Module rows are obsolete and removed in FK-safe order.
+-- Idempotent: safe to execute repeatedly after the canonical module seed.
 BEGIN;
-LOCK TABLE axionpro."Module", axionpro."Operation", axionpro."ModuleOperationMapping"
+
+LOCK TABLE axionpro."Module", axionpro."Operation",
+    axionpro."ModuleOperationMapping", axionpro."HostRoleModuleAndPermission",
+    axionpro."RoleModuleAndPermission", axionpro."TenantEnabledOperation",
+    axionpro."TenantEnabledModule", axionpro."PlanModuleMapping"
     IN SHARE ROW EXCLUSIVE MODE;
-DO $host_bulk$
+
+DO $host_bulk_operations$
 DECLARE
     definition record;
-    parent_id integer;
-    child_id integer;
-    operation_id integer;
     operation_type integer;
+    operation_id integer;
 BEGIN
-    FOR definition IN SELECT * FROM (VALUES
-        ('HOST_CARD_BULK','Card-Bulk','Card Bulk','/app/tenant-card-inventory/bulk','host-card-bulk','HOST_TENANT_RFID_MANAGEMENT',535),
-        ('HOST_DEVICE_BULK','Device-Bulk','Device Bulk','/app/device-masters/bulk','host-device-bulk','HOST_DEVICE_SETUP',515)
-    ) AS x(code,name,display_name,url,page_name,parent_code,priority)
+    -- Preserve existing Host grants on the corresponding functional module.
+    INSERT INTO axionpro."HostRoleModuleAndPermission"
+        ("HostRoleId","ModuleId","OperationId","IsActive","IsSoftDeleted",
+         "AddedById","AddedDateTime","UpdatedById","UpdatedDateTime")
+    SELECT grant_row."HostRoleId",target."Id",grant_row."OperationId",
+           grant_row."IsActive",grant_row."IsSoftDeleted",grant_row."AddedById",
+           grant_row."AddedDateTime",grant_row."UpdatedById",grant_row."UpdatedDateTime"
+    FROM (VALUES
+        ('HOST_CARD_BULK','HOST_TENANT_RFID_MANAGEMENT'),
+        ('HOST_DEVICE_BULK','HOST_DEVICE_SETUP'),
+        ('HOST_MODULE_CATALOGUE_BULK','HOST_MODULES'),
+        ('HOST_SUBMODULE_CATALOGUE_BULK','HOST_SUBMODULES'),
+        ('HOST_OPERATION_CATALOGUE_BULK','HOST_OPERATIONS'),
+        ('HOST_MODULE_OPERATION_CATALOGUE_BULK','HOST_MODULE_OPERATIONS')
+    ) AS move(child_code,target_code)
+    JOIN axionpro."Module" child
+      ON child."ModuleCode"=move.child_code AND child."ModuleScope"=2
+    JOIN axionpro."Module" target
+      ON target."ModuleCode"=move.target_code AND target."ModuleScope"=2
+    JOIN axionpro."HostRoleModuleAndPermission" grant_row
+      ON grant_row."ModuleId"=child."Id"
+    WHERE NOT EXISTS (
+        SELECT 1 FROM axionpro."HostRoleModuleAndPermission" existing
+        WHERE existing."HostRoleId"=grant_row."HostRoleId"
+          AND existing."ModuleId"=target."Id"
+          AND existing."OperationId"=grant_row."OperationId"
+          AND existing."IsSoftDeleted"=grant_row."IsSoftDeleted");
+
+    FOREACH operation_type IN ARRAY ARRAY[11,12]
     LOOP
-        SELECT "Id" INTO STRICT parent_id FROM axionpro."Module"
-        WHERE "ModuleCode"=definition.parent_code AND "ModuleScope"=2 AND "IsActive"=TRUE;
-        INSERT INTO axionpro."Module"
-            ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId",
-             "IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","IsActive","ImageIconWeb",
-             "ImageIconMobile","ItemPriority","Remark","AddedById","AddedDateTime","ModuleScope","PageName")
-        SELECT NULL,definition.code,definition.name,definition.display_name,definition.url,parent_id,
-            TRUE,TRUE,FALSE,TRUE,'bi bi-upload','upload',definition.priority,
-            'Host-only upload, preview, confirm and track durable bulk imports.',1,CURRENT_TIMESTAMP,2,definition.page_name
-        WHERE NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode"=definition.code);
-        SELECT "Id" INTO STRICT child_id FROM axionpro."Module"
-        WHERE "ModuleCode"=definition.code AND "ModuleScope"=2;
-        UPDATE axionpro."Module" SET "ParentModuleId"=parent_id,"IsLeafNode"=TRUE,
-            "IsModuleDisplayInUI"=TRUE,"IsActive"=TRUE
-        WHERE "Id"=child_id;
-        -- Catalogue remains navigable with a child; preserve existing names, URL and page identity.
-        UPDATE axionpro."Module" SET "IsLeafNode"=FALSE WHERE "Id"=parent_id;
-        FOREACH operation_type IN ARRAY ARRAY[4,12]
+        SELECT "Id" INTO operation_id FROM axionpro."Operation"
+        WHERE "OperationType"=operation_type
+        ORDER BY "IsActive" DESC,"Id" LIMIT 1;
+
+        IF operation_id IS NULL THEN
+            INSERT INTO axionpro."Operation"
+                ("OperationName","OperationType","Remark","IsActive","IconImage",
+                 "AddedById","AddedDateTime")
+            VALUES (CASE operation_type WHEN 11 THEN 'Export' ELSE 'Import' END,
+                operation_type,'Bulk spreadsheet action on an existing functional module.',
+                TRUE,CASE operation_type WHEN 11 THEN 'download' ELSE 'upload' END,
+                1,CURRENT_TIMESTAMP)
+            RETURNING "Id" INTO operation_id;
+        END IF;
+
+        FOR definition IN SELECT * FROM (VALUES
+            ('HOST_TENANT_RFID_MANAGEMENT','/app/tenant-card-inventory'),
+            ('HOST_DEVICE_SETUP','/app/device-masters'),
+            ('HOST_MODULES','/app/modules'),
+            ('HOST_SUBMODULES','/app/modules/submodules'),
+            ('HOST_OPERATIONS','/app/modules/operations'),
+            ('HOST_MODULE_OPERATIONS','/app/modules/module-operations')
+        ) AS target(code,page_url)
         LOOP
-            SELECT "Id" INTO operation_id FROM axionpro."Operation"
-            WHERE "OperationType"=operation_type ORDER BY "IsActive" DESC,"Id" LIMIT 1;
-            IF operation_id IS NULL THEN
-                INSERT INTO axionpro."Operation"
-                    ("OperationName","OperationType","Remark","IsActive","IconImage","AddedById","AddedDateTime")
-                VALUES (CASE operation_type WHEN 4 THEN 'View' ELSE 'Import' END,operation_type,
-                    'Read or execute bulk imports.',TRUE,'upload',1,CURRENT_TIMESTAMP)
-                RETURNING "Id" INTO operation_id;
-            END IF;
-            UPDATE axionpro."Operation" SET "IsActive"=TRUE WHERE "Id"=operation_id;
             INSERT INTO axionpro."ModuleOperationMapping"
-                ("ModuleId","OperationId","PageURL","IconURL","IsCommonItem","IsOperational","Priority",
-                 "Remark","IsActive","AddedById","AddedDateTime")
-            SELECT child_id,operation_id,definition.url,'upload',FALSE,TRUE,operation_type,
-                'Host bulk permission; grants use existing Host role permission flow.',TRUE,1,CURRENT_TIMESTAMP
-            WHERE NOT EXISTS (SELECT 1 FROM axionpro."ModuleOperationMapping"
-                WHERE "ModuleId"=child_id AND "OperationId"=operation_id);
-            UPDATE axionpro."ModuleOperationMapping" SET "IsActive"=TRUE,"IsOperational"=TRUE
-            WHERE "ModuleId"=child_id AND "OperationId"=operation_id;
+                ("ModuleId","OperationId","PageURL","IconURL","IsCommonItem",
+                 "IsOperational","Priority","Remark","IsActive","AddedById","AddedDateTime")
+            SELECT module."Id",operation_id,definition.page_url,
+                   CASE operation_type WHEN 11 THEN 'download' ELSE 'upload' END,
+                   FALSE,TRUE,operation_type,
+                   'Bulk action on the existing Host functional module.',TRUE,1,CURRENT_TIMESTAMP
+            FROM axionpro."Module" module
+            WHERE module."ModuleCode"=definition.code AND module."ModuleScope"=2
+              AND NOT EXISTS (SELECT 1 FROM axionpro."ModuleOperationMapping" existing
+                  WHERE existing."ModuleId"=module."Id"
+                    AND existing."OperationId"=operation_id);
+
+            UPDATE axionpro."ModuleOperationMapping" mapping
+            SET "IsActive"=TRUE,"IsOperational"=TRUE,"UpdatedById"=1,
+                "UpdatedDateTime"=CURRENT_TIMESTAMP
+            FROM axionpro."Module" module
+            WHERE mapping."ModuleId"=module."Id"
+              AND mapping."OperationId"=operation_id
+              AND module."ModuleCode"=definition.code
+              AND module."ModuleScope"=2;
         END LOOP;
     END LOOP;
-END $host_bulk$;
+
+    -- Remove every direct dependency before deleting obsolete Module rows.
+    DELETE FROM axionpro."HostRoleModuleAndPermission" WHERE "ModuleId" IN
+      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
+    DELETE FROM axionpro."RoleModuleAndPermission" WHERE "ModuleId" IN
+      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
+    DELETE FROM axionpro."TenantEnabledOperation" WHERE "ModuleId" IN
+      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
+    DELETE FROM axionpro."TenantEnabledModule" WHERE "ModuleId" IN
+      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\')
+       OR "ParentModuleId" IN
+      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
+    DELETE FROM axionpro."PlanModuleMapping" WHERE "ModuleId" IN
+      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
+    DELETE FROM axionpro."ModuleOperationMapping" WHERE "ModuleId" IN
+      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
+    DELETE FROM axionpro."Module"
+    WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\';
+END $host_bulk_operations$;
+
 COMMIT;
--- Use the existing Host role permission screen to grant View/Import on these two modules.
-SELECT m."Id",m."ModuleCode",m."ModuleScope",m."ParentModuleId",m."PageName",o."Id" AS "OperationId",o."OperationName"
-FROM axionpro."Module" m
-JOIN axionpro."ModuleOperationMapping" mm ON mm."ModuleId"=m."Id" AND mm."IsActive"
-JOIN axionpro."Operation" o ON o."Id"=mm."OperationId" AND o."IsActive"
-WHERE m."ModuleCode" IN ('HOST_CARD_BULK','HOST_DEVICE_BULK')
-ORDER BY m."ModuleCode",o."OperationType";
+
+SELECT module."Id",module."ModuleCode",module."ModuleScope",module."PageName",
+       operation."Id" AS "OperationId",operation."OperationName"
+FROM axionpro."Module" module
+JOIN axionpro."ModuleOperationMapping" mapping
+  ON mapping."ModuleId"=module."Id" AND mapping."IsActive"
+JOIN axionpro."Operation" operation
+  ON operation."Id"=mapping."OperationId" AND operation."IsActive"
+WHERE module."ModuleCode" IN
+    ('HOST_TENANT_RFID_MANAGEMENT','HOST_DEVICE_SETUP','HOST_MODULES',
+     'HOST_SUBMODULES','HOST_OPERATIONS','HOST_MODULE_OPERATIONS')
+  AND operation."OperationType" IN (11,12)
+ORDER BY module."ModuleCode",operation."OperationType";

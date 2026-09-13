@@ -41,3 +41,21 @@ Both consolidated seed references contain the same Host menu block. Existing
 production installations should use the two targeted scripts or the migration
 runner's -HostBulkOnly option. No tenant plan mappings or role grants are inserted
 by this scope-2 seed; the existing Host role permission flow owns grants.
+
+## Existing-module bulk operation cleanup — 2026-09-13
+
+This supersedes the earlier child-module seed record above. A fresh target backup
+was created before execution. `SeedBulkImportModules.sql` and
+`SeedHostBulkImportModules.sql` then completed successfully against the configured
+Render development database. Target verification returned:
+
+- zero Module rows whose ModuleCode contains `BULK`;
+- zero orphan TenantEnabledModule and TenantEnabledOperation rows;
+- exactly 22 active Import/Export mappings on eleven existing functional modules;
+- zero duplicate functional ModuleId/OperationId mappings;
+- EMP_LIST restored under EMP_MGMT and four tenant masters under TENANT_MGMT.
+
+The complete consolidated seed also completed first-run and rerun on isolated
+`axionpro_bulk_test`. Focused automated validation passed 36/36 with no skips.
+See `docs/testing/bulk/module-operation-cleanup/2026-09-13.md` for the mapping,
+commands, evidence and remaining deployed API/menu smoke checks.

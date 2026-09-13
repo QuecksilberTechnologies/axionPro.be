@@ -9,6 +9,18 @@ backend scope, not all future bulk modules or production deployment.
 
 ## 2026-09-13 issue audit
 
+- **COMPLETE — bulk permission catalogue simplification:** user accepted the UI
+  developer's existing-module operation model. Separate Tenant/Host bulk Module
+  rows, including the legacy `BULKUPLOAD` parent, were removed. Import/Export map
+  directly to the eleven existing functional modules. Existing grants were
+  migrated where applicable; entitlement/mapping/plan/role references were
+  cleaned before Module deletion. The target DB has zero bulk-named modules,
+  zero orphan TenantEnabledModule/TenantEnabledOperation rows, 22 active
+  Import/Export mappings and zero duplicates. Full seed first-run/rerun passed
+  on isolated PostgreSQL; focused result 36/36 passed. Scenario evidence:
+  `docs/testing/bulk/module-operation-cleanup/2026-09-13.md`. Older sections that
+  describe bulk child modules are historical and superseded by this decision.
+
 - **COMPLETE locally — inactive durable-master retry:** target DB evidence showed the reported Role rows were inactive (`IsActive=false`) but not soft-deleted, with multiple older soft-deleted versions. An incoming `IsActive=true` row now previews the current inactive, non-deleted Department, Designation, Role or EmployeeType as `willReactivate`, and confirmation reactivates only that row without overwriting its other fields. Truly soft-deleted rows remain excluded and therefore import as new records. Reports expose `reactivatedCount`; worker-time conflicts become row errors. Focused preview/database suite: 50 passed, 18 isolated-DB tests explicitly skipped because `AXIONPRO_BULK_TEST_CONNECTION` was not configured.
 - Employee profile verification payload fix is independent of import: the completion response now supplies nullable `tabInfoType` and `canUpdateVerificationStatus`, preventing assignment-summary rows from being sent to `/api/Employee/update-bulk`.
 

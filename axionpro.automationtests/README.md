@@ -540,3 +540,23 @@ dotnet test --filter "FullyQualifiedName~HostBulkImportTableMapperTests|FullyQua
 The catalogue database case validates Module → Child Module → Operation → Mapping
 creation and replay-as-existing. Contract tests verify all four controllers expose
 the shared eight-route lifecycle.
+
+## Scenario report requirement — 2026-09-13
+
+For every tested scenario, maintain a dated report under
+`docs/testing/<module>/<scenario>/<YYYY-MM-DD>.md` using the
+[scenario template](../docs/testing/SCENARIO_TEMPLATE.md). Include the actual
+inputs, API steps, expected/actual results, command and test names, environment,
+commit, evidence, skipped/blocked checks, persistence and cleanup. Preserve the
+distinction between local tests and deployed acceptance. Do not rerun passing
+tests solely for documentation.
+
+- [Scenario index](../docs/testing/README.md)
+- [Employee China/USA identity report](../docs/testing/employee/country-identity/2026-09-13.md):
+  previous focused run recorded 18 passed, 0 failed, 5 DB-dependent skipped.
+  Local date-projection regression passed; deployed identity acceptance remains
+  pending. No new test run was performed while creating this report.
+- [Bulk existing-module operation cleanup](../docs/testing/bulk/module-operation-cleanup/2026-09-13.md):
+  complete seed first-run/rerun passed on isolated PostgreSQL; focused
+  `BulkModuleOperationSeed`, `HostBulkPermission` and `HostBulkImport` run passed
+  36/36 with zero failures/skips. Target DB reconciliation is recorded there.
