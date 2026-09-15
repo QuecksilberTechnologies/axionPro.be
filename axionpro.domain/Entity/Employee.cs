@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -82,12 +82,6 @@ public partial class Employee
     public bool? IsMarried { get; set; }
 
     public string? EmergencyContactPerson { get; set; }
-
-    public virtual ICollection<AssetHistory> AssetHistoryEmployee { get; set; } = new List<AssetHistory>();
-
-    public virtual ICollection<AssetHistory> AssetHistoryScrapApprovedByNavigation { get; set; } = new List<AssetHistory>();
-
-    public virtual ICollection<AttendanceHistory> AttendanceHistory { get; set; } = new List<AttendanceHistory>();
 
     public virtual Country Country { get; set; } = null!;
 

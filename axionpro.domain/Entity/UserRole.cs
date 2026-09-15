@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -45,9 +45,5 @@ public partial class UserRole
 
     public virtual Employee? Employee { get; set; }
 
-    public virtual ICollection<InterviewPanelMember> InterviewPanelMember { get; set; } = new List<InterviewPanelMember>();
-
     public virtual Role? Role { get; set; }
-
-    public virtual ICollection<TenderProject> TenderProject { get; set; } = new List<TenderProject>();
 }

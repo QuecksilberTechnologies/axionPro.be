@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -32,8 +32,6 @@ public partial class Role
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
-
-    public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetail { get; set; } = new List<AssetTicketTypeDetail>();
 
     public virtual ICollection<RoleModuleAndPermission> RoleModuleAndPermission { get; set; } = new List<RoleModuleAndPermission>();
 

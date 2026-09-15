@@ -340,19 +340,9 @@ BEGIN
        OR "RequestId" IN
           (SELECT "Id" FROM axionpro."AssetRequest" WHERE "TenantId" = v_tenant_id);
 
-    DELETE FROM axionpro."AssetHistory"
-    WHERE "TenantId" = v_tenant_id
-       OR "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee)
-       OR "ScrapApprovedBy" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee);
-
     DELETE FROM axionpro."AssetImage"
     WHERE "TenantId" = v_tenant_id
        OR "AssetId" IN (SELECT "Id" FROM axionpro."Asset" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."AssetTicketTypeDetail"
-    WHERE "AssetTypeId" IN (SELECT "Id" FROM axionpro."AssetType" WHERE "TenantId" = v_tenant_id)
-       OR "TicketTypeId" IN (SELECT "Id" FROM axionpro."TicketType" WHERE "TenantId" = v_tenant_id)
-       OR "ResponsibleRoleId" IN (SELECT "Id" FROM axionpro."Role" WHERE "TenantId" = v_tenant_id);
 
     DELETE FROM axionpro."EmployeeExperienceDocument"
     WHERE "EmployeeExperienceId" IN
@@ -533,9 +523,6 @@ BEGIN
     DELETE FROM axionpro."Attendance"
     WHERE "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee);
 
-    DELETE FROM axionpro."AttendanceHistory"
-    WHERE "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee);
-
     DELETE FROM axionpro."AttendanceRequest"
     WHERE "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee);
 
@@ -588,16 +575,6 @@ BEGIN
           (SELECT "Id" FROM axionpro."LoginCredential"
            WHERE "TenantId" = v_tenant_id
               OR "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee));
-
-    DELETE FROM axionpro."InterviewPanelMember"
-    WHERE "UserRoleId" IN
-          (SELECT "Id" FROM axionpro."UserRole"
-           WHERE "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee));
-
-    DELETE FROM axionpro."TenderProject"
-    WHERE "UserRoleId" IN
-          (SELECT "Id" FROM axionpro."UserRole"
-           WHERE "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee));
 
     DELETE FROM axionpro."UserRole"
     WHERE "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee)
@@ -672,10 +649,7 @@ BEGIN
     ---------------------------------------------------------------------------
     -- 3. Remaining direct TenantId rows, then the tenant itself.
     ---------------------------------------------------------------------------
-
-    DELETE FROM axionpro."ApprovalWorkflow" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."ComplianceRule" WHERE "TenantId" = v_tenant_id;
-    DELETE FROM axionpro."EmailsLog" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."EmployeeCodePattern" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."RequestType" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."TaxRule" WHERE "TenantId" = v_tenant_id;

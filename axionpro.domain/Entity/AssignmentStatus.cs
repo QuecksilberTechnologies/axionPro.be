@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -26,6 +26,4 @@ public partial class AssignmentStatus
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
-
-    public virtual ICollection<AssetHistory> AssetHistory { get; set; } = new List<AssetHistory>();
 }

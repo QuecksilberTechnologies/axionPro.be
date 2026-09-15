@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -56,10 +56,4 @@ public partial class Candidate
     public string? ResumeUrl { get; set; }
 
     public virtual ICollection<CandidateCategorySkill> CandidateCategorySkill { get; set; } = new List<CandidateCategorySkill>();
-
-    public virtual ICollection<CandidateHistory> CandidateHistory { get; set; } = new List<CandidateHistory>();
-
-    public virtual ICollection<InterviewFeedback> InterviewFeedback { get; set; } = new List<InterviewFeedback>();
-
-    public virtual ICollection<InterviewSchedule> InterviewSchedule { get; set; } = new List<InterviewSchedule>();
 }

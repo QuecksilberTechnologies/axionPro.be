@@ -217,7 +217,6 @@ public sealed class EmployeeImportDatabaseTests
         Assert.That(await context.EmployeeImages.CountAsync(item => item.EmployeeId == employee.Id), Is.EqualTo(1));
         Assert.That(await context.EmployeeContacts.Where(item => item.EmployeeId == employee.Id).Select(item => item.Address).SingleAsync(), Is.EqualTo(_values["Address"]));
         Assert.That(await context.LoginCredentials.Where(item => item.EmployeeId == employee.Id).Select(item => item.Password).SingleAsync(), Is.Null);
-        Assert.That(await context.EmailsLogs.CountAsync(item => item.ToEmail == _values["OfficialEmail"]), Is.Zero);
         await Act(preview, BulkImportAction.Confirm);
         Assert.That((await Act(preview, BulkImportAction.Get)).CreatedCount, Is.EqualTo(1));
     }

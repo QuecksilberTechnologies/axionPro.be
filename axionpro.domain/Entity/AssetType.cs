@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -34,8 +34,6 @@ public partial class AssetType
     public virtual ICollection<Asset> Asset { get; set; } = new List<Asset>();
 
     public virtual AssetCategory? AssetCategory { get; set; }
-
-    public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetail { get; set; } = new List<AssetTicketTypeDetail>();
 }
 
  

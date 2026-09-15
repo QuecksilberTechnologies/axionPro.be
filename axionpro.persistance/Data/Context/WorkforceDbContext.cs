@@ -38,11 +38,8 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<EmployeeContact> EmployeeContacts { get; set; }
         public virtual DbSet<District> Districts { get; set; }
-      //  public virtual DbSet<AttendanceLog> AttendanceLogs { get; set; }
         public virtual DbSet<AccommodationAllowancePolicyByDesignation> AccommodationAllowancePolicyByDesignations { get; set; }
         public DbSet<EmployeeCountResponseStatsSp> EmployeeCountResponseStatsSp { get; set; }
-
-        public virtual DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
         public virtual DbSet<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; }
 
         public virtual DbSet<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; }
@@ -52,16 +49,11 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<AssetAssignment> AssetAssignments { get; set; }
 
         public virtual DbSet<AssetCategory> AssetCategories { get; set; }
-
-        public virtual DbSet<AssetHistory> AssetHistories { get; set; }
         public virtual DbSet<UnStructuredPolicyTypeMappingWithEmployeeType> UnStructuredPolicyTypeMappingWithEmployeeTypes { get; set; }
 
         public virtual DbSet<AssetImage> AssetImages { get; set; }
 
         public virtual DbSet<AssetStatus> AssetStatuses { get; set; }
-
-        public virtual DbSet<AssetTicketTypeDetail> AssetTicketTypeDetails { get; set; }
-
         public virtual DbSet<AssetType> AssetTypes { get; set; }
 
         public virtual DbSet<AssignmentStatus> AssignmentStatuses { get; set; }
@@ -69,9 +61,6 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<Attendance> Attendances { get; set; }
 
         public virtual DbSet<AttendanceDeviceType> AttendanceDeviceTypes { get; set; }
-
-        public virtual DbSet<AttendanceHistory> AttendanceHistories { get; set; }
-
         public virtual DbSet<AttendanceRequest> AttendanceRequests { get; set; }
 
         public virtual DbSet<AttendancePolicy> AttendancePolicies { get; set; }
@@ -81,9 +70,6 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<Candidate> Candidates { get; set; }
 
         public virtual DbSet<CandidateCategorySkill> CandidateCategorySkills { get; set; }
-
-        public virtual DbSet<CandidateHistory> CandidateHistories { get; set; }
-
         public virtual DbSet<Category> Categories { get; set; }
 
         public virtual DbSet<City> Cities { get; set; }
@@ -139,9 +125,6 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<EmailQueue> EmailQueues { get; set; }
 
         public virtual DbSet<EmailTemplate> EmailTemplates { get; set; }
-
-        public virtual DbSet<EmailsLog> EmailsLogs { get; set; }
-
         public virtual DbSet<Employee> Employees { get; set; }
 
         public virtual DbSet<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; }
@@ -205,17 +188,6 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<HostUser> HostUsers { get; set; }
 
         public virtual DbSet<InsurancePolicy> InsurancePolicies { get; set; }
-
-        public virtual DbSet<InterviewFeedback> InterviewFeedbacks { get; set; }
-
-        public virtual DbSet<InterviewPanel> InterviewPanels { get; set; }
-
-        public virtual DbSet<InterviewPanelMember> InterviewPanelMembers { get; set; }
-
-        public virtual DbSet<InterviewSchedule> InterviewSchedules { get; set; }
-
-        public virtual DbSet<InterviewSdule> InterviewSdules { get; set; }
-
         public virtual DbSet<LeaveRequest> LeaveRequests { get; set; }
 
         public virtual DbSet<LeaveRule> LeaveRules { get; set; }
@@ -223,9 +195,6 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<LeaveSandwichRule> SandwitchRules { get; set; }
 
         public virtual DbSet<LeaveSandwichRuleMapping> LeaveSandwichRuleMappings { get; set; }
-
-        public virtual DbSet<LeaveTransactionLog> LeaveTransactionLogs { get; set; }
-
         public virtual DbSet<LeaveType> LeaveTypes { get; set; }
 
         //public virtual DbSet<License> Licenses { get; set; }
@@ -294,20 +263,6 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<TenantSubscription> TenantSubscriptions { get; set; }
 
         public virtual DbSet<Tender> Tenders { get; set; }
-
-        public virtual DbSet<TenderProject> TenderProjects { get; set; }
-
-
-        public virtual DbSet<TenderService> TenderServices { get; set; }
-
-        public virtual DbSet<TenderServiceHistory> TenderServiceHistories { get; set; }
-
-        public virtual DbSet<TenderServiceProvider> TenderServiceProviders { get; set; }
-
-        public virtual DbSet<TenderServiceSpecification> TenderServiceSpecifications { get; set; }
-
-        public virtual DbSet<TenderServiceType> TenderServiceTypes { get; set; }
-
         public virtual DbSet<TenderStatus> TenderStatuses { get; set; }
 
         public virtual DbSet<TicketClassification> TicketClassifications { get; set; }
@@ -334,9 +289,6 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<EmployeeCodePattern> EmployeeCodePatterns { get; set; }
 
         public virtual DbSet<WorkflowStage> WorkflowStages { get; set; }
-
-        public virtual DbSet<WorkflowStep> WorkflowSteps { get; set; }
-
         public virtual DbSet<WorkstationType> WorkstationTypes { get; set; }
         public virtual DbSet<SubscribedModuleResponseDTO> SubscribedModuleResponseDTOs { get; set; }
         public virtual DbSet<FlatModuleOperationDto> TenantModulesConfigurations { get; set; }
@@ -431,20 +383,6 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK__Accoumnda__Polic__12FDD1B2");
         });
 
-        modelBuilder.Entity<ApprovalWorkflow>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Approval__3214EC071F76BFC6");
-
-            entity.ToTable("ApprovalWorkflow", "axionpro");
-
-            entity.Property(e => e.ActionName).HasMaxLength(150);
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
-            entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-            entity.Property(e => e.Remark).HasMaxLength(250);
-            entity.Property(e => e.WorkflowName).HasMaxLength(150);
-        });
             modelBuilder.Entity<GetEmployeeCodePatternResponseDTO>(entity =>
             {
                 entity.HasNoKey();
@@ -541,35 +479,6 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_AssetCategory_Tenant");
         });
 
-        modelBuilder.Entity<AssetHistory>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__AssetHis__3214EC07599816A6");
-
-            entity.ToTable("AssetHistory", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.AssetConditionAtAssign).HasMaxLength(100);
-            entity.Property(e => e.AssetConditionAtReturn).HasMaxLength(100);
-            entity.Property(e => e.IdentificationMethod).HasMaxLength(50);
-            entity.Property(e => e.IdentificationValue).HasMaxLength(255);
-            entity.Property(e => e.IsScrapped).HasDefaultValue(false);
-            entity.Property(e => e.Remarks).HasMaxLength(500);
-            entity.Property(e => e.ScrapReason).HasMaxLength(255);
-
-            entity.HasOne(d => d.AssignmentStatus).WithMany(p => p.AssetHistory)
-                .HasForeignKey(d => d.AssignmentStatusId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__AssetHist__Assig__7AF13DF7");
-
-            entity.HasOne(d => d.Employee).WithMany(p => p.AssetHistoryEmployee)
-                .HasForeignKey(d => d.EmployeeId)
-                .HasConstraintName("FK__AssetHist__Emplo__79FD19BE");
-
-            entity.HasOne(d => d.ScrapApprovedByNavigation).WithMany(p => p.AssetHistoryScrapApprovedByNavigation)
-                .HasForeignKey(d => d.ScrapApprovedBy)
-                .HasConstraintName("FK__AssetHist__Scrap__7BE56230");
-        });
-
         modelBuilder.Entity<AssetImage>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__AssetIma__3214EC0752335BEC");
@@ -617,32 +526,6 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.StatusName).HasMaxLength(50);
             entity.Property(e => e.UpdatedById).HasDefaultValue(0L);
         });
-
-        modelBuilder.Entity<AssetTicketTypeDetail>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__AssetTic__3214EC0706DC5F37");
-
-            entity.ToTable("AssetTicketTypeDetail", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-            entity.HasOne(d => d.AssetType).WithMany(p => p.AssetTicketTypeDetail)
-                .HasForeignKey(d => d.AssetTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_AssetType_AssetTckTypeDetail_ID");
-
-            entity.HasOne(d => d.ResponsibleRole).WithMany(p => p.AssetTicketTypeDetail)
-                .HasForeignKey(d => d.ResponsibleRoleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ResponsibleRole_AssetTckTypeDetail_ID");
-
-            entity.HasOne(d => d.TicketType).WithMany(p => p.AssetTicketTypeDetail)
-                .HasForeignKey(d => d.TicketTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TckType_AstTypeDetail_ID");
-        });
-
 
             modelBuilder.Entity<AssetType>(entity =>
             {
@@ -694,38 +577,6 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.DeviceType).HasMaxLength(50);
             entity.Property(e => e.IsDeviceRegister).HasDefaultValue(false);
             entity.Property(e => e.Remark).HasMaxLength(255);
-        });
-
-        modelBuilder.Entity<AttendanceHistory>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Attendan__3214EC07AC1B1F0C");
-
-            entity.ToTable("AttendanceHistory", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.Remarks).HasMaxLength(255);
-            entity.Property(e => e.Status).HasMaxLength(20);
-            entity.Property(e => e.TotalBreakHours).HasPrecision(5, 2);
-            entity.Property(e => e.TotalWorkHours).HasPrecision(5, 2);
-
-            entity.HasOne(d => d.Employee).WithMany(p => p.AttendanceHistory)
-                .HasForeignKey(d => d.EmployeeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_AttendanceHistory_Employee");
-        });
-
-        modelBuilder.Entity<AttendanceLogs>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("AttendanceLogs_pkey");
-
-            entity.ToTable("AttendanceLogs", "axionpro");
-
-            entity.HasIndex(e => new { e.EmployeeCode, e.PunchTime }, "IX_AttendanceLogs_Employee_Time");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"AttendanceLogs_Id_seq\"'::regclass)");
-            entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.DeviceSn).HasMaxLength(50);
-            entity.Property(e => e.EmployeeCode).HasMaxLength(50);
         });
 
         modelBuilder.Entity<AttendanceRequest>(entity =>
@@ -820,21 +671,6 @@ namespace axionpro.persistance.Data.Context
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Candidate__Categ__16CE6296");
-        });
-
-        modelBuilder.Entity<CandidateHistory>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Candidat__3214EC07F93DEB9C");
-
-            entity.ToTable("CandidateHistory", "axionpro");
-
-            entity.Property(e => e.CreatedDateTime).HasDefaultValueSql("now()");
-            entity.Property(e => e.Status).HasMaxLength(50);
-
-            entity.HasOne(d => d.Candidate).WithMany(p => p.CandidateHistory)
-                .HasForeignKey(d => d.CandidateId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Candidate__Candi__17C286CF");
         });
 
         modelBuilder.Entity<Category>(entity =>
@@ -980,53 +816,6 @@ namespace axionpro.persistance.Data.Context
             entity.HasOne(d => d.Tenant).WithMany(p => p.DayCombination)
                 .HasForeignKey(d => d.TenantId)
                 .HasConstraintName("FK_DayCombination_Tenant");
-        });
-
-        modelBuilder.Entity<DemoRequest>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__DemoRequ__3214EC0796C55902");
-
-            entity.ToTable("DemoRequest", "axionpro");
-
-            entity.Property(e => e.Id)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("(gen_random_uuid())::text");
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
-            entity.Property(e => e.CompanyName).HasMaxLength(200);
-            entity.Property(e => e.ContactNumber).HasMaxLength(20);
-            entity.Property(e => e.CurrentHrms)
-                .HasMaxLength(200)
-                .HasColumnName("CurrentHRMS");
-            entity.Property(e => e.DeploymentPreference).HasMaxLength(50);
-            entity.Property(e => e.FirstName).HasMaxLength(100);
-            entity.Property(e => e.Hrchallenges).HasColumnName("HRChallenges");
-            entity.Property(e => e.IndustryType).HasMaxLength(150);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.LastName).HasMaxLength(100);
-            entity.Property(e => e.Status)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("'Pending'::character varying");
-            entity.Property(e => e.WorkEmail).HasMaxLength(150);
-        });
-
-        modelBuilder.Entity<DemoRequestBiometricDetail>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__DemoRequ__3214EC0746BD550C");
-
-            entity.ToTable("DemoRequestBiometricDetail", "axionpro");
-
-            entity.Property(e => e.Id)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("(gen_random_uuid())::text");
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.BiometricCompanyName).HasMaxLength(200);
-            entity.Property(e => e.DemoRequestId).HasMaxLength(50);
-            entity.Property(e => e.MachineLocation).HasMaxLength(250);
-            entity.Property(e => e.ModelNumber).HasMaxLength(150);
-
-            entity.HasOne(d => d.DemoRequest).WithMany(p => p.DemoRequestBiometricDetail)
-                .HasForeignKey(d => d.DemoRequestId)
-                .HasConstraintName("FK_DemoRequestBiometric");
         });
 
         modelBuilder.Entity<Department>(entity =>
@@ -1282,25 +1071,6 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.UpdatedFromIp)
                 .HasMaxLength(50)
                 .HasColumnName("UpdatedFromIP");
-        });
-
-        modelBuilder.Entity<EmailsLog>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__EmailsLo__3214EC0779530258");
-
-            entity.ToTable("EmailsLog", "axionpro");
-
-            entity.Property(e => e.AddedFromIp).HasMaxLength(50);
-            entity.Property(e => e.BccEmail).HasMaxLength(1000);
-            entity.Property(e => e.CcEmail).HasMaxLength(1000);
-            entity.Property(e => e.CreatedDateTime).HasDefaultValueSql("now()");
-            entity.Property(e => e.ErrorMessage).HasMaxLength(1000);
-            entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .HasDefaultValueSql("'Queued'::character varying");
-            entity.Property(e => e.Subject).HasMaxLength(500);
-            entity.Property(e => e.ToEmail).HasMaxLength(500);
-            entity.Property(e => e.TriggeredBy).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -2075,85 +1845,6 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_InsurancePolicyDocument_InsurancePolicy");
         });
 
-        modelBuilder.Entity<InterviewFeedback>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC07C20637CB");
-
-            entity.ToTable("InterviewFeedback", "axionpro");
-
-            entity.Property(e => e.Rating).HasPrecision(3, 1);
-            entity.Property(e => e.Status).HasMaxLength(50);
-
-            entity.HasOne(d => d.Candidate).WithMany(p => p.InterviewFeedback)
-                .HasForeignKey(d => d.CandidateId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Interview__Candi__2AD55B43");
-
-            entity.HasOne(d => d.InterviewSchedule).WithMany(p => p.InterviewFeedback)
-                .HasForeignKey(d => d.InterviewScheduleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Interview__Inter__2BC97F7C");
-        });
-
-        modelBuilder.Entity<InterviewPanel>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC07076FDC5F");
-
-            entity.ToTable("InterviewPanel", "axionpro");
-
-            entity.Property(e => e.Description).HasMaxLength(255);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.PanelName).HasMaxLength(100);
-            entity.Property(e => e.Remarks).HasMaxLength(255);
-        });
-
-        modelBuilder.Entity<InterviewPanelMember>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC07205CE980");
-
-            entity.ToTable("InterviewPanelMember", "axionpro");
-
-            entity.Property(e => e.Description).HasMaxLength(255);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Remarks).HasMaxLength(255);
-
-            entity.HasOne(d => d.Panel).WithMany(p => p.InterviewPanelMember)
-                .HasForeignKey(d => d.PanelId)
-                .HasConstraintName("FK_InterviewPanelMember_Panel");
-
-            entity.HasOne(d => d.UserRole).WithMany(p => p.InterviewPanelMember)
-                .HasForeignKey(d => d.UserRoleId)
-                .HasConstraintName("FK_InterviewPanelMember_UserRole");
-        });
-
-        modelBuilder.Entity<InterviewSchedule>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC073C91635C");
-
-            entity.ToTable("InterviewSchedule", "axionpro");
-
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Remarks).HasMaxLength(255);
-
-            entity.HasOne(d => d.Candidate).WithMany(p => p.InterviewSchedule)
-                .HasForeignKey(d => d.CandidateId)
-                .HasConstraintName("FK_InterviewSchedule_Candidate");
-
-            entity.HasOne(d => d.Panel).WithMany(p => p.InterviewSchedule)
-                .HasForeignKey(d => d.PanelId)
-                .HasConstraintName("FK_InterviewSchedule_Panel");
-        });
-
-        modelBuilder.Entity<InterviewSdule>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC0702C95E26");
-
-            entity.ToTable("InterviewSdule", "axionpro");
-
-            entity.Property(e => e.InterviewMode).HasMaxLength(50);
-            entity.Property(e => e.Status).HasMaxLength(50);
-        });
-
         modelBuilder.Entity<LeaveRequest>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__LeaveReq__3214EC07D95D9BAD");
@@ -2246,17 +1937,6 @@ namespace axionpro.persistance.Data.Context
                 .HasForeignKey(d => d.LeaveSandwichRuleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SandwichRule");
-        });
-
-        modelBuilder.Entity<LeaveTransactionLog>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__LeaveTra__3214EC0737FE86DD");
-
-            entity.ToTable("LeaveTransactionLog", "axionpro");
-
-            entity.Property(e => e.LeaveDays).HasPrecision(5, 2);
-            entity.Property(e => e.Remarks).HasMaxLength(500);
-            entity.Property(e => e.TransactionType).HasMaxLength(20);
         });
 
         modelBuilder.Entity<LeaveType>(entity =>
@@ -3033,125 +2713,6 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK__Tender__TenderSt__3EDC53F0");
         });
 
-        modelBuilder.Entity<TenderProject>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__TenderPr__3214EC073A6AC46E");
-
-            entity.ToTable("TenderProject", "axionpro");
-
-            entity.Property(e => e.Description).HasMaxLength(1000);
-            entity.Property(e => e.EstimatedBudget).HasPrecision(18, 2);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.ProjectName).HasMaxLength(255);
-            entity.Property(e => e.Remark).HasMaxLength(1000);
-            entity.Property(e => e.StartDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.HasOne(d => d.Status).WithMany(p => p.TenderProject)
-                .HasForeignKey(d => d.StatusId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TenderPro__Statu__40C49C62");
-
-            entity.HasOne(d => d.TenderServiceProvider).WithMany(p => p.TenderProject)
-                .HasForeignKey(d => d.TenderServiceProviderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TenderProject_TenderServiceProvider");
-
-            entity.HasOne(d => d.UserRole).WithMany(p => p.TenderProject)
-                .HasForeignKey(d => d.UserRoleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TenderPro__UserR__42ACE4D4");
-        });
-
-        modelBuilder.Entity<TenderService>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC07620086F4");
-
-            entity.ToTable("TenderService", "axionpro");
-
-            entity.Property(e => e.Description).HasMaxLength(1000);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Remark).HasMaxLength(500);
-
-            entity.HasOne(d => d.Tender).WithMany(p => p.TenderService)
-                .HasForeignKey(d => d.TenderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TenderSer__Tende__43A1090D");
-
-            entity.HasOne(d => d.TenderServiceType).WithMany(p => p.TenderService)
-                .HasForeignKey(d => d.TenderServiceTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TenderSer__Tende__44952D46");
-        });
-
-        modelBuilder.Entity<TenderServiceHistory>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC07F4765A9B");
-
-            entity.ToTable("TenderServiceHistory", "axionpro");
-
-            entity.Property(e => e.Remark).HasMaxLength(255);
-            entity.Property(e => e.Status).HasMaxLength(100);
-        });
-
-        modelBuilder.Entity<TenderServiceProvider>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC0765F55078");
-
-            entity.ToTable("TenderServiceProvider", "axionpro");
-
-            entity.Property(e => e.ContractAmount).HasPrecision(18, 2);
-            entity.Property(e => e.Description).HasMaxLength(1000);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsInHouse).HasDefaultValue(false);
-            entity.Property(e => e.IsPrimaryProvider).HasDefaultValue(true);
-            entity.Property(e => e.Remark).HasMaxLength(500);
-
-            entity.HasOne(d => d.Status).WithMany(p => p.TenderServiceProvider)
-                .HasForeignKey(d => d.StatusId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TenderSer__Statu__4589517F");
-
-            entity.HasOne(d => d.TenderServiceSpecification).WithMany(p => p.TenderServiceProvider)
-                .HasForeignKey(d => d.TenderServiceSpecificationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TenderServiceProvider_TenderServiceSpecification");
-
-            entity.HasOne(d => d.TenderServiceSpecificationNavigation).WithMany(p => p.TenderServiceProvider)
-                .HasForeignKey(d => d.TenderServiceSpecificationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TenderSer__Tende__467D75B8");
-        });
-
-        modelBuilder.Entity<TenderServiceSpecification>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC07FBF10311");
-
-            entity.ToTable("TenderServiceSpecification", "axionpro");
-
-            entity.Property(e => e.EstimatedBudget).HasPrecision(18, 2);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.ProductPlatform).HasMaxLength(255);
-            entity.Property(e => e.ProductSpecification).HasMaxLength(1000);
-            entity.Property(e => e.SpecificationName).HasMaxLength(255);
-            entity.Property(e => e.SpecificationType).HasMaxLength(50);
-
-            entity.HasOne(d => d.TenderService).WithMany(p => p.TenderServiceSpecification)
-                .HasForeignKey(d => d.TenderServiceId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TenderServiceSpecification_TenderService");
-        });
-
-        modelBuilder.Entity<TenderServiceType>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC072E505507");
-
-            entity.ToTable("TenderServiceType", "axionpro");
-
-            entity.Property(e => e.Description).HasMaxLength(1000);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.ServiceName).HasMaxLength(255);
-        });
-
         modelBuilder.Entity<TenderStatus>(entity =>
         {
             entity.ToTable("TenderStatus", "axionpro");
@@ -3537,19 +3098,6 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.StageName).HasMaxLength(100);
-        });
-
-        modelBuilder.Entity<WorkflowStep>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Workflow__3214EC07E62FF378");
-
-            entity.ToTable("WorkflowStep", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsMandatory).HasDefaultValue(true);
-            entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-            entity.Property(e => e.Remark).HasMaxLength(250);
         });
 
         modelBuilder.Entity<WorkstationType>(entity =>

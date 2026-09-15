@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -58,8 +58,6 @@ public partial class TicketType
     public virtual Tenant Tenant { get; set; } = null!;
 
     public virtual TicketHeader TicketHeader { get; set; } = null!;
-
-    public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetail { get; set; } = new List<AssetTicketTypeDetail>();
 
     public virtual ICollection<Ticket> Ticket { get; set; } = new List<Ticket>();
 }

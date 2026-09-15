@@ -28,6 +28,28 @@ Obsolete EF entities, mappings, schema-snapshot definitions, and the tenant
 cleanup reference were also removed. The migration aborts if a candidate has
 data or a dependency.
 
+### Phase 2 closed legacy graph
+
+`database-scripts/CleanupUnusedApiPersistencePhase2.sql` removed another 22
+tables after checking API/application/persistence source, DbSet usage, live
+foreign keys, views, triggers, and PostgreSQL functions/procedures:
+
+- Workflow: `ApprovalWorkflow`, `WorkflowStep`.
+- Asset legacy history: `AssetHistory`, `AssetTicketTypeDetail`.
+- Attendance legacy history: `AttendanceHistory`, `AttendanceLogs`.
+- Candidate/demo/email logs: `CandidateHistory`, `DemoRequest`,
+  `DemoRequestBiometricDetail`, `EmailsLog`.
+- Legacy interview graph: `InterviewFeedback`, `InterviewPanel`,
+  `InterviewPanelMember`, `InterviewSchedule`, `InterviewSdule`.
+- Other unused logs: `LeaveTransactionLog`.
+- Legacy tender graph: `TenderProject`, `TenderService`,
+  `TenderServiceHistory`, `TenderServiceProvider`,
+  `TenderServiceSpecification`, `TenderServiceType`.
+
+Twenty tables were empty. The two `DemoRequest` rows and sixteen
+`TenderServiceType` rows are retained in the full backup and in dedicated CSV
+exports under `C:\AxionProCodeBase\DBFullBACKUP`.
+
 ## Active structures retained
 
 - `Country`, `State`, `District`, `City`.
@@ -74,7 +96,9 @@ explicit retirement list is required.
 
 - Solution build passed with 0 errors; existing warnings remain.
 - Focused automation: 6 passed, 0 failed, 0 skipped.
+- Phase-2 cleanup automation: 2 passed, 0 failed, 0 skipped.
 - Render DB post-check: all five removed tables resolve to `NULL`.
+- Phase-2 Render DB post-check: all 22 retired tables resolve to `NULL`.
 - Accommodation persistence: corrected object is a table, legacy name is a
   zero-row compatibility view; both return the same row count.
 - Deployed lookup smoke test after cleanup: Country HTTP 200/2 rows, India

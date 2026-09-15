@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -16,8 +16,4 @@ public partial class TenderStatus
     public bool IsActive { get; set; }
 
     public virtual ICollection<Tender> Tender { get; set; } = new List<Tender>();
-
-    public virtual ICollection<TenderProject> TenderProject { get; set; } = new List<TenderProject>();
-
-    public virtual ICollection<TenderServiceProvider> TenderServiceProvider { get; set; } = new List<TenderServiceProvider>();
 }
