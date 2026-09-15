@@ -11,8 +11,8 @@ namespace axionpro.application.Interfaces.IRepositories
     {
         Task<List<OrganizationHolidayCalendar>> GetAllHolidaysAsync();
         Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByTenantAsync(long tenantId, int year);
-        Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByCountryAsync(string countryCode, int year);
-        Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByStateAsync(string countryCode, string stateCode, int year);
+        Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByCountryAsync(int countryId, int year);
+        Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByStateAsync(int countryId, int stateId, int year);
         Task<OrganizationHolidayCalendar?> GetHolidayByIdAsync(long id);
         Task AddHolidayAsync(OrganizationHolidayCalendar holiday);
         Task UpdateHolidayAsync(OrganizationHolidayCalendar holiday);

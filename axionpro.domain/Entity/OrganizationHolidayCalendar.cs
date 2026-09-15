@@ -9,21 +9,15 @@ public partial class OrganizationHolidayCalendar
 
     public long? TenantId { get; set; }
 
-    public string CountryCode { get; set; } = null!;
-
-    public string? StateCode { get; set; }
-
-    public int HolidayYear { get; set; }
+    public long TenantLocationId { get; set; }
 
     public string HolidayName { get; set; } = null!;
 
-    public DateTime HolidayDate { get; set; }
+    public DateOnly HolidayDate { get; set; }
 
     public bool IsOptional { get; set; }
 
     public string? Description { get; set; }
-
-    public string? Remark { get; set; }
 
     public bool? IsActive { get; set; }
 
@@ -42,4 +36,6 @@ public partial class OrganizationHolidayCalendar
     public DateTime? DeletedDateTime { get; set; }
 
     public virtual Tenant? Tenant { get; set; }
+
+    public virtual TenantLocation TenantLocation { get; set; } = null!;
 }

@@ -10,6 +10,8 @@
   section identifiers, read-only rows and the update-bulk payload contract.
 - [Employee list assigned roles](EMPLOYEE_GET_ALL_ASSIGNED_ROLES.md) — existing
   Employee get-all route with the `assignedRoles` response contract.
+- [Organization Holiday Calendar](ORGANIZATION_HOLIDAY_CALENDAR.md) — location-based
+  holiday persistence, date-only response contract, and rollout status.
 Treat Module `PageName` and Operation `OperationName` as immutable identities during
 seed and catalogue integration. Resolve permission IDs dynamically from the
 authenticated menu; never hard-code the numeric examples in documentation.

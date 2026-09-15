@@ -2127,17 +2127,23 @@ namespace axionpro.persistance.Data.Context
             entity.ToTable("OrganizationHolidayCalendar", "axionpro");
 
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.CountryCode).HasMaxLength(5);
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.HolidayName).HasMaxLength(100);
+            entity.Property(e => e.HolidayDate).HasColumnType("date");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-            entity.Property(e => e.Remark).HasMaxLength(255);
-            entity.Property(e => e.StateCode).HasMaxLength(10);
+
+            entity.HasIndex(e => new { e.TenantLocationId, e.HolidayDate })
+                .HasDatabaseName("IX_OrganizationHolidayCalendar_Location_Date");
 
             entity.HasOne(d => d.Tenant).WithMany(p => p.OrganizationHolidayCalendar)
                 .HasForeignKey(d => d.TenantId)
                 .HasConstraintName("FK_OrganizationHolidayCalendar_Tenant");
+
+            entity.HasOne(d => d.TenantLocation).WithMany(p => p.OrganizationHolidayCalendars)
+                .HasForeignKey(d => d.TenantLocationId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_OrganizationHolidayCalendar_TenantLocation");
         });
 
         modelBuilder.Entity<PageTypeEnum>(entity =>

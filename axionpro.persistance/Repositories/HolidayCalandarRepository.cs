@@ -44,7 +44,7 @@ namespace axionpro.persistance.Repositories
             try
             {
                 return await _context.OrganizationHolidayCalendars
-                    .Where(x => x.TenantId == tenantId && x.HolidayYear == year && x.IsActive== true && !x.IsSoftDeleted == true)
+                    .Where(x => x.TenantId == tenantId && x.HolidayDate.Year == year && x.IsActive == true && x.IsSoftDeleted != true)
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -54,32 +54,32 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByCountryAsync(string countryCode, int year)
+        public async Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByCountryAsync(int countryId, int year)
         {
             try
             {
                 return await _context.OrganizationHolidayCalendars
-                    .Where(x => x.CountryCode == countryCode && x.HolidayYear == year && x.IsActive == true && !x.IsSoftDeleted == true)
+                    .Where(x => x.TenantLocation.CountryId == countryId && x.HolidayDate.Year == year && x.IsActive == true && x.IsSoftDeleted != true)
                     .ToListAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in GetHolidaysByCountryAsync for countryCode: {countryCode}, year: {year}");
+                _logger.LogError(ex, "Error in GetHolidaysByCountryAsync for countryId: {CountryId}, year: {Year}", countryId, year);
                 return Enumerable.Empty<OrganizationHolidayCalendar>();
             }
         }
 
-        public async Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByStateAsync(string countryCode, string stateCode, int year)
+        public async Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByStateAsync(int countryId, int stateId, int year)
         {
             try
             {
                 return await _context.OrganizationHolidayCalendars
-                    .Where(x => x.CountryCode == countryCode && x.StateCode == stateCode && x.HolidayYear == year && x.IsActive == true && !x.IsSoftDeleted == true)
+                    .Where(x => x.TenantLocation.CountryId == countryId && x.TenantLocation.StateId == stateId && x.HolidayDate.Year == year && x.IsActive == true && x.IsSoftDeleted != true)
                     .ToListAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in GetHolidaysByStateAsync for country: {countryCode}, state: {stateCode}, year: {year}");
+                _logger.LogError(ex, "Error in GetHolidaysByStateAsync for countryId: {CountryId}, stateId: {StateId}, year: {Year}", countryId, stateId, year);
                 return Enumerable.Empty<OrganizationHolidayCalendar>();
             }
         }
