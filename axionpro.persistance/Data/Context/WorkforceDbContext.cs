@@ -3455,6 +3455,32 @@ namespace axionpro.persistance.Data.Context
 
             #endregion
 
+            // These legacy objects were retired from the production schema.
+            // Keep their source contracts temporarily for dependent-code retirement,
+            // but exclude them from EF so startup and active features match the DB.
+            modelBuilder.Ignore<AccommodationAllowancePolicyByDesignation>();
+            modelBuilder.Ignore<BasicMenu>();
+            modelBuilder.Ignore<Candidate>();
+            modelBuilder.Ignore<CandidateCategorySkill>();
+            modelBuilder.Ignore<EmployeeDeviceAccessWindow>();
+            modelBuilder.Ignore<InsurancePolicy>();
+            modelBuilder.Ignore<InsurancePolicyDocument>();
+            modelBuilder.Ignore<LeaveRule>();
+            modelBuilder.Ignore<LeaveSandwichRule>();
+            modelBuilder.Ignore<LeaveSandwichRuleMapping>();
+            modelBuilder.Ignore<MealAllowancePolicyByDesignation>();
+            modelBuilder.Ignore<PolicyLeaveTypeMapping>();
+            modelBuilder.Ignore<PolicyType>();
+            modelBuilder.Ignore<PolicyTypeDocument>();
+            modelBuilder.Ignore<PolicyTypeInsuranceMapping>();
+            modelBuilder.Ignore<ServiceProvider>();
+            modelBuilder.Ignore<TenantEmployeeSectionDefault>();
+            modelBuilder.Ignore<TravelAllowancePolicyByDesignation>();
+            modelBuilder.Ignore<TravelMode>();
+            modelBuilder.Ignore<UnStructuredPolicyTypeMappingWithEmployeeType>();
+            modelBuilder.Ignore<WorkflowStage>();
+            modelBuilder.Ignore<WorkstationType>();
+
             modelBuilder.Entity<EmployeeCountResponseStatsSp>().HasNoKey();
 
         }

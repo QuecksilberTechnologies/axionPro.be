@@ -24,6 +24,7 @@ for a later run. Keep earlier failures and link the run that supersedes them.
 | Module / scenario | Report | Current recorded result |
 | --- | --- | --- |
 | Database / guarded legacy cleanup | [2026-09-16](database/legacy-cleanup/2026-09-16.md) | Verified backup; 27 legacy tables removed across two guarded phases; location smoke checks pass; accommodation table safely renamed with a temporary compatibility view. |
+| Database / manual table removal reconciliation | [2026-09-16](database/manual-table-removal-reconciliation/2026-09-16.md) | Live inventory 128; 22 absent EF mappings quarantined; model mismatch zero, build and API startup pass. |
 | Holiday calendar / tenant-location refactor | [2026-09-16](holiday-calendar/tenant-location-refactor/2026-09-16.md) | Local contract/build suite 3/3 passed; coordinated target migration and deployed API acceptance pending. |
 | Employee / China and USA identity options | [2026-09-13](employee/country-identity/2026-09-13.md) | China created; identity GET failed with 500 before fix. USA creation blocked by missing country option. Local suite 18 passed, 5 skipped; post-fix live acceptance pending. |
 | Employee / get-all assigned roles | [2026-09-13](employee/get-all-assigned-roles/2026-09-13.md) | Response contract/build pass locally; isolated DB and deployed response verification pending. |
