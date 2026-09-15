@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -35,7 +35,7 @@ public partial class PolicyType
 
     public bool HasPolicyDocUploaded { get; set; }
 
-    public virtual ICollection<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignation { get; set; } = new List<AccoumndationAllowancePolicyByDesignation>();
+    public virtual ICollection<AccommodationAllowancePolicyByDesignation> AccommodationAllowancePolicyByDesignation { get; set; } = new List<AccommodationAllowancePolicyByDesignation>();
 
     public virtual ICollection<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; } = new List<EmployeePolicyEnrollment>();
 

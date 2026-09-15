@@ -447,7 +447,7 @@ BEGIN
     WHERE "TenantId" = v_tenant_id
        OR "PolicyTypeId" IN (SELECT "Id" FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id);
 
-    DELETE FROM axionpro."AccoumndationAllowancePolicyByDesignation"
+    DELETE FROM axionpro."AccommodationAllowancePolicyByDesignation"
     WHERE "DesignationId" IN (SELECT "Id" FROM axionpro."Designation" WHERE "TenantId" = v_tenant_id)
        OR "PolicyTypeId" IN (SELECT "Id" FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id);
 
@@ -636,7 +636,6 @@ BEGIN
     DELETE FROM axionpro."LeaveType" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."DayCombination" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."OrganizationHolidayCalendar" WHERE "TenantId" = v_tenant_id;
-    DELETE FROM axionpro."HolidayMaster" WHERE "TenantId" = v_tenant_id;
 
     DELETE FROM axionpro."PayrollRun" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."SalaryStructure" WHERE "TenantId" = v_tenant_id;

@@ -32,7 +32,7 @@ public partial class EmployeeType
 
     public DateTime? SoftDeletedDateTime { get; set; }
 
-    public virtual ICollection<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignation { get; set; } = new List<AccoumndationAllowancePolicyByDesignation>();
+    public virtual ICollection<AccommodationAllowancePolicyByDesignation> AccommodationAllowancePolicyByDesignation { get; set; } = new List<AccommodationAllowancePolicyByDesignation>();
 
     public virtual ICollection<Employee> Employee { get; set; } = new List<Employee>();
 

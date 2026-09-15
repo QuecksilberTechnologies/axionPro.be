@@ -39,7 +39,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<EmployeeContact> EmployeeContacts { get; set; }
         public virtual DbSet<District> Districts { get; set; }
       //  public virtual DbSet<AttendanceLog> AttendanceLogs { get; set; }
-        public virtual DbSet<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; }
+        public virtual DbSet<AccommodationAllowancePolicyByDesignation> AccommodationAllowancePolicyByDesignations { get; set; }
         public DbSet<EmployeeCountResponseStatsSp> EmployeeCountResponseStatsSp { get; set; }
 
         public virtual DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
@@ -204,8 +204,6 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<HostUser> HostUsers { get; set; }
 
-        public virtual DbSet<HolidayMaster> HolidayMasters { get; set; }
-
         public virtual DbSet<InsurancePolicy> InsurancePolicies { get; set; }
 
         public virtual DbSet<InterviewFeedback> InterviewFeedbacks { get; set; }
@@ -239,8 +237,6 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<Module> Modules { get; set; }
 
         public virtual DbSet<ModuleOperationMapping> ModuleOperationMappings { get; set; }
-
-        public virtual DbSet<NoImagePath> NoImagePaths { get; set; }
 
         public virtual DbSet<Operation> Operations { get; set; }
 
@@ -401,11 +397,11 @@ namespace axionpro.persistance.Data.Context
             entity.Property(job => job.InputHash).HasMaxLength(64);
         });
 
-        modelBuilder.Entity<AccoumndationAllowancePolicyByDesignation>(entity =>
+        modelBuilder.Entity<AccommodationAllowancePolicyByDesignation>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Accoumnd__3214EC071BDF4022");
 
-            entity.ToTable("AccoumndationAllowancePolicyByDesignation", "axionpro");
+            entity.ToTable("AccommodationAllowancePolicyByDesignation", "axionpro");
 
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.FixedStayAllowance)
@@ -419,17 +415,17 @@ namespace axionpro.persistance.Data.Context
                 .HasDefaultValue(0.00m);
             entity.Property(e => e.MinDaysRequired).HasDefaultValue(0);
 
-            entity.HasOne(d => d.Designation).WithMany(p => p.AccoumndationAllowancePolicyByDesignation)
+            entity.HasOne(d => d.Designation).WithMany(p => p.AccommodationAllowancePolicyByDesignation)
                 .HasForeignKey(d => d.DesignationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Accoumnda__Desig__11158940");
 
-            entity.HasOne(d => d.EmployeeType).WithMany(p => p.AccoumndationAllowancePolicyByDesignation)
+            entity.HasOne(d => d.EmployeeType).WithMany(p => p.AccommodationAllowancePolicyByDesignation)
                 .HasForeignKey(d => d.EmployeeTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Accoumnda__Emplo__1209AD79");
 
-            entity.HasOne(d => d.PolicyType).WithMany(p => p.AccoumndationAllowancePolicyByDesignation)
+            entity.HasOne(d => d.PolicyType).WithMany(p => p.AccommodationAllowancePolicyByDesignation)
                 .HasForeignKey(d => d.PolicyTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Accoumnda__Polic__12FDD1B2");
@@ -1247,20 +1243,6 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_District_State");
         });
 
-        modelBuilder.Entity<DistrictMaster>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__District__3214EC07D509FB7C");
-
-            entity.ToTable("DistrictMaster", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
-            entity.Property(e => e.DistrictCode).HasMaxLength(50);
-            entity.Property(e => e.DistrictName).HasMaxLength(200);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.PinCode).HasMaxLength(50);
-            entity.Property(e => e.Remark).HasMaxLength(500);
-        });
-
         modelBuilder.Entity<EmailQueue>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__EmailQue__3214EC0705218438");
@@ -2014,19 +1996,6 @@ namespace axionpro.persistance.Data.Context
                     .HasConstraintName("FK_HostUser_HostRole");
             });
 
-            modelBuilder.Entity<HolidayMaster>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__HolidayM__3214EC0743457A80");
-
-            entity.ToTable("HolidayMaster", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
-            entity.Property(e => e.HolidayName).HasMaxLength(200);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Region).HasMaxLength(100);
-            entity.Property(e => e.Remark).HasMaxLength(250);
-        });
-
         modelBuilder.Entity<IdentityCategory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Identity__3214EC07393AF557");
@@ -2455,18 +2424,6 @@ namespace axionpro.persistance.Data.Context
             entity.HasOne(d => d.PageType).WithMany(p => p.ModuleOperationMapping)
                 .HasForeignKey(d => d.PageTypeId)
                 .HasConstraintName("FK_ModuleOperationMapping_PageTypeEnum");
-        });
-
-        modelBuilder.Entity<NoImagePath>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__NoImageP__3214EC07B56BC19F");
-
-            entity.ToTable("NoImagePath", "axionpro");
-
-            entity.Property(e => e.DefaultImagePath).HasMaxLength(500);
-            entity.Property(e => e.ImageName).HasMaxLength(50);
-            entity.Property(e => e.ImageType).HasDefaultValue(1);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<Operation>(entity =>

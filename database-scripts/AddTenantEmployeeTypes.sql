@@ -3,7 +3,7 @@
 BEGIN;
 LOCK TABLE axionpro."EmployeeType", axionpro."Employee", axionpro."EmployeesChangedTypeHistory",
     axionpro."EmployeeTypeBasicMenu", axionpro."UnStructuredPolicyTypeMappingWithEmployeeType",
-    axionpro."PolicyLeaveTypeMapping", axionpro."AccoumndationAllowancePolicyByDesignation",
+    axionpro."PolicyLeaveTypeMapping", axionpro."AccommodationAllowancePolicyByDesignation",
     axionpro."MealAllowancePolicyByDesignation", axionpro."TravelAllowancePolicyByDesignation"
     IN SHARE ROW EXCLUSIVE MODE;
 -- Restored backups may have explicit IDs ahead of identity sequences.
@@ -30,7 +30,7 @@ SELECT DISTINCT usage."TenantId", usage."TypeId" FROM (
         JOIN axionpro."Employee" e ON e."Id"=h."EmployeeId"
     UNION SELECT "TenantId", "EmployeeTypeId" FROM axionpro."UnStructuredPolicyTypeMappingWithEmployeeType"
     UNION SELECT "TenantId", "EmployeeTypeId" FROM axionpro."PolicyLeaveTypeMapping"
-    UNION SELECT d."TenantId", a."EmployeeTypeId" FROM axionpro."AccoumndationAllowancePolicyByDesignation" a
+    UNION SELECT d."TenantId", a."EmployeeTypeId" FROM axionpro."AccommodationAllowancePolicyByDesignation" a
         JOIN axionpro."Designation" d ON d."Id"=a."DesignationId"
     UNION SELECT d."TenantId", a."EmployeeTypeId" FROM axionpro."MealAllowancePolicyByDesignation" a
         JOIN axionpro."Designation" d ON d."Id"=a."DesignationId"
@@ -72,7 +72,7 @@ FROM bulk_type_migration m WHERE p."TenantId"=m."TenantId" AND p."EmployeeTypeId
 DO $allowances$
 DECLARE table_name text;
 BEGIN
-    FOREACH table_name IN ARRAY ARRAY['AccoumndationAllowancePolicyByDesignation','MealAllowancePolicyByDesignation','TravelAllowancePolicyByDesignation'] LOOP
+    FOREACH table_name IN ARRAY ARRAY['AccommodationAllowancePolicyByDesignation','MealAllowancePolicyByDesignation','TravelAllowancePolicyByDesignation'] LOOP
         EXECUTE format('UPDATE axionpro.%I a SET "EmployeeTypeId"=m."NewId" FROM bulk_type_migration m, axionpro."Designation" d
             WHERE d."Id"=a."DesignationId" AND d."TenantId"=m."TenantId" AND a."EmployeeTypeId"=m."OldId"', table_name);
     END LOOP;
@@ -90,7 +90,7 @@ BEGIN
                 JOIN axionpro."Employee" e ON e."Id"=h."EmployeeId"
             UNION ALL SELECT "TenantId", "EmployeeTypeId" FROM axionpro."PolicyLeaveTypeMapping"
             UNION ALL SELECT "TenantId", "EmployeeTypeId" FROM axionpro."UnStructuredPolicyTypeMappingWithEmployeeType"
-            UNION ALL SELECT d."TenantId", p."EmployeeTypeId" FROM axionpro."AccoumndationAllowancePolicyByDesignation" p
+            UNION ALL SELECT d."TenantId", p."EmployeeTypeId" FROM axionpro."AccommodationAllowancePolicyByDesignation" p
                 JOIN axionpro."Designation" d ON d."Id"=p."DesignationId"
             UNION ALL SELECT d."TenantId", p."EmployeeTypeId" FROM axionpro."MealAllowancePolicyByDesignation" p
                 JOIN axionpro."Designation" d ON d."Id"=p."DesignationId"
@@ -123,7 +123,7 @@ BEGIN
     IF TG_TABLE_NAME='EmployeesChangedTypeHistory' THEN
         SELECT "TenantId" INTO tenant_id FROM axionpro."Employee" WHERE "Id"=NEW."EmployeeId";
         type_ids := ARRAY[NEW."OldEmployeeTypeId",NEW."NewEmployeeTypeId"];
-    ELSIF TG_TABLE_NAME IN ('AccoumndationAllowancePolicyByDesignation','MealAllowancePolicyByDesignation','TravelAllowancePolicyByDesignation') THEN
+    ELSIF TG_TABLE_NAME IN ('AccommodationAllowancePolicyByDesignation','MealAllowancePolicyByDesignation','TravelAllowancePolicyByDesignation') THEN
         SELECT "TenantId" INTO tenant_id FROM axionpro."Designation" WHERE "Id"=NEW."DesignationId";
         type_ids := ARRAY[NEW."EmployeeTypeId"];
     ELSE
@@ -144,7 +144,7 @@ DO $triggers$
 DECLARE table_name text;
 BEGIN
     FOREACH table_name IN ARRAY ARRAY['Employee','EmployeesChangedTypeHistory','UnStructuredPolicyTypeMappingWithEmployeeType',
-        'PolicyLeaveTypeMapping','AccoumndationAllowancePolicyByDesignation','MealAllowancePolicyByDesignation','TravelAllowancePolicyByDesignation'] LOOP
+        'PolicyLeaveTypeMapping','AccommodationAllowancePolicyByDesignation','MealAllowancePolicyByDesignation','TravelAllowancePolicyByDesignation'] LOOP
         EXECUTE format('DROP TRIGGER IF EXISTS "TR_EmployeeType_Tenant" ON axionpro.%I',table_name);
         EXECUTE format('CREATE TRIGGER "TR_EmployeeType_Tenant" BEFORE INSERT OR UPDATE ON axionpro.%I
             FOR EACH ROW EXECUTE FUNCTION axionpro.validate_employee_type_tenant()',table_name);

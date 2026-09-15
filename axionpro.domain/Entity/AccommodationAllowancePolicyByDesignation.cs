@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
-public partial class AccoumndationAllowancePolicyByDesignation
+public partial class AccommodationAllowancePolicyByDesignation
 {
     public int Id { get; set; }
 

@@ -101,7 +101,7 @@ public sealed class EmployeeTypeRepository(WorkforceDbContext context, IMapper m
             return true;
         }
 
-        if (await context.AccoumndationAllowancePolicyByDesignations.AsNoTracking().AnyAsync(mapping =>
+        if (await context.AccommodationAllowancePolicyByDesignations.AsNoTracking().AnyAsync(mapping =>
                 mapping.EmployeeTypeId == employeeTypeId &&
                 mapping.Designation.TenantId == tenantId &&
                 mapping.IsSoftDelete != true,
