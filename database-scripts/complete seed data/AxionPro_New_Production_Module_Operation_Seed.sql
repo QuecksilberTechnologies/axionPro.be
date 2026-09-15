@@ -5624,21 +5624,22 @@ BEGIN
       AND NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode"='EMPLOYEE_TYPE');
 END $explicit_tenant_modules$;
 
--- Reconcile existing EmployeeType metadata as well as inserting it.  This is
--- intentionally idempotent so rerunning the seed repairs rows created by an
--- older seed without changing the module code or page name.
-UPDATE axionpro."Module" employee_type
+-- Reconcile existing functional-child metadata as well as inserting it. This
+-- is intentionally idempotent so rerunning the seed repairs rows created by
+-- an older seed without changing their module codes or page names.
+UPDATE axionpro."Module" child
 SET "ParentModuleId" = parent."Id",
     "IsLeafNode" = TRUE,
     "IsModuleDisplayInUI" = TRUE,
     "IsCommonMenu" = FALSE,
-    "IsActive" = TRUE,
-    "PageName" = 'tenant-employee-types'
+    "IsActive" = TRUE
 FROM axionpro."Module" parent
-WHERE employee_type."ModuleCode" = 'EMPLOYEE_TYPE'
-  AND employee_type."ModuleScope" = 1
-  AND parent."ModuleCode" = 'EMP_MGMT'
-  AND parent."ModuleScope" = 1;
+WHERE child."ModuleScope" = 1
+  AND parent."ModuleScope" = 1
+  AND ((child."ModuleCode" = 'DEPARTMENT' AND parent."ModuleCode" = 'TENANT_DEPARTMENT')
+    OR (child."ModuleCode" = 'DESIGNATION' AND parent."ModuleCode" = 'TENANT_DESIGNATION')
+    OR (child."ModuleCode" = 'ROLE' AND parent."ModuleCode" = 'TENANT_ROLE')
+    OR (child."ModuleCode" = 'EMPLOYEE_TYPE' AND parent."ModuleCode" = 'EMP_MGMT'));
 
 -- ============================================================================
 -- BULK PERMISSIONS USE EXISTING FUNCTIONAL MODULES
