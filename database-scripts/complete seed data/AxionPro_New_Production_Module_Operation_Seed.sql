@@ -5624,6 +5624,22 @@ BEGIN
       AND NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode"='EMPLOYEE_TYPE');
 END $explicit_tenant_modules$;
 
+-- Reconcile existing EmployeeType metadata as well as inserting it.  This is
+-- intentionally idempotent so rerunning the seed repairs rows created by an
+-- older seed without changing the module code or page name.
+UPDATE axionpro."Module" employee_type
+SET "ParentModuleId" = parent."Id",
+    "IsLeafNode" = TRUE,
+    "IsModuleDisplayInUI" = TRUE,
+    "IsCommonMenu" = FALSE,
+    "IsActive" = TRUE,
+    "PageName" = 'tenant-employee-types'
+FROM axionpro."Module" parent
+WHERE employee_type."ModuleCode" = 'EMPLOYEE_TYPE'
+  AND employee_type."ModuleScope" = 1
+  AND parent."ModuleCode" = 'EMP_MGMT'
+  AND parent."ModuleScope" = 1;
+
 -- ============================================================================
 -- BULK PERMISSIONS USE EXISTING FUNCTIONAL MODULES
 -- Separate tenant and Host bulk child Module rows are removed by the operation
