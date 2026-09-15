@@ -75,6 +75,37 @@ WHERE target."ModuleCode" = 'EMPLOYEE_TYPE'
   AND operation."Id" = mapping."OperationId"
   AND lower(btrim(operation."OperationName")) NOT IN ('add','update','delete','view','import','export');
 
+-- Older catalogues contain a second operation named Export with a non-bulk
+-- operation type. EmployeeType uses only the canonical bulk Export (type 11).
+DELETE FROM axionpro."TenantEnabledOperation" AS tenant_operation
+USING axionpro."Module" AS target, axionpro."Operation" AS operation
+WHERE target."ModuleCode"='EMPLOYEE_TYPE'
+  AND tenant_operation."ModuleId"=target."Id"
+  AND tenant_operation."OperationId"=operation."Id"
+  AND lower(btrim(operation."OperationName"))='export'
+  AND operation."OperationType"<>11;
+
+UPDATE axionpro."RoleModuleAndPermission" AS permission
+SET "HasAccess"=FALSE,"IsActive"=FALSE,"IsSoftDeleted"=TRUE,
+    "UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP,
+    "SoftDeletedById"=COALESCE(permission."SoftDeletedById",1),
+    "DeletedDateTime"=COALESCE(permission."DeletedDateTime",CURRENT_TIMESTAMP)
+FROM axionpro."Module" AS target, axionpro."Operation" AS operation
+WHERE target."ModuleCode"='EMPLOYEE_TYPE'
+  AND permission."ModuleId"=target."Id"
+  AND permission."OperationId"=operation."Id"
+  AND lower(btrim(operation."OperationName"))='export'
+  AND operation."OperationType"<>11
+  AND NOT permission."IsSoftDeleted";
+
+DELETE FROM axionpro."ModuleOperationMapping" AS mapping
+USING axionpro."Module" AS target, axionpro."Operation" AS operation
+WHERE target."ModuleCode"='EMPLOYEE_TYPE'
+  AND mapping."ModuleId"=target."Id"
+  AND mapping."OperationId"=operation."Id"
+  AND lower(btrim(operation."OperationName"))='export'
+  AND operation."OperationType"<>11;
+
 INSERT INTO axionpro."ModuleOperationMapping" ("ModuleId","OperationId","DataViewStructureId","PageTypeId",
     "PageURL","IconURL","IsCommonItem","IsOperational","Priority","Remark","IsActive","AddedById","AddedDateTime")
 SELECT target."Id",op."Id",NULL,NULL,'/employee-types','',FALSE,TRUE,op."OperationType",
@@ -82,7 +113,9 @@ SELECT target."Id",op."Id",NULL,NULL,'/employee-types','',FALSE,TRUE,op."Operati
 FROM axionpro."Module" target CROSS JOIN axionpro."Operation" op
 WHERE target."ModuleCode"='EMPLOYEE_TYPE'
   AND op."IsActive"=TRUE
-  AND lower(btrim(op."OperationName")) IN ('add','update','delete','view','import','export')
+  AND (lower(btrim(op."OperationName")) IN ('add','update','delete','view')
+    OR (lower(btrim(op."OperationName"))='import' AND op."OperationType"=12)
+    OR (lower(btrim(op."OperationName"))='export' AND op."OperationType"=11))
 AND NOT EXISTS (SELECT 1 FROM axionpro."ModuleOperationMapping" existing
     WHERE existing."ModuleId"=target."Id" AND existing."OperationId"=op."Id");
 
@@ -112,7 +145,9 @@ WHERE target."ModuleCode" = 'EMPLOYEE_TYPE'
       FROM axionpro."Operation" AS operation
       WHERE operation."Id" = mapping."OperationId"
         AND operation."IsActive" = TRUE
-        AND lower(btrim(operation."OperationName")) IN ('add','update','delete','view','import','export'))
+        AND (lower(btrim(operation."OperationName")) IN ('add','update','delete','view')
+          OR (lower(btrim(operation."OperationName"))='import' AND operation."OperationType"=12)
+          OR (lower(btrim(operation."OperationName"))='export' AND operation."OperationType"=11)))
   AND NOT EXISTS (
       SELECT 1
       FROM axionpro."TenantEnabledOperation" AS existing

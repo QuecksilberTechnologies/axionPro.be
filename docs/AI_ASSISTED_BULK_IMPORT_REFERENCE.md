@@ -7,6 +7,20 @@ endpoint documentation, existing permission pipelines, constants, enums and mapp
 Ask before implementing unclear business rules. COMPLETE below means the stated
 backend scope, not all future bulk modules or production deployment.
 
+## 2026-09-15 tenant master hierarchy and entitlement repair
+
+- **COMPLETE on Render development DB:** `DEPARTMENT`, `DESIGNATION`, `ROLE` and
+  `EMPLOYEE_TYPE` are active leaf modules under `TENANT_DEPARTMENT`,
+  `TENANT_DESIGNATION`, `TENANT_ROLE` and `EMP_MGMT` respectively.
+- Each leaf has one active Add, Update, Delete, View, Import and canonical bulk
+  Export mapping. The duplicate non-bulk EmployeeType Export mapping was removed.
+- Active-plan tenant `8` received seven missing module snapshots, 30 enabled
+  operation snapshots and 30 missing-only Tenant Admin permissions. Tenant `9`
+  uses plan `18`, which does not contain these modules, and was not modified.
+- Post-commit database assertions found zero missing hierarchy rows, plan mappings,
+  tenant module snapshots, required enabled operations or Tenant Admin grants,
+  and zero duplicate required operation names.
+
 ## 2026-09-14 module metadata and operation catalogue decision
 
 - The only authoritative broad module/operation seed is now

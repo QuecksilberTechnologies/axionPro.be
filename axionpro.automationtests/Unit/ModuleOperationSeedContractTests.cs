@@ -71,6 +71,9 @@ public sealed class ModuleOperationSeedContractTests
             Assert.That(sql, Does.Contain("'tenant-designations'"));
             Assert.That(sql, Does.Contain("'tenant-roles-permissions'"));
             Assert.That(sql, Does.Contain("Each singular parent inherits the plans of its own functional child."));
+            Assert.That(sql, Does.Contain("Existing tenants on plans containing these modules receive the same"));
+            Assert.That(sql, Does.Contain("operation.\"OperationType\"<>11"));
+            Assert.That(sql, Does.Contain("Auto-assigned during Tenant plan entitlement synchronization"));
             Assert.That(standaloneSql, Does.Contain("('TENANT_DEPARTMENT','Tenant-Department','Tenant Department'"));
             Assert.That(standaloneSql, Does.Contain("('DEPARTMENT','TENANT_DEPARTMENT')"));
             Assert.That(standaloneSql, Does.Contain("('DESIGNATION','TENANT_DESIGNATION')"));
@@ -237,6 +240,23 @@ public sealed class ModuleOperationSeedDatabaseTests
                 ('add','update','delete','view','import','export');
             """);
 
+        var duplicateLeafOperationNames = await ScalarAsync("""
+            SELECT count(*) FROM (
+                SELECT module."Id",lower(btrim(operation."OperationName"))
+                FROM axionpro."Module" module
+                JOIN axionpro."ModuleOperationMapping" mapping
+                  ON mapping."ModuleId"=module."Id" AND mapping."IsActive"
+                JOIN axionpro."Operation" operation
+                  ON operation."Id"=mapping."OperationId" AND operation."IsActive"
+                WHERE module."ModuleCode" IN
+                    ('DEPARTMENT','DESIGNATION','ROLE','EMPLOYEE_TYPE')
+                  AND lower(btrim(operation."OperationName")) IN
+                    ('add','update','delete','view','import','export')
+                GROUP BY module."Id",lower(btrim(operation."OperationName"))
+                HAVING count(*) > 1
+            ) duplicate;
+            """);
+
         var legacyLeafRows = await ScalarAsync("""
             SELECT count(*)
             FROM axionpro."Module"
@@ -285,6 +305,7 @@ public sealed class ModuleOperationSeedDatabaseTests
             Assert.That(parentOperationMappings, Is.Zero);
             Assert.That(duplicatePlanMappings, Is.Zero);
             Assert.That(requiredLeafOperationMappings, Is.EqualTo(24));
+            Assert.That(duplicateLeafOperationNames, Is.Zero);
             Assert.That(legacyLeafRows, Is.Zero);
             Assert.That(missingParentPlanMappings, Is.Zero);
             Assert.That(validEmployeeTypeHierarchy, Is.EqualTo(1));

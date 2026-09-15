@@ -6066,6 +6066,122 @@ ORDER BY module."ModuleCode", operation."OperationType";
 -- Tenant bulk child-module catalogue removed. Import/Export are mapped directly
 -- to the existing functional modules by the inline seed above.
 
+-- EmployeeType previously inherited every operation named Export. Keep only the
+-- canonical bulk Export operation (OperationType 11) so the module exposes one
+-- CRUD + Import/Export contract without a duplicate Export action.
+DELETE FROM axionpro."TenantEnabledOperation" enabled
+USING axionpro."Module" module, axionpro."Operation" operation
+WHERE enabled."ModuleId"=module."Id"
+  AND enabled."OperationId"=operation."Id"
+  AND module."ModuleCode"='EMPLOYEE_TYPE'
+  AND lower(btrim(operation."OperationName"))='export'
+  AND operation."OperationType"<>11;
+
+UPDATE axionpro."RoleModuleAndPermission" permission
+SET "HasAccess"=FALSE,"IsActive"=FALSE,"IsSoftDeleted"=TRUE,
+    "UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP,
+    "SoftDeletedById"=COALESCE(permission."SoftDeletedById",1),
+    "DeletedDateTime"=COALESCE(permission."DeletedDateTime",CURRENT_TIMESTAMP)
+FROM axionpro."Module" module, axionpro."Operation" operation
+WHERE permission."ModuleId"=module."Id"
+  AND permission."OperationId"=operation."Id"
+  AND module."ModuleCode"='EMPLOYEE_TYPE'
+  AND lower(btrim(operation."OperationName"))='export'
+  AND operation."OperationType"<>11
+  AND NOT permission."IsSoftDeleted";
+
+DELETE FROM axionpro."ModuleOperationMapping" mapping
+USING axionpro."Module" module, axionpro."Operation" operation
+WHERE mapping."ModuleId"=module."Id"
+  AND mapping."OperationId"=operation."Id"
+  AND module."ModuleCode"='EMPLOYEE_TYPE'
+  AND lower(btrim(operation."OperationName"))='export'
+  AND operation."OperationType"<>11;
+
+-- Existing tenants on plans containing these modules receive the same
+-- missing-only snapshot that SynchronizeTenantPlanEntitlements creates.
+WITH active_subscription AS
+(
+    SELECT DISTINCT ON (subscription."TenantId")
+           subscription."TenantId",subscription."SubscriptionPlanId"
+    FROM axionpro."TenantSubscription" subscription
+    JOIN axionpro."SubscriptionPlan" plan
+      ON plan."Id"=subscription."SubscriptionPlanId"
+     AND plan."IsActive" AND NOT plan."IsSoftDeleted"
+    WHERE subscription."IsActive"
+    ORDER BY subscription."TenantId",subscription."SubscriptionStartDate" DESC,
+             subscription."Id" DESC
+)
+INSERT INTO axionpro."TenantEnabledModule"
+    ("TenantId","ParentModuleId","ModuleId","IsLeafNode","IsEnabled",
+     "AddedById","AddedDateTime")
+SELECT active_subscription."TenantId",module."ParentModuleId",module."Id",
+       module."IsLeafNode",TRUE,1,CURRENT_TIMESTAMP
+FROM active_subscription
+JOIN axionpro."PlanModuleMapping" plan_mapping
+  ON plan_mapping."SubscriptionPlanId"=active_subscription."SubscriptionPlanId"
+ AND plan_mapping."IsActive"
+JOIN axionpro."Module" module
+  ON module."Id"=plan_mapping."ModuleId"
+ AND module."ModuleScope"=1 AND module."IsActive"
+WHERE module."ModuleCode" IN
+    ('TENANT_DEPARTMENT','DEPARTMENT','TENANT_DESIGNATION','DESIGNATION',
+     'TENANT_ROLE','ROLE','EMPLOYEE_TYPE')
+  AND NOT EXISTS
+  (
+      SELECT 1 FROM axionpro."TenantEnabledModule" existing
+      WHERE existing."TenantId"=active_subscription."TenantId"
+        AND existing."ModuleId"=module."Id"
+  );
+
+INSERT INTO axionpro."TenantEnabledOperation"
+    ("TenantId","ModuleId","OperationId","IsOperationUsed","IsEnabled",
+     "AddedById","AddedDateTime")
+SELECT enabled_module."TenantId",mapping."ModuleId",mapping."OperationId",
+       COALESCE(mapping."IsOperational",TRUE),TRUE,1,CURRENT_TIMESTAMP
+FROM axionpro."TenantEnabledModule" enabled_module
+JOIN axionpro."Module" module ON module."Id"=enabled_module."ModuleId"
+JOIN axionpro."ModuleOperationMapping" mapping
+  ON mapping."ModuleId"=module."Id" AND mapping."IsActive"
+JOIN axionpro."Operation" operation
+  ON operation."Id"=mapping."OperationId" AND operation."IsActive"
+WHERE enabled_module."IsEnabled"
+  AND module."IsLeafNode" AND module."ModuleScope"=1
+  AND NOT COALESCE(mapping."IsCommonItem",FALSE)
+  AND module."ModuleCode" IN ('DEPARTMENT','DESIGNATION','ROLE','EMPLOYEE_TYPE')
+  AND NOT EXISTS
+  (
+      SELECT 1 FROM axionpro."TenantEnabledOperation" existing
+      WHERE existing."TenantId"=enabled_module."TenantId"
+        AND existing."ModuleId"=mapping."ModuleId"
+        AND existing."OperationId"=mapping."OperationId"
+  );
+
+-- Add only missing grants for the active Tenant Admin role, matching the
+-- established entitlement-sync permission filter.
+INSERT INTO axionpro."RoleModuleAndPermission"
+    ("RoleId","ModuleId","OperationId","HasAccess","IsActive","Remark",
+     "IsOperational","AddedById","AddedDateTime","IsSoftDeleted")
+SELECT admin_role."Id",enabled_operation."ModuleId",enabled_operation."OperationId",
+       TRUE,TRUE,'Auto-assigned during Tenant plan entitlement synchronization',
+       TRUE,1,CURRENT_TIMESTAMP,FALSE
+FROM axionpro."Role" admin_role
+JOIN axionpro."TenantEnabledOperation" enabled_operation
+  ON enabled_operation."TenantId"=admin_role."TenantId"
+ AND enabled_operation."IsEnabled"
+JOIN axionpro."Module" module ON module."Id"=enabled_operation."ModuleId"
+WHERE admin_role."RoleType"=1
+  AND admin_role."IsActive" AND NOT admin_role."IsSoftDeleted"
+  AND NOT admin_role."IsSystemDefault"
+  AND module."ModuleCode" IN ('DEPARTMENT','DESIGNATION','ROLE','EMPLOYEE_TYPE')
+  AND NOT EXISTS
+  (
+      SELECT 1 FROM axionpro."RoleModuleAndPermission" existing
+      WHERE existing."RoleId"=admin_role."Id"
+        AND existing."ModuleId"=enabled_operation."ModuleId"
+        AND existing."OperationId"=enabled_operation."OperationId"
+  );
+
 -- ============================================================================
 -- VERIFICATION 1
 -- DEFAULT EMAIL CONFIGURATION
