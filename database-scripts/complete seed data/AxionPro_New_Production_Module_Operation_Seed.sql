@@ -5605,6 +5605,9 @@ DO $bulk_seed$
 DECLARE
     tenant_parent_id integer;
     employee_parent_id integer;
+    department_parent_id integer;
+    designation_parent_id integer;
+    role_parent_id integer;
     import_operation_id integer;
     export_operation_id integer;
 BEGIN
@@ -5626,18 +5629,95 @@ BEGIN
         RAISE EXCEPTION 'EMP_MGMT baseline module is required before bulk module seeding.';
     END IF;
 
+    -- Singular navigation parents group the existing functional leaf modules.
+    -- Non-leaf parents follow the existing DB rule: URLPath is NULL and no
+    -- operation is mapped directly to the parent.
+    INSERT INTO axionpro."Module"
+    ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId",
+     "IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","IsActive","ImageIconWeb",
+     "ImageIconMobile","ItemPriority","Remark","AddedById","AddedDateTime",
+     "ModuleScope","PageName")
+    SELECT NULL, definition.code, definition.module_name, definition.display_name,
+           NULL, tenant_parent_id, FALSE, TRUE, FALSE, TRUE, definition.web_icon,
+           definition.mobile_icon, definition.priority, definition.remark,
+           1, CURRENT_TIMESTAMP, 1, definition.page_name
+    FROM (VALUES
+        ('TENANT_DEPARTMENT','Tenant-Department','Department',
+         'bi bi-building','business',510,
+         'Department navigation group for tenant department management.',
+         'tenant-department'),
+        ('TENANT_DESIGNATION','Tenant-Designation','Designation',
+         'bi bi-person-badge','ribbon',520,
+         'Designation navigation group for tenant designation management.',
+         'tenant-designation'),
+        ('TENANT_ROLE','Tenant-Role','Role',
+         'bi bi-shield-lock','shield-account',530,
+         'Role navigation group for tenant role and permission management.',
+         'tenant-role')
+    ) AS definition(code,module_name,display_name,web_icon,mobile_icon,priority,remark,page_name)
+    WHERE NOT EXISTS
+    (
+        SELECT 1 FROM axionpro."Module" existing
+        WHERE existing."ModuleCode"=definition.code
+          AND existing."ModuleScope"=1
+    );
+
+    -- Re-running the authoritative seed repairs metadata without creating a
+    -- second row. ModuleCode is the stable catalogue identity.
+    UPDATE axionpro."Module" module
+    SET "ModuleName"=definition.module_name,
+        "DisplayName"=definition.display_name,
+        "URLPath"=NULL,
+        "ParentModuleId"=tenant_parent_id,
+        "IsLeafNode"=FALSE,
+        "IsModuleDisplayInUI"=TRUE,
+        "IsCommonMenu"=FALSE,
+        "IsActive"=TRUE,
+        "ImageIconWeb"=definition.web_icon,
+        "ImageIconMobile"=definition.mobile_icon,
+        "ItemPriority"=definition.priority,
+        "Remark"=definition.remark,
+        "PageName"=definition.page_name,
+        "UpdatedById"=1,
+        "UpdatedDateTime"=CURRENT_TIMESTAMP
+    FROM (VALUES
+        ('TENANT_DEPARTMENT','Tenant-Department','Department','bi bi-building','business',510,
+         'Department navigation group for tenant department management.','tenant-department'),
+        ('TENANT_DESIGNATION','Tenant-Designation','Designation','bi bi-person-badge','ribbon',520,
+         'Designation navigation group for tenant designation management.','tenant-designation'),
+        ('TENANT_ROLE','Tenant-Role','Role','bi bi-shield-lock','shield-account',530,
+         'Role navigation group for tenant role and permission management.','tenant-role')
+    ) AS definition(code,module_name,display_name,web_icon,mobile_icon,priority,remark,page_name)
+    WHERE module."ModuleCode"=definition.code
+      AND module."ModuleScope"=1;
+
+    SELECT "Id" INTO department_parent_id FROM axionpro."Module"
+    WHERE "ModuleCode"='TENANT_DEPARTMENT' AND "ModuleScope"=1 ORDER BY "Id" LIMIT 1;
+    SELECT "Id" INTO designation_parent_id FROM axionpro."Module"
+    WHERE "ModuleCode"='TENANT_DESIGNATION' AND "ModuleScope"=1 ORDER BY "Id" LIMIT 1;
+    SELECT "Id" INTO role_parent_id FROM axionpro."Module"
+    WHERE "ModuleCode"='TENANT_ROLE' AND "ModuleScope"=1 ORDER BY "Id" LIMIT 1;
+
     -- Restore functional modules that an older seed placed under BULKUPLOAD.
     UPDATE axionpro."Module"
-    SET "ParentModuleId"=CASE WHEN "ModuleCode"='EMP_LIST'
-            THEN employee_parent_id ELSE tenant_parent_id END,
+    SET "ParentModuleId"=CASE "ModuleCode"
+            WHEN 'EMP_LIST' THEN employee_parent_id
+            WHEN 'TENANT_DEPARTMENTS' THEN department_parent_id
+            WHEN 'TENANT_DESIGNATIONS' THEN designation_parent_id
+            WHEN 'TENANT_ROLES_PERMISSIONS' THEN role_parent_id
+            ELSE tenant_parent_id END,
         "UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP
     WHERE "ModuleScope"=1
       AND "ModuleCode" IN ('EMP_LIST','TENANT_DEPARTMENTS','TENANT_DESIGNATIONS',
           'TENANT_ROLES_PERMISSIONS','TENANT_EMPLOYEE_TYPES');
 
     UPDATE axionpro."TenantEnabledModule" enabled
-    SET "ParentModuleId"=CASE WHEN module."ModuleCode"='EMP_LIST'
-            THEN employee_parent_id ELSE tenant_parent_id END,
+    SET "ParentModuleId"=CASE module."ModuleCode"
+            WHEN 'EMP_LIST' THEN employee_parent_id
+            WHEN 'TENANT_DEPARTMENTS' THEN department_parent_id
+            WHEN 'TENANT_DESIGNATIONS' THEN designation_parent_id
+            WHEN 'TENANT_ROLES_PERMISSIONS' THEN role_parent_id
+            ELSE tenant_parent_id END,
         "UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP
     FROM axionpro."Module" module
     WHERE enabled."ModuleId"=module."Id"
@@ -5780,6 +5860,56 @@ BEGIN
           SELECT 1 FROM axionpro."PlanModuleMapping" existing
           WHERE existing."SubscriptionPlanId" = plan."SubscriptionPlanId"
             AND existing."ModuleId" = target."Id"
+      );
+
+    -- Each singular parent inherits the plans of its own functional child.
+    -- This makes tenant creation and Host entitlement sync include the branch.
+    INSERT INTO axionpro."PlanModuleMapping"
+    ("SubscriptionPlanId","ModuleId","IsActive","Remark","AddedById","AddedDateTime")
+    SELECT DISTINCT child_plan."SubscriptionPlanId", parent."Id", TRUE,
+           'Navigation parent inherited from its functional child plan coverage.',
+           1, CURRENT_TIMESTAMP
+    FROM (VALUES
+        ('TENANT_DEPARTMENTS','TENANT_DEPARTMENT'),
+        ('TENANT_DESIGNATIONS','TENANT_DESIGNATION'),
+        ('TENANT_ROLES_PERMISSIONS','TENANT_ROLE')
+    ) AS hierarchy(child_code,parent_code)
+    JOIN axionpro."Module" child
+      ON child."ModuleCode"=hierarchy.child_code AND child."ModuleScope"=1
+    JOIN axionpro."Module" parent
+      ON parent."ModuleCode"=hierarchy.parent_code AND parent."ModuleScope"=1
+    JOIN axionpro."PlanModuleMapping" child_plan
+      ON child_plan."ModuleId"=child."Id" AND child_plan."IsActive"=TRUE
+    WHERE NOT EXISTS
+    (
+        SELECT 1 FROM axionpro."PlanModuleMapping" existing
+        WHERE existing."SubscriptionPlanId"=child_plan."SubscriptionPlanId"
+          AND existing."ModuleId"=parent."Id"
+    );
+
+    UPDATE axionpro."PlanModuleMapping" parent_plan
+    SET "IsActive"=TRUE,
+        "Remark"='Navigation parent inherited from its functional child plan coverage.',
+        "UpdatedById"=1,
+        "UpdatedDateTime"=CURRENT_TIMESTAMP
+    FROM (VALUES
+        ('TENANT_DEPARTMENTS','TENANT_DEPARTMENT'),
+        ('TENANT_DESIGNATIONS','TENANT_DESIGNATION'),
+        ('TENANT_ROLES_PERMISSIONS','TENANT_ROLE')
+    ) AS hierarchy(child_code,parent_code)
+    JOIN axionpro."Module" parent
+      ON parent."ModuleCode"=hierarchy.parent_code AND parent."ModuleScope"=1
+    WHERE parent_plan."ModuleId"=parent."Id"
+      AND EXISTS
+      (
+          SELECT 1
+          FROM axionpro."Module" child
+          JOIN axionpro."PlanModuleMapping" child_plan
+            ON child_plan."ModuleId"=child."Id"
+           AND child_plan."SubscriptionPlanId"=parent_plan."SubscriptionPlanId"
+           AND child_plan."IsActive"=TRUE
+          WHERE child."ModuleCode"=hierarchy.child_code
+            AND child."ModuleScope"=1
       );
 
     -- Preserve existing tenant role/operation grants on the functional modules.
