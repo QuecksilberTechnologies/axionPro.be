@@ -7,6 +7,23 @@ endpoint documentation, existing permission pipelines, constants, enums and mapp
 Ask before implementing unclear business rules. COMPLETE below means the stated
 backend scope, not all future bulk modules or production deployment.
 
+## 2026-09-14 module metadata and operation catalogue decision
+
+- The only authoritative broad module/operation seed is now
+  `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`;
+  the root-level duplicate was removed by explicit user request.
+- The complete seed keeps one canonical `TENANT_DASHBOARD` navigation-parent
+  entry. It does not delete Dashboard rows from the database.
+- A final normalization preserves existing values and fills empty Module `Remark`,
+  `ImageIconWeb` and `ImageIconMobile` values, followed by a database assertion.
+- The user explicitly superseded the earlier immutable-operation-name decision for
+  the duplicate Add/Create pair only. `OperationType=1` is consolidated to one
+  canonical Add record and Create references are migrated before removal. All
+  other operation names remain covered by the immutable-name rule.
+- Source contract validation passed 1/1. Isolated PostgreSQL first-run/rerun is
+  BLOCKED/NOT RUN because the local fixture at port 55439 was unavailable; the
+  database test was skipped and this seed change is not production-ready.
+
 ## 2026-09-13 issue audit
 
 - **COMPLETE — bulk permission catalogue simplification:** user accepted the UI
@@ -83,6 +100,19 @@ was changed. FINAL release acceptance refers to the approved base-import scope.
 | Reporting-manager bulk mapping | Future assignment scope, including missing manager/self-reporting/cycle rules. | DEFERRED — next bulk scope |
 | Location/work arrangement and policy bulk assignments | Existing operational flows require dependency/rule review before bulk support. | DEFERRED — next bulk scope |
 | Attendance-device bulk enrollment | Employee account creation does not imply device enrollment. | DEFERRED — next bulk scope |
+
+### Device deployment follow-on request recorded 2026-09-13
+
+The user requested future support for: bulk enrolling existing Employee IDs onto
+devices, optionally deploying successfully created Employee bulk-import rows to
+selected devices, and automatically disabling/reactivating enrolled device users
+when the HRMS Employee active status changes. These are **PENDING requirements**,
+not implemented behavior and not authorization to invent target-device/location,
+credential, offline retry or reactivation rules. The proposed API/job inventory and
+unresolved decisions are documented in
+`docs/UIdeveloperDoc/DeviceRelatedAPI/DEVICE_RELATED_API_COMPLETE_HANDOFF.md`,
+section 22. Implementation must remain a separate durable post-commit workflow so
+device availability cannot roll back Employee creation.
 
 UI work belongs to the separate UI developer and is excluded from this backend gap
 count. Existing passed tests need not be repeated merely to revisit this list.

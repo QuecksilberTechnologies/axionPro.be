@@ -60,7 +60,7 @@ they deliberately accept typed fields rather than arbitrary device JSON.
 
 | Route | Who can call it | JSON input | What it does / why |
 |---|---|---|---|
-| `POST /issue-bootstrap-url` | Host user with `HOST_INITIAL_DEVICE_CONFIGURATION` + Create/Add operation | `{ "deviceMasterId": 1, "lifetimeMinutes": 120, "moduleId": 123, "operationId": 456 }` | Creates a temporary, one-use bootstrap URL for an active, unassigned HTTPS-capable physical device. Returns `initialGatewayUrl`, device serial, fixed first heartbeat `20`, and expiry. The raw secret URL is returned only once. |
+| `POST /issue-bootstrap-url` | Host user with `HOST_INITIAL_DEVICE_CONFIGURATION` + Add operation | `{ "deviceMasterId": 1, "lifetimeMinutes": 120, "moduleId": 123, "operationId": 456 }` | Creates a temporary, one-use bootstrap URL for an active, unassigned HTTPS-capable physical device. Returns `initialGatewayUrl`, device serial, fixed first heartbeat `20`, and expiry. The raw secret URL is returned only once. |
 | `POST /apply-runtime-configuration` | Tenant Admin with `TENANT_DEVICE_CONFIGURATION` + Update/Edit operation | `{ "tenantDeviceId": 4, "moduleId": 123, "operationId": 456, "currentWebServerPassword": "current-device-password", "heartbeatIntervalSeconds": 20, "volume": 8, "disableLocalWebServer": true, "newWebServerPassword": "optional-new-password", "rebootAfterApply": true }` | Queues protected `setdevinfo`. It sets the device heartbeat, optional volume, disables local WebServer, optionally changes the local password, and—on first apply—switches the device to its normal per-Tenant opaque gateway URL. It returns only command IDs/tracking IDs, never a password or gateway secret. |
 | `POST /reboot` | Tenant Admin with `TENANT_DEVICE_CONFIGURATION` + Update/Edit operation | `{ "tenantDeviceId": 4, "moduleId": 123, "operationId": 456 }` | Queues a reboot through the outbound HTTPS device channel. It does not contact the device IP directly. |
 
@@ -188,7 +188,7 @@ application database a long-term store of a local-device management password.
 
 ## Authorization model
 
-The consolidated module seed is `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql`. It contains:
+The consolidated module seed is `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`. It contains:
 
 - `HOST_INITIAL_DEVICE_CONFIGURATION`: issue initial bootstrap URLs only.
 - `TENANT_DEVICE_CONFIGURATION`: read/create/update/delete Tenant device
@@ -218,7 +218,7 @@ menu tree treats a negative priority as terminal, so the existing Sign out
 item with priority `-1` remains last. The seed does not alter Common-menu
 rows.
 
-Each active Create/Add, View/Read, Update/Edit, and Delete mapping receives
+Each active Add, View/Read, Update/Edit, and Delete mapping receives
 the module's route, the operation icon (falling back to the module icon), an
 operation priority of 10/20/30/40, and an action-specific remark. This makes
 permission administration readable without changing access grants.
@@ -261,7 +261,7 @@ Run these scripts once, in order, after taking a database backup and before
 deploying the matching API build:
 
 1. `database-scripts/AddSecureInitialDeviceConfiguration.sql`
-2. `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql`
+2. `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`
 
 The first script adds:
 
@@ -281,16 +281,16 @@ Run only the following two files for this device feature, in the stated order:
 | Order | SQL file | Database changes |
 |---:|---|---|
 | 1 | `database-scripts/AddSecureInitialDeviceConfiguration.sql` | Adds `DeviceCommand.IsSensitivePayload`; creates `DeviceInitialProvisioning` (hashed bootstrap secret, expiry, 20-second heartbeat, connection/audit timestamps); expands existing device-credential type validation for future local-WebServer password support. |
-| 2 | `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql` | Consolidated idempotent seed for email, device, and employee-password modules. It includes `HOST_DEVICE_SETUP`, `TENANT_DEVICE_SETUP`, `HOST_INITIAL_DEVICE_CONFIGURATION`, and `TENANT_DEVICE_CONFIGURATION`, with active Create/Add/View/Read/Update/Edit/Delete mappings. |
+| 2 | `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql` | Consolidated idempotent seed for email, device, employee-password, and dashboard modules. It includes `HOST_DEVICE_SETUP`, `TENANT_DEVICE_SETUP`, `HOST_INITIAL_DEVICE_CONFIGURATION`, and `TENANT_DEVICE_CONFIGURATION`, with active Add/View/Read/Update/Edit/Delete mappings. |
 
 The module rows and operation mappings are **prepared in SQL but not yet run
 against RenderDB**. The seed deliberately does **not** grant either module to a
 role automatically. After script 2, use the normal role-permission UI/SQL to
 grant:
 
-- Host provisioning role: `HOST_INITIAL_DEVICE_CONFIGURATION` → Create/Add;
+- Host provisioning role: `HOST_INITIAL_DEVICE_CONFIGURATION` → Add;
 - Tenant Admin role only: `TENANT_DEVICE_CONFIGURATION` → View/Read,
-  Create/Add, Update/Edit, Delete as required.
+  Add, Update/Edit, Delete as required.
 
 `RemoveTenantProfileAddress.sql` is a separate earlier Tenant-address change;
 it is **not** part of this device deployment and must not be rerun for this

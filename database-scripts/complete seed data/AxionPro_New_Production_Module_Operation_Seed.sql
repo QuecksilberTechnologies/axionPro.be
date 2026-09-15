@@ -20,7 +20,7 @@
 --   8. Host administration hierarchy and Host authorization baseline.
 --   9. Bulk module planning is documented in ../BULK_MODULE_SEED_REFERENCE.md.
 --      EmployeeType catalogue is maintained by ../SeedTenantEmployeeTypeModule.sql.
---   9. Identity / auto-increment sequence safely synchronize karna.
+--  10. Identity / auto-increment sequence safely synchronize karna.
 --
 -- IMPORTANT:
 --   * SMTP password/secret hard-code nahi kiya gaya hai.
@@ -35,6 +35,8 @@
 --   * Shared modules intentionally have TenantId = NULL; root modules
 --     intentionally have ParentModuleId = NULL. Those two NULLs model scope
 --     and hierarchy, not incomplete seed data.
+--   * Catalogue verification is ordered Common (parents/leaves), Host
+--     (parents/leaves), then Tenant (parents/leaves).
 -- ============================================================================
 
 
@@ -266,6 +268,59 @@ WHERE NOT EXISTS
     SELECT 1
     FROM axionpro."Module"
     WHERE "ModuleCode" = 'TENANT_MGMT'
+);
+
+-- Canonical Tenant dashboard navigation parent.
+-- This insert does not update or delete any existing Module row.
+INSERT INTO axionpro."Module"
+(
+    "TenantId",
+    "ModuleCode",
+    "ModuleName",
+    "DisplayName",
+    "URLPath",
+    "ParentModuleId",
+    "IsLeafNode",
+    "IsModuleDisplayInUI",
+    "IsCommonMenu",
+    "IsActive",
+    "ImageIconWeb",
+    "ImageIconMobile",
+    "ItemPriority",
+    "Remark",
+    "AddedById",
+    "AddedDateTime",
+    "UpdatedById",
+    "UpdatedDateTime",
+    "ModuleScope",
+    "PageName"
+)
+SELECT
+    NULL,
+    'TENANT_DASHBOARD',
+    'Tenant-Dashboard',
+    'Dashboard',
+    NULL,
+    NULL,
+    FALSE,
+    TRUE,
+    FALSE,
+    TRUE,
+    'bi bi-speedometer2',
+    'dashboard',
+    10,
+    'Tenant dashboard navigation parent.',
+    1,
+    CURRENT_TIMESTAMP,
+    1,
+    CURRENT_TIMESTAMP,
+    1,
+    'tenant-dashboard-menu'
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM axionpro."Module"
+    WHERE "ModuleCode" = 'TENANT_DASHBOARD'
 );
 
 -- Backup Module Id 4: HOST_TENANT_MGMT
@@ -2796,7 +2851,7 @@ WHERE NOT EXISTS
 -- Supported operation names:
 --
 -- View / Read
--- Create / Add
+-- Add
 -- Update / Edit
 -- Delete
 --
@@ -2840,7 +2895,7 @@ SELECT
             THEN 1
 
         WHEN LOWER(BTRIM(operation."OperationName"))
-             IN ('create', 'add')
+             = 'add'
             THEN 2
 
         WHEN LOWER(BTRIM(operation."OperationName"))
@@ -2864,10 +2919,10 @@ SELECT
             'View Host default email configuration.'
 
         WHEN LOWER(BTRIM(operation."OperationName"))
-             IN ('create', 'add')
+             = 'add'
 
             THEN
-            'Create Host default email configuration.'
+            'Add Host default email configuration.'
 
         WHEN LOWER(BTRIM(operation."OperationName"))
              IN ('update', 'edit')
@@ -2902,7 +2957,6 @@ INNER JOIN axionpro."Operation" operation
        (
            'view',
            'read',
-           'create',
            'add',
            'update',
            'edit',
@@ -2973,7 +3027,7 @@ SELECT
             THEN 1
 
         WHEN LOWER(BTRIM(operation."OperationName"))
-             IN ('create', 'add')
+             = 'add'
             THEN 2
 
         WHEN LOWER(BTRIM(operation."OperationName"))
@@ -2997,10 +3051,10 @@ SELECT
             'View Tenant email configuration.'
 
         WHEN LOWER(BTRIM(operation."OperationName"))
-             IN ('create', 'add')
+             = 'add'
 
             THEN
-            'Create Tenant email configuration.'
+            'Add Tenant email configuration.'
 
         WHEN LOWER(BTRIM(operation."OperationName"))
              IN ('update', 'edit')
@@ -3035,7 +3089,6 @@ INNER JOIN axionpro."Operation" operation
        (
            'view',
            'read',
-           'create',
            'add',
            'update',
            'edit',
@@ -3088,7 +3141,7 @@ SET
                 THEN 1
 
             WHEN LOWER(BTRIM(operation."OperationName"))
-                 IN ('create', 'add')
+                 = 'add'
                 THEN 2
 
             WHEN LOWER(BTRIM(operation."OperationName"))
@@ -3121,10 +3174,10 @@ SET
                  = 'HOST_DEFAULT_EMAIL_CONFIG'
 
                  AND LOWER(BTRIM(operation."OperationName"))
-                     IN ('create', 'add')
+                     = 'add'
 
                 THEN
-                'Create Host default email configuration.'
+                'Add Host default email configuration.'
 
 
             WHEN module."ModuleCode"
@@ -3161,10 +3214,10 @@ SET
                  = 'TENANT_EMAIL_CONFIG'
 
                  AND LOWER(BTRIM(operation."OperationName"))
-                     IN ('create', 'add')
+                     = 'add'
 
                 THEN
-                'Create Tenant email configuration.'
+                'Add Tenant email configuration.'
 
 
             WHEN module."ModuleCode"
@@ -3396,6 +3449,8 @@ INSERT INTO module_seed
     "ModuleScope", "ItemPriority", "Remark"
 )
 VALUES
+-- 1. COMMON catalogue and its leaves are seeded first in SECTION 2C.
+-- 2. HOST catalogue and its leaves.
 (
     'HOST_DEFAULT_EMAIL_CONFIG',
     'Platform Email Defaults',
@@ -3523,20 +3578,6 @@ VALUES
     'Manages Host-owned subscription plans and tenant plan assignment.'
 ),
 (
-    'TENANT_EMAIL_CONFIG',
-    'Email Delivery Settings',
-    'email-delivery-settings',
-    'Email Settings',
-    '/app/tenant-email-config',
-    NULL,
-    TRUE,
-    'bi bi-envelope-at',
-    'mail',
-    1,
-    410,
-    'Tenant-owned SMTP settings for authorised transactional and notification email delivery.'
-),
-(
     'HOST_TENANT_EMAIL_CONFIG',
     'Tenant Email Administration',
     'tenant-email-administration',
@@ -3579,20 +3620,6 @@ VALUES
     'Host-managed device models, hardware capabilities, and supported transport profiles.'
 ),
 (
-    'TENANT_DEVICE_SETUP',
-    'Installed Devices',
-    'installed-devices',
-    'Installed Devices',
-    '/app/tenant-devices',
-    NULL,
-    TRUE,
-    'bi bi-hdd-network',
-    'devices',
-    1,
-    510,
-    'Tenant device installation, location assignment, activation, and lifecycle management.'
-),
-(
     'HOST_INITIAL_DEVICE_CONFIGURATION',
     'Device Provisioning',
     'device-provisioning',
@@ -3607,20 +3634,6 @@ VALUES
     'Host-only permission for issuing one-time device bootstrap URLs from the device onboarding flow.'
 ),
 (
-    'TENANT_DEVICE_CONFIGURATION',
-    'Device Connectivity',
-    'device-connectivity',
-    'Device Connectivity',
-    '/app/tenant-device-configurations',
-    NULL,
-    TRUE,
-    'bi bi-sliders',
-    'settings',
-    1,
-    520,
-    'Tenant-admin configuration of device connectivity, gateway rotation, heartbeat, runtime settings, and reboot.'
-),
-(
     'HOST_TENANT_CARD_INVENTORY',
     'Host Tenant Card Inventory',
     'tenant-card-inventory',
@@ -3633,6 +3646,49 @@ VALUES
     2,
     530,
     'Host-only procurement, tax, issue, and lifecycle inventory for Tenant-issued physical access cards.'
+),
+-- 3. TENANT catalogue and its leaves.
+(
+    'TENANT_EMAIL_CONFIG',
+    'Email Delivery Settings',
+    'email-delivery-settings',
+    'Email Settings',
+    '/app/tenant-email-config',
+    NULL,
+    TRUE,
+    'bi bi-envelope-at',
+    'mail',
+    1,
+    410,
+    'Tenant-owned SMTP settings for authorised transactional and notification email delivery.'
+),
+(
+    'TENANT_DEVICE_SETUP',
+    'Installed Devices',
+    'installed-devices',
+    'Installed Devices',
+    '/app/tenant-devices',
+    NULL,
+    TRUE,
+    'bi bi-hdd-network',
+    'devices',
+    1,
+    510,
+    'Tenant device installation, location assignment, activation, and lifecycle management.'
+),
+(
+    'TENANT_DEVICE_CONFIGURATION',
+    'Device Connectivity',
+    'device-connectivity',
+    'Device Connectivity',
+    '/app/tenant-device-configurations',
+    NULL,
+    TRUE,
+    'bi bi-sliders',
+    'settings',
+    1,
+    520,
+    'Tenant-admin configuration of device connectivity, gateway rotation, heartbeat, runtime settings, and reboot.'
 ),
 (
     'TENANT_LOCATIONS',
@@ -3803,11 +3859,228 @@ WHERE NOT EXISTS
 )
   AND (seed."ParentModuleCode" IS NULL OR parent."Id" IS NOT NULL);
 
--- The module seed consumes the platform-wide CRUD actions.  The Operation
--- master may have been deployed before this script, so create a missing
--- semantic action only when neither supported spelling exists, then ensure
--- every action used by these menus has complete labels, icon, type, and audit
--- metadata. OperationType values are the established OperationType enum:
+-- Consolidate the legacy Create alias into the canonical Add operation before
+-- seeding mappings. Existing permissions are moved in FK-safe order. The
+-- operation master then contains one Add action for OperationType 1.
+DO $consolidate_add_operation$
+DECLARE
+    add_operation_id INTEGER;
+    create_operation_id INTEGER;
+BEGIN
+    SELECT "Id"
+    INTO add_operation_id
+    FROM axionpro."Operation"
+    WHERE LOWER(BTRIM("OperationName")) = 'add'
+      AND "OperationType" = 1
+    ORDER BY "IsActive" DESC, "Id"
+    LIMIT 1;
+
+    IF add_operation_id IS NULL THEN
+        SELECT "Id"
+        INTO create_operation_id
+        FROM axionpro."Operation"
+        WHERE LOWER(BTRIM("OperationName")) = 'create'
+          AND "OperationType" = 1
+        ORDER BY "IsActive" DESC, "Id"
+        LIMIT 1;
+
+        IF create_operation_id IS NOT NULL THEN
+            UPDATE axionpro."Operation"
+            SET
+                "OperationName" = 'Add',
+                "Remark" = 'Add a permitted record or queue a new request.',
+                "IsActive" = TRUE,
+                "IconImage" = 'plus-circle',
+                "UpdatedById" = 1,
+                "UpdatedDateTime" = CURRENT_TIMESTAMP
+            WHERE "Id" = create_operation_id;
+
+            add_operation_id := create_operation_id;
+        ELSE
+            INSERT INTO axionpro."Operation"
+            (
+                "OperationName", "Remark", "OperationType", "IsActive",
+                "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "IconImage"
+            )
+            VALUES
+            (
+                'Add', 'Add a permitted record or queue a new request.', 1, TRUE,
+                1, CURRENT_TIMESTAMP, 1, CURRENT_TIMESTAMP, 'plus-circle'
+            )
+            RETURNING "Id" INTO add_operation_id;
+        END IF;
+    END IF;
+
+    -- Remove duplicates that would collide with the canonical Add mapping.
+    DELETE FROM axionpro."ModuleOperationMapping" legacy
+    USING axionpro."Operation" create_operation
+    WHERE legacy."OperationId" = create_operation."Id"
+      AND create_operation."OperationType" = 1
+      AND create_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add')
+      AND EXISTS
+      (
+          SELECT 1
+          FROM axionpro."ModuleOperationMapping" canonical
+          WHERE canonical."ModuleId" = legacy."ModuleId"
+            AND canonical."OperationId" = add_operation_id
+      );
+
+    DELETE FROM axionpro."HostRoleModuleAndPermission" legacy
+    USING axionpro."Operation" create_operation
+    WHERE legacy."OperationId" = create_operation."Id"
+      AND create_operation."OperationType" = 1
+      AND create_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add')
+      AND EXISTS
+      (
+          SELECT 1
+          FROM axionpro."HostRoleModuleAndPermission" canonical
+          WHERE canonical."HostRoleId" = legacy."HostRoleId"
+            AND canonical."ModuleId" = legacy."ModuleId"
+            AND canonical."OperationId" = add_operation_id
+      );
+
+    DELETE FROM axionpro."TenantEnabledOperation" legacy
+    USING axionpro."Operation" create_operation
+    WHERE legacy."OperationId" = create_operation."Id"
+      AND create_operation."OperationType" = 1
+      AND create_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add')
+      AND EXISTS
+      (
+          SELECT 1
+          FROM axionpro."TenantEnabledOperation" canonical
+          WHERE canonical."TenantId" = legacy."TenantId"
+            AND canonical."ModuleId" = legacy."ModuleId"
+            AND canonical."OperationId" = add_operation_id
+      );
+
+    DELETE FROM axionpro."ModuleOperationMapping" duplicate
+    USING axionpro."Operation" duplicate_operation
+    WHERE duplicate."OperationId" = duplicate_operation."Id"
+      AND duplicate_operation."OperationType" = 1
+      AND duplicate_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(duplicate_operation."OperationName")) IN ('create', 'add')
+      AND EXISTS
+      (
+          SELECT 1
+          FROM axionpro."ModuleOperationMapping" retained
+          INNER JOIN axionpro."Operation" retained_operation
+              ON retained_operation."Id" = retained."OperationId"
+          WHERE retained."ModuleId" = duplicate."ModuleId"
+            AND retained."Id" < duplicate."Id"
+            AND retained_operation."OperationType" = 1
+            AND retained_operation."Id" <> add_operation_id
+            AND LOWER(BTRIM(retained_operation."OperationName")) IN ('create', 'add')
+      );
+
+    DELETE FROM axionpro."HostRoleModuleAndPermission" duplicate
+    USING axionpro."Operation" duplicate_operation
+    WHERE duplicate."OperationId" = duplicate_operation."Id"
+      AND duplicate_operation."OperationType" = 1
+      AND duplicate_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(duplicate_operation."OperationName")) IN ('create', 'add')
+      AND EXISTS
+      (
+          SELECT 1
+          FROM axionpro."HostRoleModuleAndPermission" retained
+          INNER JOIN axionpro."Operation" retained_operation
+              ON retained_operation."Id" = retained."OperationId"
+          WHERE retained."HostRoleId" = duplicate."HostRoleId"
+            AND retained."ModuleId" = duplicate."ModuleId"
+            AND retained."Id" < duplicate."Id"
+            AND retained_operation."OperationType" = 1
+            AND retained_operation."Id" <> add_operation_id
+            AND LOWER(BTRIM(retained_operation."OperationName")) IN ('create', 'add')
+      );
+
+    DELETE FROM axionpro."TenantEnabledOperation" duplicate
+    USING axionpro."Operation" duplicate_operation
+    WHERE duplicate."OperationId" = duplicate_operation."Id"
+      AND duplicate_operation."OperationType" = 1
+      AND duplicate_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(duplicate_operation."OperationName")) IN ('create', 'add')
+      AND EXISTS
+      (
+          SELECT 1
+          FROM axionpro."TenantEnabledOperation" retained
+          INNER JOIN axionpro."Operation" retained_operation
+              ON retained_operation."Id" = retained."OperationId"
+          WHERE retained."TenantId" = duplicate."TenantId"
+            AND retained."ModuleId" = duplicate."ModuleId"
+            AND retained."Id" < duplicate."Id"
+            AND retained_operation."OperationType" = 1
+            AND retained_operation."Id" <> add_operation_id
+            AND LOWER(BTRIM(retained_operation."OperationName")) IN ('create', 'add')
+      );
+
+    UPDATE axionpro."ModuleOperationMapping" mapping
+    SET
+        "OperationId" = add_operation_id,
+        "UpdatedById" = 1,
+        "UpdatedDateTime" = CURRENT_TIMESTAMP
+    FROM axionpro."Operation" create_operation
+    WHERE mapping."OperationId" = create_operation."Id"
+      AND create_operation."OperationType" = 1
+      AND create_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add');
+
+    UPDATE axionpro."HostRoleModuleAndPermission" permission
+    SET
+        "OperationId" = add_operation_id,
+        "UpdatedById" = 1,
+        "UpdatedDateTime" = CURRENT_TIMESTAMP
+    FROM axionpro."Operation" create_operation
+    WHERE permission."OperationId" = create_operation."Id"
+      AND create_operation."OperationType" = 1
+      AND create_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add');
+
+    UPDATE axionpro."RoleModuleAndPermission" permission
+    SET
+        "OperationId" = add_operation_id,
+        "UpdatedById" = 1,
+        "UpdatedDateTime" = CURRENT_TIMESTAMP
+    FROM axionpro."Operation" create_operation
+    WHERE permission."OperationId" = create_operation."Id"
+      AND create_operation."OperationType" = 1
+      AND create_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add');
+
+    UPDATE axionpro."TenantEnabledOperation" enabled_operation
+    SET
+        "OperationId" = add_operation_id,
+        "UpdatedById" = 1,
+        "UpdatedDateTime" = CURRENT_TIMESTAMP
+    FROM axionpro."Operation" create_operation
+    WHERE enabled_operation."OperationId" = create_operation."Id"
+      AND create_operation."OperationType" = 1
+      AND create_operation."Id" <> add_operation_id
+      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add');
+
+    IF to_regclass('axionpro."BulkImportJob"') IS NOT NULL THEN
+        EXECUTE
+            'UPDATE axionpro."BulkImportJob" job '
+            'SET "OperationId" = $1 '
+            'FROM axionpro."Operation" create_operation '
+            'WHERE job."OperationId" = create_operation."Id" '
+            'AND create_operation."OperationType" = 1 '
+            'AND create_operation."Id" <> $1 '
+            'AND LOWER(BTRIM(create_operation."OperationName")) IN (''create'', ''add'')'
+        USING add_operation_id;
+    END IF;
+
+    DELETE FROM axionpro."Operation"
+    WHERE "OperationType" = 1
+      AND "Id" <> add_operation_id
+      AND LOWER(BTRIM("OperationName")) IN ('create', 'add');
+END;
+$consolidate_add_operation$;
+
+-- The module seed consumes the platform-wide CRUD actions. Ensure every action
+-- used by these menus has complete labels, icon, type, and audit metadata.
+-- OperationType values are the established OperationType enum:
 -- Add=1, Update=2, Delete=3, View=4.
 INSERT INTO axionpro."Operation"
 (
@@ -3820,7 +4093,7 @@ FROM
 (
     VALUES
         ('View',   'View permitted records and details.', 4, 'eye'),
-        ('Create', 'Create a permitted record or queue a new request.', 1, 'plus-circle'),
+        ('Add',    'Add a permitted record or queue a new request.', 1, 'plus-circle'),
         ('Update', 'Update a permitted record or apply an approved change.', 2, 'pencil-square'),
         ('Delete', 'Soft-delete or remove a permitted record.', 3, 'trash3')
 ) AS seed("OperationName", "Remark", "OperationType", "IconImage")
@@ -3830,7 +4103,7 @@ WHERE NOT EXISTS
     FROM axionpro."Operation" existing
     WHERE
         (seed."OperationName" = 'View' AND LOWER(BTRIM(existing."OperationName")) IN ('view', 'read'))
-        OR (seed."OperationName" = 'Create' AND LOWER(BTRIM(existing."OperationName")) IN ('create', 'add'))
+        OR (seed."OperationName" = 'Add' AND LOWER(BTRIM(existing."OperationName")) = 'add')
         OR (seed."OperationName" = 'Update' AND LOWER(BTRIM(existing."OperationName")) IN ('update', 'edit'))
         OR (seed."OperationName" = 'Delete' AND LOWER(BTRIM(existing."OperationName")) = 'delete')
 );
@@ -3840,8 +4113,8 @@ SET
     "Remark" = CASE
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read')
             THEN 'View permitted records and details.'
-        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add')
-            THEN 'Create a permitted record or queue a new request.'
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'add'
+            THEN 'Add a permitted record or queue a new request.'
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit')
             THEN 'Update a permitted record or apply an approved change.'
         WHEN LOWER(BTRIM(operation."OperationName")) = 'delete'
@@ -3850,14 +4123,14 @@ SET
     END,
     "OperationType" = CASE
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read') THEN 4
-        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add') THEN 1
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'add' THEN 1
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit') THEN 2
         WHEN LOWER(BTRIM(operation."OperationName")) = 'delete' THEN 3
         ELSE operation."OperationType"
     END,
     "IconImage" = CASE
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read') THEN 'eye'
-        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add') THEN 'plus-circle'
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'add' THEN 'plus-circle'
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit') THEN 'pencil-square'
         WHEN LOWER(BTRIM(operation."OperationName")) = 'delete' THEN 'trash3'
         ELSE operation."IconImage"
@@ -3868,7 +4141,7 @@ SET
     "UpdatedById" = 1,
     "UpdatedDateTime" = CURRENT_TIMESTAMP
 WHERE LOWER(BTRIM(operation."OperationName")) IN
-      ('view', 'read', 'create', 'add', 'update', 'edit', 'delete');
+      ('view', 'read', 'add', 'update', 'edit', 'delete');
 
 INSERT INTO axionpro."ModuleOperationMapping"
 (
@@ -3884,7 +4157,7 @@ SELECT
     TRUE,
     CASE
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read') THEN 10
-        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add') THEN 20
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'add' THEN 20
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit') THEN 30
         WHEN LOWER(BTRIM(operation."OperationName")) = 'delete' THEN 40
         ELSE 99
@@ -3892,8 +4165,8 @@ SELECT
     CASE
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read')
             THEN 'View ' || module."DisplayName" || '.'
-        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add')
-            THEN 'Create ' || module."DisplayName" || '.'
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'add'
+            THEN 'Add ' || module."DisplayName" || '.'
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit')
             THEN 'Update ' || module."DisplayName" || '.'
         WHEN LOWER(BTRIM(operation."OperationName")) = 'delete'
@@ -3908,7 +4181,7 @@ INNER JOIN module_seed seed
     ON seed."ModuleCode" = module."ModuleCode"
 INNER JOIN axionpro."Operation" operation
     ON LOWER(BTRIM(operation."OperationName")) IN
-       ('view', 'read', 'create', 'add', 'update', 'edit', 'delete')
+       ('view', 'read', 'add', 'update', 'edit', 'delete')
 WHERE operation."IsActive" = TRUE
   AND NOT EXISTS
   (
@@ -3926,7 +4199,7 @@ SET
     "IsOperational" = TRUE,
     "Priority" = CASE
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read') THEN 10
-        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add') THEN 20
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'add' THEN 20
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit') THEN 30
         WHEN LOWER(BTRIM(operation."OperationName")) = 'delete' THEN 40
         ELSE 99
@@ -3934,8 +4207,8 @@ SET
     "Remark" = CASE
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('view', 'read')
             THEN 'View ' || module."DisplayName" || '.'
-        WHEN LOWER(BTRIM(operation."OperationName")) IN ('create', 'add')
-            THEN 'Create ' || module."DisplayName" || '.'
+        WHEN LOWER(BTRIM(operation."OperationName")) = 'add'
+            THEN 'Add ' || module."DisplayName" || '.'
         WHEN LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit')
             THEN 'Update ' || module."DisplayName" || '.'
         WHEN LOWER(BTRIM(operation."OperationName")) = 'delete'
@@ -3952,7 +4225,7 @@ WHERE mapping."ModuleId" = module."Id"
   AND seed."ModuleCode" = module."ModuleCode"
   AND operation."Id" = mapping."OperationId"
   AND LOWER(BTRIM(operation."OperationName")) IN
-      ('view', 'read', 'create', 'add', 'update', 'edit', 'delete');
+      ('view', 'read', 'add', 'update', 'edit', 'delete');
 
 -- A pre-existing installation can contain a non-standard operation already
 -- attached to one of these modules. Preserve its operation and active state,
@@ -3984,7 +4257,6 @@ FROM axionpro."Module" module,
 WHERE mapping."ModuleId" = module."Id"
   AND seed."ModuleCode" = module."ModuleCode"
   AND operation."Id" = mapping."OperationId";
-
 
 -- ============================================================================
 -- SECTION 8B
@@ -4271,9 +4543,9 @@ $$;
 
 -- ============================================================================
 -- SECTION 8C
--- HOST TENANT LIST CREATE ACTION
+-- HOST TENANT LIST ADD ACTION
 -- ============================================================================
--- The Host Tenant List page owns its row actions.  Keep Create attached to
+-- The Host Tenant List page owns its row actions. Keep Add attached to
 -- this leaf module so Navigation/my-menu can render the action from the same
 -- permission object.  This does not grant the permission to any Host role.
 
@@ -4281,18 +4553,17 @@ DO
 $$
 DECLARE
     host_tenant_list_module_id INTEGER;
-    create_operation_id INTEGER;
+    add_operation_id INTEGER;
 BEGIN
-    -- Operation.Id = 1 is the existing canonical Create operation.  Do not
-    -- insert a duplicate operation; only ensure the existing record is active
-    -- because Navigation/my-menu excludes inactive operations.
+    -- Reuse the canonical Add operation by its established operation type.
     UPDATE axionpro."Operation"
     SET
         "IsActive" = TRUE,
         "IconImage" = COALESCE(NULLIF(BTRIM("IconImage"), ''), 'plus'),
         "UpdatedById" = 1,
         "UpdatedDateTime" = CURRENT_TIMESTAMP
-    WHERE "Id" = 1
+    WHERE "OperationType" = 1
+      AND LOWER(BTRIM("OperationName")) = 'add'
       AND "IsActive" IS DISTINCT FROM TRUE;
 
     SELECT "Id"
@@ -4306,19 +4577,21 @@ BEGIN
 
     IF host_tenant_list_module_id IS NULL THEN
         RAISE EXCEPTION
-            'HOST_TENANT_LIST module was not found; Create navigation mapping cannot be seeded.';
+            'HOST_TENANT_LIST module was not found; Add navigation mapping cannot be seeded.';
     END IF;
 
     SELECT "Id"
-    INTO create_operation_id
+    INTO add_operation_id
     FROM axionpro."Operation"
-    WHERE "Id" = 1
+    WHERE "OperationType" = 1
+      AND LOWER(BTRIM("OperationName")) = 'add'
       AND "IsActive" = TRUE
+    ORDER BY "Id"
     LIMIT 1;
 
-    IF create_operation_id IS NULL THEN
+    IF add_operation_id IS NULL THEN
         RAISE EXCEPTION
-            'The existing Create operation (Operation.Id = 1) must be active before HOST_TENANT_LIST can be mapped.';
+            'The canonical Add operation must be active before HOST_TENANT_LIST can be mapped.';
     END IF;
 
     INSERT INTO axionpro."ModuleOperationMapping"
@@ -4334,13 +4607,13 @@ BEGIN
         FALSE,
         TRUE,
         20,
-        'Create a new tenant from the Host Tenant List.',
+        'Add a new tenant from the Host Tenant List.',
         TRUE,
         1,
         CURRENT_TIMESTAMP
     FROM axionpro."Module" module
     INNER JOIN axionpro."Operation" operation
-        ON operation."Id" = create_operation_id
+        ON operation."Id" = add_operation_id
     WHERE module."Id" = host_tenant_list_module_id
       AND NOT EXISTS
       (
@@ -4357,13 +4630,13 @@ BEGIN
         "IsCommonItem" = FALSE,
         "IsOperational" = TRUE,
         "Priority" = 20,
-        "Remark" = 'Create a new tenant from the Host Tenant List.',
+        "Remark" = 'Add a new tenant from the Host Tenant List.',
         "IsActive" = TRUE,
         "UpdatedById" = 1,
         "UpdatedDateTime" = CURRENT_TIMESTAMP
     FROM axionpro."Module" module
     INNER JOIN axionpro."Operation" operation
-        ON operation."Id" = create_operation_id
+        ON operation."Id" = add_operation_id
     WHERE mapping."ModuleId" = module."Id"
       AND mapping."OperationId" = operation."Id"
       AND module."Id" = host_tenant_list_module_id;
@@ -4384,6 +4657,8 @@ DECLARE
     missing_standard_action_mapping_count INTEGER;
     incomplete_mapping_metadata_count INTEGER;
     incomplete_operation_metadata_count INTEGER;
+    canonical_add_operation_count INTEGER;
+    legacy_create_operation_count INTEGER;
     password_module_count INTEGER;
     reset_password_operation_count INTEGER;
     reset_password_mapping_count INTEGER;
@@ -4436,7 +4711,7 @@ BEGIN
     FROM module_seed seed
     CROSS JOIN
     (
-        VALUES ('view'), ('create'), ('update'), ('delete')
+        VALUES ('view'), ('add'), ('update'), ('delete')
     ) AS required_action("ActionName")
     WHERE NOT EXISTS
     (
@@ -4452,7 +4727,7 @@ BEGIN
           AND
           (
               (required_action."ActionName" = 'view' AND LOWER(BTRIM(operation."OperationName")) IN ('view', 'read'))
-              OR (required_action."ActionName" = 'create' AND LOWER(BTRIM(operation."OperationName")) IN ('create', 'add'))
+              OR (required_action."ActionName" = 'add' AND LOWER(BTRIM(operation."OperationName")) = 'add')
               OR (required_action."ActionName" = 'update' AND LOWER(BTRIM(operation."OperationName")) IN ('update', 'edit'))
               OR (required_action."ActionName" = 'delete' AND LOWER(BTRIM(operation."OperationName")) = 'delete')
           )
@@ -4493,7 +4768,7 @@ BEGIN
     INTO incomplete_operation_metadata_count
     FROM axionpro."Operation" operation
     WHERE LOWER(BTRIM(operation."OperationName")) IN
-          ('view', 'read', 'create', 'add', 'update', 'edit', 'delete')
+          ('view', 'read', 'add', 'update', 'edit', 'delete')
       AND
       (
           NULLIF(BTRIM(operation."Remark"), '') IS NULL
@@ -4509,6 +4784,25 @@ BEGIN
         RAISE EXCEPTION
             'Consolidated operation validation failed: % standard operation row(s) have incomplete metadata.',
             incomplete_operation_metadata_count;
+    END IF;
+
+    SELECT COUNT(*)
+    INTO canonical_add_operation_count
+    FROM axionpro."Operation"
+    WHERE LOWER(BTRIM("OperationName")) = 'add'
+      AND "OperationType" = 1
+      AND "IsActive" = TRUE;
+
+    SELECT COUNT(*)
+    INTO legacy_create_operation_count
+    FROM axionpro."Operation"
+    WHERE LOWER(BTRIM("OperationName")) = 'create';
+
+    IF canonical_add_operation_count <> 1 OR legacy_create_operation_count <> 0 THEN
+        RAISE EXCEPTION
+            'Add/Create consolidation failed. Expected one active Add and zero Create operations; found Add=%, Create=%.',
+            canonical_add_operation_count,
+            legacy_create_operation_count;
     END IF;
 
     SELECT COUNT(*)
@@ -5666,43 +5960,14 @@ SELECT
 
 FROM axionpro."Module"
 
-WHERE "ModuleCode"
-      IN
-      (
-          'HOST_MANAGEMENT',
-          'HOST_TENANT_RFID_MANAGEMENT',
-          'HOST_USERS',
-          'HOST_ROLES',
-          'HOST_ROLE_PERMISSIONS',
-          'HOST_MODULES',
-          'HOST_SUBMODULES',
-          'HOST_OPERATIONS',
-          'HOST_MODULE_OPERATIONS',
-          'HOST_SUBSCRIPTIONS',
-          'HOST_DEFAULT_EMAIL_CONFIG',
-          'HOST_TENANT_EMAIL_CONFIG',
-          'TENANT_EMAIL_CONFIG',
-          'HOST_EMAIL_TEMPLATE',
-          'HOST_DEVICE_MGMT',
-          'HOST_DEVICE_SETUP',
-          'TENANT_DEVICE_SETUP',
-          'HOST_INITIAL_DEVICE_CONFIGURATION',
-          'TENANT_DEVICE_CONFIGURATION',
-          'HOST_TENANT_CARD_INVENTORY',
-          'TENANT_LOCATIONS',
-          'TENANT_ATTENDANCE_POLICIES',
-          'EMP_DEVICES',
-          'EMP_WORK_LOCATIONS',
-          'EMP_WORK_ARRANGEMENT',
-          'EMP_WORK_PATTERN',
-          'EMP_OVERRIDES',
-          'EMP_PASSWORD_MANAGEMENT',
-          'EMP_LIST', 'TENANT_DEPARTMENTS', 'TENANT_DESIGNATIONS',
-          'TENANT_ROLES_PERMISSIONS', 'TENANT_EMPLOYEE_TYPES', 'TENANT_EMPLOYEE_CODE'
-      )
-
 ORDER BY
-    "ModuleScope",
+    CASE "ModuleScope"
+        WHEN 3 THEN 1
+        WHEN 2 THEN 2
+        WHEN 1 THEN 3
+        ELSE 4
+    END,
+    "ParentModuleId" NULLS FIRST,
     "Id";
 
 
@@ -5752,39 +6017,13 @@ INNER JOIN axionpro."Operation"
     ON operation."Id"
        = mapping."OperationId"
 
-WHERE module."ModuleCode"
-      IN
-      (
-          'HOST_USERS',
-          'HOST_ROLES',
-          'HOST_ROLE_PERMISSIONS',
-          'HOST_MODULES',
-          'HOST_SUBMODULES',
-          'HOST_OPERATIONS',
-          'HOST_MODULE_OPERATIONS',
-          'HOST_SUBSCRIPTIONS',
-          'HOST_DEFAULT_EMAIL_CONFIG',
-          'HOST_TENANT_EMAIL_CONFIG',
-          'TENANT_EMAIL_CONFIG',
-          'HOST_EMAIL_TEMPLATE',
-          'HOST_DEVICE_SETUP',
-          'TENANT_DEVICE_SETUP',
-          'HOST_INITIAL_DEVICE_CONFIGURATION',
-          'TENANT_DEVICE_CONFIGURATION',
-          'HOST_TENANT_CARD_INVENTORY',
-          'TENANT_LOCATIONS',
-          'TENANT_ATTENDANCE_POLICIES',
-          'EMP_DEVICES',
-          'EMP_WORK_LOCATIONS',
-          'EMP_WORK_ARRANGEMENT',
-          'EMP_WORK_PATTERN',
-          'EMP_OVERRIDES',
-          'EMP_PASSWORD_MANAGEMENT'
-      )
-
 ORDER BY
-
-    module."ModuleScope",
+    CASE module."ModuleScope"
+        WHEN 3 THEN 1
+        WHEN 2 THEN 2
+        WHEN 1 THEN 3
+        ELSE 4
+    END,
 
     module."ModuleCode",
 
@@ -5949,6 +6188,50 @@ BEGIN
     DELETE FROM axionpro."Module"
     WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\';
 END $host_bulk_operations$;
+
+COMMIT;
+
+-- Complete presentation metadata for every module available after all seed
+-- sections. Existing non-empty values are preserved.
+BEGIN;
+
+UPDATE axionpro."Module"
+SET
+    "ImageIconWeb" = COALESCE(
+        NULLIF(BTRIM("ImageIconWeb"), ''),
+        'bi bi-grid-3x3-gap'),
+    "ImageIconMobile" = COALESCE(
+        NULLIF(BTRIM("ImageIconMobile"), ''),
+        'apps'),
+    "Remark" = COALESCE(
+        NULLIF(BTRIM("Remark"), ''),
+        COALESCE(
+            NULLIF(BTRIM("DisplayName"), ''),
+            NULLIF(BTRIM("ModuleName"), ''),
+            "ModuleCode") || ' module.'),
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP
+WHERE NULLIF(BTRIM("ImageIconWeb"), '') IS NULL
+   OR NULLIF(BTRIM("ImageIconMobile"), '') IS NULL
+   OR NULLIF(BTRIM("Remark"), '') IS NULL;
+
+DO $module_presentation_metadata_validation$
+DECLARE
+    incomplete_module_count integer;
+BEGIN
+    SELECT COUNT(*)
+    INTO incomplete_module_count
+    FROM axionpro."Module"
+    WHERE NULLIF(BTRIM("ImageIconWeb"), '') IS NULL
+       OR NULLIF(BTRIM("ImageIconMobile"), '') IS NULL
+       OR NULLIF(BTRIM("Remark"), '') IS NULL;
+
+    IF incomplete_module_count <> 0 THEN
+        RAISE EXCEPTION
+            'Module metadata validation failed: % row(s) have an empty web icon, mobile icon, or remark.',
+            incomplete_module_count;
+    END IF;
+END $module_presentation_metadata_validation$;
 
 COMMIT;
 

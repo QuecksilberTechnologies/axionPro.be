@@ -1,6 +1,6 @@
 # Bulk module seed reference
 
-Updated: 2026-09-11. This note records which module/operation seed is authoritative
+Updated: 2026-09-14. This note records which module/operation seed is authoritative
 for bulk onboarding and what each seed changes. It does not grant permissions.
 
 ## Existing-module operation model — user-confirmed 2026-09-13
@@ -53,18 +53,21 @@ canonical operation/type. If an operation type is genuinely missing, insert its
 approved initial name once; subsequent reruns must preserve the stored name and
 must not introduce an alias or duplicate operation.
 
+### Add/Create consolidation — user-confirmed 2026-09-14
+
+This later explicit decision supersedes the immutable-name rule only for the
+duplicate Add/Create pair representing `OperationType=1`. The complete seed keeps
+one canonical **Add**, migrates ModuleOperationMapping and persisted permission/
+entitlement references, and removes redundant Create/Add aliases. Other operation
+names remain immutable. UI consumers must continue resolving IDs dynamically.
+
 ## Which seed to use?
 
-`database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql` is the
-canonical production module/operation seed. Use it for normal release execution.
-
 `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`
-contains the same consolidated sections plus 38 backup-recovered `Module` rows:
-common menu/profile leaves, employee profile leaves, tenant/host hierarchy and
-device inventory/location leaves. It is a complete fresh/restore reference, not
-a drop-in production replacement; its extra rows can be environment-specific and
-IDs are generated. The later operation/mapping logic is otherwise the same, with
-shifted line numbers.
+is now the only authoritative production module/operation seed. It includes the
+38 backup-recovered `Module` rows plus the consolidated Common, Host and Tenant
+catalogue. The former root-level duplicate was removed on 2026-09-14. IDs are
+generated; permission consumers must resolve them through the authenticated flow.
 
 ## Bulk-related module entries
 
@@ -106,7 +109,7 @@ grants; run the existing entitlement synchronization and role-permission command
 afterward to make Bulk Import appear in a tenant's menu.
 
 Bulk master import uses the existing Add/Import grant. Canonical CRUD operation
-types are View=4, Create/Add=1, Update=2, Delete=3; Import is enum value 12 when
+types are View=4, Add=1, Update=2, Delete=3; Import is enum value 12 when
 the environment has an Import operation. Do not hardcode IDs or grant roles in UI.
 
 ## Tables changed

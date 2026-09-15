@@ -158,7 +158,7 @@ $env:AXIONPRO_TEST_LOGIN_PASSWORD = "your-test-password"
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=TenantEmailConfig"
 ```
 
-Before this test can run, apply `database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql` to the intended **non-production** database, enable `TENANT_EMAIL_CONFIG` plus its CRUD operations for that tenant through the normal plan-entitlement synchronization, and assign Create, View, Update, and Delete to the test account's role. The test creates an **inactive** SMTP configuration and always deletes it, so it cannot replace the tenant's active mail configuration.
+Before this test can run, apply `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql` to the intended **non-production** database, enable `TENANT_EMAIL_CONFIG` plus its CRUD operations for that tenant through the normal plan-entitlement synchronization, and assign Add, View, Update, and Delete to the test account's role. The test creates an **inactive** SMTP configuration and always deletes it, so it cannot replace the tenant's active mail configuration.
 
 Do not place user passwords, JWTs, or production credentials in `automationsettings.json`.
 
@@ -495,6 +495,26 @@ Apply AddHostBulkImport.sql and SeedHostBulkImportModules.sql to the isolated cl
 before running. Tests use temporary Host grants and remove their own records.
 Evidence logs: artifacts/host-bulk-workflow-tests.log,
 artifacts/host-bulk-http-regression-tests.log, artifacts/host-bulk-final-edge-tests.log.
+
+## Module metadata and operation seed — 2026-09-14
+
+The complete production seed contains no Dashboard seed entries. Its final
+normalization fills empty Module `Remark`, `ImageIconWeb` and `ImageIconMobile`
+values while preserving existing values. The same seed consolidates the legacy
+Create alias into canonical Add and migrates persisted operation references before
+removing redundant aliases.
+
+```powershell
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-restore --filter "Category=ModuleOperationSeed"
+dotnet test axionpro.automationtests/axionpro.automationtests.csproj --no-build --no-restore --filter "Category=ModuleOperationSeedDatabase"
+```
+
+Local result: source contract 1 passed, 0 failed/skipped. Database reconciliation
+0 passed, 0 failed, 1 skipped because the disposable PostgreSQL fixture was not
+available. Combined contract and affected Host seed regressions passed 4/4 with
+zero failures/skips. Full seed first-run/rerun remains required and must not be
+reported as passed. Scenario:
+`docs/testing/module/module-operation-seed/2026-09-14.md`.
 Release/API examples: docs/bulk-upload/HOST_CARD_DEVICE_IMPORT.md.
 
 ## Refresh and authentication status regression

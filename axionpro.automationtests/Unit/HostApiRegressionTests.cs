@@ -1001,7 +1001,8 @@ public sealed class HostApiRegressionTests
             Assert.That(hostSection, Does.Contain("'Host-Super-Admin'"));
             Assert.That(Regex.Matches(hostSection, "'mca.deepesh@gmail.com'").Count, Is.EqualTo(2));
             Assert.That(hostSection, Does.Contain("'9111161399'"));
-            Assert.That(hostSection, Does.Contain("PasswordHash is ASP.NET Core Identity PasswordHasher V3 for 12344321."));
+            Assert.That(hostSection, Does.Contain("ASP.NET Core Identity PasswordHasher V3"));
+            Assert.That(hostSection, Does.Contain("initial password 12344321"));
             Assert.That(hostSection, Does.Contain("AQAAAAIAAYagAAAAEEDpT6tXHxx4OhhP394Aqp4vlsVunbyd3qQGOnszn4oghxYFlkERmuDjy0ATNqawgw=="));
             Assert.That(hostSection, Does.Contain("pg_get_serial_sequence('axionpro.\"HostRoleModuleAndPermission\"', 'Id')"));
             Assert.That(hostSection, Does.Contain("module.\"ModuleScope\" = 2"));
@@ -1083,7 +1084,7 @@ public sealed class HostApiRegressionTests
     }
 
     private static string LoadProductionSeed() =>
-        File.ReadAllText(FindRepositoryFile("database-scripts/AxionPro_New_Production_Module_Operation_Seed.sql"));
+        File.ReadAllText(FindRepositoryFile("database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql"));
 
     private static string FindRepositoryFile(string relativePath)
     {

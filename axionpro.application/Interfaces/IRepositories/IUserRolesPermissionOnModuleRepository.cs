@@ -18,6 +18,16 @@ namespace axionpro.application.Interfaces.IRepositories
         public Task<IEnumerable<UserRolesPermissionOnModuleDTO>> GetModuleListAndOperationByRollIdAsync(List<RoleInfoDTO> roleList, int? forPlatform);
         Task<int> AdminAssignModulePermissionAsync(List<RoleModuleAndPermission> insertRoleModulePermissionsRequestDTO);
         Task<int> BulkInsertAsync(  List<RoleModuleAndPermission> rolePermissions);
+
+        /// <summary>
+        /// Adds only missing enabled module-operation permissions to the active Tenant Admin role.
+        /// Existing permission rows are retained and are never duplicated.
+        /// </summary>
+        Task<int> AddMissingTenantAdminPermissionsAsync(
+            long tenantId,
+            long addedById,
+            CancellationToken cancellationToken = default);
+
         Task<TenantEnabledOperationsResponseDTO> GetAllTenantModuleWithOperation(TenantEnabledOperation dto);
         Task<bool> UpdateTenantModuleAndItsOperationsAsync(TenantModuleOperationsUpdateRequestDTO request);
         Task<List<TenantEnabledModule>> GetAllTenantEnabledModulesWithOperationsAsync(long? TenantId);

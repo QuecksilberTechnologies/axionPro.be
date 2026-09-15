@@ -12,6 +12,7 @@ using axionpro.application.DTOs.Role;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOS.RoleModulePermission;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
@@ -151,6 +152,101 @@ namespace axionpro.persistance.Repositories
                 _logger?.LogError(ex, "❌ Error in BulkInsertAsync");
                 return 0;
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<int> AddMissingTenantAdminPermissionsAsync(
+            long tenantId,
+            long addedById,
+            CancellationToken cancellationToken = default)
+        {
+            var adminRole = await _context.Roles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(role =>
+                    role.TenantId == tenantId &&
+                    role.RoleType == ConstantValues.RoleTypeAdmin &&
+                    role.IsActive &&
+                    role.IsSoftDeleted == false &&
+                    role.IsSystemDefault == false,
+                    cancellationToken);
+
+            if (adminRole is null)
+            {
+                _logger.LogWarning(
+                    "Tenant Admin role was not found while synchronizing missing permissions. TenantId: {TenantId}",
+                    tenantId);
+                return 0;
+            }
+
+            var enabledOperationKeys = await _context.TenantEnabledOperations
+                .AsNoTracking()
+                .Where(operation => operation.TenantId == tenantId && operation.IsEnabled)
+                .Select(operation => new
+                {
+                    operation.ModuleId,
+                    operation.OperationId
+                })
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            if (enabledOperationKeys.Count == 0)
+            {
+                return 0;
+            }
+
+            var enabledModuleIds = enabledOperationKeys
+                .Select(operation => operation.ModuleId)
+                .Distinct()
+                .ToList();
+
+            var existingPermissionKeys = (await _context.RoleModuleAndPermissions
+                    .AsNoTracking()
+                    .Where(permission =>
+                        permission.RoleId == adminRole.Id &&
+                        permission.ModuleId.HasValue &&
+                        permission.OperationId.HasValue &&
+                        enabledModuleIds.Contains(permission.ModuleId.Value))
+                    .Select(permission => new
+                    {
+                        permission.ModuleId,
+                        permission.OperationId
+                    })
+                    .ToListAsync(cancellationToken))
+                .Select(permission => (permission.ModuleId!.Value, permission.OperationId!.Value))
+                .ToHashSet();
+
+            var utcNow = DateTime.UtcNow;
+            var permissionsToAdd = enabledOperationKeys
+                .Where(operation => !existingPermissionKeys.Contains(
+                    (operation.ModuleId, operation.OperationId)))
+                .Select(operation => new RoleModuleAndPermission
+                {
+                    RoleId = adminRole.Id,
+                    ModuleId = operation.ModuleId,
+                    OperationId = operation.OperationId,
+                    HasAccess = true,
+                    IsActive = true,
+                    IsSoftDeleted = false,
+                    AddedById = addedById,
+                    AddedDateTime = utcNow,
+                    Remark = "Auto-assigned during Tenant plan entitlement synchronization"
+                })
+                .ToList();
+
+            if (permissionsToAdd.Count > 0)
+            {
+                await _context.RoleModuleAndPermissions.AddRangeAsync(
+                    permissionsToAdd,
+                    cancellationToken);
+            }
+
+            _logger.LogInformation(
+                "Prepared missing Tenant Admin permissions. TenantId: {TenantId}, RoleId: {RoleId}, AddedPermissions: {AddedPermissions}",
+                tenantId,
+                adminRole.Id,
+                permissionsToAdd.Count);
+
+            return permissionsToAdd.Count;
         }
 
         public async Task<IEnumerable<UserRolesPermissionOnModuleDTO>> GetModuleListAndOperationByRollIdAsync(List<RoleInfoDTO> roleList, int? forPlatform)

@@ -83,6 +83,16 @@ public sealed class SynchronizeTenantPlanEntitlementsCommandHandler
                     cancellationToken)
                 ?? throw new NotFoundException("No active subscription plan was found for this Tenant.");
 
+            // Persist newly staged entitlement rows before deriving the Tenant Admin permission delta.
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            // Add only missing permissions for the active Tenant Admin role. Existing rows are retained.
+            await _unitOfWork.UserRolesPermissionOnModuleRepository
+                .AddMissingTenantAdminPermissionsAsync(
+                    tenantId,
+                    hostContext.HostUserId,
+                    cancellationToken);
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
