@@ -164,19 +164,20 @@ public sealed class EmployeeTypeCrudBehaviorTests
     }
 
     /// <summary>
-    /// Verifies the EmployeeType module remains tenant scoped under Employee Management with CRUD operations seeded.
+    /// Verifies the EmployeeType leaf is under Employee Management with CRUD and bulk operations seeded.
     /// </summary>
     [Test]
-    public void Seed_script_declares_tenant_scope_employee_management_parent_and_crud_operations()
+    public void Seed_script_declares_employee_management_parent_and_crud_bulk_operations()
     {
         var repositoryRoot = FindRepositoryRoot();
         var script = File.ReadAllText(Path.Combine(repositoryRoot, "database-scripts", "SeedTenantEmployeeTypeModule.sql"));
 
         Assert.Multiple(() =>
         {
-            Assert.That(script, Does.Contain("TENANT_EMPLOYEE_TYPES"));
-            Assert.That(script, Does.Contain("DEPARTMENT"));
-            Assert.That(script, Does.Contain("IN ('add','update','delete','view')"));
+            Assert.That(script, Does.Contain("EMPLOYEE_TYPE"));
+            Assert.That(script, Does.Contain("EMP_MGMT"));
+            Assert.That(script, Does.Contain("EMP_LIST"));
+            Assert.That(script, Does.Contain("IN ('add','update','delete','view','import','export')"));
             Assert.That(script, Does.Contain("DELETE FROM axionpro.\"TenantEnabledOperation\""));
             Assert.That(script, Does.Contain("DELETE FROM axionpro.\"ModuleOperationMapping\""));
         });

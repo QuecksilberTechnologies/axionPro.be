@@ -329,3 +329,24 @@ TENANT_ROLES_PERMISSIONS → ROLE
 
 If both names already exist as different Module rows, the seed raises a conflict
 and rolls back instead of guessing which permission/entitlement record to keep.
+
+## EmployeeType module hierarchy
+
+EmployeeType uses the existing Employee Management parent; no additional parent
+module is created:
+
+```text
+EMP_MGMT
+└── EMPLOYEE_TYPE
+```
+
+`EMPLOYEE_TYPE` is a Tenant-scope leaf with PageName `tenant-employee-types` and
+URL `/employee-types`. Its active `ModuleOperationMapping` catalogue contains
+Add, Update, Delete, View, Import, and Export. Active plan coverage inherits from
+`EMP_LIST`, keeping it aligned with plans that include employee management.
+
+The seed migrates legacy `TENANT_EMPLOYEE_TYPES` to `EMPLOYEE_TYPE` in place so
+existing IDs and dependent entitlement/permission rows are preserved. Tenant
+creation grants enabled operations to the default Tenant Admin through the normal
+creation pipeline. Host entitlement sync adds only missing enabled operations
+and missing Tenant Admin grants for existing tenants.

@@ -145,7 +145,7 @@ namespace axionpro.api.Controllers.EmployeeType
         }
 
         #region Tenant master operations
-        /// <summary>Creates one tenant-owned type. Requires Add on TENANT_EMPLOYEE_TYPES.</summary>
+        /// <summary>Creates one tenant-owned type. Requires Add on EMPLOYEE_TYPE.</summary>
         /// <remarks>Angular integration pending. Body: TypeName, Description, Remark, IsActive, ModuleId, OperationId.
         /// Returns ApiResponse of the created type; ownership/audit IDs are server assigned.</remarks>
         [Microsoft.AspNetCore.Authorization.Authorize]
@@ -175,7 +175,7 @@ namespace axionpro.api.Controllers.EmployeeType
 
         /// <summary>Updates one tenant-owned EmployeeType.</summary>
         /// <remarks>
-        /// Requires Update permission on TENANT_EMPLOYEE_TYPES. The trusted request context supplies
+        /// Requires Update permission on EMPLOYEE_TYPE. The trusted request context supplies
         /// the Tenant and audit actor; the body must contain Id, TypeName, ModuleId, and OperationId.
         /// </remarks>
         [Microsoft.AspNetCore.Authorization.Authorize]
@@ -189,7 +189,7 @@ namespace axionpro.api.Controllers.EmployeeType
 
         /// <summary>Soft deletes one unused tenant-owned EmployeeType.</summary>
         /// <remarks>
-        /// Requires Delete permission on TENANT_EMPLOYEE_TYPES. Deletion returns 409 Conflict when
+        /// Requires Delete permission on EMPLOYEE_TYPE. Deletion returns 409 Conflict when
         /// a non-soft-deleted business dependency or any EmployeeTypeBasicMenu mapping exists.
         /// </remarks>
         [Microsoft.AspNetCore.Authorization.Authorize]

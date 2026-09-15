@@ -62,9 +62,11 @@ public sealed class ModuleOperationSeedContractTests
             Assert.That(sql, Does.Contain("WHEN 'DEPARTMENT' THEN department_parent_id"));
             Assert.That(sql, Does.Contain("WHEN 'DESIGNATION' THEN designation_parent_id"));
             Assert.That(sql, Does.Contain("WHEN 'ROLE' THEN role_parent_id"));
+            Assert.That(sql, Does.Contain("WHEN 'EMPLOYEE_TYPE' THEN employee_parent_id"));
             Assert.That(sql, Does.Contain("('TENANT_DEPARTMENTS','DEPARTMENT')"));
             Assert.That(sql, Does.Contain("('TENANT_DESIGNATIONS','DESIGNATION')"));
             Assert.That(sql, Does.Contain("('TENANT_ROLES_PERMISSIONS','ROLE')"));
+            Assert.That(sql, Does.Contain("('TENANT_EMPLOYEE_TYPES','EMPLOYEE_TYPE')"));
             Assert.That(sql, Does.Contain("'tenant-departments'"));
             Assert.That(sql, Does.Contain("'tenant-designations'"));
             Assert.That(sql, Does.Contain("'tenant-roles-permissions'"));
@@ -73,6 +75,7 @@ public sealed class ModuleOperationSeedContractTests
             Assert.That(standaloneSql, Does.Contain("('DEPARTMENT','TENANT_DEPARTMENT')"));
             Assert.That(standaloneSql, Does.Contain("('DESIGNATION','TENANT_DESIGNATION')"));
             Assert.That(standaloneSql, Does.Contain("('ROLE','TENANT_ROLE')"));
+            Assert.That(standaloneSql, Does.Contain("WHEN 'EMPLOYEE_TYPE' THEN employee_parent_id"));
         });
     }
 
@@ -229,7 +232,7 @@ public sealed class ModuleOperationSeedDatabaseTests
             JOIN axionpro."Operation" operation
               ON operation."Id"=mapping."OperationId" AND operation."IsActive"
             WHERE module."ModuleCode" IN
-                ('DEPARTMENT','DESIGNATION','ROLE')
+                ('DEPARTMENT','DESIGNATION','ROLE','EMPLOYEE_TYPE')
               AND lower(btrim(operation."OperationName")) IN
                 ('add','update','delete','view','import','export');
             """);
@@ -238,7 +241,20 @@ public sealed class ModuleOperationSeedDatabaseTests
             SELECT count(*)
             FROM axionpro."Module"
             WHERE "ModuleCode" IN
-                ('TENANT_DEPARTMENTS','TENANT_DESIGNATIONS','TENANT_ROLES_PERMISSIONS');
+                ('TENANT_DEPARTMENTS','TENANT_DESIGNATIONS','TENANT_ROLES_PERMISSIONS',
+                 'TENANT_EMPLOYEE_TYPES');
+            """);
+
+        var validEmployeeTypeHierarchy = await ScalarAsync("""
+            SELECT count(*)
+            FROM axionpro."Module" child
+            JOIN axionpro."Module" parent ON parent."Id"=child."ParentModuleId"
+            WHERE child."ModuleCode"='EMPLOYEE_TYPE'
+              AND child."ModuleScope"=1
+              AND child."IsLeafNode"
+              AND child."PageName"='tenant-employee-types'
+              AND parent."ModuleCode"='EMP_MGMT'
+              AND parent."ModuleScope"=1;
             """);
 
         var missingParentPlanMappings = await ScalarAsync("""
@@ -268,9 +284,10 @@ public sealed class ModuleOperationSeedDatabaseTests
             Assert.That(duplicateModules, Is.Zero);
             Assert.That(parentOperationMappings, Is.Zero);
             Assert.That(duplicatePlanMappings, Is.Zero);
-            Assert.That(requiredLeafOperationMappings, Is.EqualTo(18));
+            Assert.That(requiredLeafOperationMappings, Is.EqualTo(24));
             Assert.That(legacyLeafRows, Is.Zero);
             Assert.That(missingParentPlanMappings, Is.Zero);
+            Assert.That(validEmployeeTypeHierarchy, Is.EqualTo(1));
         });
     }
 

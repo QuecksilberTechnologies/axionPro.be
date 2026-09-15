@@ -19,7 +19,7 @@ public static class BulkImportConstants
     public const string RoleName = "RoleName";
     public const string RoleType = "RoleType";
     public const string TypeName = "TypeName";
-    public const string EmployeeTypeModuleCode = "TENANT_EMPLOYEE_TYPES";
+    public const string EmployeeTypeModuleCode = "EMPLOYEE_TYPE";
     public const string EmployeeCodeModuleCode = "TENANT_EMPLOYEE_CODE";
     public const string EmployeeModuleCode = "EMP_LIST";
     public const string EmployeeCodeLockPrefix = "employee-code-pattern:";

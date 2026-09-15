@@ -16,7 +16,7 @@ existing functional modules. Existing Module `PageName` and Operation
 | Department | `DEPARTMENT` |
 | Designation | `DESIGNATION` |
 | Role | `ROLE` |
-| EmployeeType | `TENANT_EMPLOYEE_TYPES` |
+| EmployeeType | `EMPLOYEE_TYPE` |
 | Host Card catalogue | `HOST_TENANT_RFID_MANAGEMENT` |
 | Host Device catalogue | `HOST_DEVICE_SETUP` |
 | Host Module / Child Module / Operation / Mapping | `HOST_MODULES` / `HOST_SUBMODULES` / `HOST_OPERATIONS` / `HOST_MODULE_OPERATIONS` |
@@ -77,7 +77,7 @@ generated; permission consumers must resolve them through the authenticated flow
 | `DEPARTMENT` | Tenant | Department bulk |
 | `DESIGNATION` | Tenant | Designation bulk |
 | `ROLE` | Tenant | Role bulk |
-| `TENANT_EMPLOYEE_TYPES` | Tenant | EmployeeType bulk |
+| `EMPLOYEE_TYPE` | Tenant | EmployeeType bulk |
 | `TENANT_EMPLOYEE_CODE` | Tenant | Employee-code pattern add/update |
 
 Historical implementation (superseded): the complete seed previously used a functional-parent hierarchy:
@@ -100,9 +100,12 @@ TENANT_DESIGNATION (root)
 
 TENANT_ROLE (root)
 └── ROLE
+
+EMP_MGMT (existing root)
+└── EMPLOYEE_TYPE
 ```
 
-The root parents have no operation mappings. Each leaf retains its PageName and
+The three new root parents have no operation mappings. Each leaf retains its PageName and
 URL and owns Add, Update, Delete, View, Import, and Export. The authoritative and
 standalone bulk seeds rename a legacy leaf ModuleCode in place, preserving its
 ID and therefore its entitlement and permission foreign keys. If both legacy
@@ -117,7 +120,7 @@ Admin accounts were present. No production DB was used. Existing duplicate Host
 Card/Device Import mappings in the baseline are recorded separately and were not
 altered by this tenant-only hierarchy decision.
 
-`TENANT_EMPLOYEE_TYPES` is also maintained by the idempotent
+`EMPLOYEE_TYPE` is also maintained by the idempotent
 `database-scripts/SeedTenantEmployeeTypeModule.sql`; the current complete consolidated
 seed contains that module as well. That script creates CRUD catalogue/plan coverage;
 tenant grants still use entitlement synchronization and the existing permission API.

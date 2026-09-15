@@ -63,7 +63,7 @@ public sealed class BulkModuleOperationSeedDatabaseTests
               ON operation."Id"=mapping."OperationId" AND operation."IsActive"
             WHERE module."ModuleCode" IN
                 ('EMP_LIST','DEPARTMENT','DESIGNATION',
-                 'ROLE','TENANT_EMPLOYEE_TYPES',
+                 'ROLE','EMPLOYEE_TYPE',
                  'HOST_TENANT_RFID_MANAGEMENT','HOST_DEVICE_SETUP','HOST_MODULES',
                  'HOST_SUBMODULES','HOST_OPERATIONS','HOST_MODULE_OPERATIONS')
               AND operation."OperationType" IN (11,12);

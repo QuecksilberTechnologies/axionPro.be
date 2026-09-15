@@ -1115,7 +1115,8 @@ BEGIN
         SELECT * FROM (VALUES
             ('TENANT_DEPARTMENTS','DEPARTMENT'),
             ('TENANT_DESIGNATIONS','DESIGNATION'),
-            ('TENANT_ROLES_PERMISSIONS','ROLE')
+            ('TENANT_ROLES_PERMISSIONS','ROLE'),
+            ('TENANT_EMPLOYEE_TYPES','EMPLOYEE_TYPE')
         ) AS codes(legacy_code,canonical_code)
     LOOP
         SELECT "Id" INTO legacy_id
@@ -5598,10 +5599,10 @@ COMMIT;
 -- when this complete seed is run against a database where they are absent.
 DO $explicit_tenant_modules$
 DECLARE
-    tenant_parent_id integer;
+    employee_parent_id integer;
 BEGIN
-    SELECT "Id" INTO tenant_parent_id FROM axionpro."Module"
-    WHERE "ModuleCode" = 'TENANT_MGMT' AND "ModuleScope" = 1
+    SELECT "Id" INTO employee_parent_id FROM axionpro."Module"
+    WHERE "ModuleCode" = 'EMP_MGMT' AND "ModuleScope" = 1
     ORDER BY "Id" LIMIT 1;
 
     INSERT INTO axionpro."Module"
@@ -5617,10 +5618,10 @@ BEGIN
     ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId",
      "IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","IsActive","ItemPriority",
      "AddedById","AddedDateTime","ModuleScope","PageName")
-    SELECT NULL,'TENANT_EMPLOYEE_TYPES','Employee-Types','Employee Types','/employee-types',
-           tenant_parent_id,TRUE,TRUE,FALSE,TRUE,1,1,CURRENT_TIMESTAMP,1,'tenant-employee-types'
-    WHERE tenant_parent_id IS NOT NULL
-      AND NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode"='TENANT_EMPLOYEE_TYPES');
+    SELECT NULL,'EMPLOYEE_TYPE','Employee-Types','Employee Types','/employee-types',
+           employee_parent_id,TRUE,TRUE,FALSE,TRUE,1,1,CURRENT_TIMESTAMP,1,'tenant-employee-types'
+    WHERE employee_parent_id IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode"='EMPLOYEE_TYPE');
 END $explicit_tenant_modules$;
 
 -- ============================================================================
@@ -5748,11 +5749,12 @@ BEGIN
             WHEN 'DEPARTMENT' THEN department_parent_id
             WHEN 'DESIGNATION' THEN designation_parent_id
             WHEN 'ROLE' THEN role_parent_id
+            WHEN 'EMPLOYEE_TYPE' THEN employee_parent_id
             ELSE tenant_parent_id END,
         "UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP
     WHERE "ModuleScope"=1
       AND "ModuleCode" IN ('EMP_LIST','DEPARTMENT','DESIGNATION',
-          'ROLE','TENANT_EMPLOYEE_TYPES');
+          'ROLE','EMPLOYEE_TYPE');
 
     UPDATE axionpro."TenantEnabledModule" enabled
     SET "ParentModuleId"=CASE module."ModuleCode"
@@ -5760,13 +5762,14 @@ BEGIN
             WHEN 'DEPARTMENT' THEN department_parent_id
             WHEN 'DESIGNATION' THEN designation_parent_id
             WHEN 'ROLE' THEN role_parent_id
+            WHEN 'EMPLOYEE_TYPE' THEN employee_parent_id
             ELSE tenant_parent_id END,
         "UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP
     FROM axionpro."Module" module
     WHERE enabled."ModuleId"=module."Id"
       AND module."ModuleScope"=1
       AND module."ModuleCode" IN ('EMP_LIST','DEPARTMENT','DESIGNATION',
-          'ROLE','TENANT_EMPLOYEE_TYPES');
+          'ROLE','EMPLOYEE_TYPE');
 
     SELECT "Id" INTO export_operation_id
     FROM axionpro."Operation"
@@ -5786,13 +5789,14 @@ BEGIN
     ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId",
      "IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","IsActive","ItemPriority",
      "AddedById","AddedDateTime","ModuleScope","PageName")
-    SELECT NULL, seed.code, seed.name, seed.display_name, seed.url, tenant_parent_id,
+    SELECT NULL, seed.code, seed.name, seed.display_name, seed.url,
+           CASE WHEN seed.code='EMPLOYEE_TYPE' THEN employee_parent_id ELSE tenant_parent_id END,
            TRUE, TRUE, FALSE, TRUE, seed.priority, 1, CURRENT_TIMESTAMP, 1, seed.page_name
     FROM (VALUES
         ('DEPARTMENT','Departments','Departments','/departments',510,'tenant-departments'),
         ('DESIGNATION','Designations','Designations','/designations',520,'tenant-designations'),
         ('ROLE','Roles-Permissions','Roles & Permissions','/roles',530,'tenant-roles-permissions'),
-        ('TENANT_EMPLOYEE_TYPES','Employee-Types','Employee Types','/employee-types',540,'tenant-employee-types'),
+        ('EMPLOYEE_TYPE','Employee-Types','Employee Types','/employee-types',540,'tenant-employee-types'),
         ('TENANT_EMPLOYEE_CODE','Employee-Code-Pattern','Employee Code Pattern','/tenant/employee-code-pattern',550,'tenant-employee-code')
     ) AS seed(code,name,display_name,url,priority,page_name)
     WHERE NOT EXISTS
@@ -5835,7 +5839,7 @@ BEGIN
     WHERE module."ModuleScope" = 1
       AND module."ModuleCode" IN
           ('EMP_LIST','DEPARTMENT','DESIGNATION',
-           'ROLE','TENANT_EMPLOYEE_TYPES')
+           'ROLE','EMPLOYEE_TYPE')
       AND NOT EXISTS
       (
           SELECT 1 FROM axionpro."ModuleOperationMapping" existing
@@ -5852,7 +5856,7 @@ BEGIN
       AND module."ModuleScope"=1
       AND module."ModuleCode" IN
           ('EMP_LIST','DEPARTMENT','DESIGNATION',
-           'ROLE','TENANT_EMPLOYEE_TYPES');
+           'ROLE','EMPLOYEE_TYPE');
 
     INSERT INTO axionpro."ModuleOperationMapping"
     ("ModuleId","OperationId","PageURL","IconURL","IsCommonItem","IsOperational",
@@ -5864,7 +5868,7 @@ BEGIN
     WHERE module."ModuleScope" = 1
       AND module."ModuleCode" IN
           ('EMP_LIST','DEPARTMENT','DESIGNATION',
-           'ROLE','TENANT_EMPLOYEE_TYPES')
+           'ROLE','EMPLOYEE_TYPE')
       AND NOT EXISTS
       (
           SELECT 1 FROM axionpro."ModuleOperationMapping" existing
@@ -5881,7 +5885,7 @@ BEGIN
       AND module."ModuleScope"=1
       AND module."ModuleCode" IN
           ('EMP_LIST','DEPARTMENT','DESIGNATION',
-           'ROLE','TENANT_EMPLOYEE_TYPES');
+           'ROLE','EMPLOYEE_TYPE');
 
     -- Make bulk modules available to the same subscription plans that already
     -- include EMP_LIST. TenantEnabledModule/role grants are deliberately not
@@ -5896,7 +5900,7 @@ BEGIN
     JOIN axionpro."Module" target
       ON target."ModuleScope" = 1
      AND target."ModuleCode" IN ('DEPARTMENT','DESIGNATION',
-                                  'ROLE','TENANT_EMPLOYEE_TYPES')
+                                  'ROLE','EMPLOYEE_TYPE')
     WHERE plan."IsActive" = TRUE
       AND NOT EXISTS
       (
@@ -5969,7 +5973,7 @@ BEGIN
         ('BULK_DEPARTMENTS','DEPARTMENT'),
         ('BULK_DESIGNATIONS','DESIGNATION'),
         ('BULK_ROLES','ROLE'),
-        ('BULK_EMPLOYEE_TYPES','TENANT_EMPLOYEE_TYPES')
+        ('BULK_EMPLOYEE_TYPES','EMPLOYEE_TYPE')
     ) AS move(child_code,target_code)
     JOIN axionpro."Module" child ON child."ModuleCode"=move.child_code
     JOIN axionpro."Module" target
@@ -5992,7 +5996,7 @@ BEGIN
         ('BULK_DEPARTMENTS','DEPARTMENT'),
         ('BULK_DESIGNATIONS','DESIGNATION'),
         ('BULK_ROLES','ROLE'),
-        ('BULK_EMPLOYEE_TYPES','TENANT_EMPLOYEE_TYPES')
+        ('BULK_EMPLOYEE_TYPES','EMPLOYEE_TYPE')
     ) AS move(child_code,target_code)
     JOIN axionpro."Module" child ON child."ModuleCode"=move.child_code
     JOIN axionpro."Module" target
@@ -6038,7 +6042,7 @@ FROM axionpro."Module" module
 JOIN axionpro."ModuleOperationMapping" mapping ON mapping."ModuleId" = module."Id"
 JOIN axionpro."Operation" operation ON operation."Id" = mapping."OperationId"
 WHERE module."ModuleCode" IN ('EMP_LIST','DEPARTMENT','DESIGNATION',
-    'ROLE','TENANT_EMPLOYEE_TYPES','TENANT_EMPLOYEE_CODE')
+    'ROLE','EMPLOYEE_TYPE','TENANT_EMPLOYEE_CODE')
 ORDER BY module."ModuleCode", operation."OperationType";
 
 -- END INLINE BULK MODULE SEED

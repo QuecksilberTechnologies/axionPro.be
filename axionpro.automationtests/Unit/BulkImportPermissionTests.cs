@@ -259,7 +259,7 @@ public sealed class BulkImportPermissionTests
         {
             "Department" => "DEPARTMENT",
             "Designation" => "DESIGNATION",
-            "EmployeeType" => "TENANT_EMPLOYEE_TYPES",
+            "EmployeeType" => "EMPLOYEE_TYPE",
             _ => "ROLE"
         };
         var checks = 0;

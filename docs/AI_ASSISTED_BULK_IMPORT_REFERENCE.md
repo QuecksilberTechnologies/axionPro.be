@@ -551,9 +551,9 @@ The application does not prepopulate all six global types for every tenant.
 - Existing Employee create/update handlers verify active same-tenant EmployeeType.
   Permission authorization stays in the existing pipeline. Database checks also
   cover old policy/reference writers during tenant-specific migration.
-- Module code: TENANT_EMPLOYEE_TYPES, with only Add/Update/Delete/View operations. Bulk endpoints
-  use the existing Add permission and do not require or create an Import operation mapping. The module has
-  Department-equivalent plan coverage. The seed does not insert role grants.
+- Module code: EMPLOYEE_TYPE, a direct leaf child of EMP_MGMT, with
+  Add/Update/Delete/View/Import/Export operations. Bulk endpoints use the Import
+  mapping. Plan coverage inherits from EMP_LIST. The seed does not directly insert role grants.
   Existing tenants use their established entitlement synchronization and role
   permission assignment flow. New onboarding uses the existing plan/module setup.
 - RoleType is unchanged: Admin=1, Employee=2, Manager=3. There is no arbitrary
@@ -655,7 +655,7 @@ contains unrelated reset operations.
 
 For existing tenants, Host uses the existing POST
 /api/Tenant/sync-active-plan-entitlements with its encrypted TenantId and current
-Host permission context. Then grant TENANT_EMPLOYEE_TYPES through the existing
+Host permission context. Then grant EMPLOYEE_TYPE through the existing
 role-permission UI/API. This new seed creates module/operation/plan metadata only;
 it does not bypass role authorization. Refresh login/menu/options after rollout,
 particularly because old shared EmployeeType IDs have been remapped. A local or
@@ -1071,7 +1071,7 @@ GET with job status=6 and job.error, not necessarily by an HTTP error.
 
 ## EmployeeType manual creation and bulk examples
 
-Use the actual module ID whose code is TENANT_EMPLOYEE_TYPES. The examples use
+Use the actual module ID whose code is EMPLOYEE_TYPE. The examples use
 moduleId=80 only as an illustration; never hard-code it. /get and /option now need
 permission query parameters; UserEmployeeId/TenantId cannot select another tenant.
 
@@ -1180,7 +1180,7 @@ when allowed, not a fake shared fallback list.
 Multipart request:
 
 ```text
-ModuleId: <TENANT_EMPLOYEE_TYPES module ID from menu>
+ModuleId: <EMPLOYEE_TYPE module ID from menu>
 OperationId: <granted Add or Import operation ID>
 RequestId: <new UUID retained for unchanged-request network retry>
 File: employee-types.xlsx (binary)
@@ -1641,7 +1641,7 @@ by the user as requested. Do not mark MyMenu/API acceptance COMPLETE yet.
 - `BULK_DEPARTMENTS` is a child of `DEPARTMENT`.
 - `BULK_DESIGNATIONS` is a child of `DESIGNATION`.
 - `BULK_ROLES` is a child of `ROLE`.
-- `BULK_EMPLOYEE_TYPES` is a child of `TENANT_EMPLOYEE_TYPES`.
+- `BULK_EMPLOYEE_TYPES` is a child of `EMPLOYEE_TYPE`.
 - Each bulk child maps the existing operation types View=4, Export=11 and
   Import=12. The seed creates Export/Import only when that operation type is
   absent; it does not create Add/Create aliases. Export here is permission/menu

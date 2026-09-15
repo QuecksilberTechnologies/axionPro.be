@@ -138,7 +138,7 @@ Optional fields are the same as Parent Module Bulk.
 ```csv
 ParentModuleCode,ModuleCode,ModuleName,PageName,DisplayName,URLPath,ModuleScope,IsActive,ItemPriority,Remark
 HOST_MODULES,HOST_QA_REPORTS,Host-QA-Reports,host-qa-reports,QA Reports,/app/host-qa/reports,2,true,805,Host QA reports
-TENANT_EMPLOYEE_TYPES,TENANT_QA_TYPES,Tenant-QA-Types,tenant-qa-types,QA Types,/app/qa-types,1,true,815,Tenant QA types
+EMPLOYEE_TYPE,TENANT_QA_TYPES,Tenant-QA-Types,tenant-qa-types,QA Types,/app/qa-types,1,true,815,Tenant QA types
 ```
 
 Upload parent modules first. Wait for their job to complete before previewing

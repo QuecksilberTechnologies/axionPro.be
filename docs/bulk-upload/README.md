@@ -42,7 +42,7 @@ checks passed. Read-only reconciliation matched all twelve completed jobs and ei
 created master records to the downloaded CSV reports, including IDs, names,
 descriptions/remarks, role types, Designation parents and tenant ownership.
 
-Historical blocker, resolved for bulk acceptance on 11 September: module 79 (`TENANT_EMPLOYEE_TYPES`) had no
+Historical blocker, resolved for bulk acceptance on 11 September: module 79 (`EMPLOYEE_TYPE`) had no
 TenantEnabledModule entry for tenant 8. It was absent from this user's my-menu;
 the authenticated template request returned 403. This was a blocked acceptance
 test at that checkpoint. Host needed to synchronize the tenant's

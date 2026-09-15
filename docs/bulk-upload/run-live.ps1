@@ -40,7 +40,7 @@ $definitions=@(
     @{Master='Department';Code='DEPARTMENT';File='01-department';Mapping=$null},
     @{Master='Designation';Code='DESIGNATION';File='02-designation';Mapping='{"DesignationName":"DesName","DepartmentName":"Dept"}'},
     @{Master='Role';Code='ROLE';File='03-role';Mapping=$null},
-    @{Master='EmployeeType';Code='TENANT_EMPLOYEE_TYPES';File='04-employee-type';Mapping=$null}
+    @{Master='EmployeeType';Code='EMPLOYEE_TYPE';File='04-employee-type';Mapping=$null}
 )
 $summary=[System.Collections.Generic.List[object]]::new()
 $previousSummary=Join-Path $resultsDirectory 'live-summary.json'

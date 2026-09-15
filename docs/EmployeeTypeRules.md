@@ -7,15 +7,18 @@ is absent from list results. Bulk XLSX/CSV/paste and DB/report checks also passe
 Evidence is in `docs/bulk-upload/results/employee-type-crud-*.json` and
 `employee-type-live-menu.json`. Earlier pending notes below are historical.
 
+Current seed decision, 15 September: the existing module is migrated in place to
+`EMPLOYEE_TYPE`, a direct leaf child of `EMP_MGMT`. It owns Add, Update, Delete,
+View, Import, and Export mappings. Plan coverage inherits from `EMP_LIST`.
+
 ## Scope and ownership
 
 - `EmployeeType` is tenant-owned. The authenticated Tenant and employee audit actor are authoritative; clients never supply either value.
-- All EmployeeType CRUD actions use the existing `EmployeeTypePermissionBehavior` and `TENANT_EMPLOYEE_TYPES` module permission pipeline.
-- `TENANT_EMPLOYEE_TYPES` is a Tenant-scope (`ModuleScope = 1`) leaf under the existing Employee Management hierarchy.
-- Its master mapping and every Tenant-enabled operation contain only the canonical CRUD operations:
-  `Add`, `Update`, `Delete`, and `View`. Their database IDs come from the Operation master;
+- All EmployeeType CRUD actions use the existing `EmployeeTypePermissionBehavior` and `EMPLOYEE_TYPE` module permission pipeline.
+- `EMPLOYEE_TYPE` is a Tenant-scope (`ModuleScope = 1`) leaf under the existing Employee Management hierarchy.
+- Its master mapping contains CRUD plus bulk operations:
+  `Add`, `Update`, `Delete`, `View`, `Import`, and `Export`. Their database IDs come from the Operation master;
   do not select by `OperationType` because legacy master rows reuse those numeric values.
-  Bulk Import is not an EmployeeType module operation.
 
 ## Active and deletion state
 
@@ -44,9 +47,9 @@ The delete API returns a conflict when a protected dependency exists. For tables
 - 2026-09-11: the focused EmployeeType automation suite passed 6 tests with 0 failures.
   Nine database-fixture tests were skipped because `AXIONPRO_BULK_TEST_CONNECTION` was not configured;
   they require the isolated `axionpro_bulk_test` database and are not treated as passes.
-- 2026-09-11: live database verification after the corrective seed confirmed that both
+- Historical 2026-09-11 live database verification after the earlier corrective seed confirmed that both
   `ModuleOperationMapping` and Tenant 8's `TenantEnabledOperation` have exactly the four canonical
-  CRUD operations for `TENANT_EMPLOYEE_TYPES`.
+  CRUD operations for the module. The 2026-09-15 seed decision subsequently adds Import and Export.
 - 2026-09-11 release correction: handler response alias now uses the same existing
   DTO as repository/AutoMapper. Release publish passed; two new list/paging
   regressions passed with zero failures or skips. Evidence:
