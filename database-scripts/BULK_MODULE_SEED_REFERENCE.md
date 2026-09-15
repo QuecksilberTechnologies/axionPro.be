@@ -1,6 +1,6 @@
 # Bulk module seed reference
 
-Updated: 2026-09-14. This note records which module/operation seed is authoritative
+Updated: 2026-09-15. This note records which module/operation seed is authoritative
 for bulk onboarding and what each seed changes. It does not grant permissions.
 
 ## Existing-module operation model — user-confirmed 2026-09-13
@@ -13,9 +13,9 @@ existing functional modules. Existing Module `PageName` and Operation
 | Bulk feature | Permission ModuleCode |
 | --- | --- |
 | Employee | `EMP_LIST` |
-| Department | `TENANT_DEPARTMENTS` |
-| Designation | `TENANT_DESIGNATIONS` |
-| Role | `TENANT_ROLES_PERMISSIONS` |
+| Department | `DEPARTMENT` |
+| Designation | `DESIGNATION` |
+| Role | `ROLE` |
 | EmployeeType | `TENANT_EMPLOYEE_TYPES` |
 | Host Card catalogue | `HOST_TENANT_RFID_MANAGEMENT` |
 | Host Device catalogue | `HOST_DEVICE_SETUP` |
@@ -74,9 +74,9 @@ generated; permission consumers must resolve them through the authenticated flow
 | ModuleCode | Scope | Used by |
 |---|---:|---|
 | `EMP_LIST` | Tenant | Employee bulk preview/confirm/jobs/report/template/invitations |
-| `TENANT_DEPARTMENTS` | Tenant | Department bulk |
-| `TENANT_DESIGNATIONS` | Tenant | Designation bulk |
-| `TENANT_ROLES_PERMISSIONS` | Tenant | Role bulk |
+| `DEPARTMENT` | Tenant | Department bulk |
+| `DESIGNATION` | Tenant | Designation bulk |
+| `ROLE` | Tenant | Role bulk |
 | `TENANT_EMPLOYEE_TYPES` | Tenant | EmployeeType bulk |
 | `TENANT_EMPLOYEE_CODE` | Tenant | Employee-code pattern add/update |
 
@@ -86,6 +86,28 @@ bulk children under their corresponding existing tenant modules. There is no
 standalone tenant `BULKUPLOAD` parent. Each bulk child has View (4), Export (11)
 and Import (12) catalogue mappings. Export is seed permission metadata only; its
 UI implementation belongs to the UI developer.
+
+## Canonical tenant master hierarchy — 2026-09-15
+
+The current leaf identities and hierarchy are:
+
+```text
+TENANT_DEPARTMENT (root)
+└── DEPARTMENT
+
+TENANT_DESIGNATION (root)
+└── DESIGNATION
+
+TENANT_ROLE (root)
+└── ROLE
+```
+
+The root parents have no operation mappings. Each leaf retains its PageName and
+URL and owns Add, Update, Delete, View, Import, and Export. The authoritative and
+standalone bulk seeds rename a legacy leaf ModuleCode in place, preserving its
+ID and therefore its entitlement and permission foreign keys. If both legacy
+and canonical rows already exist with different IDs, the seed stops with a
+conflict instead of silently merging permission decisions.
 
 Local integration verification (2026-09-13): the entire complete seed ran twice
 successfully on an isolated clone after adding its required test-only email-config

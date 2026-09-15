@@ -30,7 +30,7 @@ public sealed class DepartmentPermissionBehavior<TRequest, TResponse>(
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
-    private const string DepartmentModuleCode = "TENANT_DEPARTMENTS";
+    private const string DepartmentModuleCode = "DEPARTMENT";
 
     /// <inheritdoc />
     public async Task<TResponse> Handle(

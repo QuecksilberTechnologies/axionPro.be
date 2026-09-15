@@ -62,8 +62,8 @@ public sealed class BulkModuleOperationSeedDatabaseTests
             JOIN axionpro."Operation" operation
               ON operation."Id"=mapping."OperationId" AND operation."IsActive"
             WHERE module."ModuleCode" IN
-                ('EMP_LIST','TENANT_DEPARTMENTS','TENANT_DESIGNATIONS',
-                 'TENANT_ROLES_PERMISSIONS','TENANT_EMPLOYEE_TYPES',
+                ('EMP_LIST','DEPARTMENT','DESIGNATION',
+                 'ROLE','TENANT_EMPLOYEE_TYPES',
                  'HOST_TENANT_RFID_MANAGEMENT','HOST_DEVICE_SETUP','HOST_MODULES',
                  'HOST_SUBMODULES','HOST_OPERATIONS','HOST_MODULE_OPERATIONS')
               AND operation."OperationType" IN (11,12);

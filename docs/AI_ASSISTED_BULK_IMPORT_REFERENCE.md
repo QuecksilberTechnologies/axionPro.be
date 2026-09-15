@@ -1615,6 +1615,11 @@ This checkpoint supersedes earlier WIP/blocker notes for the requested release.
 
 ## 2026-09-12 — bulk menu seed correction (WIP)
 
+> Historical design record. The 2026-09-15 canonical hierarchy uses independent
+> `TENANT_DEPARTMENT`, `TENANT_DESIGNATION`, and `TENANT_ROLE` roots with
+> `DEPARTMENT`, `DESIGNATION`, and `ROLE` leaves. Import/Export now belong to
+> those leaves; the bulk child-module design below is superseded.
+
 Superseded by the user-approved hierarchy below: the standalone `BULKUPLOAD`
 parent must not be retained. Each distinct bulk page is a child of its related
 existing functional module. Existing functional module names, routes, CRUD
@@ -1633,9 +1638,9 @@ by the user as requested. Do not mark MyMenu/API acceptance COMPLETE yet.
 - Remove the obsolete tenant-scope `BULKUPLOAD` root and its direct catalogue,
   plan, entitlement and role-grant references.
 - `BULK_EMPLOYEES` is a child of `EMP_MGMT`.
-- `BULK_DEPARTMENTS` is a child of `TENANT_DEPARTMENTS`.
-- `BULK_DESIGNATIONS` is a child of `TENANT_DESIGNATIONS`.
-- `BULK_ROLES` is a child of `TENANT_ROLES_PERMISSIONS`.
+- `BULK_DEPARTMENTS` is a child of `DEPARTMENT`.
+- `BULK_DESIGNATIONS` is a child of `DESIGNATION`.
+- `BULK_ROLES` is a child of `ROLE`.
 - `BULK_EMPLOYEE_TYPES` is a child of `TENANT_EMPLOYEE_TYPES`.
 - Each bulk child maps the existing operation types View=4, Export=11 and
   Import=12. The seed creates Export/Import only when that operation type is

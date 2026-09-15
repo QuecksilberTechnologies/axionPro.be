@@ -28,6 +28,7 @@ for a later run. Keep earlier failures and link the run that supersedes them.
 | Bulk / existing-module operation cleanup | [2026-09-13](bulk/module-operation-cleanup/2026-09-13.md) | Target DB cleanup complete: zero bulk modules/orphan entitlements; 22 functional Import/Export mappings. Isolated seed rerun and 36 focused tests passed. |
 | Module / seed metadata and operation cleanup | [2026-09-14](module/module-operation-seed/2026-09-14.md) | Dashboard seeds removed; source contract covers metadata completion and Add/Create cleanup. Isolated PostgreSQL verification remains blocked because the local fixture is unavailable. |
 | Tenant entitlements / Tenant Admin permission sync | [2026-09-15](tenant-entitlements/admin-permission-sync/2026-09-15.md) | Local build and command wiring pass; disposable PostgreSQL behavior test skipped because its required environment is unavailable; deployed acceptance pending. |
+| Module / singular master parent hierarchy | [2026-09-15](module/singular-master-parent-hierarchy/2026-09-15.md) | Canonical leaf-code, permission, and source-contract suite: 51 passed, 22 DB-fixture skips; isolated PostgreSQL execution and deployed menu verification remain pending. |
 
 ## Existing evidence kept at its original location
 

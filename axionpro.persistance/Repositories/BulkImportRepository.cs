@@ -374,8 +374,8 @@ public sealed partial class BulkImportRepository(
         var module = await context.Modules.AsNoTracking().SingleOrDefaultAsync(item => item.Id == job.ModuleId, cancellationToken);
         var expected = (BulkImportMaster)job.Master switch
         {
-            BulkImportMaster.Department => "TENANT_DEPARTMENTS",
-            BulkImportMaster.Designation => "TENANT_DESIGNATIONS",
+            BulkImportMaster.Department => "DEPARTMENT",
+            BulkImportMaster.Designation => "DESIGNATION",
             BulkImportMaster.EmployeeType => BulkImportConstants.EmployeeTypeModuleCode,
             BulkImportMaster.Employee => BulkImportConstants.EmployeeModuleCode,
             BulkImportMaster.DeviceMaster => BulkImportConstants.HostDeviceBulkModuleCode,
@@ -384,7 +384,7 @@ public sealed partial class BulkImportRepository(
             BulkImportMaster.HostSubModule => BulkImportConstants.HostSubModuleBulkModuleCode,
             BulkImportMaster.HostOperation => BulkImportConstants.HostOperationBulkModuleCode,
             BulkImportMaster.HostModuleOperation => BulkImportConstants.HostModuleOperationBulkModuleCode,
-            _ => "TENANT_ROLES_PERMISSIONS"
+            _ => "ROLE"
         };
         var operation = await context.Operations.AsNoTracking().SingleOrDefaultAsync(item => item.Id == job.OperationId, cancellationToken);
         if (module?.ModuleCode != expected || operation?.IsActive != true ||

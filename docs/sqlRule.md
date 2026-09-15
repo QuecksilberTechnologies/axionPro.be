@@ -270,3 +270,62 @@ AddedById     = authenticated Host user ID
 The existence check deliberately considers every existing row for the exact `RoleId + ModuleId + OperationId` combination, including an inactive or soft-deleted row. Such a row is left unchanged and a second row is not inserted. Consequently, the synchronization is additive and duplicate-safe; it does not reactivate, overwrite, or delete an existing permission decision.
 
 Only the active Tenant Admin role receives missing permissions. Other Tenant roles remain unchanged.
+
+## Singular tenant master navigation hierarchy
+
+The authoritative module seed groups the existing master pages under singular,
+non-leaf navigation parents. Legacy leaf ModuleCode values are renamed in place
+to the canonical singular identities; their database IDs, PageName values,
+routes, and dependent foreign-key rows remain unchanged.
+
+| Parent ModuleCode | Parent display name | Existing child ModuleCode | Existing child PageName |
+|---|---|---|---|
+| `TENANT_DEPARTMENT` | Tenant Department | `DEPARTMENT` | `tenant-departments` |
+| `TENANT_DESIGNATION` | Tenant Designation | `DESIGNATION` | `tenant-designations` |
+| `TENANT_ROLE` | Tenant Role | `ROLE` | `tenant-roles-permissions` |
+
+The parents follow the current module DB rules:
+
+- `ParentModuleId = NULL`; each is an independent root and is not under `TENANT_MGMT`.
+- `ModuleScope = 1`, active, displayed in UI, and not a common menu.
+- `IsLeafNode = false`.
+- `URLPath = NULL` because the parent is a navigation group.
+- `PageName`, web/mobile icons, item priority, and remark are populated.
+- No `ModuleOperationMapping` is created for a parent.
+- Add, Update, Delete, View, Import, and Export remain mapped to each leaf module.
+
+Each parent receives active `PlanModuleMapping` coverage from its own child.
+Consequently, both tenant-creation routes use the existing creation pipeline to
+create the parent and child `TenantEnabledModule` rows. The leaf's active
+`ModuleOperationMapping` rows create `TenantEnabledOperation` rows and default
+Tenant Admin `RoleModuleAndPermission` grants.
+
+For an existing tenant, run the Host entitlement synchronization after applying
+the seed. The seed repairs the child `ParentModuleId` in `Module` and any
+existing `TenantEnabledModule`. Entitlement synchronization adds missing parent
+enablement, missing leaf operations, and missing Tenant Admin permissions.
+
+Duplicate prevention uses the following stable combinations:
+
+```text
+Module:                  ModuleCode
+PlanModuleMapping:       SubscriptionPlanId + ModuleId
+TenantEnabledModule:     TenantId + ModuleId (existing sync rule)
+TenantEnabledOperation:  TenantId + ModuleId + OperationId (existing sync rule)
+RoleModuleAndPermission: RoleId + ModuleId + OperationId (existing sync rule)
+```
+
+Re-running the seed repairs the three parent metadata rows, hierarchy, and
+active plan mappings. It does not create operations or role grants on the
+non-leaf parents.
+
+Legacy leaf migration is ID-preserving:
+
+```text
+TENANT_DEPARTMENTS       → DEPARTMENT
+TENANT_DESIGNATIONS      → DESIGNATION
+TENANT_ROLES_PERMISSIONS → ROLE
+```
+
+If both names already exist as different Module rows, the seed raises a conflict
+and rolls back instead of guessing which permission/entitlement record to keep.

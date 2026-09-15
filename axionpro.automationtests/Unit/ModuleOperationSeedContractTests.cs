@@ -36,6 +36,46 @@ public sealed class ModuleOperationSeedContractTests
         });
     }
 
+    [Test]
+    public void Consolidated_seed_groups_master_leaves_under_singular_duplicate_safe_parents()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var authoritativeSeed = Path.Combine(
+            repositoryRoot,
+            "database-scripts",
+            "complete seed data",
+            "AxionPro_New_Production_Module_Operation_Seed.sql");
+        var standaloneSeed = Path.Combine(
+            repositoryRoot,
+            "database-scripts",
+            "SeedBulkImportModules.sql");
+
+        var sql = File.ReadAllText(authoritativeSeed);
+        var standaloneSql = File.ReadAllText(standaloneSeed);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sql, Does.Contain("('TENANT_DEPARTMENT','Tenant-Department','Tenant Department'"));
+            Assert.That(sql, Does.Contain("('TENANT_DESIGNATION','Tenant-Designation','Tenant Designation'"));
+            Assert.That(sql, Does.Contain("('TENANT_ROLE','Tenant-Role','Tenant Role'"));
+            Assert.That(sql, Does.Contain("independent roots, not children of TENANT_MGMT"));
+            Assert.That(sql, Does.Contain("WHEN 'DEPARTMENT' THEN department_parent_id"));
+            Assert.That(sql, Does.Contain("WHEN 'DESIGNATION' THEN designation_parent_id"));
+            Assert.That(sql, Does.Contain("WHEN 'ROLE' THEN role_parent_id"));
+            Assert.That(sql, Does.Contain("('TENANT_DEPARTMENTS','DEPARTMENT')"));
+            Assert.That(sql, Does.Contain("('TENANT_DESIGNATIONS','DESIGNATION')"));
+            Assert.That(sql, Does.Contain("('TENANT_ROLES_PERMISSIONS','ROLE')"));
+            Assert.That(sql, Does.Contain("'tenant-departments'"));
+            Assert.That(sql, Does.Contain("'tenant-designations'"));
+            Assert.That(sql, Does.Contain("'tenant-roles-permissions'"));
+            Assert.That(sql, Does.Contain("Each singular parent inherits the plans of its own functional child."));
+            Assert.That(standaloneSql, Does.Contain("('TENANT_DEPARTMENT','Tenant-Department','Tenant Department'"));
+            Assert.That(standaloneSql, Does.Contain("('DEPARTMENT','TENANT_DEPARTMENT')"));
+            Assert.That(standaloneSql, Does.Contain("('DESIGNATION','TENANT_DESIGNATION')"));
+            Assert.That(standaloneSql, Does.Contain("('ROLE','TENANT_ROLE')"));
+        });
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
@@ -120,6 +160,117 @@ public sealed class ModuleOperationSeedDatabaseTests
             Assert.That(incompleteModules, Is.Zero);
             Assert.That(createOperations, Is.Zero);
             Assert.That(addOperations, Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public async Task Singular_navigation_parents_have_expected_children_without_duplicate_catalogue_rows()
+    {
+        var validHierarchyRows = await ScalarAsync("""
+            SELECT count(*)
+            FROM (VALUES
+                ('TENANT_DEPARTMENT','DEPARTMENT','tenant-departments'),
+                ('TENANT_DESIGNATION','DESIGNATION','tenant-designations'),
+                ('TENANT_ROLE','ROLE','tenant-roles-permissions')
+            ) expected(parent_code,child_code,child_page_name)
+            JOIN axionpro."Module" parent
+              ON parent."ModuleCode"=expected.parent_code
+             AND parent."ModuleScope"=1
+             AND parent."IsActive"
+             AND parent."IsModuleDisplayInUI"
+             AND NOT parent."IsLeafNode"
+             AND parent."ParentModuleId" IS NULL
+             AND parent."URLPath" IS NULL
+            JOIN axionpro."Module" child
+              ON child."ModuleCode"=expected.child_code
+             AND child."ModuleScope"=1
+             AND child."ParentModuleId"=parent."Id"
+             AND child."PageName"=expected.child_page_name
+             AND child."IsLeafNode";
+            """);
+
+        var duplicateModules = await ScalarAsync("""
+            SELECT count(*) FROM (
+                SELECT "ModuleCode","ModuleScope"
+                FROM axionpro."Module"
+                WHERE "ModuleCode" IN
+                    ('TENANT_DEPARTMENT','TENANT_DESIGNATION','TENANT_ROLE')
+                GROUP BY "ModuleCode","ModuleScope"
+                HAVING count(*) > 1
+            ) duplicate;
+            """);
+
+        var parentOperationMappings = await ScalarAsync("""
+            SELECT count(*)
+            FROM axionpro."Module" module
+            JOIN axionpro."ModuleOperationMapping" mapping
+              ON mapping."ModuleId"=module."Id"
+            WHERE module."ModuleCode" IN
+                ('TENANT_DEPARTMENT','TENANT_DESIGNATION','TENANT_ROLE');
+            """);
+
+        var duplicatePlanMappings = await ScalarAsync("""
+            SELECT count(*) FROM (
+                SELECT mapping."SubscriptionPlanId",mapping."ModuleId"
+                FROM axionpro."PlanModuleMapping" mapping
+                JOIN axionpro."Module" module ON module."Id"=mapping."ModuleId"
+                WHERE module."ModuleCode" IN
+                    ('TENANT_DEPARTMENT','TENANT_DESIGNATION','TENANT_ROLE')
+                GROUP BY mapping."SubscriptionPlanId",mapping."ModuleId"
+                HAVING count(*) > 1
+            ) duplicate;
+            """);
+
+        var requiredLeafOperationMappings = await ScalarAsync("""
+            SELECT count(*)
+            FROM axionpro."Module" module
+            JOIN axionpro."ModuleOperationMapping" mapping
+              ON mapping."ModuleId"=module."Id" AND mapping."IsActive"
+            JOIN axionpro."Operation" operation
+              ON operation."Id"=mapping."OperationId" AND operation."IsActive"
+            WHERE module."ModuleCode" IN
+                ('DEPARTMENT','DESIGNATION','ROLE')
+              AND lower(btrim(operation."OperationName")) IN
+                ('add','update','delete','view','import','export');
+            """);
+
+        var legacyLeafRows = await ScalarAsync("""
+            SELECT count(*)
+            FROM axionpro."Module"
+            WHERE "ModuleCode" IN
+                ('TENANT_DEPARTMENTS','TENANT_DESIGNATIONS','TENANT_ROLES_PERMISSIONS');
+            """);
+
+        var missingParentPlanMappings = await ScalarAsync("""
+            SELECT count(*)
+            FROM (VALUES
+                ('TENANT_DEPARTMENT','DEPARTMENT'),
+                ('TENANT_DESIGNATION','DESIGNATION'),
+                ('TENANT_ROLE','ROLE')
+            ) expected(parent_code,child_code)
+            JOIN axionpro."Module" parent ON parent."ModuleCode"=expected.parent_code
+            JOIN axionpro."Module" child ON child."ModuleCode"=expected.child_code
+            JOIN axionpro."PlanModuleMapping" child_plan
+              ON child_plan."ModuleId"=child."Id" AND child_plan."IsActive"
+            WHERE NOT EXISTS
+            (
+                SELECT 1
+                FROM axionpro."PlanModuleMapping" parent_plan
+                WHERE parent_plan."SubscriptionPlanId"=child_plan."SubscriptionPlanId"
+                  AND parent_plan."ModuleId"=parent."Id"
+                  AND parent_plan."IsActive"
+            );
+            """);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(validHierarchyRows, Is.EqualTo(3));
+            Assert.That(duplicateModules, Is.Zero);
+            Assert.That(parentOperationMappings, Is.Zero);
+            Assert.That(duplicatePlanMappings, Is.Zero);
+            Assert.That(requiredLeafOperationMappings, Is.EqualTo(18));
+            Assert.That(legacyLeafRows, Is.Zero);
+            Assert.That(missingParentPlanMappings, Is.Zero);
         });
     }
 

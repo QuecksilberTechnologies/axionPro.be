@@ -257,10 +257,10 @@ public sealed class BulkImportPermissionTests
     {
         var moduleCode = master switch
         {
-            "Department" => "TENANT_DEPARTMENTS",
-            "Designation" => "TENANT_DESIGNATIONS",
+            "Department" => "DEPARTMENT",
+            "Designation" => "DESIGNATION",
             "EmployeeType" => "TENANT_EMPLOYEE_TYPES",
-            _ => "TENANT_ROLES_PERMISSIONS"
+            _ => "ROLE"
         };
         var checks = 0;
         var store = Proxy<IStoreProcedureRepository>((method, args) =>

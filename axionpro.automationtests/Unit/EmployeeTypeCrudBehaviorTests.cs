@@ -175,7 +175,7 @@ public sealed class EmployeeTypeCrudBehaviorTests
         Assert.Multiple(() =>
         {
             Assert.That(script, Does.Contain("TENANT_EMPLOYEE_TYPES"));
-            Assert.That(script, Does.Contain("TENANT_DEPARTMENTS"));
+            Assert.That(script, Does.Contain("DEPARTMENT"));
             Assert.That(script, Does.Contain("IN ('add','update','delete','view')"));
             Assert.That(script, Does.Contain("DELETE FROM axionpro.\"TenantEnabledOperation\""));
             Assert.That(script, Does.Contain("DELETE FROM axionpro.\"ModuleOperationMapping\""));

@@ -1006,7 +1006,7 @@
           "media": "multipart/form-data"
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1030,7 +1030,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1052,7 +1052,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1074,7 +1074,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1098,7 +1098,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1122,7 +1122,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1144,7 +1144,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1166,7 +1166,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1188,7 +1188,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1219,7 +1219,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "Add",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1250,7 +1250,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1279,7 +1279,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1308,7 +1308,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DEPARTMENTS",
+      "uiModule": "DEPARTMENT",
       "uiOperation": "Delete",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1488,7 +1488,7 @@
           "media": "multipart/form-data"
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1512,7 +1512,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1534,7 +1534,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1556,7 +1556,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1580,7 +1580,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1604,7 +1604,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1626,7 +1626,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1648,7 +1648,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1670,7 +1670,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1701,7 +1701,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1723,7 +1723,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1754,7 +1754,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "Add",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1783,7 +1783,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "Delete",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -1814,7 +1814,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_DESIGNATIONS",
+      "uiModule": "DESIGNATION",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6371,7 +6371,7 @@
           "media": "multipart/form-data"
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6395,7 +6395,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6417,7 +6417,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6439,7 +6439,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6463,7 +6463,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6487,7 +6487,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6509,7 +6509,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6531,7 +6531,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6555,7 +6555,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6584,7 +6584,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6615,7 +6615,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "Add",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6644,7 +6644,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -6673,7 +6673,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "Delete",
       "uiCarrier": "query",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -9664,7 +9664,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "Update",
       "uiCarrier": "body",
       "classification": "TARGET_IDS_OR_SPECIAL_CONTRACT",
@@ -9693,7 +9693,7 @@
           "required": false
         }
       ],
-      "uiModule": "TENANT_ROLES_PERMISSIONS",
+      "uiModule": "ROLE",
       "uiOperation": "View",
       "uiCarrier": "query",
       "classification": "TARGET_IDS_OR_SPECIAL_CONTRACT",

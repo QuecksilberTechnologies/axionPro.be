@@ -58,9 +58,9 @@ public sealed class DurableBulkImportDatabaseTests
         _modules = new Dictionary<BulkImportMaster, int>();
         foreach (var pair in new[]
         {
-            (BulkImportMaster.Department, "TENANT_DEPARTMENTS"),
-            (BulkImportMaster.Designation, "TENANT_DESIGNATIONS"),
-            (BulkImportMaster.Role, "TENANT_ROLES_PERMISSIONS")
+            (BulkImportMaster.Department, "DEPARTMENT"),
+            (BulkImportMaster.Designation, "DESIGNATION"),
+            (BulkImportMaster.Role, "ROLE")
         })
         {
             _modules[pair.Item1] = await context.Modules.Where(item => item.ModuleCode == pair.Item2)

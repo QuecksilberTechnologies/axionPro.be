@@ -67,38 +67,38 @@ An ID field in Swagger does not by itself prove it is runtime-required: some are
 | GET | /api/DefaultEmailConfig/get-by-id/{id} | query:ModuleId; query:OperationId | HOST_DEFAULT_EMAIL_CONFIG / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/default-email-config-api.ts:31 |
 | POST | /api/DefaultEmailConfig/update | body:permissionRequest.moduleId; body:permissionRequest.operationId | HOST_DEFAULT_EMAIL_CONFIG / Update / permissionRequest | STATIC_MAPPING_PRESENT | src/app/core/services/default-email-config-api.ts:49 |
 | DELETE | /api/DefaultEmailConfig/delete/{id} | query:ModuleId; query:OperationId | HOST_DEFAULT_EMAIL_CONFIG / Delete / query | STATIC_MAPPING_PRESENT | src/app/core/services/default-email-config-api.ts:58 |
-| POST | /api/Department/bulk/preview | form:ModuleId; form:OperationId | TENANT_DEPARTMENTS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| POST | /api/Department/bulk/confirm | body:moduleId; body:operationId | TENANT_DEPARTMENTS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Department/bulk/jobs/{jobId} | query:ModuleId; query:OperationId | TENANT_DEPARTMENTS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Department/bulk/jobs | query:ModuleId; query:OperationId | TENANT_DEPARTMENTS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| POST | /api/Department/bulk/retry | body:moduleId; body:operationId | TENANT_DEPARTMENTS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| POST | /api/Department/bulk/cancel | body:moduleId; body:operationId | TENANT_DEPARTMENTS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Department/bulk/template | query:ModuleId; query:OperationId | TENANT_DEPARTMENTS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Department/bulk/jobs/{jobId}/report | query:ModuleId; query:OperationId | TENANT_DEPARTMENTS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Department/get | query:ModuleId; query:OperationId | TENANT_DEPARTMENTS / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:33 |
-| POST | /api/Department/add | body:moduleId; body:operationId | TENANT_DEPARTMENTS / Add / body | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:26 |
-| PUT | /api/Department/update | body:moduleId; body:operationId | TENANT_DEPARTMENTS / Update / body | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:46 |
-| GET | /api/Department/option | query:ModuleId; query:OperationId | TENANT_DEPARTMENTS / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:40 |
-| DELETE | /api/Department/delete | query:ModuleId; query:OperationId | TENANT_DEPARTMENTS / Delete / query | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:53 |
+| POST | /api/Department/bulk/preview | form:ModuleId; form:OperationId | DEPARTMENT / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| POST | /api/Department/bulk/confirm | body:moduleId; body:operationId | DEPARTMENT / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Department/bulk/jobs/{jobId} | query:ModuleId; query:OperationId | DEPARTMENT / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Department/bulk/jobs | query:ModuleId; query:OperationId | DEPARTMENT / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| POST | /api/Department/bulk/retry | body:moduleId; body:operationId | DEPARTMENT / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| POST | /api/Department/bulk/cancel | body:moduleId; body:operationId | DEPARTMENT / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Department/bulk/template | query:ModuleId; query:OperationId | DEPARTMENT / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Department/bulk/jobs/{jobId}/report | query:ModuleId; query:OperationId | DEPARTMENT / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Department/get | query:ModuleId; query:OperationId | DEPARTMENT / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:33 |
+| POST | /api/Department/add | body:moduleId; body:operationId | DEPARTMENT / Add / body | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:26 |
+| PUT | /api/Department/update | body:moduleId; body:operationId | DEPARTMENT / Update / body | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:46 |
+| GET | /api/Department/option | query:ModuleId; query:OperationId | DEPARTMENT / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:40 |
+| DELETE | /api/Department/delete | query:ModuleId; query:OperationId | DEPARTMENT / Delete / query | STATIC_MAPPING_PRESENT | src/app/core/services/departments-api.ts:53 |
 | POST | /api/Employee/Dependent/create | form:ModuleId; form:OperationId | EMP_DEPENDENTS / Add / body | STATIC_MAPPING_PRESENT | src/app/core/services/employee-dependent-api.ts:71 |
 | GET | /api/Employee/Dependent/get | query:ModuleId; query:OperationId | EMP_DEPENDENTS / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/employee-dependent-api.ts:78 |
 | GET | /api/Employee/Dependent/get-in-detail | query:ModuleId; query:OperationId | EMP_DEPENDENTS / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/employee-dependent-api.ts:87 |
 | DELETE | /api/Employee/Dependent/delete | query:ModuleId; query:OperationId | EMP_DEPENDENTS / Delete / query | STATIC_MAPPING_PRESENT | src/app/core/services/employee-dependent-api.ts:102 |
 | POST | /api/Employee/Dependent/update | form:ModuleId; form:OperationId | EMP_DEPENDENTS / Update / body | STATIC_MAPPING_PRESENT | src/app/core/services/employee-dependent-api.ts:95 |
-| POST | /api/Designation/bulk/preview | form:ModuleId; form:OperationId | TENANT_DESIGNATIONS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| POST | /api/Designation/bulk/confirm | body:moduleId; body:operationId | TENANT_DESIGNATIONS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Designation/bulk/jobs/{jobId} | query:ModuleId; query:OperationId | TENANT_DESIGNATIONS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Designation/bulk/jobs | query:ModuleId; query:OperationId | TENANT_DESIGNATIONS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| POST | /api/Designation/bulk/retry | body:moduleId; body:operationId | TENANT_DESIGNATIONS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| POST | /api/Designation/bulk/cancel | body:moduleId; body:operationId | TENANT_DESIGNATIONS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Designation/bulk/template | query:ModuleId; query:OperationId | TENANT_DESIGNATIONS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Designation/bulk/jobs/{jobId}/report | query:ModuleId; query:OperationId | TENANT_DESIGNATIONS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Designation/get | query:ModuleId; query:OperationId | TENANT_DESIGNATIONS / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:64 |
-| POST | /api/Designation/Department/Group/get | body:moduleId; body:operationId | TENANT_DESIGNATIONS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Designation/option | query:ModuleId; query:OperationId | TENANT_DESIGNATIONS / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:71 |
-| POST | /api/Designation/add | body:moduleId; body:operationId | TENANT_DESIGNATIONS / Add / body | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:57 |
-| DELETE | /api/Designation/delete | query:ModuleId; query:OperationId | TENANT_DESIGNATIONS / Delete / query | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:84 |
-| PUT | /api/Designation/update | body:moduleId; body:operationId | TENANT_DESIGNATIONS / Update / body | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:77 |
+| POST | /api/Designation/bulk/preview | form:ModuleId; form:OperationId | DESIGNATION / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| POST | /api/Designation/bulk/confirm | body:moduleId; body:operationId | DESIGNATION / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Designation/bulk/jobs/{jobId} | query:ModuleId; query:OperationId | DESIGNATION / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Designation/bulk/jobs | query:ModuleId; query:OperationId | DESIGNATION / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| POST | /api/Designation/bulk/retry | body:moduleId; body:operationId | DESIGNATION / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| POST | /api/Designation/bulk/cancel | body:moduleId; body:operationId | DESIGNATION / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Designation/bulk/template | query:ModuleId; query:OperationId | DESIGNATION / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Designation/bulk/jobs/{jobId}/report | query:ModuleId; query:OperationId | DESIGNATION / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Designation/get | query:ModuleId; query:OperationId | DESIGNATION / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:64 |
+| POST | /api/Designation/Department/Group/get | body:moduleId; body:operationId | DESIGNATION / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Designation/option | query:ModuleId; query:OperationId | DESIGNATION / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:71 |
+| POST | /api/Designation/add | body:moduleId; body:operationId | DESIGNATION / Add / body | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:57 |
+| DELETE | /api/Designation/delete | query:ModuleId; query:OperationId | DESIGNATION / Delete / query | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:84 |
+| PUT | /api/Designation/update | body:moduleId; body:operationId | DESIGNATION / Update / body | STATIC_MAPPING_PRESENT | src/app/core/services/designations-api.ts:77 |
 | POST | /api/device-commands/submit | body:moduleId; body:operationId | None | NO_AUTOMATIC_UI_MAPPING | Not statically matched |
 | GET | /api/device-ddl-options/time | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
 | GET | /api/device-ddl-options/bell | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
@@ -308,19 +308,19 @@ An ID field in Swagger does not by itself prove it is runtime-required: some are
 | GET | /api/ReportingType/get-by-id | None declared | TENANT_REPORTING_TYPES / View / query | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
 | PUT | /api/ReportingType/update | None declared | TENANT_REPORTING_TYPES / Update / body | NO_ID_FIELDS_IN_SWAGGER | src/app/core/services/report-type-api.ts:37 |
 | DELETE | /api/ReportingType/delete | None declared | TENANT_REPORTING_TYPES / Delete / query | NO_ID_FIELDS_IN_SWAGGER | src/app/core/services/report-type-api.ts:44 |
-| POST | /api/Role/bulk/preview | form:ModuleId; form:OperationId | TENANT_ROLES_PERMISSIONS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| POST | /api/Role/bulk/confirm | body:moduleId; body:operationId | TENANT_ROLES_PERMISSIONS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Role/bulk/jobs/{jobId} | query:ModuleId; query:OperationId | TENANT_ROLES_PERMISSIONS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Role/bulk/jobs | query:ModuleId; query:OperationId | TENANT_ROLES_PERMISSIONS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| POST | /api/Role/bulk/retry | body:moduleId; body:operationId | TENANT_ROLES_PERMISSIONS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| POST | /api/Role/bulk/cancel | body:moduleId; body:operationId | TENANT_ROLES_PERMISSIONS / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Role/bulk/template | query:ModuleId; query:OperationId | TENANT_ROLES_PERMISSIONS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| GET | /api/Role/bulk/jobs/{jobId}/report | query:ModuleId; query:OperationId | TENANT_ROLES_PERMISSIONS / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
-| PUT | /api/Role/update | body:moduleId; body:operationId | TENANT_ROLES_PERMISSIONS / Update / body | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:123 |
-| GET | /api/Role/option | query:ModuleId; query:OperationId | TENANT_ROLES_PERMISSIONS / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:117 |
-| POST | /api/Role/add | body:moduleId; body:operationId | TENANT_ROLES_PERMISSIONS / Add / body | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:103 |
-| GET | /api/Role/get | query:ModuleId; query:OperationId | TENANT_ROLES_PERMISSIONS / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:110 |
-| DELETE | /api/Role/delete | query:ModuleId; query:OperationId | TENANT_ROLES_PERMISSIONS / Delete / query | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:130 |
+| POST | /api/Role/bulk/preview | form:ModuleId; form:OperationId | ROLE / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| POST | /api/Role/bulk/confirm | body:moduleId; body:operationId | ROLE / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Role/bulk/jobs/{jobId} | query:ModuleId; query:OperationId | ROLE / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Role/bulk/jobs | query:ModuleId; query:OperationId | ROLE / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| POST | /api/Role/bulk/retry | body:moduleId; body:operationId | ROLE / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| POST | /api/Role/bulk/cancel | body:moduleId; body:operationId | ROLE / Update / body | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Role/bulk/template | query:ModuleId; query:OperationId | ROLE / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| GET | /api/Role/bulk/jobs/{jobId}/report | query:ModuleId; query:OperationId | ROLE / View / query | STATIC_MAPPING_PRESENT | Not statically matched |
+| PUT | /api/Role/update | body:moduleId; body:operationId | ROLE / Update / body | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:123 |
+| GET | /api/Role/option | query:ModuleId; query:OperationId | ROLE / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:117 |
+| POST | /api/Role/add | body:moduleId; body:operationId | ROLE / Add / body | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:103 |
+| GET | /api/Role/get | query:ModuleId; query:OperationId | ROLE / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:110 |
+| DELETE | /api/Role/delete | query:ModuleId; query:OperationId | ROLE / Delete / query | STATIC_MAPPING_PRESENT | src/app/core/services/roles-api.ts:130 |
 | POST | /Sandwich/DayCombination/add | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
 | POST | /Sandwich/DayCombination/update | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
 | POST | /Sandwich/DayCombination/delete | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
@@ -454,8 +454,8 @@ An ID field in Swagger does not by itself prove it is runtime-required: some are
 | POST | /api/Asset/Type/add | body:moduleId; body:operationId | None | NO_AUTOMATIC_UI_MAPPING | src/app/core/services/asset-types-api.ts:31 |
 | PUT | /api/Asset/Type/update | body:moduleId; body:operationId | None | NO_AUTOMATIC_UI_MAPPING | src/app/core/services/asset-types-api.ts:44 |
 | DELETE | /api/Asset/Type/delete | query:ModuleId; query:OperationId | None | NO_AUTOMATIC_UI_MAPPING | src/app/core/services/asset-types-api.ts:51 |
-| POST | /api/UserModuleRolePermission/assign-role-permissions | body:moduleId; body:operationId; body:moduleOperations[].moduleId; body:moduleOperations[].operations[].operationId | TENANT_ROLES_PERMISSIONS / Update / body | TARGET_IDS_OR_SPECIAL_CONTRACT | src/app/core/services/roles-api.ts:153 |
-| GET | /api/UserModuleRolePermission/get-role-based-permissions | query:ModuleId; query:OperationId | TENANT_ROLES_PERMISSIONS / View / query | TARGET_IDS_OR_SPECIAL_CONTRACT | src/app/core/services/roles-api.ts:144 |
+| POST | /api/UserModuleRolePermission/assign-role-permissions | body:moduleId; body:operationId; body:moduleOperations[].moduleId; body:moduleOperations[].operations[].operationId | ROLE / Update / body | TARGET_IDS_OR_SPECIAL_CONTRACT | src/app/core/services/roles-api.ts:153 |
+| GET | /api/UserModuleRolePermission/get-role-based-permissions | query:ModuleId; query:OperationId | ROLE / View / query | TARGET_IDS_OR_SPECIAL_CONTRACT | src/app/core/services/roles-api.ts:144 |
 | POST | /api/UserRole/assign-roles-to-user | None declared | None | NO_ID_FIELDS_IN_SWAGGER | src/app/core/services/roles-api.ts:170 |
 | GET | /api/UserRole/get-all-user-roles | None declared | None | NO_ID_FIELDS_IN_SWAGGER | src/app/core/services/roles-api.ts:164 |
 | POST | /api/WorkflowStage/create | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
