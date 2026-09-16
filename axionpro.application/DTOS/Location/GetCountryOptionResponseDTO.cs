@@ -22,6 +22,7 @@ namespace axionpro.application.DTOS.Location
         public int CountryId { get; set; }
         public string CountryCode { get; set; } = null!;
         public string StateName { get; set; } = null!;
+        public string StateCode { get; set; } = null!;
         public string STDCode { get; set; } = null!;
         public bool? IsActive { get; set; }
     }
@@ -33,6 +34,7 @@ namespace axionpro.application.DTOS.Location
         public string CountryCode { get; set; } = null!;
         public string STDCode { get; set; } = null!;
         public string DistrictName { get; set; } = null!;
+        public string DistrictCode { get; set; } = null!;
 
         public bool? IsActive { get; set; }
     }
@@ -44,6 +46,8 @@ namespace axionpro.application.DTOS.Location
         public int StateId { get; set; }
         public int LocalityTypeId { get; set; }
         public string LocalityName { get; set; } = null!;
+        public string LocalityCode { get; set; } = null!;
+        public string? PostalCode { get; set; }
         public string LocalityTypeName { get; set; } = null!;
         public bool? IsActive { get; set; }
     }

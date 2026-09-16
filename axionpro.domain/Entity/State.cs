@@ -9,6 +9,8 @@ public partial class State
 
     public string StateName { get; set; } = null!;
 
+    public string StateCode { get; set; } = null!;
+
     public int CountryId { get; set; }
 
     public bool? IsActive { get; set; }

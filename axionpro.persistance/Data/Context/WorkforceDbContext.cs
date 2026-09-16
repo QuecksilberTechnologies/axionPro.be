@@ -699,6 +699,9 @@ namespace axionpro.persistance.Data.Context
             entity.ToTable("Locality", "axionpro");
 
             entity.Property(e => e.LocalityName).HasMaxLength(100);
+            entity.Property(e => e.LocalityCode).HasMaxLength(100);
+            entity.Property(e => e.PostalCode).HasMaxLength(20);
+            entity.HasIndex(e => new { e.DistrictId, e.LocalityCode }).IsUnique();
             entity.Property(e => e.IsActive).HasDefaultValue(true);
 
             entity.HasOne(d => d.State).WithMany(p => p.Localities)
@@ -1039,10 +1042,10 @@ namespace axionpro.persistance.Data.Context
             entity.HasIndex(e => e.StateId, "IX_District_StateId");
 
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.DistrictCode).HasMaxLength(50);
             entity.Property(e => e.DistrictName).HasMaxLength(200);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.PinCode).HasMaxLength(50);
+            entity.Property(e => e.DistrictCode).HasMaxLength(100);
+            entity.HasIndex(e => new { e.StateId, e.DistrictCode }).IsUnique();
             entity.Property(e => e.Remark).HasMaxLength(500);
 
             entity.HasOne(d => d.State).WithMany(p => p.District)
@@ -2492,7 +2495,9 @@ namespace axionpro.persistance.Data.Context
             entity.ToTable("State", "axionpro");
 
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.StateCode).HasMaxLength(50);
             entity.Property(e => e.StateName).HasMaxLength(100);
+            entity.HasIndex(e => new { e.CountryId, e.StateCode }).IsUnique();
 
             entity.HasOne(d => d.Country).WithMany(p => p.State)
                 .HasForeignKey(d => d.CountryId)

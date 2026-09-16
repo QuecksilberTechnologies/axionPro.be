@@ -102,6 +102,7 @@ namespace axionpro.persistance.Repositories
                             : string.Empty,
                         STDCode = state.Country != null ? state.Country.Stdcode : string.Empty,
                         StateName = state.StateName ?? string.Empty,
+                        StateCode = state.StateCode,
                         IsActive = state.IsActive
                     })
                     .ToListAsync();
@@ -142,6 +143,7 @@ namespace axionpro.persistance.Repositories
                             ? district.State.Country.CountryCode ?? string.Empty
                             : string.Empty,
                         DistrictName = district.DistrictName ?? string.Empty,
+                        DistrictCode = district.DistrictCode,
                         IsActive = district.IsActive
                     })
                     .ToListAsync();
@@ -166,6 +168,8 @@ namespace axionpro.persistance.Repositories
                     StateId = locality.StateId,
                     LocalityTypeId = locality.LocalityTypeId,
                     LocalityName = locality.LocalityName,
+                    LocalityCode = locality.LocalityCode,
+                    PostalCode = locality.PostalCode,
                     LocalityTypeName = locality.LocalityType.TypeName,
                     IsActive = locality.IsActive
                 })

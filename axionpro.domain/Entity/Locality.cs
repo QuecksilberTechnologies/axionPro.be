@@ -7,6 +7,10 @@ public partial class Locality
 
     public string LocalityName { get; set; } = null!;
 
+    public string LocalityCode { get; set; } = null!;
+
+    public string? PostalCode { get; set; }
+
     public int StateId { get; set; }
 
     public int DistrictId { get; set; }

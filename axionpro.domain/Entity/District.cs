@@ -9,9 +9,7 @@ public partial class District
 
     public int StateId { get; set; }
 
-    public string? DistrictCode { get; set; }
-
-    public string? PinCode { get; set; }
+    public string DistrictCode { get; set; } = null!;
 
     public string DistrictName { get; set; } = null!;
 

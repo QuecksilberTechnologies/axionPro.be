@@ -49,6 +49,8 @@ Example response:
       "stateId": 22,
       "localityTypeId": 1,
       "localityName": "Mumbai",
+      "localityCode": "IN-MH-MUMS-MUMBAI",
+      "postalCode": "400001",
       "localityTypeName": "City",
       "isActive": true
     }
@@ -106,7 +108,10 @@ the selected Country.
 - API code uses `LocalityTypeConstants` as the canonical identifiers and names:
   `1/City`, `2/Town`, `3/Village`; the lookup returns matching active DB rows.
 - `axionpro.Locality`: renamed data-preserving City catalog; contains DistrictId
-  and LocalityTypeId foreign keys.
+  and LocalityTypeId foreign keys plus LocalityCode and PostalCode.
+- `axionpro.State.StateCode`, `axionpro.District.DistrictCode`, and
+  `axionpro.Locality.LocalityCode` are required stable codes. `District.PinCode`
+  has been removed; postal ownership is on Locality.
 - `axionpro.TenantLocation`: stores DistrictId and the selected locality reference.
   During the deployment transition, the physical legacy column remains `CityId`
   while the API property is `LocalityId`.
@@ -118,6 +123,6 @@ window for these synchronous lookup endpoints.
 
 ## Verification status
 
-Target migration, local build, 7/7 focused tests, and DB-backed local endpoint smoke
+Target migrations, local build, 9/9 focused tests, and DB-backed local endpoint smoke
 passed on 2026-09-16. The updated API build has not yet been verified as deployed;
 deployed API acceptance remains pending.

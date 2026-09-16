@@ -64,6 +64,37 @@ public sealed class LocalityRefactorTests
         });
     }
 
+    [Test]
+    public void Location_master_contract_exposes_codes_and_keeps_postal_code_on_locality()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeof(State).GetProperty(nameof(State.StateCode)), Is.Not.Null);
+            Assert.That(typeof(District).GetProperty(nameof(District.DistrictCode)), Is.Not.Null);
+            Assert.That(typeof(District).GetProperty("PinCode"), Is.Null);
+            Assert.That(typeof(Locality).GetProperty(nameof(Locality.LocalityCode)), Is.Not.Null);
+            Assert.That(typeof(Locality).GetProperty(nameof(Locality.PostalCode)), Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public void Code_and_postal_migration_removes_district_pin_code()
+    {
+        var sql = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(),
+            "database-scripts",
+            "AddLocationCodesAndPostalCode.sql"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sql, Does.Contain("DROP COLUMN IF EXISTS \"PinCode\""));
+            Assert.That(sql, Does.Contain("ADD COLUMN IF NOT EXISTS \"StateCode\""));
+            Assert.That(sql, Does.Contain("ADD COLUMN IF NOT EXISTS \"LocalityCode\""));
+            Assert.That(sql, Does.Contain("ADD COLUMN IF NOT EXISTS \"PostalCode\""));
+            Assert.That(sql, Does.Contain("UX_Locality_DistrictId_LocalityCode"));
+        });
+    }
+
     [TestCase(nameof(LocationController.GetLocality), "Locality/option")]
     [TestCase(nameof(LocationController.GetLocalityType), "LocalityType/option")]
     public void Location_lookup_routes_are_exposed(string actionName, string route)
