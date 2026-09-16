@@ -20,6 +20,7 @@ namespace axionpro.application
             services.AddTransient( typeof(MediatR.IPipelineBehavior<,>),typeof(Features.EmployeeCmd.EmployeeTenantPermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.DepartmentCmd.DepartmentPermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.EmployeeTypeCmd.EmployeeTypePermissionBehavior<,>));
+            services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.GenericPolicyCmd.GenericPolicyPermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.DesignationCmd.DesignationPermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.RoleCmd.RolePermissionBehavior<,>));
             services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(Features.TenantManagementCmd.TenantManagementPermissionBehavior<,>));

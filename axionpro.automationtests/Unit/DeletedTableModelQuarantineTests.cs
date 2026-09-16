@@ -12,7 +12,7 @@ public sealed class DeletedTableModelQuarantineTests
         "CandidateCategorySkill", "EmployeeDeviceAccessWindow", "InsurancePolicy",
         "InsurancePolicyDocument", "LeaveRule", "LeaveSandwichRule",
         "LeaveSandwichRuleMapping", "MealAllowancePolicyByDesignation",
-        "PolicyLeaveTypeMapping", "PolicyType", "PolicyTypeDocument",
+        "PolicyLeaveTypeMapping", "PolicyTypeDocument",
         "PolicyTypeInsuranceMapping", "ServiceProvider",
         "TenantEmployeeSectionDefault", "TravelAllowancePolicyByDesignation",
         "TravelMode", "UnStructuredPolicyTypeMappingWithEmployeeType",

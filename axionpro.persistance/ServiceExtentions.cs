@@ -131,6 +131,7 @@ namespace axionpro.persistance
             services.AddScoped<ICommonServiceSyncRepository, CommonServiceSyncRepository>();
             services.AddScoped<ITenantIndustryRepository, TenantIndustryRepository>();
             services.AddScoped<IPolicyTypeRepository, PolicyTypeRepository>();
+            services.AddScoped<IGenericPolicyRepository, GenericPolicyRepository>();
             services.AddScoped<IGenderRepository, GenderRepository>();
             services.AddScoped<ISandwitchRuleRepository, SandwitchRuleRepository>();
             services.AddScoped<ILeaveRuleRepository, LeaveRuleRepository>();

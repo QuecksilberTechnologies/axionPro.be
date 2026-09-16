@@ -1805,3 +1805,32 @@ The earlier mapper-only status above is superseded by this section.
   rejects newer Host bulk master values. This is explicitly a failed HostBulk acceptance rerun, not
   an EmployeeBulk pass or an Employee profile regression. Reapply/verify the Host bulk migration on
   the isolated fixture before claiming the full suite green.
+
+### Tenant policy durable imports — implemented locally (2026-09-16)
+
+- Added Policy Type (master 12), Policy Definition (13), and Policy Assignment
+  (14) to the existing durable job engine. No separate queue or permission model
+  was introduced.
+- Routes are under `/api/TenantPolicy/bulk/{target}` for `types`, `definitions`,
+  and `assignments`: preview, confirm, job, jobs, retry, cancel, template and report.
+- Each target binds to its existing leaf module: `TENANT_POLICY_TYPES`,
+  `TENANT_POLICY_DEFINITIONS`, or `TENANT_POLICY_ASSIGNMENTS`. The worker checks
+  authorization again before writes.
+- Definition creates version 1 as Draft. Assignment accepts only a Published
+  version and creates missing Assigned acknowledgement evidence. Policy Type can
+  reactivate an inactive, non-deleted match when the source requests active.
+- Preview and worker-time validation cover required values, source duplicates,
+  ISO dates, JSON shape, active rule types, same-tenant references, geography
+  hierarchy and published assignment targets.
+- Local API build passed. Focused policy and affected regression tests: 61 passed,
+  3 existing environment-dependent tests skipped, 0 failed. PostgreSQL policy
+  lifecycle and deployed authenticated verification were not run because no
+  policy test connection/deployed context was configured. Status is **WIP /
+  release-blocked**, not COMPLETE.
+- UI contract: `docs/UIdeveloperDoc/TENANT_POLICY_API.md`. Evidence:
+  `docs/testing/policy/bulk-import/2026-09-16.md`.
+- Release migration `AddPolicyBulkImport.sql` extends the durable master check to
+  14. The API publish includes it and `ApplyBulkImportMigrations.ps1
+  -PolicyBulkOnly` discovers it; validate-only passed against Development config
+  without changing the database.
+- Release publish passed and included both the policy migration and runner.

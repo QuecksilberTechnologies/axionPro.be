@@ -246,6 +246,12 @@ public sealed partial class BulkImportRepository(
             await transaction.CommitAsync(cancellationToken);
             return true;
         }
+        if (job.Master is >= (int)BulkImportMaster.PolicyType and <= (int)BulkImportMaster.PolicyAssignment)
+        {
+            await ProcessPolicyBatchAsync(job, preview, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return true;
+        }
         var current = await CurrentMasters(job, cancellationToken);
         var end = Math.Min(preview.Rows.Count, job.NextRow + Math.Clamp(options.Value.BatchSize, 1, 200));
         for (var index = job.NextRow; index < end; index++)
@@ -384,6 +390,9 @@ public sealed partial class BulkImportRepository(
             BulkImportMaster.HostSubModule => BulkImportConstants.HostSubModuleBulkModuleCode,
             BulkImportMaster.HostOperation => BulkImportConstants.HostOperationBulkModuleCode,
             BulkImportMaster.HostModuleOperation => BulkImportConstants.HostModuleOperationBulkModuleCode,
+            BulkImportMaster.PolicyType => BulkImportConstants.PolicyTypeModuleCode,
+            BulkImportMaster.PolicyDefinition => BulkImportConstants.PolicyDefinitionModuleCode,
+            BulkImportMaster.PolicyAssignment => BulkImportConstants.PolicyAssignmentModuleCode,
             _ => "ROLE"
         };
         var operation = await context.Operations.AsNoTracking().SingleOrDefaultAsync(item => item.Id == job.OperationId, cancellationToken);

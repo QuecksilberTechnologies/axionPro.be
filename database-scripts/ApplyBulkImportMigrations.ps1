@@ -14,6 +14,7 @@ param(
     [string] $Environment,
     [string] $PsqlPath = 'psql',
     [switch] $HostBulkOnly,
+    [switch] $PolicyBulkOnly,
     [switch] $ValidateOnly
 )
 $ErrorActionPreference = 'Stop'
@@ -83,6 +84,9 @@ if ($HostBulkOnly) {
     # Existing Employee bulk deployments need only the additive Host upgrade and menu catalogue.
     $scripts = @('AddHostBulkImport.sql', 'SeedHostBulkImportModules.sql')
 }
+if ($PolicyBulkOnly) {
+    $scripts = @('AddPolicyBulkImport.sql')
+}
 foreach ($script in $scripts) {
     if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $script))) { throw "Missing migration: $script" }
 }
@@ -109,7 +113,10 @@ try {
         & $PsqlPath --no-psqlrc --no-password --set ON_ERROR_STOP=1 --file (Join-Path $PSScriptRoot $script)
         if ($LASTEXITCODE -ne 0) { throw "Migration failed: $script. Later scripts were not run; fix the reported data/schema problem before retrying." }
     }
-    if ($HostBulkOnly) {
+    if ($PolicyBulkOnly) {
+        Write-Output 'Policy bulk migration complete. Restart the API and worker, then run authenticated lifecycle acceptance.'
+    }
+    elseif ($HostBulkOnly) {
         Write-Output 'Host bulk migrations complete. Start/restart the API and worker; grant View/Import through the existing Host role permission flow.'
     }
     else {

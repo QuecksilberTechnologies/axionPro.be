@@ -13,7 +13,10 @@ public enum BulkImportMaster
     HostModule = 8,
     HostSubModule = 9,
     HostOperation = 10,
-    HostModuleOperation = 11
+    HostModuleOperation = 11,
+    PolicyType = 12,
+    PolicyDefinition = 13,
+    PolicyAssignment = 14
 }
 
 /// <summary>Preview outcomes only; Ready is not a persisted record.</summary>

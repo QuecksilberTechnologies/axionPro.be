@@ -35,6 +35,12 @@ public partial class PolicyType
 
     public bool HasPolicyDocUploaded { get; set; }
 
+    public int? PolicyCategoryId { get; set; }
+
+    public string? PolicyTypeCode { get; set; }
+
+    public string? DefaultCurrencyCode { get; set; }
+
     public virtual ICollection<AccommodationAllowancePolicyByDesignation> AccommodationAllowancePolicyByDesignation { get; set; } = new List<AccommodationAllowancePolicyByDesignation>();
 
     public virtual ICollection<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; } = new List<EmployeePolicyEnrollment>();

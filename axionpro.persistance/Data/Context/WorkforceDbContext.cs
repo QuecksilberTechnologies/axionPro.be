@@ -23,7 +23,7 @@ namespace axionpro.persistance.Data.Context
     /// <summary>
     /// Represents the AxionPro database context and its entity mappings.
     /// </summary>
-    public class WorkforceDbContext : DbContext, IWorkforcedbContext
+    public partial class WorkforceDbContext : DbContext, IWorkforcedbContext
     {
 
 
@@ -220,6 +220,22 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<EmployeeIdentity> EmployeeIdentities { get; set; }
 
         public virtual DbSet<PolicyType> PolicyTypes { get; set; }
+
+        public virtual DbSet<PolicyCategory> PolicyCategories { get; set; }
+        public virtual DbSet<PolicyStatus> PolicyStatuses { get; set; }
+        public virtual DbSet<PolicyRuleType> PolicyRuleTypes { get; set; }
+        public virtual DbSet<PolicyDocumentType> PolicyDocumentTypes { get; set; }
+        public virtual DbSet<Policy> Policies { get; set; }
+        public virtual DbSet<PolicyVersion> PolicyVersions { get; set; }
+        public virtual DbSet<PolicyRule> PolicyRules { get; set; }
+        public virtual DbSet<PolicyApplicability> PolicyApplicabilities { get; set; }
+        public virtual DbSet<PolicyAssignment> PolicyAssignments { get; set; }
+        public virtual DbSet<PolicyException> PolicyExceptions { get; set; }
+        public virtual DbSet<PolicyDocument> PolicyDocuments { get; set; }
+        public virtual DbSet<PolicyApprovalStage> PolicyApprovalStages { get; set; }
+        public virtual DbSet<PolicyApprovalHistory> PolicyApprovalHistories { get; set; }
+        public virtual DbSet<PolicyAcknowledgement> PolicyAcknowledgements { get; set; }
+        public virtual DbSet<PolicyChangeAudit> PolicyChangeAudits { get; set; }
 
         public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
@@ -3482,6 +3498,8 @@ namespace axionpro.persistance.Data.Context
 
             #endregion
 
+            ConfigureGenericPolicyFramework(modelBuilder);
+
             // These legacy objects were retired from the production schema.
             // Keep their source contracts temporarily for dependent-code retirement,
             // but exclude them from EF so startup and active features match the DB.
@@ -3497,7 +3515,6 @@ namespace axionpro.persistance.Data.Context
             modelBuilder.Ignore<LeaveSandwichRuleMapping>();
             modelBuilder.Ignore<MealAllowancePolicyByDesignation>();
             modelBuilder.Ignore<PolicyLeaveTypeMapping>();
-            modelBuilder.Ignore<PolicyType>();
             modelBuilder.Ignore<PolicyTypeDocument>();
             modelBuilder.Ignore<PolicyTypeInsuranceMapping>();
             modelBuilder.Ignore<ServiceProvider>();

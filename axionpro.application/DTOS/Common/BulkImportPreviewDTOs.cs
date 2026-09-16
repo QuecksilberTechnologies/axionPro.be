@@ -109,6 +109,8 @@ public sealed class BulkImportPreviewRowDTO
     public BulkImportRowStatus Status { get; set; }
     public int? ExistingId { get; set; }
     public int? DepartmentId { get; set; }
+    public long? PolicyVersionId { get; set; }
+    public long? TargetEmployeeId { get; set; }
     public List<string> Errors { get; set; } = new();
 }
 

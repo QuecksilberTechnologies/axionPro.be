@@ -1023,7 +1023,7 @@ public sealed class HostApiRegressionTests
     public void Host_seed_sql_has_balanced_plpgsql_blocks_and_no_runtime_bypass_marker()
     {
         var seed = LoadProductionSeed();
-        var dollarQuoteCount = Regex.Matches(seed, "(?m)^\\$\\$$").Count;
+        var dollarQuoteCount = Regex.Matches(seed, "\\$\\$").Count;
 
         Assert.Multiple(() =>
         {

@@ -34,6 +34,10 @@ public sealed partial class BulkImportWorkflowService(
             ? await repository.PreviewEmployeesAsync(
                 await BulkImportTableReader.ReadAsync(request, cancellationToken),
                 request.ColumnMappingJson, actor, cancellationToken)
+            : master is BulkImportMaster.PolicyType or BulkImportMaster.PolicyDefinition or BulkImportMaster.PolicyAssignment
+                ? await repository.PreviewPolicyAsync(master,
+                    await BulkImportTableReader.ReadAsync(request, cancellationToken),
+                    request.ColumnMappingJson, actor, cancellationToken)
             : await previewService.PreviewAsync(master, request, cancellationToken);
         return await repository.SaveDraftAsync(preview, request, actor, cancellationToken);
     }
@@ -63,6 +67,9 @@ public sealed partial class BulkImportWorkflowService(
                 BulkImportMaster.Designation => "DesignationName,DepartmentName,Description,IsActive\r\n",
                 BulkImportMaster.EmployeeType => string.Join(",", BulkImportConstants.TypeName,
                     BulkImportConstants.Description, BulkImportConstants.Remark, BulkImportConstants.IsActive) + "\r\n",
+                BulkImportMaster.PolicyType => string.Join(",", BulkImportConstants.PolicyTypeColumns) + "\r\n",
+                BulkImportMaster.PolicyDefinition => string.Join(",", BulkImportConstants.PolicyDefinitionColumns) + "\r\n",
+                BulkImportMaster.PolicyAssignment => string.Join(",", BulkImportConstants.PolicyAssignmentColumns) + "\r\n",
                 _ => "RoleName,RoleType,Remark,IsActive\r\n"
             };
         }

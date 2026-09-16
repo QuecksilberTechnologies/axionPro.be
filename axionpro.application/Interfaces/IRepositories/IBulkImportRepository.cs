@@ -12,6 +12,9 @@ public interface IBulkImportRepository
     Task<BulkImportPreviewResponseDTO> PreviewEmployeesAsync(
         BulkImportTableDTO table, string? mappingJson, CommonDecodedResult actor,
         CancellationToken cancellationToken);
+    Task<BulkImportPreviewResponseDTO> PreviewPolicyAsync(
+        BulkImportMaster master, BulkImportTableDTO table, string? mappingJson,
+        CommonDecodedResult actor, CancellationToken cancellationToken);
 
     Task<BulkImportPreviewResponseDTO> SaveDraftAsync(
         BulkImportPreviewResponseDTO preview,

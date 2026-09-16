@@ -1,5 +1,17 @@
 # Generic Tenant Policy Framework
 
+## Implementation status — 2026-09-16
+
+Persistence, seed catalogue, EF mappings, permission-checked API foundation,
+policy type CRUD/status, draft/version operations, rules/applicability, lifecycle,
+employee resolution, assignments, exceptions, acknowledgements, document storage,
+approval-stage administration/enforcement and audit read APIs are implemented
+locally. Assignment, exception and acknowledgement read APIs are also available.
+Focused policy and affected regression tests pass 61 with 3 environment skips.
+Durable policy bulk import is implemented locally. PostgreSQL API integration
+testing and deployed authenticated acceptance remain pending; they are
+not recorded as complete.
+
 ## Scope and design guarantees
 
 This phase creates the persistence model and permission catalogue. Controllers,
@@ -64,8 +76,14 @@ timestamps are stored with time zone.
 5. Tenant creates one stable `Policy` identity.
 6. System creates `PolicyVersion` 1 in Draft status.
 7. Rules, applicability rows and documents are saved against that draft version.
-8. Submit changes status to Under Review; reviewers write `PolicyApprovalHistory`.
-9. Approval changes status to Approved. Publish closes the previous current
+8. Submit changes status to Under Review. Active mandatory stages are resolved
+   from global and category-specific configuration in `StageOrder`. An approver
+   must hold the stage's tenant role; one employee cannot approve a stage twice.
+   `MinimumApprovals` must be reached before the next stage begins. A rejection
+   closes that approval cycle; resubmission starts counting after that rejection.
+9. Completion of every mandatory stage changes status to Approved. If no stage
+   is configured, the existing direct approve transition remains available.
+   Publish closes the previous current
    version, marks the approved version current and publishes it.
 10. The evaluator resolves eligible employees and writes `PolicyAssignment` rows.
 11. Published policy delivery creates `PolicyAcknowledgement` rows.
@@ -88,7 +106,8 @@ Resolution order is deterministic:
 7. tenant-wide default.
 
 Within the same level, lower numeric `Priority` wins. Exclusion wins over inclusion
-at equal specificity and priority. Only rows effective on the evaluated local date
+at equal specificity and priority. Manual assignment is evaluated before rules.
+Only rows effective on the evaluated local date
 participate. A transaction such as leave calculation must persist the applied
 `PolicyVersionId` so later policy changes do not rewrite history.
 
@@ -208,6 +227,12 @@ Import uses the existing upload, preview, confirm, worker and report pipeline.
 Policy Type, Policy Definition and Assignment modules expose Import/Export. A row
 must be validated for tenant ownership, code uniqueness, foreign-key scope,
 effective dates and JSON schema before confirmation.
+
+The three imports now use durable masters 12–14 and routes below
+`/api/TenantPolicy/bulk/{target}`. Definitions create Draft version 1;
+assignments require Published versions and create acknowledgement evidence. The
+worker repeats authorization and row validation. Local build/contracts pass;
+isolated PostgreSQL lifecycle and deployed acceptance remain release gates.
 
 ## Conflict and validation rules for the controller phase
 

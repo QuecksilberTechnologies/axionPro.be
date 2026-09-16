@@ -22,6 +22,9 @@ public static class BulkImportConstants
     public const string EmployeeTypeModuleCode = "EMPLOYEE_TYPE";
     public const string EmployeeCodeModuleCode = "TENANT_EMPLOYEE_CODE";
     public const string EmployeeModuleCode = "EMP_LIST";
+    public const string PolicyTypeModuleCode = "TENANT_POLICY_TYPES";
+    public const string PolicyDefinitionModuleCode = "TENANT_POLICY_DEFINITIONS";
+    public const string PolicyAssignmentModuleCode = "TENANT_POLICY_ASSIGNMENTS";
     public const string EmployeeCodeLockPrefix = "employee-code-pattern:";
     public const string EmployeeLoginLockPrefix = "employee-login:";
     public const string EmployeeCode = "EmployeeCode";
@@ -36,4 +39,18 @@ public static class BulkImportConstants
     public const string Description = "Description";
     public const string Remark = "Remark";
     public const string IsActive = "IsActive";
+    public static readonly string[] PolicyTypeColumns =
+    [
+        "PolicyTypeCode", "PolicyName", "PolicyCategoryCode", "Description",
+        "DefaultCurrencyCode", IsActive
+    ];
+    public static readonly string[] PolicyDefinitionColumns =
+    [
+        "PolicyCode", "PolicyName", "PolicyTypeCode", "EffectiveFrom", "EffectiveTo",
+        "Summary", "DefaultCurrencyCode", "RulesJson", "ApplicabilityJson"
+    ];
+    public static readonly string[] PolicyAssignmentColumns =
+    [
+        "PolicyCode", "VersionNumber", "EmployeeCode", "EffectiveFrom", "EffectiveTo", "IsMandatory"
+    ];
 }

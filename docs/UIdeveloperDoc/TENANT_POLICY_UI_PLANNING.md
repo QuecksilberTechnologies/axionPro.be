@@ -2,9 +2,11 @@
 
 ## Current phase
 
-The persistence and permission catalogue exist. Controllers and endpoint contracts
-are not implemented yet. Routes below are the stable module seed routes and UI
-planning targets, not claims of available APIs.
+The persistence, EF mappings, permission pipeline, core policy APIs, approval-stage
+administration/enforcement and operational list APIs are implemented locally. See
+[TENANT_POLICY_API.md](TENANT_POLICY_API.md) for callable routes and examples.
+Durable bulk endpoints and UI contract are implemented locally. PostgreSQL
+lifecycle testing and deployed acceptance remain pending release gates.
 
 ## Screen evaluation
 
@@ -46,9 +48,9 @@ response. Numeric IDs must never be hard-coded. Hide or disable actions accordin
 to operations mapped to each module. A valid authenticated user without an action
 must receive 403 when endpoints are implemented; invalid/expired authentication remains 401.
 
-## Planned API groups
+## API handoff
 
-The next phase should provide API groups for lookups, policy type, policy,
-version/rules/applicability/documents, lifecycle actions, assignments, exceptions,
-approvals, acknowledgements, audit and resolution preview. Exact request/response
-examples will be added here when those endpoints are implemented and tested.
+The implemented API groups cover lookups, policy types, policy drafts, version
+cloning, rules/applicability replacement, approval stages and progress, lifecycle
+transitions, resolution, assignments, exceptions and acknowledgements. Exact contracts are maintained in
+[TENANT_POLICY_API.md](TENANT_POLICY_API.md).
