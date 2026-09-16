@@ -139,6 +139,26 @@ public sealed class GenericPolicyApiContractTests
     }
 
     [Test]
+    public void Ui_catalog_documents_every_controller_operation_with_request_and_response_examples()
+    {
+        var catalog = ReadRepositoryFile("docs", "UIdeveloperDoc", "TENANT_POLICY_ENDPOINT_CATALOG.md");
+        var methods = typeof(TenantPolicyController).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            .SelectMany(method => method.GetCustomAttributes<HttpMethodAttribute>())
+            .ToArray();
+        Assert.Multiple(() =>
+        {
+            Assert.That(methods, Has.Length.EqualTo(37));
+            for (var number = 1; number <= methods.Length; number++)
+            {
+                Assert.That(catalog, Does.Contain($"### {number}."), $"Missing documented endpoint number {number}");
+            }
+            Assert.That(catalog, Does.Contain("Input body"));
+            Assert.That(catalog, Does.Contain("Output sample"));
+            Assert.That(catalog, Does.Contain("Current verification status"));
+        });
+    }
+
+    [Test]
     public void Every_generic_policy_request_carries_dynamic_permission_ids()
     {
         var requestTypes = typeof(CreatePolicyRequestDTO).Assembly.GetTypes().Where(x => x.Namespace == typeof(CreatePolicyRequestDTO).Namespace && x.Name.EndsWith("RequestDTO", StringComparison.Ordinal)).ToArray();

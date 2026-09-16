@@ -1,5 +1,8 @@
 # Tenant Policy API handoff
 
+For one-by-one request and response examples for all 37 operations, see
+[TENANT_POLICY_ENDPOINT_CATALOG.md](TENANT_POLICY_ENDPOINT_CATALOG.md).
+
 ## Availability and authentication
 
 The local API now exposes the generic policy foundation under `/api/TenantPolicy`.

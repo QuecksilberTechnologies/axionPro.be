@@ -36,6 +36,9 @@ this folder. Include:
 This handoff is part of the endpoint's completion checklist so another UI developer,
 Claude or Codex can implement the frontend without guessing backend behavior.
 
+- [Tenant Policy endpoint catalogue](TENANT_POLICY_ENDPOINT_CATALOG.md) — all
+  policy routes with copyable request/response examples and verification status.
+
 Latest Render API evidence: [2026-09-13 smoke test](../RENDER_SMOKE_TEST_2026-09-13.md).
 
 Scenario test evidence is organized by module, scenario and date under
