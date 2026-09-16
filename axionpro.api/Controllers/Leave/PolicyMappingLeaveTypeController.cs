@@ -15,6 +15,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
+#if false // LEGACY POLICY API: disabled in favor of TenantPolicyController.
 namespace axionpro.api.Controllers.Leave
 {
     [ApiController]
@@ -158,4 +159,5 @@ namespace axionpro.api.Controllers.Leave
         //}
     }
 }
+#endif
 

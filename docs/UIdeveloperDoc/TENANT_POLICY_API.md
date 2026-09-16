@@ -2,6 +2,8 @@
 
 For one-by-one request and response examples for all 37 operations, see
 [TENANT_POLICY_ENDPOINT_CATALOG.md](TENANT_POLICY_ENDPOINT_CATALOG.md).
+For the beginner-friendly business order and the purpose of each API, see
+[TENANT_POLICY_API_FLOW_HINGLISH.md](TENANT_POLICY_API_FLOW_HINGLISH.md).
 
 ## Availability and authentication
 

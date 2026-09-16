@@ -14,6 +14,7 @@ using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
+#if false // LEGACY POLICY API: disabled in favor of TenantPolicyController.
 namespace axionpro.api.Controllers.Leave
 {
     [Route("api/[controller]")]
@@ -125,5 +126,9 @@ namespace axionpro.api.Controllers.Leave
     }
 
 }
+#endif
+
+// Compatibility namespace for existing using directives; no legacy routes are exposed.
+namespace axionpro.api.Controllers.Leave { }
 
 

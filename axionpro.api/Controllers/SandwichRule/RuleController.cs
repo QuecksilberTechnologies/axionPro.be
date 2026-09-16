@@ -17,6 +17,7 @@ using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
+#if false // LEGACY POLICY API: disabled in favor of TenantPolicyController.
 namespace axionpro.api.Controllers.SandwichRule
 {
     /// <summary>
@@ -225,4 +226,5 @@ namespace axionpro.api.Controllers.SandwichRule
     }
 
 }
+#endif
 

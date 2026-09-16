@@ -42,6 +42,7 @@ public sealed class TenantLocationController(IMediator mediator, ILoggerService 
     #endregion
 }
 
+#if false // LEGACY POLICY API: incompatible old AttendancePolicy surface; use TenantPolicyController.
 /// <summary>Exposes attendance-policy configuration endpoints.</summary>
 [Route("api/[controller]")]
 public sealed class AttendancePolicyController(IMediator mediator, ILoggerService logger) : TenantConfigurationControllerBase(mediator, logger)
@@ -55,6 +56,7 @@ public sealed class AttendancePolicyController(IMediator mediator, ILoggerServic
     [HttpDelete("delete/{id:int}")] public async Task<IActionResult> Delete(int id, CancellationToken ct) { Logger.LogInfo("Received AttendancePolicy delete request."); return Ok(await Mediator.Send(new DeleteAttendancePolicyCommand(id), ct)); }
     #endregion
 }
+#endif
 
 /// <summary>Exposes employee-location-assignment configuration endpoints.</summary>
 [Route("api/[controller]")]

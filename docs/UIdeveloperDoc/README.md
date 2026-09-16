@@ -38,6 +38,8 @@ Claude or Codex can implement the frontend without guessing backend behavior.
 
 - [Tenant Policy endpoint catalogue](TENANT_POLICY_ENDPOINT_CATALOG.md) — all
   policy routes with copyable request/response examples and verification status.
+- [Tenant Policy API flow — Hinglish](TENANT_POLICY_API_FLOW_HINGLISH.md) — zero-level
+  business sequence, screen-to-API mapping and the purpose of all 37 routes.
 
 Latest Render API evidence: [2026-09-13 smoke test](../RENDER_SMOKE_TEST_2026-09-13.md).
 
