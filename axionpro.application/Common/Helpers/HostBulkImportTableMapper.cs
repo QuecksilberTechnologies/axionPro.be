@@ -60,8 +60,7 @@ public static class HostBulkImportTableMapper
         {
             requested = string.IsNullOrWhiteSpace(mappingJson)
                 ? new Dictionary<string, string>()
-                : JsonSerializer.Deserialize<Dictionary<string, string>>(mappingJson)
-                    ?? throw new JsonException();
+                : JsonSerializer.Deserialize<Dictionary<string, string>>(mappingJson)                    ?? throw new JsonException();
         }
         catch (JsonException)
         {
