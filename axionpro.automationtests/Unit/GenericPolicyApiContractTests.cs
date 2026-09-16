@@ -18,6 +18,39 @@ namespace axionpro.automationtests.Unit;
 public sealed class GenericPolicyApiContractTests
 {
     [Test]
+    public void Route_supplied_identifiers_skip_pre_action_model_validation()
+    {
+        var routeProperties = new (Type Type, string Property)[]
+        {
+            (typeof(PolicyByIdRequestDTO), nameof(PolicyByIdRequestDTO.Id)),
+            (typeof(UpdateGenericPolicyTypeRequestDTO), nameof(UpdateGenericPolicyTypeRequestDTO.Id)),
+            (typeof(ChangePolicyTypeStatusRequestDTO), nameof(ChangePolicyTypeStatusRequestDTO.Id)),
+            (typeof(UpdatePolicyDraftRequestDTO), nameof(UpdatePolicyDraftRequestDTO.PolicyId)),
+            (typeof(UpdatePolicyDraftRequestDTO), nameof(UpdatePolicyDraftRequestDTO.PolicyVersionId)),
+            (typeof(ClonePolicyVersionRequestDTO), nameof(ClonePolicyVersionRequestDTO.PolicyId)),
+            (typeof(PolicyTransitionRequestDTO), nameof(PolicyTransitionRequestDTO.PolicyVersionId)),
+            (typeof(RemovePolicyAssignmentRequestDTO), nameof(RemovePolicyAssignmentRequestDTO.AssignmentId)),
+            (typeof(ApprovePolicyExceptionRequestDTO), nameof(ApprovePolicyExceptionRequestDTO.ExceptionId)),
+            (typeof(PolicyDocumentsRequestDTO), nameof(PolicyDocumentsRequestDTO.PolicyVersionId)),
+            (typeof(DeletePolicyDocumentRequestDTO), nameof(DeletePolicyDocumentRequestDTO.DocumentId)),
+            (typeof(PolicyVersionAccessRequestDTO), nameof(PolicyVersionAccessRequestDTO.PolicyVersionId)),
+            (typeof(UpdatePolicyApprovalStageRequestDTO), nameof(UpdatePolicyApprovalStageRequestDTO.Id)),
+            (typeof(DeletePolicyApprovalStageRequestDTO), nameof(DeletePolicyApprovalStageRequestDTO.Id))
+        };
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (type, propertyName) in routeProperties)
+            {
+                var property = type.GetProperty(propertyName);
+                Assert.That(property, Is.Not.Null, $"{type.Name}.{propertyName}");
+                Assert.That(property!.GetCustomAttributes<System.ComponentModel.DataAnnotations.ValidationAttribute>(), Is.Empty,
+                    $"{type.Name}.{propertyName} is supplied by the route after automatic DTO validation.");
+            }
+        });
+    }
+
+    [Test]
     public void Ef_model_maps_all_generic_policy_tables_and_json_columns()
     {
         var options = new DbContextOptionsBuilder<WorkforceDbContext>().UseNpgsql("Host=localhost;Database=model_only;Username=x;Password=x").Options;

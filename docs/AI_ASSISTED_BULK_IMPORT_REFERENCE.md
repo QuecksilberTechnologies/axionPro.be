@@ -7,6 +7,17 @@ endpoint documentation, existing permission pipelines, constants, enums and mapp
 Ask before implementing unclear business rules. COMPLETE below means the stated
 backend scope, not all future bulk modules or production deployment.
 
+## 2026-09-16 tenant policy live acceptance update
+
+- **COMPLETE:** target DB prerequisites, generic policy schema, durable bulk
+  base, Policy masters 12–14 constraint, and tenant policy module seed applied.
+- **COMPLETE:** authenticated Policy Type upload → preview → confirm → worker →
+  report/DB reconciliation on Render (one row, Completed, one created).
+- **PENDING:** Policy Definition and Policy Assignment live bulk acceptance.
+- **PENDING:** live cancel timing and failed-row retry acceptance.
+- Evidence: `docs/testing/policy/target-db-migration/2026-09-16.md` and
+  `docs/testing/policy/bulk-import/2026-09-16.md`.
+
 ## 2026-09-15 tenant master hierarchy and entitlement repair
 
 - **COMPLETE on Render development DB:** `DEPARTMENT`, `DESIGNATION`, `ROLE` and

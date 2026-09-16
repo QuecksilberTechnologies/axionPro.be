@@ -54,6 +54,7 @@ public sealed class PolicyFrameworkSchemaTests
             }
 
             Assert.That(sql, Does.Contain("\"ModuleScope\"=1"));
+            Assert.That(sql, Does.Contain("ADD COLUMN IF NOT EXISTS \"PageName\""));
             Assert.That(sql, Does.Contain("\"PageName\"=COALESCE(module.\"PageName\",seed.\"PageName\")"));
             Assert.That(sql, Does.Contain("INSERT INTO axionpro.\"PlanModuleMapping\""));
         });

@@ -5,6 +5,9 @@
 */
 BEGIN;
 
+ALTER TABLE axionpro."Module"
+    ADD COLUMN IF NOT EXISTS "PageName" character varying(100);
+
 CREATE TEMP TABLE policy_module_seed
 (
     "ModuleCode" varchar(50) PRIMARY KEY,

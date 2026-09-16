@@ -20,7 +20,7 @@ public sealed class PolicyListRequestDTO : PermissionRequestDTO
 
 public sealed class PolicyByIdRequestDTO : PermissionRequestDTO
 {
-    [Range(1, long.MaxValue)] public long Id { get; set; }
+    public long Id { get; set; }
 }
 
 public class CreateGenericPolicyTypeRequestDTO : PermissionRequestDTO
@@ -34,13 +34,13 @@ public class CreateGenericPolicyTypeRequestDTO : PermissionRequestDTO
 
 public sealed class UpdateGenericPolicyTypeRequestDTO : CreateGenericPolicyTypeRequestDTO
 {
-    [Range(1, int.MaxValue)] public int Id { get; set; }
+    public int Id { get; set; }
     public bool IsActive { get; set; } = true;
 }
 
 public sealed class ChangePolicyTypeStatusRequestDTO : PermissionRequestDTO
 {
-    [Range(1, int.MaxValue)] public int Id { get; set; }
+    public int Id { get; set; }
     public bool IsActive { get; set; }
 }
 
@@ -61,8 +61,8 @@ public class CreatePolicyRequestDTO : PermissionRequestDTO
 
 public sealed class UpdatePolicyDraftRequestDTO : CreatePolicyRequestDTO
 {
-    [Range(1, long.MaxValue)] public long PolicyId { get; set; }
-    [Range(1, long.MaxValue)] public long PolicyVersionId { get; set; }
+    public long PolicyId { get; set; }
+    public long PolicyVersionId { get; set; }
 }
 
 public sealed class PolicyRuleInputDTO
@@ -96,7 +96,7 @@ public sealed class PolicyApplicabilityInputDTO
 
 public sealed class ClonePolicyVersionRequestDTO : PermissionRequestDTO
 {
-    [Range(1, long.MaxValue)] public long PolicyId { get; set; }
+    public long PolicyId { get; set; }
     [Range(1, long.MaxValue)] public long SourceVersionId { get; set; }
     public DateOnly EffectiveFrom { get; set; }
     [MaxLength(1000)] public string? ChangeSummary { get; set; }
@@ -104,7 +104,7 @@ public sealed class ClonePolicyVersionRequestDTO : PermissionRequestDTO
 
 public sealed class PolicyTransitionRequestDTO : PermissionRequestDTO
 {
-    [Range(1, long.MaxValue)] public long PolicyVersionId { get; set; }
+    public long PolicyVersionId { get; set; }
     [Required, MaxLength(20)] public string Action { get; set; } = null!;
     [MaxLength(1000)] public string? Comments { get; set; }
 }
@@ -126,7 +126,7 @@ public sealed class AssignPolicyRequestDTO : PermissionRequestDTO
 
 public sealed class RemovePolicyAssignmentRequestDTO : PermissionRequestDTO
 {
-    [Range(1, long.MaxValue)] public long AssignmentId { get; set; }
+    public long AssignmentId { get; set; }
 }
 
 public sealed class CreatePolicyExceptionRequestDTO : PermissionRequestDTO
@@ -142,7 +142,7 @@ public sealed class CreatePolicyExceptionRequestDTO : PermissionRequestDTO
 
 public sealed class ApprovePolicyExceptionRequestDTO : PermissionRequestDTO
 {
-    [Range(1, long.MaxValue)] public long ExceptionId { get; set; }
+    public long ExceptionId { get; set; }
     public bool Approve { get; set; }
 }
 
@@ -164,17 +164,17 @@ public sealed class UploadPolicyDocumentRequestDTO : PermissionRequestDTO
 
 public sealed class PolicyDocumentsRequestDTO : PermissionRequestDTO
 {
-    [Range(1, long.MaxValue)] public long PolicyVersionId { get; set; }
+    public long PolicyVersionId { get; set; }
 }
 
 public sealed class DeletePolicyDocumentRequestDTO : PermissionRequestDTO
 {
-    [Range(1, long.MaxValue)] public long DocumentId { get; set; }
+    public long DocumentId { get; set; }
 }
 
 public sealed class PolicyVersionAccessRequestDTO : PermissionRequestDTO
 {
-    [Range(1, long.MaxValue)] public long PolicyVersionId { get; set; }
+    public long PolicyVersionId { get; set; }
 }
 
 public sealed class PolicyApprovalStageListRequestDTO : PermissionRequestDTO
@@ -195,13 +195,13 @@ public class CreatePolicyApprovalStageRequestDTO : PermissionRequestDTO
 
 public sealed class UpdatePolicyApprovalStageRequestDTO : CreatePolicyApprovalStageRequestDTO
 {
-    [Range(1, long.MaxValue)] public long Id { get; set; }
+    public long Id { get; set; }
     public bool IsActive { get; set; } = true;
 }
 
 public sealed class DeletePolicyApprovalStageRequestDTO : PermissionRequestDTO
 {
-    [Range(1, long.MaxValue)] public long Id { get; set; }
+    public long Id { get; set; }
 }
 
 public sealed record PolicyLookupResponseDTO(int Id, string Code, string Name, string? Description = null);

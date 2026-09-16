@@ -442,6 +442,12 @@ RowNumber,Status,Errors
 - PASS: deployed Swagger exposes all 37 operations.
 - PASS: unauthenticated routing/auth smoke — 35 returned 401; the two multipart
   routes returned 415 for intentionally incorrect JSON content type.
-- BLOCKED: authenticated output and database mutation/reconciliation require a
-  valid tenant JWT whose tenant role has the seeded policy module operations.
-- NOT RUN: object-storage document round trip and durable bulk worker completion.
+- PASS: authenticated policy lookup and Policy Type create on Render.
+- PASS: authenticated Policy Type bulk preview → confirm → worker completion,
+  report access and target-table reconciliation.
+- FIXED LOCALLY, DEPLOYMENT PENDING: path-supplied IDs no longer fail automatic
+  body/query validation with a false `Id must be between 1...` response. This
+  affects update/status/detail/version/document/approval routes that populate an
+  identifier from the route.
+- NOT RUN: object-storage document round trip.
+- PENDING: remaining lifecycle operations and Policy Definition/Assignment bulk.

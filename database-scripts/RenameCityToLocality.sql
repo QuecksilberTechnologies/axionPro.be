@@ -73,6 +73,40 @@ WHERE locality."DistrictId" IS NULL
   AND district."Id" = locality."Id"
   AND district."StateId" = locality."StateId";
 
+-- Legacy catalogues may contain cities for a state before that state's district
+-- catalogue has been loaded. Preserve those rows under one explicit holding
+-- district per state instead of guessing a real-world district or deleting data.
+SELECT setval(
+    pg_get_serial_sequence('axionpro."District"', 'Id'),
+    COALESCE((SELECT max("Id") FROM axionpro."District"), 0) + 1,
+    false
+);
+
+INSERT INTO axionpro."District"
+("StateId", "DistrictName", "IsActive", "Remark", "AddedById", "AddedDateTime")
+SELECT DISTINCT locality."StateId",
+       'Unassigned / Legacy',
+       TRUE,
+       'Created by City-to-Locality migration for legacy rows awaiting district classification.',
+       1,
+       CURRENT_TIMESTAMP
+FROM axionpro."Locality" locality
+WHERE locality."DistrictId" IS NULL
+  AND NOT EXISTS
+  (
+      SELECT 1
+      FROM axionpro."District" district
+      WHERE district."StateId" = locality."StateId"
+        AND lower(btrim(district."DistrictName")) = 'unassigned / legacy'
+  );
+
+UPDATE axionpro."Locality" locality
+SET "DistrictId" = district."Id"
+FROM axionpro."District" district
+WHERE locality."DistrictId" IS NULL
+  AND district."StateId" = locality."StateId"
+  AND lower(btrim(district."DistrictName")) = 'unassigned / legacy';
+
 DO $$
 DECLARE
     unmapped_count bigint;

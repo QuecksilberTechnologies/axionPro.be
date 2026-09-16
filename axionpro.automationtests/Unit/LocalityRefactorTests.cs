@@ -141,6 +141,8 @@ public sealed class LocalityRefactorTests
         {
             Assert.That(sql, Does.Contain("ALTER TABLE axionpro.\"City\" RENAME TO \"Locality\""));
             Assert.That(sql, Does.Contain("district.\"Id\" = locality.\"Id\""));
+            Assert.That(sql, Does.Contain("'Unassigned / Legacy'"));
+            Assert.That(sql, Does.Contain("pg_get_serial_sequence('axionpro.\"District\"', 'Id')"));
             Assert.That(sql, Does.Contain("RAISE EXCEPTION '% Locality row(s) cannot be mapped"));
             Assert.That(sql, Does.Contain("(1, 'City', TRUE)"));
             Assert.That(sql, Does.Contain("(2, 'Town', TRUE)"));
