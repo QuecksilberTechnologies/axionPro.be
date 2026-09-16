@@ -278,12 +278,14 @@ public sealed class UpdateNewTenantCommandHandler
 
         var finalCountryId = dto.CountryId ?? location.CountryId;
         var finalStateId = dto.StateId ?? location.StateId;
-        var finalCityId = dto.CityId ?? location.CityId;
-        if ((dto.CountryId.HasValue || dto.StateId.HasValue || dto.CityId.HasValue) &&
+        var finalDistrictId = dto.DistrictId ?? location.DistrictId;
+        var finalLocalityId = dto.LocalityId ?? location.LocalityId;
+        if ((dto.CountryId.HasValue || dto.StateId.HasValue || dto.DistrictId.HasValue || dto.LocalityId.HasValue) &&
             !await _unitOfWork.TenantLocationRepository.IsValidGeographyAsync(
                 finalCountryId,
                 finalStateId,
-                finalCityId,
+                finalDistrictId,
+                finalLocalityId,
                 cancellationToken))
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
@@ -306,7 +308,8 @@ public sealed class UpdateNewTenantCommandHandler
         if (dto.LocationType.HasValue && location.LocationType != (short)dto.LocationType.Value) { location.LocationType = (short)dto.LocationType.Value; changed = true; }
         if (dto.CountryId.HasValue && location.CountryId != dto.CountryId.Value) { location.CountryId = dto.CountryId.Value; changed = true; }
         if (dto.StateId.HasValue && location.StateId != dto.StateId) { location.StateId = dto.StateId; changed = true; }
-        if (dto.CityId.HasValue && location.CityId != dto.CityId) { location.CityId = dto.CityId; changed = true; }
+        if (dto.DistrictId.HasValue && location.DistrictId != dto.DistrictId) { location.DistrictId = dto.DistrictId; changed = true; }
+        if (dto.LocalityId.HasValue && location.LocalityId != dto.LocalityId) { location.LocalityId = dto.LocalityId; changed = true; }
         if (dto.Address is not null) changed |= AssignValue(dto.Address.Trim(), location.Address, value => location.Address = value);
         if (dto.Landmark is not null) changed |= AssignValue(dto.Landmark.Trim(), location.Landmark, value => location.Landmark = value);
         if (dto.PostalCode is not null) changed |= AssignValue(dto.PostalCode.Trim(), location.PostalCode, value => location.PostalCode = value);

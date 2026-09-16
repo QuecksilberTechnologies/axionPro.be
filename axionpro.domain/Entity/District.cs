@@ -28,4 +28,6 @@ public partial class District
     public DateTime? UpdatedDateTime { get; set; }
 
     public virtual State State { get; set; } = null!;
+
+    public virtual ICollection<Locality> Localities { get; set; } = new List<Locality>();
 }

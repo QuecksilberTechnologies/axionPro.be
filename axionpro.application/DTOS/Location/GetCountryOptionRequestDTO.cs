@@ -24,4 +24,13 @@ namespace axionpro.application.DTOS.Location
         public required int StateId { get; set; }
 
     }
+
+    public class GetLocalityOptionRequestDTO : GetOptionRequestDTO
+    {
+        public required int DistrictId { get; set; }
+    }
+
+    public class GetLocalityTypeOptionRequestDTO : GetOptionRequestDTO
+    {
+    }
 }

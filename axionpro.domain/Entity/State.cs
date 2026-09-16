@@ -13,7 +13,7 @@ public partial class State
 
     public bool? IsActive { get; set; }
 
-    public virtual ICollection<City> City { get; set; } = new List<City>();
+    public virtual ICollection<Locality> Localities { get; set; } = new List<Locality>();
 
     public virtual ICollection<ComplianceRule> ComplianceRule { get; set; } = new List<ComplianceRule>();
 

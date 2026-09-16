@@ -35,7 +35,8 @@ public class CreateTenantLocationRequestDTO : TenantLocationAccessRequestDTO
     public TenantLocationType LocationType { get; set; }
     public int CountryId { get; set; }
     public int? StateId { get; set; }
-    public int? CityId { get; set; }
+    public int? DistrictId { get; set; }
+    public int? LocalityId { get; set; }
     public string? Address { get; set; }
     public string? Landmark { get; set; }
     public string? PostalCode { get; set; }
@@ -70,7 +71,8 @@ public sealed class TenantLocationFilterRequestDTO : TenantLocationAccessRequest
     public string? Search { get; set; }
     public int? CountryId { get; set; }
     public int? StateId { get; set; }
-    public int? CityId { get; set; }
+    public int? DistrictId { get; set; }
+    public int? LocalityId { get; set; }
     public TenantLocationType? LocationType { get; set; }
     public bool? IsActive { get; set; }
     public int PageNumber { get; set; } = 1;
@@ -89,8 +91,10 @@ public sealed class TenantLocationResponseDTO
     public string CountryName { get; set; } = string.Empty;
     public int? StateId { get; set; }
     public string? StateName { get; set; }
-    public int? CityId { get; set; }
-    public string? CityName { get; set; }
+    public int? DistrictId { get; set; }
+    public string? DistrictName { get; set; }
+    public int? LocalityId { get; set; }
+    public string? LocalityName { get; set; }
     public string? Address { get; set; }
     public string? Landmark { get; set; }
     public string? PostalCode { get; set; }

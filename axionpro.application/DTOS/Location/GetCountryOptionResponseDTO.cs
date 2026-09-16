@@ -37,4 +37,21 @@ namespace axionpro.application.DTOS.Location
         public bool? IsActive { get; set; }
     }
 
+    public class GetLocalityOptionResponseDTO
+    {
+        public int Id { get; set; }
+        public int DistrictId { get; set; }
+        public int StateId { get; set; }
+        public int LocalityTypeId { get; set; }
+        public string LocalityName { get; set; } = null!;
+        public string LocalityTypeName { get; set; } = null!;
+        public bool? IsActive { get; set; }
+    }
+
+    public class GetLocalityTypeOptionResponseDTO
+    {
+        public int Id { get; set; }
+        public string TypeName { get; set; } = null!;
+    }
+
 }

@@ -109,6 +109,24 @@ namespace axionpro.api.Controllers.Location
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+
+        /// <summary>Retrieves active city, town, and village options for a district.</summary>
+        [HttpGet("Locality/option")]
+        public async Task<IActionResult> GetLocality([FromQuery] GetLocalityOptionRequestDTO requestDTO)
+        {
+            _logger.LogInfo($"Received request to get Locality for District: {requestDTO.DistrictId}");
+            var result = await _mediator.Send(new GetLocalityQuery(requestDTO));
+            return Ok(result);
+        }
+
+        /// <summary>Retrieves the active locality types: City, Town, and Village.</summary>
+        [HttpGet("LocalityType/option")]
+        public async Task<IActionResult> GetLocalityType([FromQuery] GetLocalityTypeOptionRequestDTO requestDTO)
+        {
+            _logger.LogInfo("Received request to get Locality Types.");
+            var result = await _mediator.Send(new GetLocalityTypeQuery(requestDTO));
+            return Ok(result);
+        }
     }
 
 

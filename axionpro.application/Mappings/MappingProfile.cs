@@ -286,7 +286,7 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
                 .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
                 .ForMember(d => d.IsSoftDeleted, o => o.Ignore()).ForMember(d => d.Tenant, o => o.Ignore())
-                .ForMember(d => d.Country, o => o.Ignore()).ForMember(d => d.City, o => o.Ignore())
+                .ForMember(d => d.Country, o => o.Ignore()).ForMember(d => d.Locality, o => o.Ignore())
                 .ForMember(d => d.TenantDevice, o => o.Ignore()).ForMember(d => d.EmployeeLocationAssignment, o => o.Ignore())
                 .ForMember(d => d.EmployeeWorkArrangement, o => o.Ignore()).ForMember(d => d.EmployeeWorkPattern, o => o.Ignore())
                 .ForMember(d => d.EmployeeWorkModeOverrideRequest, o => o.Ignore());
@@ -399,7 +399,8 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.LocationTypeName, o => o.MapFrom(s => ((TenantLocationType)s.LocationType).ToString()))
                 .ForMember(d => d.CountryName, o => o.MapFrom(s => s.Country != null ? s.Country.CountryName : string.Empty))
                 .ForMember(d => d.StateName, o => o.MapFrom(_ => (string?)null))
-                .ForMember(d => d.CityName, o => o.MapFrom(s => s.City != null ? s.City.CityName : null));
+                .ForMember(d => d.DistrictName, o => o.MapFrom(s => s.District != null ? s.District.DistrictName : null))
+                .ForMember(d => d.LocalityName, o => o.MapFrom(s => s.Locality != null ? s.Locality.LocalityName : null));
             CreateMap<AttendancePolicy, AttendancePolicyResponseDTO>()
                 .ForMember(d => d.AttendanceLocationScope, o => o.MapFrom(s => (AttendanceLocationScope)s.AttendanceLocationScope))
                 .ForMember(d => d.PolicyTypeName, o => o.MapFrom(s => s.PolicyType != null ? s.PolicyType.PolicyName : string.Empty))

@@ -119,6 +119,10 @@ namespace axionpro.persistance.Repositories
             .AsNoTracking()
             .AnyAsync(state => state.Id == stateId && state.IsActive == true);
 
+        public Task<bool> IsActiveDistrictAsync(int districtId) => _context.Districts
+            .AsNoTracking()
+            .AnyAsync(district => district.Id == districtId && district.IsActive);
+
         /// <summary>
         /// Projects active districts for a state without constructing an API response.
         /// </summary>
@@ -146,6 +150,39 @@ namespace axionpro.persistance.Repositories
                 _logger.LogError(ex, "Error while fetching district options for state {StateId}.", dto.StateId);
                 throw;
             }
+        }
+
+        public async Task<List<GetLocalityOptionResponseDTO>> GetLocalityOptionAsync(GetLocalityOptionRequestDTO dto)
+        {
+            return await _context.Localities
+                .AsNoTracking()
+                .Where(locality => locality.DistrictId == dto.DistrictId && locality.IsActive == true)
+                .OrderBy(locality => locality.LocalityName)
+                .Select(locality => new GetLocalityOptionResponseDTO
+                {
+                    Id = locality.Id,
+                    DistrictId = locality.DistrictId,
+                    StateId = locality.StateId,
+                    LocalityTypeId = locality.LocalityTypeId,
+                    LocalityName = locality.LocalityName,
+                    LocalityTypeName = locality.LocalityType.TypeName,
+                    IsActive = locality.IsActive
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<GetLocalityTypeOptionResponseDTO>> GetLocalityTypeOptionAsync(GetLocalityTypeOptionRequestDTO dto)
+        {
+            return await _context.LocalityTypes
+                .AsNoTracking()
+                .Where(localityType => localityType.IsActive)
+                .OrderBy(localityType => localityType.Id)
+                .Select(localityType => new GetLocalityTypeOptionResponseDTO
+                {
+                    Id = localityType.Id,
+                    TypeName = localityType.TypeName
+                })
+                .ToListAsync();
         }
 
         #endregion

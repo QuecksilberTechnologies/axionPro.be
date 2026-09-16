@@ -90,7 +90,8 @@ public sealed class NewTenantSelectedLocationUpdateRequestDTO
     public TenantLocationType? LocationType { get; set; }
     public int? CountryId { get; set; }
     public int? StateId { get; set; }
-    public int? CityId { get; set; }
+    public int? DistrictId { get; set; }
+    public int? LocalityId { get; set; }
     public string? Address { get; set; }
     public string? Landmark { get; set; }
     public string? PostalCode { get; set; }

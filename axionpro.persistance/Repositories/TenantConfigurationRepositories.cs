@@ -42,7 +42,7 @@ public sealed class TenantLocationRepository : TenantConfigurationRepositoryBase
 
     /// <inheritdoc />
     public Task<TenantLocation?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken) =>
-        Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.City)
+        Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.District).Include(x => x.Locality)
             .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
@@ -53,12 +53,13 @@ public sealed class TenantLocationRepository : TenantConfigurationRepositoryBase
     public async Task<PagedResponseDTO<TenantLocation>> GetPagedAsync(long tenantId, TenantLocationFilterRequestDTO filter, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
-        var query = Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.City)
+        var query = Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.District).Include(x => x.Locality)
             .Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
         if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.LocationCode, term) || EF.Functions.ILike(x.LocationName, term) || (x.Address != null && EF.Functions.ILike(x.Address, term))); }
         if (filter.CountryId.HasValue) query = query.Where(x => x.CountryId == filter.CountryId.Value);
         if (filter.StateId.HasValue) query = query.Where(x => x.StateId == filter.StateId.Value);
-        if (filter.CityId.HasValue) query = query.Where(x => x.CityId == filter.CityId.Value);
+        if (filter.DistrictId.HasValue) query = query.Where(x => x.DistrictId == filter.DistrictId.Value);
+        if (filter.LocalityId.HasValue) query = query.Where(x => x.LocalityId == filter.LocalityId.Value);
         if (filter.LocationType.HasValue) query = query.Where(x => x.LocationType == (short)filter.LocationType.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
         var count = await query.CountAsync(cancellationToken);
@@ -70,12 +71,13 @@ public sealed class TenantLocationRepository : TenantConfigurationRepositoryBase
     public async Task<PagedResponseDTO<TenantLocation>> GetHostPagedAsync(TenantLocationFilterRequestDTO filter, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
-        var query = Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.City)
+        var query = Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.District).Include(x => x.Locality)
             .Where(x => !x.IsSoftDeleted);
         if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.LocationCode, term) || EF.Functions.ILike(x.LocationName, term) || (x.Address != null && EF.Functions.ILike(x.Address, term))); }
         if (filter.CountryId.HasValue) query = query.Where(x => x.CountryId == filter.CountryId.Value);
         if (filter.StateId.HasValue) query = query.Where(x => x.StateId == filter.StateId.Value);
-        if (filter.CityId.HasValue) query = query.Where(x => x.CityId == filter.CityId.Value);
+        if (filter.DistrictId.HasValue) query = query.Where(x => x.DistrictId == filter.DistrictId.Value);
+        if (filter.LocalityId.HasValue) query = query.Where(x => x.LocalityId == filter.LocalityId.Value);
         if (filter.LocationType.HasValue) query = query.Where(x => x.LocationType == (short)filter.LocationType.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
         var count = await query.CountAsync(cancellationToken);
@@ -88,12 +90,19 @@ public sealed class TenantLocationRepository : TenantConfigurationRepositoryBase
         Context.TenantLocations.AnyAsync(x => x.TenantId == tenantId && !x.IsSoftDeleted && x.LocationCode.ToLower() == locationCode.ToLower() && (!excludeId.HasValue || x.Id != excludeId.Value), cancellationToken);
 
     /// <inheritdoc />
-    public async Task<bool> IsValidGeographyAsync(int countryId, int? stateId, int? cityId, CancellationToken cancellationToken)
+    public async Task<bool> IsValidGeographyAsync(int countryId, int? stateId, int? districtId, int? localityId, CancellationToken cancellationToken)
     {
         var countryExists = await Context.Countries.AnyAsync(x => x.Id == countryId && x.IsActive == true, cancellationToken);
         if (!countryExists) return false;
         if (stateId.HasValue && !await Context.States.AnyAsync(x => x.Id == stateId && x.CountryId == countryId && x.IsActive == true, cancellationToken)) return false;
-        return !cityId.HasValue || await Context.Cities.AnyAsync(x => x.Id == cityId && x.IsActive == true && (!stateId.HasValue || x.StateId == stateId.Value), cancellationToken);
+        if (districtId.HasValue && !await Context.Districts.AnyAsync(
+                x => x.Id == districtId && x.IsActive && (!stateId.HasValue || x.StateId == stateId.Value),
+                cancellationToken)) return false;
+        return !localityId.HasValue || await Context.Localities.AnyAsync(
+            x => x.Id == localityId && x.IsActive == true
+                && (!stateId.HasValue || x.StateId == stateId.Value)
+                && (!districtId.HasValue || x.DistrictId == districtId.Value),
+            cancellationToken);
     }
 
     /// <inheritdoc />

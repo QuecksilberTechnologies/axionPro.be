@@ -30,10 +30,16 @@ namespace axionpro.application.Interfaces.IRepositories
         /// </summary>
         Task<List<GetDistrictOptionResponseDTO>> GetDistrictOptionAsync(GetDistrictOptionRequestDTO dto);
 
+        Task<List<GetLocalityOptionResponseDTO>> GetLocalityOptionAsync(GetLocalityOptionRequestDTO dto);
+
+        Task<List<GetLocalityTypeOptionResponseDTO>> GetLocalityTypeOptionAsync(GetLocalityTypeOptionRequestDTO dto);
+
         /// <summary>
         /// Determines whether an active state exists for the supplied identifier.
         /// </summary>
         Task<bool> IsActiveStateAsync(int stateId);
+
+        Task<bool> IsActiveDistrictAsync(int districtId);
 
         Task<List<Country>> GetAllAsync();
         Task<Country> GetByIdAsync(int id);

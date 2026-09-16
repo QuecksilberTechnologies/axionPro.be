@@ -202,7 +202,7 @@ public sealed class CreateTenantLocationCommandHandler : TenantLocationAccessHan
     {
         var (tenantId, actorId) = await ResolveTenantScopeAsync(request.DTO, cancellationToken);
         Validate(request.DTO);
-        if (!await UnitOfWork.TenantLocationRepository.IsValidGeographyAsync(request.DTO.CountryId, request.DTO.StateId, request.DTO.CityId, cancellationToken)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (!await UnitOfWork.TenantLocationRepository.IsValidGeographyAsync(request.DTO.CountryId, request.DTO.StateId, request.DTO.DistrictId, request.DTO.LocalityId, cancellationToken)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
         if (await UnitOfWork.TenantLocationRepository.LocationCodeExistsAsync(tenantId, request.DTO.LocationCode.Trim(), null, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateTenantLocationCode);
         var entity = _mapper.Map<TenantLocation>(request.DTO);
         entity.LocationCode = request.DTO.LocationCode.Trim(); entity.LocationName = request.DTO.LocationName.Trim(); entity.TimeZoneId = request.DTO.TimeZoneId.Trim();
@@ -240,7 +240,7 @@ public sealed class UpdateTenantLocationCommandHandler : TenantLocationAccessHan
         Validate(request.DTO);
         var entity = await UnitOfWork.TenantLocationRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantLocationNotFound);
         if (!request.DTO.IsActive && entity.IsActive && await UnitOfWork.TenantLocationRepository.HasLiveActiveDependenciesAsync(tenantId, entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.TenantLocationInUse);
-        if (!await UnitOfWork.TenantLocationRepository.IsValidGeographyAsync(request.DTO.CountryId, request.DTO.StateId, request.DTO.CityId, cancellationToken)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (!await UnitOfWork.TenantLocationRepository.IsValidGeographyAsync(request.DTO.CountryId, request.DTO.StateId, request.DTO.DistrictId, request.DTO.LocalityId, cancellationToken)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
         if (await UnitOfWork.TenantLocationRepository.LocationCodeExistsAsync(tenantId, request.DTO.LocationCode.Trim(), entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateTenantLocationCode);
         _mapper.Map(request.DTO, entity); entity.LocationCode = request.DTO.LocationCode.Trim(); entity.LocationName = request.DTO.LocationName.Trim(); entity.TimeZoneId = request.DTO.TimeZoneId.Trim(); entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow;
         await UnitOfWork.SaveChangesAsync(cancellationToken);

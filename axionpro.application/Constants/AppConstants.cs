@@ -223,6 +223,8 @@ namespace axionpro.application.Constants
             public const string CountriesRetrieved = "Countries fetched successfully.";
             public const string StatesRetrieved = "States fetched successfully.";
             public const string DistrictsRetrieved = "Districts fetched successfully.";
+            public const string LocalitiesRetrieved = "Localities fetched successfully.";
+            public const string LocalityTypesRetrieved = "Locality types fetched successfully.";
             public const string ConsumedInsurancePoliciesRetrieved = "Insurance policies fetched successfully.";
             public const string WorkflowStageDeleted = "Workflow stage deleted successfully.";
             public const string EmployeeTypesRetrieved = "Employee types fetched successfully.";

@@ -72,7 +72,8 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<CandidateCategorySkill> CandidateCategorySkills { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
 
-        public virtual DbSet<City> Cities { get; set; }
+        public virtual DbSet<Locality> Localities { get; set; }
+        public virtual DbSet<LocalityType> LocalityTypes { get; set; }
 
         public virtual DbSet<Client> Clients { get; set; }
 
@@ -691,19 +692,36 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_Category_Parent");
         });
 
-        modelBuilder.Entity<City>(entity =>
+        modelBuilder.Entity<Locality>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__City__3214EC07DC3B7144");
+            entity.HasKey(e => e.Id).HasName("PK_Locality");
 
-            entity.ToTable("City", "axionpro");
+            entity.ToTable("Locality", "axionpro");
 
-            entity.Property(e => e.CityName).HasMaxLength(100);
+            entity.Property(e => e.LocalityName).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
 
-            entity.HasOne(d => d.State).WithMany(p => p.City)
+            entity.HasOne(d => d.State).WithMany(p => p.Localities)
                 .HasForeignKey(d => d.StateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__City__StateId__6EE06CCD");
+                .HasConstraintName("FK_Locality_State");
+            entity.HasOne(d => d.District).WithMany(p => p.Localities)
+                .HasForeignKey(d => d.DistrictId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Locality_District");
+            entity.HasOne(d => d.LocalityType).WithMany(p => p.Localities)
+                .HasForeignKey(d => d.LocalityTypeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Locality_LocalityType");
+        });
+
+        modelBuilder.Entity<LocalityType>(entity =>
+        {
+            entity.ToTable("LocalityType", "axionpro");
+            entity.HasKey(e => e.Id).HasName("PK_LocalityType");
+            entity.HasIndex(e => e.TypeName).IsUnique();
+            entity.Property(e => e.TypeName).HasMaxLength(30);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<Client>(entity =>
@@ -3187,7 +3205,8 @@ namespace axionpro.persistance.Data.Context
             modelBuilder.Entity<TenantLocation>(entity =>
             {
                 entity.ToTable("TenantLocation", "axionpro");
-                entity.HasIndex(e => e.CityId, "IX_TenantLocation_CityId");
+                entity.HasIndex(e => e.DistrictId, "IX_TenantLocation_DistrictId");
+                entity.HasIndex(e => e.LocalityId, "IX_TenantLocation_LocalityId");
                 entity.HasIndex(e => e.CountryId, "IX_TenantLocation_CountryId");
                 entity.HasIndex(e => new { e.Id, e.TenantId }, "UQ_TenantLocation_Id_TenantId").IsUnique();
                 entity.HasIndex(e => e.TenantId, "IX_TenantLocation_TenantId");
@@ -3209,8 +3228,11 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantLocation_Tenant");
                 entity.HasOne(e => e.Country).WithMany(e => e.TenantLocations)
                     .HasForeignKey(e => e.CountryId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantLocation_Country");
-                entity.HasOne(e => e.City).WithMany(e => e.TenantLocations)
-                    .HasForeignKey(e => e.CityId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantLocation_City");
+                entity.Property(e => e.LocalityId).HasColumnName("CityId");
+                entity.HasOne(e => e.Locality).WithMany(e => e.TenantLocations)
+                    .HasForeignKey(e => e.LocalityId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantLocation_Locality");
+                entity.HasOne(e => e.District).WithMany()
+                    .HasForeignKey(e => e.DistrictId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantLocation_District");
             });
 
             modelBuilder.Entity<AttendancePolicy>(entity =>

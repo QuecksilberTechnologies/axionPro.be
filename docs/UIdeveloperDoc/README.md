@@ -12,6 +12,8 @@
   Employee get-all route with the `assignedRoles` response contract.
 - [Organization Holiday Calendar](ORGANIZATION_HOLIDAY_CALENDAR.md) — location-based
   holiday persistence, date-only response contract, and rollout status.
+- [Locality and Locality Type API](LOCALITY_AND_LOCALITY_TYPE_API.md) — Country/State/
+  District/Locality lookup flow, City/Town/Village types, and TenantLocation payload.
 Treat Module `PageName` and Operation `OperationName` as immutable identities during
 seed and catalogue integration. Resolve permission IDs dynamically from the
 authenticated menu; never hard-code the numeric examples in documentation.

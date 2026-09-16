@@ -25,8 +25,8 @@ public interface ITenantLocationRepository
     Task<PagedResponseDTO<TenantLocation>> GetHostPagedAsync(TenantLocationFilterRequestDTO filter, CancellationToken cancellationToken);
     /// <summary>Determines whether the LocationCode is already live for the Tenant.</summary>
     Task<bool> LocationCodeExistsAsync(long tenantId, string locationCode, long? excludeId, CancellationToken cancellationToken);
-    /// <summary>Validates the active country, state, and city geographic hierarchy.</summary>
-    Task<bool> IsValidGeographyAsync(int countryId, int? stateId, int? cityId, CancellationToken cancellationToken);
+    /// <summary>Validates the active country, state, and Locality geographic hierarchy.</summary>
+    Task<bool> IsValidGeographyAsync(int countryId, int? stateId, int? districtId, int? localityId, CancellationToken cancellationToken);
     /// <summary>Determines whether live active dependent configuration blocks deactivation.</summary>
     Task<bool> HasLiveActiveDependenciesAsync(long tenantId, long locationId, CancellationToken cancellationToken);
     /// <summary>Determines whether any live dependent configuration blocks soft deletion.</summary>

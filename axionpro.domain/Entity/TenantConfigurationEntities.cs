@@ -18,7 +18,8 @@ public partial class TenantLocation
     public short LocationType { get; set; }
     public int CountryId { get; set; }
     public int? StateId { get; set; }
-    public int? CityId { get; set; }
+    public int? DistrictId { get; set; }
+    public int? LocalityId { get; set; }
     public string? Address { get; set; }
     public string? Landmark { get; set; }
     public string? PostalCode { get; set; }
@@ -40,7 +41,8 @@ public partial class TenantLocation
     public DateTime? SoftDeletedDateTime { get; set; }
     public virtual Tenant Tenant { get; set; } = null!;
     public virtual Country Country { get; set; } = null!;
-    public virtual City? City { get; set; }
+    public virtual District? District { get; set; }
+    public virtual Locality? Locality { get; set; }
     public virtual ICollection<TenantDevice> TenantDevice { get; set; } = new List<TenantDevice>();
     public virtual ICollection<EmployeeLocationAssignment> EmployeeLocationAssignment { get; set; } = new List<EmployeeLocationAssignment>();
     public virtual ICollection<EmployeeWorkArrangement> EmployeeWorkArrangement { get; set; } = new List<EmployeeWorkArrangement>();
