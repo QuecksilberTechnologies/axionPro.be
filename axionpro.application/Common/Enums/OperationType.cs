@@ -35,7 +35,10 @@ namespace axionpro.application.Common.Enums
             Request = 24,
             Deposit = 25,
             Restore = 26,
-            Resend = 27
+            Resend = 27,
+            Publish = 28,
+            Archive = 29,
+            Acknowledge = 30
         }
 
     public enum TabInfoType
