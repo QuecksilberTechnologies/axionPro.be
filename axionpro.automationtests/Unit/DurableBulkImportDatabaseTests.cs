@@ -257,6 +257,20 @@ public sealed class DurableBulkImportDatabaseTests
     }
 
     [Test]
+    public async Task Completed_job_cannot_be_cancelled()
+    {
+        var preview = await Draft(BulkImportMaster.Department,
+            $"DepartmentName\n{_prefix}-Completed");
+        await Act(preview, BulkImportAction.Confirm);
+        await Drain(preview);
+
+        var completed = await Act(preview, BulkImportAction.Get);
+        Assert.That(completed.Status, Is.EqualTo(BulkImportJobStatus.Completed));
+        Assert.ThrowsAsync<ConflictException>(async () =>
+            await Act(preview, BulkImportAction.Cancel));
+    }
+
+    [Test]
     public async Task Past_schedule_is_rejected_without_enqueuing()
     {
         var preview = await Draft(BulkImportMaster.Department, $"DepartmentName\n{_prefix}-IT");

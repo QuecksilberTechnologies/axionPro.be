@@ -438,16 +438,18 @@ RowNumber,Status,Errors
 
 ## Current verification status
 
-- PASS: deployed Render commit is `ddeb4d7e` and marked Live.
-- PASS: deployed Swagger exposes all 37 operations.
-- PASS: unauthenticated routing/auth smoke — 35 returned 401; the two multipart
-  routes returned 415 for intentionally incorrect JSON content type.
-- PASS: authenticated policy lookup and Policy Type create on Render.
-- PASS: authenticated Policy Type bulk preview → confirm → worker completion,
-  report access and target-table reconciliation.
-- FIXED LOCALLY, DEPLOYMENT PENDING: path-supplied IDs no longer fail automatic
-  body/query validation with a false `Id must be between 1...` response. This
-  affects update/status/detail/version/document/approval routes that populate an
-  identifier from the route.
-- NOT RUN: object-storage document round trip.
-- PENDING: remaining lifecycle operations and Policy Definition/Assignment bulk.
+- PASS: all 37 operations are deployed; authenticated route-ID binding now works.
+- PASS: Policy Type CRUD/status; policy draft create/read/update; ordered
+  submit/approve/publish; assignment/resolve; exception approval;
+  acknowledgement; audit; clone; reject/resubmit/approve.
+- PASS: Policy Type, Definition and Assignment durable imports have live target
+  persistence evidence. A repeat assignment reports `Existing`.
+- BLOCKED: document upload/list/delete. Render S3 rejects the configured access
+  key before policy metadata is written. UI should show the API failure and must
+  not claim the document was saved.
+- FIXED LOCALLY, DEPLOYMENT PENDING: cancelling a terminal bulk job now returns
+  conflict instead of successful no-op.
+- PENDING: successful Retry path needs a genuine failed worker row.
+
+Full evidence: [deployed real-data flow](../testing/policy/live-business-flow/2026-09-16.md)
+and [bulk import](../testing/policy/bulk-import/2026-09-16.md).

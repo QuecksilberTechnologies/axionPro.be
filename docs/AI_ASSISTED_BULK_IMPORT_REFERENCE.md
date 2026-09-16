@@ -13,10 +13,14 @@ backend scope, not all future bulk modules or production deployment.
   base, Policy masters 12–14 constraint, and tenant policy module seed applied.
 - **COMPLETE:** authenticated Policy Type upload → preview → confirm → worker →
   report/DB reconciliation on Render (one row, Completed, one created).
-- **PENDING:** Policy Definition and Policy Assignment live bulk acceptance.
-- **PENDING:** live cancel timing and failed-row retry acceptance.
+- **COMPLETE:** Policy Definition and Policy Assignment live bulk persistence
+  and target DB reconciliation.
+- **COMPLETE:** Draft cancellation and Completed-job retry rejection.
+- **WIP:** terminal-job cancellation conflict is fixed locally and awaits deploy;
+  successful Retry still needs a genuine worker failed-row job.
 - Evidence: `docs/testing/policy/target-db-migration/2026-09-16.md` and
-  `docs/testing/policy/bulk-import/2026-09-16.md`.
+  `docs/testing/policy/bulk-import/2026-09-16.md`, plus
+  `docs/testing/policy/live-business-flow/2026-09-16.md`.
 
 ## 2026-09-15 tenant master hierarchy and entitlement repair
 

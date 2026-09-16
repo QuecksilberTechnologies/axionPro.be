@@ -166,8 +166,9 @@ public sealed partial class BulkImportRepository(
                 if (job.Status is (int)BulkImportJobStatus.Draft or (int)BulkImportJobStatus.Queued or (int)BulkImportJobStatus.Running)
                 {
                     job.Status = (int)BulkImportJobStatus.Cancelled;
+                    break;
                 }
-                break;
+                throw new ConflictException("Terminal bulk import jobs cannot be cancelled.");
             default:
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
         }
