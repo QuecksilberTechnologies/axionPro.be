@@ -1,4 +1,5 @@
 using axionpro.api.Controllers.Location;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Location;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.domain.Entity;
@@ -20,6 +21,18 @@ public sealed class LocalityRefactorTests
             Assert.That(typeof(Locality).GetProperty(nameof(Locality.LocalityTypeId)), Is.Not.Null);
             Assert.That(typeof(Locality).GetProperty(nameof(Locality.LocalityName)), Is.Not.Null);
             Assert.That(typeof(LocalityType).GetProperty(nameof(LocalityType.TypeName)), Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public void Locality_type_constants_are_stable_and_match_seed_contract()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(LocalityTypeConstants.Values[LocalityTypeConstants.CityId], Is.EqualTo("City"));
+            Assert.That(LocalityTypeConstants.Values[LocalityTypeConstants.TownId], Is.EqualTo("Town"));
+            Assert.That(LocalityTypeConstants.Values[LocalityTypeConstants.VillageId], Is.EqualTo("Village"));
+            Assert.That(LocalityTypeConstants.Values, Has.Count.EqualTo(3));
         });
     }
 

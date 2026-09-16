@@ -103,6 +103,8 @@ the selected Country.
 ## Persistence and rollout
 
 - `axionpro.LocalityType`: permanent master rows City, Town, Village.
+- API code uses `LocalityTypeConstants` as the canonical identifiers and names:
+  `1/City`, `2/Town`, `3/Village`; the lookup returns matching active DB rows.
 - `axionpro.Locality`: renamed data-preserving City catalog; contains DistrictId
   and LocalityTypeId foreign keys.
 - `axionpro.TenantLocation`: stores DistrictId and the selected locality reference.
@@ -116,6 +118,6 @@ window for these synchronous lookup endpoints.
 
 ## Verification status
 
-Target migration, local build, 6/6 focused tests, and DB-backed local endpoint smoke
+Target migration, local build, 7/7 focused tests, and DB-backed local endpoint smoke
 passed on 2026-09-16. The updated API build has not yet been verified as deployed;
 deployed API acceptance remains pending.

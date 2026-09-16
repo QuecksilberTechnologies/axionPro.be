@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.DTOS.Location;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
@@ -176,6 +177,7 @@ namespace axionpro.persistance.Repositories
             return await _context.LocalityTypes
                 .AsNoTracking()
                 .Where(localityType => localityType.IsActive)
+                .Where(localityType => LocalityTypeConstants.Ids.Contains(localityType.Id))
                 .OrderBy(localityType => localityType.Id)
                 .Select(localityType => new GetLocalityTypeOptionResponseDTO
                 {
