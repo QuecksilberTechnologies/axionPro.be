@@ -119,7 +119,7 @@ namespace axionpro.api.Controllers.Location
             return Ok(result);
         }
 
-        /// <summary>Retrieves the active locality types: City, Town, and Village.</summary>
+        /// <summary>Retrieves the active locality types: City, Town, Village, and Other / Unclassified.</summary>
         [HttpGet("LocalityType/option")]
         public async Task<IActionResult> GetLocalityType([FromQuery] GetLocalityTypeOptionRequestDTO requestDTO)
         {

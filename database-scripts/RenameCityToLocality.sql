@@ -4,7 +4,7 @@
   Result:
   - axionpro."City" becomes axionpro."Locality".
   - Existing rows are classified as City and linked to their matching District.
-  - LocalityType is seeded with City, Town, and Village.
+  - LocalityType is seeded with City, Town, Village, and Other / Unclassified.
   - TenantLocation receives DistrictId; its existing CityId column is retained as
     the physical compatibility column used by LocalityId in the updated API.
   - A read-compatible City view keeps the currently deployed API operational
@@ -27,7 +27,8 @@ INSERT INTO axionpro."LocalityType" ("Id", "TypeName", "IsActive")
 VALUES
     (1, 'City', TRUE),
     (2, 'Town', TRUE),
-    (3, 'Village', TRUE)
+    (3, 'Village', TRUE),
+    (4, 'Other / Unclassified', TRUE)
 ON CONFLICT ("Id") DO UPDATE
 SET "TypeName" = EXCLUDED."TypeName",
     "IsActive" = TRUE;

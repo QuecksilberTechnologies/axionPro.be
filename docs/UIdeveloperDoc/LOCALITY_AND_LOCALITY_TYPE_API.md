@@ -4,11 +4,12 @@
 
 The geographic selection flow is now:
 
-`Country -> State -> District -> Locality (City/Town/Village)`
+`Country -> State -> District -> Locality (City/Town/Village/Other)`
 
 `City` has been renamed to the generic `Locality` model. A locality always belongs
 to one District and one LocalityType. Existing catalog rows are preserved and
-classified as `City`; new catalog rows can later use `Town` or `Village`.
+classified as `City`. Postal source rows whose source does not reliably classify
+the settlement use `Other / Unclassified`; the API never guesses their type.
 
 ## Lookup sequence
 
@@ -76,7 +77,8 @@ Example response:
   "data": [
     { "id": 1, "typeName": "City" },
     { "id": 2, "typeName": "Town" },
-    { "id": 3, "typeName": "Village" }
+    { "id": 3, "typeName": "Village" },
+    { "id": 4, "typeName": "Other / Unclassified" }
   ],
   "errors": []
 }
@@ -104,11 +106,17 @@ the selected Country.
 
 ## Persistence and rollout
 
-- `axionpro.LocalityType`: permanent master rows City, Town, Village.
+- `axionpro.LocalityType`: permanent master rows City, Town, Village, and Other / Unclassified.
 - API code uses `LocalityTypeConstants` as the canonical identifiers and names:
-  `1/City`, `2/Town`, `3/Village`; the lookup returns matching active DB rows.
+  `1/City`, `2/Town`, `3/Village`, `4/Other / Unclassified`; the lookup returns matching active DB rows.
 - `axionpro.Locality`: renamed data-preserving City catalog; contains DistrictId
   and LocalityTypeId foreign keys plus LocalityCode and PostalCode.
+- `SeedFourCountryPostalLocalities.sql` adds GeoNames postal records without
+  deleting or renumbering existing rows. Target DB counts after execution:
+  India 155,545; China 2,352; Germany 23,296; United States 41,490.
+- `postalCode` was previously null because the old 8,333-row city catalogue had
+  no postal-code field. It is populated only when the source supplies a value;
+  the migration does not fabricate postal codes.
 - `axionpro.State.StateCode`, `axionpro.District.DistrictCode`, and
   `axionpro.Locality.LocalityCode` are required stable codes. `District.PinCode`
   has been removed; postal ownership is on Locality.
@@ -123,6 +131,6 @@ window for these synchronous lookup endpoints.
 
 ## Verification status
 
-Target migrations, local build, 9/9 focused tests, and DB-backed local endpoint smoke
+Target migrations, local build, 10/10 focused tests, and DB-backed local endpoint smoke
 passed on 2026-09-16. The updated API build has not yet been verified as deployed;
 deployed API acceptance remains pending.

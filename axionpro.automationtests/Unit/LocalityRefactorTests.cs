@@ -32,7 +32,8 @@ public sealed class LocalityRefactorTests
             Assert.That(LocalityTypeConstants.Values[LocalityTypeConstants.CityId], Is.EqualTo("City"));
             Assert.That(LocalityTypeConstants.Values[LocalityTypeConstants.TownId], Is.EqualTo("Town"));
             Assert.That(LocalityTypeConstants.Values[LocalityTypeConstants.VillageId], Is.EqualTo("Village"));
-            Assert.That(LocalityTypeConstants.Values, Has.Count.EqualTo(3));
+            Assert.That(LocalityTypeConstants.Values[LocalityTypeConstants.OtherId], Is.EqualTo("Other / Unclassified"));
+            Assert.That(LocalityTypeConstants.Values, Has.Count.EqualTo(4));
         });
     }
 
@@ -95,6 +96,27 @@ public sealed class LocalityRefactorTests
         });
     }
 
+    [Test]
+    public void Four_country_postal_seed_is_idempotent_and_populates_locality_postal_code()
+    {
+        var sql = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(),
+            "database-scripts",
+            "SeedFourCountryPostalLocalities.sql"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sql, Does.Contain("GeoNames postal-code exports"));
+            Assert.That(sql, Does.Contain("('India','IN','+91',TRUE)"));
+            Assert.That(sql, Does.Contain("('China','CN','+86',TRUE)"));
+            Assert.That(sql, Does.Contain("('Germany','DE','+49',TRUE)"));
+            Assert.That(sql, Does.Contain("('United States','US','+1',TRUE)"));
+            Assert.That(sql, Does.Contain("\"PostalCode\"=EXCLUDED.\"PostalCode\""));
+            Assert.That(sql, Does.Contain("ON CONFLICT (\"DistrictId\",\"LocalityCode\")"));
+            Assert.That(sql, Does.Contain("(4, 'Other / Unclassified', TRUE)"));
+        });
+    }
+
     [TestCase(nameof(LocationController.GetLocality), "Locality/option")]
     [TestCase(nameof(LocationController.GetLocalityType), "LocalityType/option")]
     public void Location_lookup_routes_are_exposed(string actionName, string route)
@@ -123,6 +145,7 @@ public sealed class LocalityRefactorTests
             Assert.That(sql, Does.Contain("(1, 'City', TRUE)"));
             Assert.That(sql, Does.Contain("(2, 'Town', TRUE)"));
             Assert.That(sql, Does.Contain("(3, 'Village', TRUE)"));
+            Assert.That(sql, Does.Contain("(4, 'Other / Unclassified', TRUE)"));
             Assert.That(sql, Does.Contain("CREATE VIEW axionpro.\"City\""));
         });
     }
