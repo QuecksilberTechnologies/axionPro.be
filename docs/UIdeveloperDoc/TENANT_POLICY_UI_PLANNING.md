@@ -1,5 +1,9 @@
 # Tenant Policy UI Planning
 
+Policy tables, dependencies aur exact write situations samajhne ke liye
+[Tenant Policy table/data-flow Hinglish guide](TENANT_POLICY_TABLE_DATA_FLOW_HINGLISH.md)
+dekhein.
+
 ## Current phase
 
 The persistence, EF mappings, permission pipeline, core policy APIs, approval-stage

@@ -1,5 +1,10 @@
 # Tenant Policy endpoint catalogue
 
+Endpoint payload padhne se pehle database relationships aur kis action par kis
+table mein row jaati hai samajhne ke liye
+[Tenant Policy table/data-flow Hinglish guide](TENANT_POLICY_TABLE_DATA_FLOW_HINGLISH.md)
+dekhein.
+
 Base URL: `https://axionpro-api.onrender.com/api/TenantPolicy`
 
 All endpoints require `Authorization: Bearer <tenant-access-token>`. Resolve
