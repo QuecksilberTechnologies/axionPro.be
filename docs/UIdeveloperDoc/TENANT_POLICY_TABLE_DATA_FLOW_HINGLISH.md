@@ -48,7 +48,7 @@ PolicyCategory: Leave
           └─ PolicyVersion: Version 1 / Draft
               ├─ PolicyRule: 18 days entitlement
               ├─ PolicyRule: 5 days carry forward
-              ├─ PolicyRule: Sandwich enabled
+              ├─ PolicyRule: Sandwich enabled 
               └─ PolicyApplicability: India + Maharashtra + Permanent
 ```
 
