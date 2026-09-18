@@ -2147,6 +2147,7 @@ nahi hain jab tak domain schema/test evidence explicitly unhe validate na kare.
 
 Detailed contracts aur evidence:
 
+- [Tenant Policy versioning, effective dates and permissions](TENANT_POLICY_VERSIONING_PERMISSIONS_HINGLISH.md)
 - [Tenant Policy API handoff](TENANT_POLICY_API.md)
 - [Tenant Policy endpoint catalogue](TENANT_POLICY_ENDPOINT_CATALOG.md)
 - [Tenant Policy UI planning](TENANT_POLICY_UI_PLANNING.md)

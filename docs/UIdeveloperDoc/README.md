@@ -36,6 +36,14 @@ this folder. Include:
 This handoff is part of the endpoint's completion checklist so another UI developer,
 Claude or Codex can implement the frontend without guessing backend behavior.
 
+- [Tenant Policy complete master guide — Hinglish](TENANT_POLICY_COMPLETE_MASTER_GUIDE_HINGLISH.md)
+  — single consolidated reference covering concepts, 16 tables and dependencies,
+  complete lifecycle/versioning, permissions, all 37 APIs, bulk flow, UI planning,
+  examples and verification evidence.
+- [Tenant Policy table/data-flow guide](TENANT_POLICY_TABLE_DATA_FLOW_HINGLISH.md)
+  — exact properties, relationships and action-to-table write behavior.
+- [Tenant Policy versioning and permissions](TENANT_POLICY_VERSIONING_PERMISSIONS_HINGLISH.md)
+  — effective dates, Draft/Publish/Archive behavior and HR/Admin permission flow.
 - [Tenant Policy endpoint catalogue](TENANT_POLICY_ENDPOINT_CATALOG.md) — all
   policy routes with copyable request/response examples and verification status.
 - [Tenant Policy API flow — Hinglish](TENANT_POLICY_API_FLOW_HINGLISH.md) — zero-level
