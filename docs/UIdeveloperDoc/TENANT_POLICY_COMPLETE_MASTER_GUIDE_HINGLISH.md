@@ -1,10 +1,10 @@
 # Tenant Policy — Complete Master Guide (Hinglish)
 
-Ye single consolidated document Tenant Policy ka complete reference hai: concepts, tables, properties, dependencies, lifecycle, permissions, APIs, request/response examples, bulk flow, UI planning aur verification evidence. Generated/verified on 18 September 2026 from the repository source documents listed below.
+Ye single consolidated document Tenant Policy ka complete reference hai: concepts, tables, properties, dependencies, seed-versus-runtime data, lifecycle, permissions, APIs, request/response examples, bulk flow, UI planning aur verification evidence. Generated/verified on 18 September 2026 from the repository source documents listed below.
 
 ## Is document ko kis order mein padhein
 
-1. Part 1 se database mental model aur row-write situations samjhein.
+1. Part 1 se database mental model, required seeds aur row-write situations samjhein.
 2. Part 2 se normal business process aur examples samjhein.
 3. Part 3 se Draft/version/effective-date/HR-Admin permissions samjhein.
 4. Part 4 ko API implementation/testing reference ki tarah use karein.
@@ -562,7 +562,103 @@ snapshot/cursor update karta hai.
 | Policy delete se history erase? | Published evidence ko hard-delete flow samajhna galat hai; archive/inactive/history retained model hai. |
 | Legacy policy tables isi flow ka part hain? | Generic `/api/TenantPolicy` flow ke authoritative tables upar ke 16 hain. Legacy feature-specific tables ko unke own endpoints verify kiye bina merge/replacement assume na karein. |
 
-### 15. Actual tested records
+### 15. Kaunse tables mein seed data chahiye
+
+Policy framework ke har table mein seed data nahi daalna hai. Seed aur runtime
+data ko mix karne se duplicate ya fake tenant records banenge.
+
+#### 15.1 Mandatory system master seed
+
+Ye chaar tables empty nahi honi chahiye. Inka idempotent seed
+`CreateGenericTenantPolicyFramework.sql` mein hai.
+
+| Table | Mandatory seeded rows | Seed kyon chahiye |
+| --- | --- | --- |
+| `PolicyStatus` | Draft, Under Review, Approved, Published, Suspended, Archived, Rejected | Version lifecycle IDs ke bina create/transition kaam nahi karega |
+| `PolicyCategory` | Leave, Attendance, Work Arrangement, Travel, Accommodation, Insurance, Expense and Reimbursement, Holiday and Calendar, Shift and Weekly Off, Employment Lifecycle, Employee Benefit, Custom | Policy Type ko business family dene ke liye |
+| `PolicyRuleType` | Eligibility, Entitlement, Accrual, Carry Forward, Sandwich, Limit, Attendance Channel, Late Penalty, Overtime, Approval, Reimbursement, Calendar, Custom Rule | `PolicyRule` ke JSON ka meaning batane ke liye |
+| `PolicyDocumentType` | Policy Document, Annexure, Legal Circular, Employee Guide, Translation | Uploaded document classify karne ke liye |
+
+In tables ka seed safe rerun hona chahiye. Existing codes/IDs ko random delete ya
+rename nahi karna, kyunki business rows foreign keys se inhe refer karti hain.
+
+#### 15.2 Module, operation aur subscription seed
+
+Policy screens aur permission pipeline ke liye
+`database-scripts/complete seed data/SeedTenantPolicyModules.sql` ye catalogue
+data idempotently maintain karti hai:
+
+| Table | Seeded data |
+| --- | --- |
+| `Module` | parent `TENANT_POLICIES` aur child Types, Definitions, Assignments, Exceptions, Approvals, Acknowledgements, Audit |
+| `Operation` | missing normalized operations such as Publish, Archive, Acknowledge; existing CRUD/Import/Export operations reuse hote hain |
+| `ModuleOperationMapping` | har policy child module ke allowed operations |
+| `PlanModuleMapping` | active subscription plans ke saath policy modules |
+
+Tenant-specific permission rows static seed nahi hain. Entitlement/sync flow
+eligible tenant ke liye ye runtime mappings banata hai:
+
+```text
+TenantEnabledModule
+TenantModuleOperation
+RoleModuleAndPermission (default Tenant Admin permissions)
+```
+
+#### 15.3 Tenant setup/configuration data — global seed nahi
+
+| Table | Data ka source |
+| --- | --- |
+| `PolicyType` | Tenant Admin UI/API ya Policy Type bulk import |
+| `PolicyApprovalStage` | Tenant apni category/role approval chain configure karega |
+
+Demo/test tenant ko sample data dena ho to separate, explicitly labelled sample
+script use karein. Production master seed mein Annual Leave, Health Insurance ya
+tenant-specific approval stage insert nahi karna.
+
+#### 15.4 Runtime transactional tables — kabhi seed nahi
+
+In tables mein sirf authenticated API/business process se data aayega:
+
+```text
+Policy
+PolicyVersion
+PolicyRule
+PolicyApplicability
+PolicyAssignment
+PolicyException
+PolicyDocument
+PolicyApprovalHistory
+PolicyAcknowledgement
+PolicyChangeAudit
+BulkImportJob
+```
+
+Inmein fabricated seed rows daalne se tenant isolation, audit actor, version
+history, approval order aur assignment evidence unreliable ho jayega.
+
+#### 15.5 Prerequisite masters
+
+Policy seed in masters ko create nahi karti, lekin application ke existing seed/
+tenant setup se valid data available hona chahiye:
+
+```text
+Tenant, Country, State, District, Locality, TenantLocation,
+EmployeeType, Department, Designation, Employee, Gender, Role
+```
+
+Policy applicability request inhi tables ke IDs refer karti hai. Geography aur
+tenant-owned IDs hierarchy/tenant validation pass karne chahiye.
+
+#### 15.6 Current schema gap: rule form templates
+
+`PolicyRuleType` rule families seed karti hai, lekin current seed har rule type
+ke allowed JSON fields, datatype, min/max aur UI controls ka executable template
+store nahi karti. Isi wajah se raw JSON UI unsafe/confusing hai. Jab formal rule
+schema/template feature approve ho, tab uske dedicated master ko idempotently seed
+karna hoga; tab tak arbitrary JSON examples ko mandatory universal schema na
+maanें.
+
+### 16. Actual tested records
 
 Render API par 16 September 2026 ko actual Draft rows create/update/read-back hui:
 
