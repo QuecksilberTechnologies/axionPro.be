@@ -1,5 +1,7 @@
 # UI developer documents
 
+- [Tenant Policy Live Flow Simulator](policy-live-simulator/README.md) — shareable standalone folder; double-click start, live DDL, rule/applicability builder, all 37 policy endpoints, DB-table impact and safe local JSON files.
+
 - [Host Catalogue Bulk Upload](HOST_CATALOGUE_BULK_UI_IMPLEMENTATION.md) — four
   Host Admin catalogue bulk screens, API lifecycle, Excel contracts and UI examples.
 - [Host Card and Device Bulk Upload](../bulk-upload/HOST_CARD_DEVICE_IMPORT.md)

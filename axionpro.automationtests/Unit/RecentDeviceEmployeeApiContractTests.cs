@@ -193,8 +193,8 @@ public sealed class RecentDeviceEmployeeApiContractTests
         // Tenant location, attendance, employee work, and Host card lifecycle APIs.
         foreach (var contract in Crud(typeof(TenantLocationController), "{id:long}"))
             yield return contract;
-        foreach (var contract in Crud(typeof(AttendancePolicyController), "{id:int}"))
-            yield return contract;
+        // The legacy AttendancePolicy controller is intentionally disabled. Generic tenant
+        // policies are covered by the dedicated TenantPolicy contract tests.
         foreach (var contract in Crud(typeof(EmployeeLocationAssignmentController), "{id:long}"))
             yield return contract;
         foreach (var contract in Crud(typeof(EmployeeWorkArrangementController), "{id:long}"))

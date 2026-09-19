@@ -1,5 +1,8 @@
 # Scenario test reports
 
+- [All durable bulk targets — live smoke test — 2026-09-19](bulk/all-live-smoke/2026-09-19.md)
+- [Tenant Policy interactive HTML simulator — 2026-09-18](policy/interactive-html-simulator/2026-09-18.md)
+
 Every tested scenario has a report grouped by module, scenario and test date.
 Start with [the report template](SCENARIO_TEMPLATE.md). This is the continuing
 test-evidence index; API integration instructions remain in

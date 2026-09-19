@@ -7,6 +7,24 @@ endpoint documentation, existing permission pipelines, constants, enums and mapp
 Ask before implementing unclear business rules. COMPLETE below means the stated
 backend scope, not all future bulk modules or production deployment.
 
+## 2026-09-19 all-target deployed smoke verification
+
+- **COMPLETE:** all 14 durable targets passed deployed template, preview,
+  confirm/background completion with zero failed rows, and report download:
+  Department, Designation, Role, EmployeeType, Employee, DeviceMaster,
+  TenantCard, HostModule, HostSubModule, HostOperation, HostModuleOperation,
+  PolicyType, PolicyDefinition, and PolicyAssignment.
+- **COMPLETE:** meaningful Employee flow verified end to end: Aarav Mehta →
+  Hybrid Full-Time → primary TenantLocation → published India Hybrid Attendance
+  and Location Compliance policy → bulk PolicyAssignment → policy resolution.
+- **COMPLETE:** Policy applicability includes both EmployeeType and
+  TenantLocation; rules contain realistic Web/Mobile/Biometric attendance controls.
+- **AUTOMATED:** filtered Bulk/Import suite: 141 passed, 0 failed, 39 skipped.
+  Skipped environment-dependent tests remain skipped, not acceptance passes.
+- **GAP:** no catalogue-wide business export endpoint exists. Current CSV export
+  surfaces are the input template and completed-job report.
+- Evidence: `docs/testing/bulk/all-live-smoke/2026-09-19.md`.
+
 ## 2026-09-16 tenant policy live acceptance update
 
 - **COMPLETE:** target DB prerequisites, generic policy schema, durable bulk
