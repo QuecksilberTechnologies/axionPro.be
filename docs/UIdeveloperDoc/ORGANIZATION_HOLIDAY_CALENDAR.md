@@ -22,11 +22,11 @@ validated authentication context. A caller cannot choose another tenant.
 | Action | Route | Operation | Inputs | Persistence |
 | --- | --- | --- | --- | --- |
 | List | `GET /api/HolidayCalandar/get` | View | `moduleId`, `operationId`; optional `tenantLocationId`, `holidayYear` | Read active, nondeleted holidays of authenticated tenant |
-| Detail | `GET /api/HolidayCalandar/{id}` | View | `moduleId`, `operationId` query | Read one holiday of authenticated tenant |
+| Detail | `GET /api/HolidayCalandar/{id}` | View | `moduleId`, `operationId` query | Read one nondeleted holiday, including inactive, of authenticated tenant |
 | Create | `POST /api/HolidayCalandar` | Add | JSON body below | Insert `OrganizationHolidayCalendar` |
 | Update | `PUT /api/HolidayCalandar/{id}` | Update | JSON body below; path Id wins | Update same tenant's active row |
 | Delete | `DELETE /api/HolidayCalandar/{id}` | Delete | `moduleId`, `operationId` query | Soft-delete row; retain history/audit |
-| Import | `POST /api/HolidayCalandar/import` | Import | multipart form with permission IDs and CSV/XLSX `file` or `pastedText` | Validate all rows, insert new holidays in one save; skip existing matches |
+| Import | `POST /api/HolidayCalandar/import` | Import | multipart form with permission IDs and CSV/XLSX `file` or `pastedText` | Reject existing same-date rows (active or inactive); insert only when the whole file is valid |
 | Export | `GET /api/HolidayCalandar/export` | Export | permission IDs; optional `tenantLocationId`, `holidayYear` | Download UTF-8 CSV of active tenant holidays |
 
 Copyable list example (IDs illustrative):
@@ -98,11 +98,14 @@ TenantLocationId,HolidayName,HolidayDate,IsOptional,Description
 ```
 
 The location must be active and belong to the authenticated tenant. A duplicate
-location/date/name **within the file** fails the whole upload. A matching active
-holiday already in the DB is skipped, without modifying it. Any invalid row
+location/date **within the file**, even with a different holiday name, fails
+the whole upload. An existing non-soft-deleted holiday at the same location/date
+also fails the whole upload whether `IsActive` is true or false. The error
+names the existing row Id and status: edit that Id or soft-delete it first.
+Any invalid row
 fails the whole upload before saving any row. This is a synchronous bounded
 import; there is no draft/confirm job, polling, retry or cancellation endpoint.
-For a failed or uncertain upload, check GET/export before retrying.
+For a failed or uncertain upload, check GET/export and the conflict Id before retrying.
 
 Illustrative invalid-row response: HTTP 400, with a row-numbered validation
 message; the precise envelope is produced by the shared exception middleware.
@@ -117,7 +120,7 @@ Representative import response (illustrative):
   "data": {
     "totalRows": 2,
     "createdCount": 1,
-    "skippedExistingCount": 1
+    "skippedExistingCount": 0
   },
   "errors": []
 }
@@ -132,7 +135,8 @@ Authorization: Bearer <token>
 
 The response is `text/csv; charset=utf-8` with attachment filename
 `organization-holidays.csv`; even an empty result contains the same header.
-Its columns match the import template, so the exported file can be reimported.
+Its columns match the import template. Reimporting unchanged rows returns a
+duplicate validation error; it does not insert or overwrite them.
 CSV text cells are quoted and spreadsheet-formula prefixes are escaped.
 
 Representative successful create/detail response; actual IDs will differ:
@@ -148,6 +152,7 @@ Representative successful create/detail response; actual IDs will differ:
     "holidayName": "Republic Day",
     "holidayDate": "2027-01-26",
     "isOptional": false,
+    "isActive": true,
     "description": "Mumbai office holiday"
   },
   "errors": []
@@ -156,8 +161,8 @@ Representative successful create/detail response; actual IDs will differ:
 
 List returns the same objects in a `data` array; delete returns `data: true`.
 Expected failures use the standard API error envelope: 400 for missing/invalid
-fields, inactive or foreign tenant location, or duplicate name on the same
-location/date; 401 for invalid authentication; 403 for wrong module/operation
+fields, inactive or foreign tenant location, or any non-soft-deleted holiday
+on the same tenant/location/date; 401 for invalid authentication; 403 for wrong module/operation
 or denied permission; 404 when a holiday is missing, deleted, or belongs to
 another tenant. These examples describe the local code contract, not captured
 deployed responses.
@@ -174,10 +179,25 @@ Representative validation error shape (illustrative, not a captured response):
 }
 ```
 
+Illustrative duplicate response (HTTP 400; actual Id/status come from the DB):
+
+```json
+{
+  "isSucceeded": false,
+  "message": "A holiday entry already exists for this location and date (Id 42, inactive). Edit that entry or soft-delete it before creating another.",
+  "data": null,
+  "errors": ["A holiday entry already exists for this location and date (Id 42, inactive). Edit that entry or soft-delete it before creating another."],
+  "errorCode": "VALIDATION_ERROR"
+}
+```
+
 `holidayDate` is ISO `YYYY-MM-DD`, without time/timezone. `holidayName` is 1–100
-characters; optional `description` is at most 255. A matching active holiday
-name/date at the same location is rejected. Multiple *different* holiday names
-on one date remain possible. Deleting a holiday sets soft-delete/audit fields;
+characters; optional `description` is at most 255. Only one non-soft-deleted
+holiday is allowed per tenant/location/date, regardless of name or `IsActive`.
+The duplicate error includes the existing Id and active/inactive status. Use
+GET by Id and PUT to edit an inactive entry, or DELETE by Id to soft-delete it;
+the list endpoint still shows active rows only. PUT does not reactivate an
+inactive entry. Deleting a holiday sets soft-delete/audit fields;
 it does not remove approved employee leave or generate policy rules. Calendar
 policy versioning is outside this endpoint; the CSV/XLSX import above is a
 separate synchronous route.
@@ -226,3 +246,5 @@ The [CRUD implementation report](../testing/holiday-calendar/crud/2026-09-22.md)
 records the local verification and remaining live tests.
 The [import/export report](../testing/holiday-calendar/import-export/2026-09-22.md)
 records the seed, CSV round-trip and permission checks.
+The [unique-date report](../testing/holiday-calendar/unique-date/2026-09-22.md)
+records inactive/date conflict behavior, the database index and remaining HTTP checks.

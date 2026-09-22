@@ -11,8 +11,10 @@ namespace axionpro.application.Interfaces.IRepositories
     {
         Task<List<OrganizationHolidayCalendar>> GetTenantHolidaysAsync(long tenantId, long? tenantLocationId, int? year, CancellationToken cancellationToken);
         Task<OrganizationHolidayCalendar?> GetTenantHolidayAsync(long tenantId, long id, CancellationToken cancellationToken);
+        Task<OrganizationHolidayCalendar?> GetTenantHolidayForWriteAsync(long tenantId, long id, CancellationToken cancellationToken);
         Task<bool> TenantLocationExistsAsync(long tenantId, long tenantLocationId, CancellationToken cancellationToken);
-        Task<bool> DuplicateHolidayExistsAsync(long tenantId, long tenantLocationId, DateOnly date, string name, long? excludeId, CancellationToken cancellationToken);
+        Task<OrganizationHolidayCalendar?> FindConflictingHolidayAsync(long tenantId, long tenantLocationId, DateOnly date, long? excludeId, CancellationToken cancellationToken);
+        Task<List<OrganizationHolidayCalendar>> GetTenantHolidaysForDuplicateCheckAsync(long tenantId, CancellationToken cancellationToken);
         Task<OrganizationHolidayCalendar> SaveHolidayAsync(OrganizationHolidayCalendar holiday, CancellationToken cancellationToken);
         Task<int> ImportHolidaysAsync(IReadOnlyList<OrganizationHolidayCalendar> holidays, CancellationToken cancellationToken);
         Task<List<OrganizationHolidayCalendar>> GetAllHolidaysAsync();

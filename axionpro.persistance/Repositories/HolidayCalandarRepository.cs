@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using axionpro.domain.Entity;
+using axionpro.application.Exceptions;
+using Npgsql;
 
 
 
@@ -63,6 +65,18 @@ namespace axionpro.persistance.Repositories
                 cancellationToken);
         }
 
+        public Task<OrganizationHolidayCalendar?> GetTenantHolidayForWriteAsync(
+            long tenantId,
+            long id,
+            CancellationToken cancellationToken)
+        {
+            return _context.OrganizationHolidayCalendars.FirstOrDefaultAsync(
+                holiday => holiday.Id == id
+                    && holiday.TenantId == tenantId
+                    && holiday.IsSoftDeleted != true,
+                cancellationToken);
+        }
+
         public Task<bool> TenantLocationExistsAsync(
             long tenantId,
             long tenantLocationId,
@@ -76,22 +90,29 @@ namespace axionpro.persistance.Repositories
                 cancellationToken);
         }
 
-        public Task<bool> DuplicateHolidayExistsAsync(
+        public Task<OrganizationHolidayCalendar?> FindConflictingHolidayAsync(
             long tenantId,
             long tenantLocationId,
             DateOnly date,
-            string name,
             long? excludeId,
             CancellationToken cancellationToken)
         {
-            return _context.OrganizationHolidayCalendars.AnyAsync(
+            return _context.OrganizationHolidayCalendars.AsNoTracking().FirstOrDefaultAsync(
                 holiday => holiday.TenantId == tenantId
                     && holiday.TenantLocationId == tenantLocationId
                     && holiday.HolidayDate == date
-                    && holiday.HolidayName.ToLower() == name.ToLower()
                     && holiday.IsSoftDeleted != true
                     && (!excludeId.HasValue || holiday.Id != excludeId.Value),
                 cancellationToken);
+        }
+
+        public Task<List<OrganizationHolidayCalendar>> GetTenantHolidaysForDuplicateCheckAsync(
+            long tenantId,
+            CancellationToken cancellationToken)
+        {
+            return _context.OrganizationHolidayCalendars.AsNoTracking()
+                .Where(holiday => holiday.TenantId == tenantId && holiday.IsSoftDeleted != true)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<OrganizationHolidayCalendar> SaveHolidayAsync(
@@ -103,7 +124,7 @@ namespace axionpro.persistance.Repositories
                 await _context.OrganizationHolidayCalendars.AddAsync(holiday, cancellationToken);
             }
 
-            await _context.SaveChangesAsync(cancellationToken);
+            await SaveChangesWithHolidayConflictAsync(cancellationToken);
             return holiday;
         }
 
@@ -117,7 +138,24 @@ namespace axionpro.persistance.Repositories
             }
 
             await _context.OrganizationHolidayCalendars.AddRangeAsync(holidays, cancellationToken);
-            return await _context.SaveChangesAsync(cancellationToken);
+            return await SaveChangesWithHolidayConflictAsync(cancellationToken);
+        }
+
+        private async Task<int> SaveChangesWithHolidayConflictAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+                {
+                    SqlState: PostgresErrorCodes.UniqueViolation,
+                    ConstraintName: "UX_OrganizationHolidayCalendar_Tenant_Location_Date_NotDeleted"
+                })
+            {
+                throw new ValidationErrorException(
+                    "A holiday entry already exists for this location and date. Edit that entry or soft-delete it before creating another.");
+            }
         }
 
         public async Task<List<OrganizationHolidayCalendar>> GetAllHolidaysAsync()

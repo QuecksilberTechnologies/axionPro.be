@@ -122,6 +122,12 @@ public sealed class HolidayCalendarPermissionBehavior<TRequest, TResponse>(
 
 internal static class HolidayCalendarValidation
 {
+    public static string DuplicateMessage(OrganizationHolidayCalendar existing)
+    {
+        var status = existing.IsActive == true ? "active" : "inactive";
+        return $"A holiday entry already exists for this location and date (Id {existing.Id}, {status}). Edit that entry or soft-delete it before creating another.";
+    }
+
     public static void Validate(long tenantLocationId, string name, DateOnly date, string? description)
     {
         if (tenantLocationId <= 0)
@@ -155,6 +161,7 @@ internal static class HolidayCalendarValidation
             HolidayName = holiday.HolidayName,
             HolidayDate = holiday.HolidayDate,
             IsOptional = holiday.IsOptional,
+            IsActive = holiday.IsActive == true,
             Description = holiday.Description
         };
     }
@@ -197,7 +204,7 @@ public sealed class GetHolidayQueryHandler(
         CancellationToken cancellationToken)
     {
         var actor = await commonRequestService.ValidateTenantUserRequestAsync();
-        var holiday = await unitOfWork.HolidayCalandarRepository.GetTenantHolidayAsync(
+        var holiday = await unitOfWork.HolidayCalandarRepository.GetTenantHolidayForWriteAsync(
             actor.TenantId,
             request.DTO.Id,
             cancellationToken) ?? throw new NotFoundException("Holiday was not found.");
@@ -227,10 +234,11 @@ public sealed class CreateHolidayCommandHandler(
         }
 
         var name = dto.HolidayName.Trim();
-        if (await unitOfWork.HolidayCalandarRepository.DuplicateHolidayExistsAsync(
-            actor.TenantId, dto.TenantLocationId, dto.HolidayDate, name, null, cancellationToken))
+        var conflict = await unitOfWork.HolidayCalandarRepository.FindConflictingHolidayAsync(
+            actor.TenantId, dto.TenantLocationId, dto.HolidayDate, null, cancellationToken);
+        if (conflict is not null)
         {
-            throw new ValidationErrorException("This holiday already exists for the location and date.");
+            throw new ValidationErrorException(HolidayCalendarValidation.DuplicateMessage(conflict));
         }
 
         var holiday = new OrganizationHolidayCalendar
@@ -266,7 +274,7 @@ public sealed class UpdateHolidayCommandHandler(
         var actor = await commonRequestService.ValidateTenantUserRequestAsync();
         var dto = request.DTO;
         HolidayCalendarValidation.Validate(dto.TenantLocationId, dto.HolidayName, dto.HolidayDate, dto.Description);
-        var holiday = await unitOfWork.HolidayCalandarRepository.GetTenantHolidayAsync(
+        var holiday = await unitOfWork.HolidayCalandarRepository.GetTenantHolidayForWriteAsync(
             actor.TenantId, dto.Id, cancellationToken) ?? throw new NotFoundException("Holiday was not found.");
 
         if (!await unitOfWork.HolidayCalandarRepository.TenantLocationExistsAsync(
@@ -276,10 +284,11 @@ public sealed class UpdateHolidayCommandHandler(
         }
 
         var name = dto.HolidayName.Trim();
-        if (await unitOfWork.HolidayCalandarRepository.DuplicateHolidayExistsAsync(
-            actor.TenantId, dto.TenantLocationId, dto.HolidayDate, name, dto.Id, cancellationToken))
+        var conflict = await unitOfWork.HolidayCalandarRepository.FindConflictingHolidayAsync(
+            actor.TenantId, dto.TenantLocationId, dto.HolidayDate, dto.Id, cancellationToken);
+        if (conflict is not null)
         {
-            throw new ValidationErrorException("This holiday already exists for the location and date.");
+            throw new ValidationErrorException(HolidayCalendarValidation.DuplicateMessage(conflict));
         }
 
         holiday.TenantLocationId = dto.TenantLocationId;
@@ -307,7 +316,7 @@ public sealed class DeleteHolidayCommandHandler(
         CancellationToken cancellationToken)
     {
         var actor = await commonRequestService.ValidateTenantUserRequestAsync();
-        var holiday = await unitOfWork.HolidayCalandarRepository.GetTenantHolidayAsync(
+        var holiday = await unitOfWork.HolidayCalandarRepository.GetTenantHolidayForWriteAsync(
             actor.TenantId,
             request.DTO.Id,
             cancellationToken) ?? throw new NotFoundException("Holiday was not found.");

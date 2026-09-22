@@ -55,8 +55,9 @@ public sealed class HolidayCalendarCrudDatabaseTests
 
             await repository.SaveHolidayAsync(holiday, CancellationToken.None);
             Assert.That(holiday.Id, Is.GreaterThan(0));
-            Assert.That(await repository.DuplicateHolidayExistsAsync(
-                location.TenantId, location.Id, holiday.HolidayDate, holiday.HolidayName, null, CancellationToken.None), Is.True);
+            Assert.That((await repository.FindConflictingHolidayAsync(
+                location.TenantId, location.Id, holiday.HolidayDate, null, CancellationToken.None))?.Id,
+                Is.EqualTo(holiday.Id));
             Assert.That(await repository.GetTenantHolidayAsync(
                 location.TenantId + 100000, holiday.Id, CancellationToken.None), Is.Null);
             Assert.That((await repository.GetTenantHolidaysAsync(
@@ -70,11 +71,21 @@ public sealed class HolidayCalendarCrudDatabaseTests
                 Is.EqualTo("Updated in rollback transaction"));
 
             holiday.IsActive = false;
+            await repository.SaveHolidayAsync(holiday, CancellationToken.None);
+            Assert.That((await repository.FindConflictingHolidayAsync(
+                location.TenantId, location.Id, holiday.HolidayDate, null, CancellationToken.None))?.Id,
+                Is.EqualTo(holiday.Id), "Inactive rows must still block the same date.");
+            Assert.That((await repository.GetTenantHolidayForWriteAsync(
+                location.TenantId, holiday.Id, CancellationToken.None))?.Id, Is.EqualTo(holiday.Id));
+
             holiday.IsSoftDeleted = true;
             holiday.DeletedDateTime = DateTime.UtcNow;
             await repository.SaveHolidayAsync(holiday, CancellationToken.None);
             Assert.That(await repository.GetTenantHolidayAsync(
                 location.TenantId, holiday.Id, CancellationToken.None), Is.Null);
+            Assert.That(await repository.FindConflictingHolidayAsync(
+                location.TenantId, location.Id, holiday.HolidayDate, null, CancellationToken.None), Is.Null,
+                "Soft-deleted rows must allow replacement.");
         }
         finally
         {

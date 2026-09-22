@@ -52,6 +52,7 @@ public sealed class ImportHolidaysCommandHandler(
         var errors = new List<string>();
         var parsed = new List<OrganizationHolidayCalendar>();
         var fileKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var rowNumbers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in table.Rows)
         {
             var locationText = Value(row.Values, positions, "TenantLocationId");
@@ -73,12 +74,14 @@ public sealed class ImportHolidaysCommandHandler(
                 continue;
             }
 
-            var key = Key(locationId, holidayDate, name);
+            var key = Key(locationId, holidayDate);
             if (!fileKeys.Add(key))
             {
-                errors.Add($"Row {row.RowNumber}: duplicate holiday in the uploaded file.");
+                errors.Add($"Row {row.RowNumber}: another holiday already uses this location and date in the uploaded file.");
                 continue;
             }
+
+            rowNumbers[key] = row.RowNumber;
 
             parsed.Add(new OrganizationHolidayCalendar
             {
@@ -104,24 +107,35 @@ public sealed class ImportHolidaysCommandHandler(
             }
         }
 
+        if (errors.Count == 0)
+        {
+            var existing = await unitOfWork.HolidayCalandarRepository.GetTenantHolidaysForDuplicateCheckAsync(
+                actor.TenantId, cancellationToken);
+            var existingByDate = existing
+                .GroupBy(item => Key(item.TenantLocationId, item.HolidayDate), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+            foreach (var item in parsed)
+            {
+                if (existingByDate.TryGetValue(Key(item.TenantLocationId, item.HolidayDate), out var conflict))
+                {
+                    var rowNumber = rowNumbers[Key(item.TenantLocationId, item.HolidayDate)];
+                    errors.Add($"Row {rowNumber}: {HolidayCalendarValidation.DuplicateMessage(conflict)}");
+                }
+            }
+        }
+
         if (errors.Count > 0)
         {
             throw new ValidationErrorException("Holiday import validation failed; no rows were saved.", errors);
         }
 
-        var existing = await unitOfWork.HolidayCalandarRepository.GetTenantHolidaysAsync(
-            actor.TenantId, null, null, cancellationToken);
-        var existingKeys = existing.Select(item => Key(item.TenantLocationId, item.HolidayDate, item.HolidayName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var toCreate = parsed.Where(item => !existingKeys.Contains(Key(
-            item.TenantLocationId, item.HolidayDate, item.HolidayName))).ToList();
-        var created = await unitOfWork.HolidayCalandarRepository.ImportHolidaysAsync(toCreate, cancellationToken);
+        var created = await unitOfWork.HolidayCalandarRepository.ImportHolidaysAsync(parsed, cancellationToken);
 
         return ApiResponse<HolidayImportResultDTO>.Success(new HolidayImportResultDTO
         {
             TotalRows = table.Rows.Count,
             CreatedCount = created,
-            SkippedExistingCount = table.Rows.Count - created
+            SkippedExistingCount = 0
         }, "Holiday import completed successfully.");
     }
 
@@ -131,10 +145,10 @@ public sealed class ImportHolidaysCommandHandler(
         return index < values.Count ? values[index] : string.Empty;
     }
 
-    private static string Key(long locationId, DateOnly date, string name)
+    private static string Key(long locationId, DateOnly date)
     {
         return string.Join("|", locationId.ToString(CultureInfo.InvariantCulture),
-            date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), name.Trim());
+            date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
     }
 }
 

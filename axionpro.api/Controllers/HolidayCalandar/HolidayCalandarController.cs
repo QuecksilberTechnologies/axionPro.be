@@ -35,7 +35,7 @@ public sealed class HolidayCalandarController(IMediator mediator) : ControllerBa
         return Ok(await mediator.Send(new ListHolidaysQuery(request), cancellationToken));
     }
 
-    /// <summary>Gets one active holiday belonging to the current tenant.</summary>
+    /// <summary>Gets one nondeleted holiday, including inactive, belonging to the current tenant.</summary>
     /// <remarks>Requires the View operation for TENANT_POLICY_HOLIDAY_CALENDAR.</remarks>
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(
@@ -93,7 +93,8 @@ public sealed class HolidayCalandarController(IMediator mediator) : ControllerBa
     /// <remarks>
     /// Requires Import permission. Supply exactly one CSV/XLSX file or pasted
     /// table, with TenantLocationId, HolidayName, HolidayDate, IsOptional and
-    /// Description columns. Invalid input saves no rows; existing matches skip.
+    /// Description columns. Invalid input or an existing nondeleted date saves
+    /// no rows; inactive entries also block the date until soft-deleted.
     /// </remarks>
     [HttpPost("import")]
     [Consumes("multipart/form-data")]

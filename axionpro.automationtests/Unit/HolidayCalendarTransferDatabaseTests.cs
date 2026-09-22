@@ -20,7 +20,7 @@ namespace axionpro.automationtests.Unit;
 public sealed class HolidayCalendarTransferDatabaseTests
 {
     [Test]
-    public async Task Csv_import_export_skip_and_invalid_row_are_transactionally_safe()
+    public async Task Csv_import_export_duplicate_and_invalid_row_are_transactionally_safe()
     {
         var connectionString = Environment.GetEnvironmentVariable("AXIONPRO_HOLIDAY_TEST_CONNECTION");
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -80,12 +80,22 @@ public sealed class HolidayCalendarTransferDatabaseTests
             Assert.That(exportedText, Does.Contain("Calendar Import Verification"));
             Assert.That(exportedText, Does.Contain("2099-12-29"));
 
-            var repeated = await importer.Handle(new ImportHolidaysCommand(new ImportHolidayRequestDTO
-            {
-                PastedText = csv
-            }), CancellationToken.None);
-            Assert.That(repeated.Data.CreatedCount, Is.Zero);
-            Assert.That(repeated.Data.SkippedExistingCount, Is.EqualTo(1));
+            var repeatError = Assert.ThrowsAsync<ValidationErrorException>(async () =>
+                await importer.Handle(new ImportHolidaysCommand(new ImportHolidayRequestDTO
+                {
+                    PastedText = csv.Replace("Calendar Import Verification", "Different Holiday Same Date")
+                }), CancellationToken.None));
+            Assert.That(repeatError!.Errors.Any(error => error.Contains("already exists")), Is.True);
+
+            var stored = await context.OrganizationHolidayCalendars.SingleAsync(item =>
+                item.TenantId == location.TenantId && item.HolidayName == "Calendar Import Verification");
+            stored.IsActive = false;
+            await context.SaveChangesAsync();
+            Assert.ThrowsAsync<ValidationErrorException>(async () =>
+                await importer.Handle(new ImportHolidaysCommand(new ImportHolidayRequestDTO
+                {
+                    PastedText = csv
+                }), CancellationToken.None));
 
             var invalid = csv.Replace("2099-12-29", "not-a-date");
             Assert.ThrowsAsync<ValidationErrorException>(async () =>
@@ -96,6 +106,14 @@ public sealed class HolidayCalendarTransferDatabaseTests
             Assert.That(await context.OrganizationHolidayCalendars.CountAsync(item =>
                 item.TenantId == location.TenantId && item.HolidayName == "Calendar Import Verification"),
                 Is.EqualTo(1));
+
+            stored.IsSoftDeleted = true;
+            await context.SaveChangesAsync();
+            var replacement = await importer.Handle(new ImportHolidaysCommand(new ImportHolidayRequestDTO
+            {
+                PastedText = csv
+            }), CancellationToken.None);
+            Assert.That(replacement.Data.CreatedCount, Is.EqualTo(1));
         }
         finally
         {

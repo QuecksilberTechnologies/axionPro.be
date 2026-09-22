@@ -2,11 +2,26 @@
 
 ## 2026-09-22 Holiday Calendar import/export — WIP
 
+- 2026-09-22 duplicate-date change: Holiday Calendar create/update/import now
+  reject any other non-soft-deleted row at the same tenant/location/date,
+  including inactive rows and differently named holidays. Import no longer
+  skips existing rows. A guarded partial unique index protects concurrent
+  inserts. See the new scenario report under
+  `docs/testing/holiday-calendar/unique-date/2026-09-22.md`.
+
+- Follow-up live data smoke: user selected 2026, tenant 8 Jabalpur location.
+  The configured target DB now has 31 sourced holiday rows across all 12
+  months (29 MP government-listed and 2 optional); the transactional insert
+  rerun added 0. Local unauthenticated API GET/export/multipart import returned
+  401, and 14 focused tests passed. Authenticated import/export and employer
+  holiday approval remain pending. Input CSV, exact DB results and limitations
+  are in `docs/testing/holiday-calendar/live-2026-jabalpur/2026-09-22.md`.
+
 - Requested scope: add Import and Export to the existing
   `TENANT_POLICY_HOLIDAY_CALENDAR` module and holiday API.
 - Implemented locally: bounded synchronous CSV/XLSX import using the shared
   table reader; tenant-location ownership and all-row validation; existing
-  active holiday skip; tenant-scoped CSV export with matching headers.
+  date conflict rejection; tenant-scoped CSV export with matching headers.
 - This is a holiday-specific synchronous flow, not one of the 14 durable
   `BulkImportMaster` targets. It has no preview/confirm/job/report sequence.
 - Seed applied twice to the configured target DB: exactly one Import and one
