@@ -24,6 +24,89 @@ namespace axionpro.persistance.Repositories
             _logger = logger;
         }
 
+        public Task<List<OrganizationHolidayCalendar>> GetTenantHolidaysAsync(
+            long tenantId,
+            long? tenantLocationId,
+            int? year,
+            CancellationToken cancellationToken)
+        {
+            var query = _context.OrganizationHolidayCalendars.AsNoTracking()
+                .Where(holiday => holiday.TenantId == tenantId
+                    && holiday.IsActive == true
+                    && holiday.IsSoftDeleted != true);
+
+            if (tenantLocationId.HasValue)
+            {
+                query = query.Where(holiday => holiday.TenantLocationId == tenantLocationId.Value);
+            }
+
+            if (year.HasValue)
+            {
+                query = query.Where(holiday => holiday.HolidayDate.Year == year.Value);
+            }
+
+            return query.OrderBy(holiday => holiday.HolidayDate)
+                .ThenBy(holiday => holiday.Id)
+                .ToListAsync(cancellationToken);
+        }
+
+        public Task<OrganizationHolidayCalendar?> GetTenantHolidayAsync(
+            long tenantId,
+            long id,
+            CancellationToken cancellationToken)
+        {
+            return _context.OrganizationHolidayCalendars.FirstOrDefaultAsync(
+                holiday => holiday.Id == id
+                    && holiday.TenantId == tenantId
+                    && holiday.IsActive == true
+                    && holiday.IsSoftDeleted != true,
+                cancellationToken);
+        }
+
+        public Task<bool> TenantLocationExistsAsync(
+            long tenantId,
+            long tenantLocationId,
+            CancellationToken cancellationToken)
+        {
+            return _context.TenantLocations.AnyAsync(
+                location => location.Id == tenantLocationId
+                    && location.TenantId == tenantId
+                    && location.IsActive
+                    && !location.IsSoftDeleted,
+                cancellationToken);
+        }
+
+        public Task<bool> DuplicateHolidayExistsAsync(
+            long tenantId,
+            long tenantLocationId,
+            DateOnly date,
+            string name,
+            long? excludeId,
+            CancellationToken cancellationToken)
+        {
+            return _context.OrganizationHolidayCalendars.AnyAsync(
+                holiday => holiday.TenantId == tenantId
+                    && holiday.TenantLocationId == tenantLocationId
+                    && holiday.HolidayDate == date
+                    && holiday.HolidayName.ToLower() == name.ToLower()
+                    && holiday.IsSoftDeleted != true
+                    && (!excludeId.HasValue || holiday.Id != excludeId.Value),
+                cancellationToken);
+        }
+
+        public async Task<OrganizationHolidayCalendar> SaveHolidayAsync(
+            OrganizationHolidayCalendar holiday,
+            CancellationToken cancellationToken)
+        {
+            if (holiday.Id == 0)
+            {
+                await _context.OrganizationHolidayCalendars.AddAsync(holiday, cancellationToken);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return holiday;
+        }
+
         public async Task<List<OrganizationHolidayCalendar>> GetAllHolidaysAsync()
         {
             try

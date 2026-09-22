@@ -1,0 +1,84 @@
+using axionpro.domain.Entity;
+using axionpro.persistance.Data.Context;
+using axionpro.persistance.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
+using NUnit.Framework;
+
+namespace axionpro.automationtests.Unit;
+
+[TestFixture]
+[Category("HolidayCalendarCrudDatabase")]
+public sealed class HolidayCalendarCrudDatabaseTests
+{
+    [Test]
+    public async Task Repository_create_read_update_and_soft_delete_stays_tenant_scoped()
+    {
+        var connectionString = Environment.GetEnvironmentVariable("AXIONPRO_HOLIDAY_TEST_CONNECTION");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            Assert.Ignore("Set AXIONPRO_HOLIDAY_TEST_CONNECTION to run the rollback-only PostgreSQL test.");
+        }
+
+        var options = new DbContextOptionsBuilder<WorkforceDbContext>()
+            .UseNpgsql(connectionString)
+            .Options;
+
+        await using var context = new WorkforceDbContext(options);
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        var location = await context.TenantLocations.AsNoTracking()
+            .Where(item => item.IsActive && !item.IsSoftDeleted)
+            .OrderBy(item => item.Id)
+            .FirstAsync();
+        var repository = new HolidayCalandarRepository(
+            context,
+            NullLogger<HolidayCalandarRepository>.Instance);
+
+        var holiday = new OrganizationHolidayCalendar
+        {
+            TenantId = location.TenantId,
+            TenantLocationId = location.Id,
+            HolidayName = "Calendar repository rollback verification",
+            HolidayDate = new DateOnly(2099, 12, 30),
+            IsOptional = false,
+            IsActive = true,
+            IsSoftDeleted = false,
+            AddedDateTime = DateTime.UtcNow
+        };
+
+        try
+        {
+            Assert.That(await repository.TenantLocationExistsAsync(
+                location.TenantId, location.Id, CancellationToken.None), Is.True);
+            Assert.That(await repository.TenantLocationExistsAsync(
+                location.TenantId + 100000, location.Id, CancellationToken.None), Is.False);
+
+            await repository.SaveHolidayAsync(holiday, CancellationToken.None);
+            Assert.That(holiday.Id, Is.GreaterThan(0));
+            Assert.That(await repository.DuplicateHolidayExistsAsync(
+                location.TenantId, location.Id, holiday.HolidayDate, holiday.HolidayName, null, CancellationToken.None), Is.True);
+            Assert.That(await repository.GetTenantHolidayAsync(
+                location.TenantId + 100000, holiday.Id, CancellationToken.None), Is.Null);
+            Assert.That((await repository.GetTenantHolidaysAsync(
+                location.TenantId, location.Id, 2099, CancellationToken.None))
+                .Any(item => item.Id == holiday.Id), Is.True);
+
+            holiday.Description = "Updated in rollback transaction";
+            await repository.SaveHolidayAsync(holiday, CancellationToken.None);
+            Assert.That((await repository.GetTenantHolidayAsync(
+                location.TenantId, holiday.Id, CancellationToken.None))?.Description,
+                Is.EqualTo("Updated in rollback transaction"));
+
+            holiday.IsActive = false;
+            holiday.IsSoftDeleted = true;
+            holiday.DeletedDateTime = DateTime.UtcNow;
+            await repository.SaveHolidayAsync(holiday, CancellationToken.None);
+            Assert.That(await repository.GetTenantHolidayAsync(
+                location.TenantId, holiday.Id, CancellationToken.None), Is.Null);
+        }
+        finally
+        {
+            await transaction.RollbackAsync();
+        }
+    }
+}

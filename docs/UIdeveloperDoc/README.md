@@ -1,5 +1,7 @@
 # UI developer documents
 
+- [Full Policy With Example](fullPolicyWithExample.md) — single consolidated guide with table ownership, UI screens, applicability, lifecycle, IOCL and Dubai-to-India transfer, leave balances, diagrams, APIs and implementation gaps.
+
 - [Tenant Policy Live Flow Simulator](policy-live-simulator/README.md) — shareable standalone folder; double-click start, live DDL, rule/applicability builder, all 37 policy endpoints, DB-table impact and safe local JSON files.
 
 - [Host Catalogue Bulk Upload](HOST_CATALOGUE_BULK_UI_IMPLEMENTATION.md) — four
@@ -50,6 +52,11 @@ Claude or Codex can implement the frontend without guessing backend behavior.
   policy routes with copyable request/response examples and verification status.
 - [Tenant Policy API flow — Hinglish](TENANT_POLICY_API_FLOW_HINGLISH.md) — zero-level
   business sequence, screen-to-API mapping and the purpose of all 37 routes.
+- [Tenant Policy actual UI screen → API → table map](TENANT_POLICY_UI_SCREEN_TO_API_TABLE_MAP.md)
+  — read-only Angular/backend code audit, each existing page/button, request/response,
+  database effect, worked example and missing/broken UI flows.
+- [Tenant Policy actual screenshots guide](TenantPolicyActualScreensGuide.docx)
+  — Word guide with UI screenshots, click-to-API/table explanation and verified gaps in red.
 
 Latest Render API evidence: [2026-09-13 smoke test](../RENDER_SMOKE_TEST_2026-09-13.md).
 

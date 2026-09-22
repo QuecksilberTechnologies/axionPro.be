@@ -6,19 +6,59 @@
 location. Country and state are resolved through `TenantLocation`; they are not
 copied into the holiday row. The year is derived from `HolidayDate`.
 
-## Current API
+## Current API and permission flow
 
-`GET /api/HolidayCalandar/get`
+The menu module is `TENANT_POLICY_HOLIDAY_CALENDAR` under `TENANT_POLICIES`,
+with route `/app/holidays`. The `View`, `Add`, `Update`, and `Delete` operations
+are mapped through the existing tenant permission pipeline. The UI must resolve
+current `moduleId` and `operationId` through the authenticated menu/permission
+flow. Observed numeric IDs are not portable and must not be hardcoded.
 
-The endpoint uses the existing authentication and authorization behavior. It does
-not currently accept `ModuleId`, `OperationId`, `TenantLocationId`, or year filters.
-No create/update endpoint was added by this refactor.
+All routes below require an authenticated tenant employee. The API checks that
+the supplied module is the holiday module, the operation matches the action,
+and the tenant employee has the runtime permission. TenantId comes from the
+validated authentication context. A caller cannot choose another tenant.
 
-Representative response item:
+| Action | Route | Operation | Inputs | Persistence |
+| --- | --- | --- | --- | --- |
+| List | `GET /api/HolidayCalandar/get` | View | `moduleId`, `operationId`; optional `tenantLocationId`, `holidayYear` | Read active, nondeleted holidays of authenticated tenant |
+| Detail | `GET /api/HolidayCalandar/{id}` | View | `moduleId`, `operationId` query | Read one holiday of authenticated tenant |
+| Create | `POST /api/HolidayCalandar` | Add | JSON body below | Insert `OrganizationHolidayCalendar` |
+| Update | `PUT /api/HolidayCalandar/{id}` | Update | JSON body below; path Id wins | Update same tenant's active row |
+| Delete | `DELETE /api/HolidayCalandar/{id}` | Delete | `moduleId`, `operationId` query | Soft-delete row; retain history/audit |
+
+Copyable list example (IDs illustrative):
+
+```http
+GET /api/HolidayCalandar/get?moduleId=118&operationId=4&tenantLocationId=5&holidayYear=2027
+Authorization: Bearer <token>
+```
+
+Copyable create example (IDs illustrative):
 
 ```json
 {
-  "tenantId": 9,
+  "moduleId": 118,
+  "operationId": 1,
+  "tenantLocationId": 5,
+  "holidayName": "Republic Day",
+  "holidayDate": "2027-01-26",
+  "isOptional": false,
+  "description": "Mumbai office holiday"
+}
+```
+
+Update uses the same holiday fields with the Update operation. Example:
+
+```http
+PUT /api/HolidayCalandar/42
+Content-Type: application/json
+```
+
+```json
+{
+  "moduleId": 118,
+  "operationId": 2,
   "tenantLocationId": 5,
   "holidayName": "Republic Day",
   "holidayDate": "2027-01-26",
@@ -27,9 +67,62 @@ Representative response item:
 }
 ```
 
-`holidayDate` is an ISO date (`YYYY-MM-DD`) without a time or timezone. The UI
-must resolve the location from the tenant's location options and store/send its
-numeric `tenantLocationId` when a write endpoint is introduced.
+Delete example (IDs illustrative):
+
+```http
+DELETE /api/HolidayCalandar/42?moduleId=118&operationId=3
+Authorization: Bearer <token>
+```
+
+Representative successful create/detail response; actual IDs will differ:
+
+```json
+{
+  "isSucceeded": true,
+  "message": "Holiday created successfully.",
+  "data": {
+    "id": 42,
+    "tenantId": 9,
+    "tenantLocationId": 5,
+    "holidayName": "Republic Day",
+    "holidayDate": "2027-01-26",
+    "isOptional": false,
+    "description": "Mumbai office holiday"
+  },
+  "errors": []
+}
+```
+
+List returns the same objects in a `data` array; delete returns `data: true`.
+Expected failures use the standard API error envelope: 400 for missing/invalid
+fields, inactive or foreign tenant location, or duplicate name on the same
+location/date; 401 for invalid authentication; 403 for wrong module/operation
+or denied permission; 404 when a holiday is missing, deleted, or belongs to
+another tenant. These examples describe the local code contract, not captured
+deployed responses.
+
+Representative validation error shape (illustrative, not a captured response):
+
+```json
+{
+  "isSucceeded": false,
+  "message": "TenantLocationId is required.",
+  "data": null,
+  "errors": ["TenantLocationId is required."],
+  "errorCode": "VALIDATION_ERROR"
+}
+```
+
+`holidayDate` is ISO `YYYY-MM-DD`, without time/timezone. `holidayName` is 1–100
+characters; optional `description` is at most 255. A matching active holiday
+name/date at the same location is rejected. Multiple *different* holiday names
+on one date remain possible. Deleting a holiday sets soft-delete/audit fields;
+it does not remove approved employee leave or generate policy rules. Calendar
+policy versioning and bulk import are outside this CRUD endpoint.
+No polling, retry or cancellation protocol is required for these synchronous
+single-row endpoints. Failed writes should be corrected and resubmitted; do
+not automatically retry a create after an uncertain network outcome without
+first checking the list for an existing matching holiday.
 
 ## Persistence
 
@@ -48,10 +141,23 @@ migration intentionally stops instead of guessing when unmapped rows exist.
 
 ## Validation status
 
-- Local build: PASS on 2026-09-16.
-- Focused automated tests: 3 passed, 0 failed, 0 skipped.
-- Target DB migration: NOT RUN. It must be coordinated with deployment because
-  the old deployed build still maps the columns removed by the migration.
-- Deployed API verification: NOT RUN.
+- Local API build: PASS on 2026-09-22.
+- Focused automated tests: 11 passed, 0 failed, 0 skipped on 2026-09-22
+  (3 prior schema/refactor tests, 3 CRUD route/contract tests, 1
+  rollback-only PostgreSQL repository behavior test, and 4 permission cases).
+- Local HTTP authentication smoke: all five routes returned 401 without a token.
+- Target DB migration: APPLIED on 2026-09-22 to the Development-configured
+  `workforcedb_34hi_duis` database. The table had 0 rows beforehand. Post-migration
+  inspection confirmed 15 columns, `HolidayDate` as `date`, required
+  `TenantLocationId`, and its FK. A table-level backup was saved under
+  `C:\AxionProCodeBase\DBFullBACKUP` before migration.
+- Deployed API CRUD and tenant permission verification: NOT RUN. The database
+  test covers repository persistence, tenant filtering, duplicate detection and
+  soft-delete in a rolled-back transaction; it does not exercise HTTP/auth.
 
 See the [scenario report](../testing/holiday-calendar/tenant-location-refactor/2026-09-16.md).
+See also the [target DB migration report](../testing/holiday-calendar/tenant-location-refactor/2026-09-22.md).
+The [child module seed report](../testing/holiday-calendar/policy-child-module/2026-09-22.md)
+records its target DB and idempotence checks; tenant menu visibility remains unverified.
+The [CRUD implementation report](../testing/holiday-calendar/crud/2026-09-22.md)
+records the local verification and remaining live tests.

@@ -31,7 +31,8 @@ INSERT INTO policy_module_seed VALUES
 ('TENANT_POLICY_EXCEPTIONS','Policy-Exceptions','Policy Exceptions','/app/policies/exceptions','tenant-policy-exceptions','TENANT_POLICIES',true,640,'Approved employee-specific policy overrides.','bi bi-sliders','options-outline'),
 ('TENANT_POLICY_APPROVALS','Policy-Approvals','Policy Approvals','/app/policies/approvals','tenant-policy-approvals','TENANT_POLICIES',true,650,'Policy review, approval, rejection and publication queue.','bi bi-check2-square','checkmark-done-outline'),
 ('TENANT_POLICY_ACKNOWLEDGEMENTS','Policy-Acknowledgements','Policy Acknowledgements','/app/policies/acknowledgements','tenant-policy-acknowledgements','TENANT_POLICIES',true,660,'Employee policy delivery, view and acknowledgement tracking.','bi bi-person-check-fill','reader-outline'),
-('TENANT_POLICY_AUDIT','Policy-Audit','Policy Audit','/app/policies/audit','tenant-policy-audit','TENANT_POLICIES',true,670,'Immutable policy change and lifecycle evidence.','bi bi-clock-history','time-outline');
+('TENANT_POLICY_AUDIT','Policy-Audit','Policy Audit','/app/policies/audit','tenant-policy-audit','TENANT_POLICIES',true,670,'Immutable policy change and lifecycle evidence.','bi bi-clock-history','time-outline'),
+('TENANT_POLICY_HOLIDAY_CALENDAR','Organization-Holiday-Calendar','Organization Holiday Calendar','/app/holidays','tenant-policy-holiday-calendar','TENANT_POLICIES',true,680,'Location-based organization holidays.','bi bi-calendar-event','calendar-outline');
 
 INSERT INTO axionpro."Module"
 ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId","IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","ModuleScope","IsActive","ImageIconWeb","ImageIconMobile","ItemPriority","Remark","AddedById","AddedDateTime","PageName")
@@ -84,7 +85,11 @@ INSERT INTO policy_module_operation_seed VALUES
 ('TENANT_POLICY_EXCEPTIONS','View',4,10),('TENANT_POLICY_EXCEPTIONS','Add',1,20),('TENANT_POLICY_EXCEPTIONS','Update',2,30),('TENANT_POLICY_EXCEPTIONS','Delete',3,40),('TENANT_POLICY_EXCEPTIONS','Approve',5,50),('TENANT_POLICY_EXCEPTIONS','Reject',6,60),('TENANT_POLICY_EXCEPTIONS','Active',4,70),('TENANT_POLICY_EXCEPTIONS','Inactive',4,80),
 ('TENANT_POLICY_APPROVALS','View',4,10),('TENANT_POLICY_APPROVALS','Review',20,20),('TENANT_POLICY_APPROVALS','Approve',5,30),('TENANT_POLICY_APPROVALS','Reject',6,40),('TENANT_POLICY_APPROVALS','Publish',28,50),
 ('TENANT_POLICY_ACKNOWLEDGEMENTS','View',4,10),('TENANT_POLICY_ACKNOWLEDGEMENTS','Acknowledge',30,20),('TENANT_POLICY_ACKNOWLEDGEMENTS','Export',11,30),
-('TENANT_POLICY_AUDIT','View',4,10),('TENANT_POLICY_AUDIT','Export',11,20);
+('TENANT_POLICY_AUDIT','View',4,10),('TENANT_POLICY_AUDIT','Export',11,20),
+('TENANT_POLICY_HOLIDAY_CALENDAR','View',4,10),
+('TENANT_POLICY_HOLIDAY_CALENDAR','Add',1,20),
+('TENANT_POLICY_HOLIDAY_CALENDAR','Update',2,30),
+('TENANT_POLICY_HOLIDAY_CALENDAR','Delete',3,40);
 
 INSERT INTO axionpro."ModuleOperationMapping"
 ("ModuleId","OperationId","PageURL","IconURL","IsCommonItem","IsOperational","Priority","Remark","IsActive","AddedById","AddedDateTime")

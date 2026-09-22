@@ -2,59 +2,88 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Coordinates HTTP requests for Holiday Calandar operations.
+// Purpose : Coordinates tenant holiday calendar CRUD requests.
 // ================================================================
 
-using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.OrganizationHolidayCalendar;
-
-using axionpro.application.Features.HolidayCalandarCmd.Queries;
-using axionpro.application.Interfaces.ILogger;
-using axionpro.application.Wrappers;
+using axionpro.application.Features.HolidayCalandarCmd;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace axionpro.api.Controllers.HolidayCalandar
+namespace axionpro.api.Controllers.HolidayCalandar;
+
+/// <summary>
+/// Manages location-based organization holidays for the authenticated tenant.
+/// </summary>
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public sealed class HolidayCalandarController(IMediator mediator) : ControllerBase
 {
-    /// <summary>
-    /// handled-Holiday-Calandar-related-operations.
-    /// </summary>
-    [Route("api/[controller]")]
-    [ApiController]
-    public class HolidayCalandarController : ControllerBase
+    #region Read
+
+    /// <summary>Lists active holidays for the current tenant.</summary>
+    /// <remarks>
+    /// ModuleId must identify TENANT_POLICY_HOLIDAY_CALENDAR and OperationId must
+    /// identify View. TenantLocationId and HolidayYear are optional filters.
+    /// Tenant identity comes from the authenticated request, not the query.
+    /// </remarks>
+    [HttpGet("get")]
+    public async Task<IActionResult> Get([FromQuery] BasicRequestDTO request, CancellationToken cancellationToken)
     {
-        private readonly IMediator _mediator;
-        private readonly ILoggerService _logger;  // Logger service ka declaration
-        public HolidayCalandarController(IMediator mediator, ILoggerService logger)
-        {
-            _mediator = mediator;
-            _logger = logger;  // Logger service ko inject karna
-        }
-                /// <summary>
-                /// Not-Used-In-Angular.
-                /// </summary>
-                /// <remarks>
-                /// <para>Angular usage status: Not-Used-In-Angular.</para>
-                /// <para>API endpoint purpose: retrieves holiday calandar.</para>
-                /// <para>Handler flow: GetHolidayCalandarQuery is processed by GetHolidayCalandarQueryHandler; operation(s): GetAllHolidaysAsync.</para>
-                /// <para>Response DTO property analysis: OrganizationHolidayCalendarDTO: TenantId (long), TenantLocationId (long), HolidayName (string), HolidayDate (date), IsOptional (bool), Description (string?).</para>
-                /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-                /// <para>Backend endpoint: GET /api/holidaycalandar/get.</para>
-                /// </remarks>
-
-                [HttpGet("get")]
-                public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] BasicRequestDTO basicRequestDTO)
-                {
-                        var command = new GetHolidayCalandarQuery(basicRequestDTO);
-
-                        // ✅ Send command instead of DTO
-                        ApiResponse<List<OrganizationHolidayCalendarDTO>> result = await _mediator.Send(command);
-                            return Ok(result);
-
-
-
-                }
-
-
+        return Ok(await mediator.Send(new ListHolidaysQuery(request), cancellationToken));
     }
+
+    /// <summary>Gets one active holiday belonging to the current tenant.</summary>
+    /// <remarks>Requires the View operation for TENANT_POLICY_HOLIDAY_CALENDAR.</remarks>
+    [HttpGet("{id:long}")]
+    public async Task<IActionResult> GetById(
+        long id,
+        [FromQuery] HolidayByIdRequestDTO request,
+        CancellationToken cancellationToken)
+    {
+        request.Id = id;
+        return Ok(await mediator.Send(new GetHolidayQuery(request), cancellationToken));
+    }
+
+    #endregion
+
+    #region Write
+
+    /// <summary>Creates a holiday for an active location owned by the current tenant.</summary>
+    /// <remarks>Requires the Add operation for TENANT_POLICY_HOLIDAY_CALENDAR.</remarks>
+    [HttpPost]
+    public async Task<IActionResult> Create(
+        [FromBody] SaveHolidayRequestDTO request,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await mediator.Send(new CreateHolidayCommand(request), cancellationToken));
+    }
+
+    /// <summary>Updates an active holiday belonging to the current tenant.</summary>
+    /// <remarks>Requires the Update operation for TENANT_POLICY_HOLIDAY_CALENDAR.</remarks>
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> Update(
+        long id,
+        [FromBody] UpdateHolidayRequestDTO request,
+        CancellationToken cancellationToken)
+    {
+        request.Id = id;
+        return Ok(await mediator.Send(new UpdateHolidayCommand(request), cancellationToken));
+    }
+
+    /// <summary>Soft-deletes an active holiday belonging to the current tenant.</summary>
+    /// <remarks>Requires the Delete operation for TENANT_POLICY_HOLIDAY_CALENDAR.</remarks>
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> Delete(
+        long id,
+        [FromQuery] HolidayByIdRequestDTO request,
+        CancellationToken cancellationToken)
+    {
+        request.Id = id;
+        return Ok(await mediator.Send(new DeleteHolidayCommand(request), cancellationToken));
+    }
+
+    #endregion
 }

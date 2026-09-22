@@ -6,8 +6,10 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOs.OrganizationHolidayCalendar
 {
-    public class BasicRequestDTO
+    public class BasicRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
-        long TenantId { get; set; } 
+        public long? TenantLocationId { get; set; }
+
+        public int? HolidayYear { get; set; }
     }
 }
