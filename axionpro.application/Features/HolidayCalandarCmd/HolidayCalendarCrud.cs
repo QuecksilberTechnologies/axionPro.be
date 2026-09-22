@@ -27,6 +27,12 @@ public sealed record UpdateHolidayCommand(UpdateHolidayRequestDTO DTO)
 public sealed record DeleteHolidayCommand(HolidayByIdRequestDTO DTO)
     : IRequest<ApiResponse<bool>>;
 
+public sealed record ImportHolidaysCommand(ImportHolidayRequestDTO DTO)
+    : IRequest<ApiResponse<HolidayImportResultDTO>>;
+
+public sealed record ExportHolidaysQuery(BasicRequestDTO DTO)
+    : IRequest<byte[]>;
+
 #endregion
 
 #region Permission pipeline
@@ -45,7 +51,9 @@ public sealed class HolidayCalendarPermissionBehavior<TRequest, TResponse>(
             and not GetHolidayQuery
             and not CreateHolidayCommand
             and not UpdateHolidayCommand
-            and not DeleteHolidayCommand)
+            and not DeleteHolidayCommand
+            and not ImportHolidaysCommand
+            and not ExportHolidaysQuery)
         {
             return await next();
         }
@@ -57,6 +65,8 @@ public sealed class HolidayCalendarPermissionBehavior<TRequest, TResponse>(
             CreateHolidayCommand command => command.DTO,
             UpdateHolidayCommand command => command.DTO,
             DeleteHolidayCommand command => command.DTO,
+            ImportHolidaysCommand command => command.DTO,
+            ExportHolidaysQuery query => query.DTO,
             _ => throw new ValidationErrorException("Holiday permission request is required.")
         };
 
@@ -76,6 +86,8 @@ public sealed class HolidayCalendarPermissionBehavior<TRequest, TResponse>(
             CreateHolidayCommand => "Add",
             UpdateHolidayCommand => "Update",
             DeleteHolidayCommand => "Delete",
+            ImportHolidaysCommand => "Import",
+            ExportHolidaysQuery => "Export",
             _ => "View"
         };
 

@@ -89,7 +89,9 @@ INSERT INTO policy_module_operation_seed VALUES
 ('TENANT_POLICY_HOLIDAY_CALENDAR','View',4,10),
 ('TENANT_POLICY_HOLIDAY_CALENDAR','Add',1,20),
 ('TENANT_POLICY_HOLIDAY_CALENDAR','Update',2,30),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Delete',3,40);
+('TENANT_POLICY_HOLIDAY_CALENDAR','Delete',3,40),
+('TENANT_POLICY_HOLIDAY_CALENDAR','Import',12,50),
+('TENANT_POLICY_HOLIDAY_CALENDAR','Export',11,60);
 
 INSERT INTO axionpro."ModuleOperationMapping"
 ("ModuleId","OperationId","PageURL","IconURL","IsCommonItem","IsOperational","Priority","Remark","IsActive","AddedById","AddedDateTime")

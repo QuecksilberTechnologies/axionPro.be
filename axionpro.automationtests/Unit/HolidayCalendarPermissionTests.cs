@@ -78,6 +78,56 @@ public sealed class HolidayCalendarPermissionTests
         Assert.That(invoked, Is.EqualTo(allowed));
     }
 
+    [TestCase("Import", true)]
+    [TestCase("View", false)]
+    public async Task Import_requires_import_operation(string operationName, bool allowed)
+    {
+        var common = Proxy<ICommonRequestService>((method, _) => method.Name switch
+        {
+            "GetModuleCodeAsync" => Task.FromResult<string?>("TENANT_POLICY_HOLIDAY_CALENDAR"),
+            "ValidateTenantUserRequestAsync" => Task.FromResult(new CommonDecodedResult
+            {
+                Success = true, TenantId = 8, LoggedInEmployeeId = 4, RoleId = 2
+            }),
+            _ => throw new AssertionException(method.Name)
+        });
+        var operation = Proxy<IOperationRepository>((_, _) => Task.FromResult<Operation?>(new Operation
+        {
+            OperationName = operationName
+        }));
+        var stored = Proxy<IStoreProcedureRepository>((_, _) => Task.FromResult(
+            new TenantsUserPermissionCheckResponseDTO { ResultCode = 1 }));
+        var unit = Proxy<IUnitOfWork>((method, _) => method.Name switch
+        {
+            "get_OperationRepository" => operation,
+            "get_StoreProcedureRepository" => stored,
+            _ => throw new AssertionException(method.Name)
+        });
+        var behavior = new HolidayCalendarPermissionBehavior<ImportHolidaysCommand, bool>(unit, common);
+        var invoked = false;
+        Task<bool> Next(CancellationToken _)
+        {
+            invoked = true;
+            return Task.FromResult(true);
+        }
+
+        var command = new ImportHolidaysCommand(new ImportHolidayRequestDTO
+        {
+            ModuleId = 118, OperationId = 12
+        });
+        if (allowed)
+        {
+            Assert.That(await behavior.Handle(command, Next, CancellationToken.None), Is.True);
+        }
+        else
+        {
+            Assert.ThrowsAsync<ForbiddenAccessException>(async () =>
+                await behavior.Handle(command, Next, CancellationToken.None));
+        }
+
+        Assert.That(invoked, Is.EqualTo(allowed));
+    }
+
     private static T Proxy<T>(Func<MethodInfo, object?[]?, object?> invoke) where T : class
     {
         var proxy = DispatchProxy.Create<T, BulkImportPermissionTests.TestProxy>();

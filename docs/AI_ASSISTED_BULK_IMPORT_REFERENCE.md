@@ -1,5 +1,23 @@
 # AxionPro bulk import: implementation reference and UI handoff
 
+## 2026-09-22 Holiday Calendar import/export — WIP
+
+- Requested scope: add Import and Export to the existing
+  `TENANT_POLICY_HOLIDAY_CALENDAR` module and holiday API.
+- Implemented locally: bounded synchronous CSV/XLSX import using the shared
+  table reader; tenant-location ownership and all-row validation; existing
+  active holiday skip; tenant-scoped CSV export with matching headers.
+- This is a holiday-specific synchronous flow, not one of the 14 durable
+  `BulkImportMaster` targets. It has no preview/confirm/job/report sequence.
+- Seed applied twice to the configured target DB: exactly one Import and one
+  Export mapping, with priorities 50 and 60. The isolated PostgreSQL seed
+  fixture first-run/rerun requirement has not been executed; release acceptance
+  therefore remains WIP, not COMPLETE.
+- Local API build and rollback-only CSV import/export DB test passed. Authenticated
+  HTTP import/export and deployed acceptance remain PENDING. See
+  `docs/testing/holiday-calendar/import-export/2026-09-22.md` and
+  `docs/UIdeveloperDoc/ORGANIZATION_HOLIDAY_CALENDAR.md`.
+
 Updated: 2026-09-11. Read this file before continuing bulk-import work in any session.
 Maintain user decisions, implementation sequence and COMPLETE / WIP / PENDING status.
 Follow AGENTS.md, Employee handler/repository conventions, regions, comments,

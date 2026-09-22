@@ -107,6 +107,19 @@ namespace axionpro.persistance.Repositories
             return holiday;
         }
 
+        public async Task<int> ImportHolidaysAsync(
+            IReadOnlyList<OrganizationHolidayCalendar> holidays,
+            CancellationToken cancellationToken)
+        {
+            if (holidays.Count == 0)
+            {
+                return 0;
+            }
+
+            await _context.OrganizationHolidayCalendars.AddRangeAsync(holidays, cancellationToken);
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
+
         public async Task<List<OrganizationHolidayCalendar>> GetAllHolidaysAsync()
         {
             try

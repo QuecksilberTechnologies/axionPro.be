@@ -1,4 +1,5 @@
 using axionpro.application.DTOs.BaseDTO;
+using axionpro.application.DTOS.Common;
 
 namespace axionpro.application.DTOs.OrganizationHolidayCalendar;
 
@@ -33,4 +34,17 @@ public sealed class UpdateHolidayRequestDTO : PermissionRequestDTO
     public bool IsOptional { get; set; }
 
     public string? Description { get; set; }
+}
+
+public sealed class ImportHolidayRequestDTO : BulkImportPreviewRequestDTO
+{
+}
+
+public sealed class HolidayImportResultDTO
+{
+    public int TotalRows { get; set; }
+
+    public int CreatedCount { get; set; }
+
+    public int SkippedExistingCount { get; set; }
 }

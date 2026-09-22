@@ -86,4 +86,37 @@ public sealed class HolidayCalandarController(IMediator mediator) : ControllerBa
     }
 
     #endregion
+
+    #region Import and export
+
+    /// <summary>Imports bounded CSV/XLSX holidays for active tenant locations.</summary>
+    /// <remarks>
+    /// Requires Import permission. Supply exactly one CSV/XLSX file or pasted
+    /// table, with TenantLocationId, HolidayName, HolidayDate, IsOptional and
+    /// Description columns. Invalid input saves no rows; existing matches skip.
+    /// </remarks>
+    [HttpPost("import")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Import(
+        [FromForm] ImportHolidayRequestDTO request,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await mediator.Send(new ImportHolidaysCommand(request), cancellationToken));
+    }
+
+    /// <summary>Exports active tenant holidays as a reusable UTF-8 CSV file.</summary>
+    /// <remarks>
+    /// Requires Export permission. Optional TenantLocationId and HolidayYear
+    /// filters use the same tenant scope as GET /get.
+    /// </remarks>
+    [HttpGet("export")]
+    public async Task<IActionResult> Export(
+        [FromQuery] BasicRequestDTO request,
+        CancellationToken cancellationToken)
+    {
+        var content = await mediator.Send(new ExportHolidaysQuery(request), cancellationToken);
+        return File(content, "text/csv; charset=utf-8", "organization-holidays.csv");
+    }
+
+    #endregion
 }

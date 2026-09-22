@@ -9,7 +9,7 @@ copied into the holiday row. The year is derived from `HolidayDate`.
 ## Current API and permission flow
 
 The menu module is `TENANT_POLICY_HOLIDAY_CALENDAR` under `TENANT_POLICIES`,
-with route `/app/holidays`. The `View`, `Add`, `Update`, and `Delete` operations
+with route `/app/holidays`. The `View`, `Add`, `Update`, `Delete`, `Import`, and `Export` operations
 are mapped through the existing tenant permission pipeline. The UI must resolve
 current `moduleId` and `operationId` through the authenticated menu/permission
 flow. Observed numeric IDs are not portable and must not be hardcoded.
@@ -26,6 +26,8 @@ validated authentication context. A caller cannot choose another tenant.
 | Create | `POST /api/HolidayCalandar` | Add | JSON body below | Insert `OrganizationHolidayCalendar` |
 | Update | `PUT /api/HolidayCalandar/{id}` | Update | JSON body below; path Id wins | Update same tenant's active row |
 | Delete | `DELETE /api/HolidayCalandar/{id}` | Delete | `moduleId`, `operationId` query | Soft-delete row; retain history/audit |
+| Import | `POST /api/HolidayCalandar/import` | Import | multipart form with permission IDs and CSV/XLSX `file` or `pastedText` | Validate all rows, insert new holidays in one save; skip existing matches |
+| Export | `GET /api/HolidayCalandar/export` | Export | permission IDs; optional `tenantLocationId`, `holidayYear` | Download UTF-8 CSV of active tenant holidays |
 
 Copyable list example (IDs illustrative):
 
@@ -74,6 +76,65 @@ DELETE /api/HolidayCalandar/42?moduleId=118&operationId=3
 Authorization: Bearer <token>
 ```
 
+Import form example (IDs illustrative):
+
+```text
+POST /api/HolidayCalandar/import
+Content-Type: multipart/form-data
+moduleId=118
+operationId=<current Import operation ID>
+file=@holidays-2027.csv
+```
+
+Supply exactly one `file` or `pastedText`. CSV and XLSX files are accepted;
+the shared bounded parser enforces its 5 MB and 5,000-row limits. Use these
+column names exactly; `HolidayDate` is ISO `YYYY-MM-DD` and `IsOptional` is
+`true` or `false`:
+
+```csv
+TenantLocationId,HolidayName,HolidayDate,IsOptional,Description
+5,Republic Day,2027-01-26,false,India office holiday
+5,Optional Festival Holiday,2027-03-25,true,Employee choice
+```
+
+The location must be active and belong to the authenticated tenant. A duplicate
+location/date/name **within the file** fails the whole upload. A matching active
+holiday already in the DB is skipped, without modifying it. Any invalid row
+fails the whole upload before saving any row. This is a synchronous bounded
+import; there is no draft/confirm job, polling, retry or cancellation endpoint.
+For a failed or uncertain upload, check GET/export before retrying.
+
+Illustrative invalid-row response: HTTP 400, with a row-numbered validation
+message; the precise envelope is produced by the shared exception middleware.
+No holiday rows are inserted when validation fails.
+
+Representative import response (illustrative):
+
+```json
+{
+  "isSucceeded": true,
+  "message": "Holiday import completed successfully.",
+  "data": {
+    "totalRows": 2,
+    "createdCount": 1,
+    "skippedExistingCount": 1
+  },
+  "errors": []
+}
+```
+
+Export example (IDs illustrative):
+
+```http
+GET /api/HolidayCalandar/export?moduleId=118&operationId=<current Export operation ID>&tenantLocationId=5&holidayYear=2027
+Authorization: Bearer <token>
+```
+
+The response is `text/csv; charset=utf-8` with attachment filename
+`organization-holidays.csv`; even an empty result contains the same header.
+Its columns match the import template, so the exported file can be reimported.
+CSV text cells are quoted and spreadsheet-formula prefixes are escaped.
+
 Representative successful create/detail response; actual IDs will differ:
 
 ```json
@@ -118,7 +179,8 @@ characters; optional `description` is at most 255. A matching active holiday
 name/date at the same location is rejected. Multiple *different* holiday names
 on one date remain possible. Deleting a holiday sets soft-delete/audit fields;
 it does not remove approved employee leave or generate policy rules. Calendar
-policy versioning and bulk import are outside this CRUD endpoint.
+policy versioning is outside this endpoint; the CSV/XLSX import above is a
+separate synchronous route.
 No polling, retry or cancellation protocol is required for these synchronous
 single-row endpoints. Failed writes should be corrected and resubmitted; do
 not automatically retry a create after an uncertain network outcome without
@@ -142,9 +204,10 @@ migration intentionally stops instead of guessing when unmapped rows exist.
 ## Validation status
 
 - Local API build: PASS on 2026-09-22.
-- Focused automated tests: 11 passed, 0 failed, 0 skipped on 2026-09-22
+- Focused automated tests: 14 passed, 0 failed, 0 skipped on 2026-09-22
   (3 prior schema/refactor tests, 3 CRUD route/contract tests, 1
-  rollback-only PostgreSQL repository behavior test, and 4 permission cases).
+  rollback-only PostgreSQL CRUD test, 1 rollback-only import/export round-trip,
+  and 6 permission cases).
 - Local HTTP authentication smoke: all five routes returned 401 without a token.
 - Target DB migration: APPLIED on 2026-09-22 to the Development-configured
   `workforcedb_34hi_duis` database. The table had 0 rows beforehand. Post-migration
@@ -161,3 +224,5 @@ The [child module seed report](../testing/holiday-calendar/policy-child-module/2
 records its target DB and idempotence checks; tenant menu visibility remains unverified.
 The [CRUD implementation report](../testing/holiday-calendar/crud/2026-09-22.md)
 records the local verification and remaining live tests.
+The [import/export report](../testing/holiday-calendar/import-export/2026-09-22.md)
+records the seed, CSV round-trip and permission checks.

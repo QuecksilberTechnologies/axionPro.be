@@ -26,6 +26,8 @@ public sealed class HolidayCalendarCrudContractTests
             Assert.That(methods.Single(method => method.Name == "Create").GetCustomAttribute<HttpPostAttribute>(), Is.Not.Null);
             Assert.That(methods.Single(method => method.Name == "Update").GetCustomAttribute<HttpPutAttribute>()?.Template, Is.EqualTo("{id:long}"));
             Assert.That(methods.Single(method => method.Name == "Delete").GetCustomAttribute<HttpDeleteAttribute>()?.Template, Is.EqualTo("{id:long}"));
+            Assert.That(methods.Single(method => method.Name == "Import").GetCustomAttribute<HttpPostAttribute>()?.Template, Is.EqualTo("import"));
+            Assert.That(methods.Single(method => method.Name == "Export").GetCustomAttribute<HttpGetAttribute>()?.Template, Is.EqualTo("export"));
         });
     }
 
@@ -53,7 +55,9 @@ public sealed class HolidayCalendarCrudContractTests
             typeof(GetHolidayQuery),
             typeof(CreateHolidayCommand),
             typeof(UpdateHolidayCommand),
-            typeof(DeleteHolidayCommand)
+            typeof(DeleteHolidayCommand),
+            typeof(ImportHolidaysCommand),
+            typeof(ExportHolidaysQuery)
         };
 
         Assert.Multiple(() =>
