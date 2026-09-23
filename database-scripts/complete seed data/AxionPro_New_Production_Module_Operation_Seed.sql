@@ -3747,20 +3747,7 @@ VALUES
     500,
     'Tenant-owned office, client-site, and remote-work locations used by devices, employee assignments, and attendance rules.'
 ),
-(
-    'TENANT_ATTENDANCE_POLICIES',
-    'Tenant Attendance Policies',
-    'attendance-policies',
-    'Attendance Policies',
-    '/app/attendance-policies',
-    NULL,
-    TRUE,
-    'bi bi-calendar2-check',
-    'fact-check',
-    1,
-    505,
-    'Tenant-owned rules that define allowed biometric, mobile, web, manual, office, and work-from-home attendance modes.'
-),
+
 (
     'EMP_DEVICES',
     'Employee Device Enrollments',
@@ -4145,7 +4132,6 @@ BEGIN
           (
               'TENANT_EMAIL_CONFIG',
               'TENANT_LOCATIONS',
-              'TENANT_ATTENDANCE_POLICIES',
               'TENANT_DEVICE_SETUP',
               'TENANT_DEVICE_CONFIGURATION',
               'EMP_DEVICES',
@@ -4157,9 +4143,9 @@ BEGIN
       AND target_module."ModuleScope" = 1
       AND target_module."IsActive" = TRUE;
 
-    IF target_module_count <> 10 THEN
+    IF target_module_count <> 9 THEN
         RAISE EXCEPTION
-            'Expected ten active Tenant feature modules before plan inheritance; found %.',
+            'Expected nine active Tenant feature modules before plan inheritance; found %.',
             target_module_count;
     END IF;
 
@@ -4186,7 +4172,6 @@ BEGIN
            (
                'TENANT_EMAIL_CONFIG',
                'TENANT_LOCATIONS',
-               'TENANT_ATTENDANCE_POLICIES',
                'TENANT_DEVICE_SETUP',
                'TENANT_DEVICE_CONFIGURATION',
                'EMP_DEVICES',
@@ -4884,7 +4869,6 @@ SET "PageName" = CASE module."ModuleCode"
     WHEN 'TENANT_DEVICE_CONFIGURATION' THEN 'device-connectivity'
     WHEN 'HOST_TENANT_CARD_INVENTORY' THEN 'tenant-card-inventory'
     WHEN 'TENANT_LOCATIONS' THEN 'tenant-locations'
-    WHEN 'TENANT_ATTENDANCE_POLICIES' THEN 'attendance-policies'
     WHEN 'EMP_DEVICES' THEN 'employee-device-enrollment'
     WHEN 'EMP_WORK_LOCATIONS' THEN 'employee-work-locations'
     WHEN 'EMP_WORK_ARRANGEMENT' THEN 'employee-work-arrangements'
@@ -5939,7 +5923,6 @@ WHERE module."ModuleCode"
       (
           'TENANT_EMAIL_CONFIG',
           'TENANT_LOCATIONS',
-          'TENANT_ATTENDANCE_POLICIES',
           'TENANT_DEVICE_SETUP',
           'TENANT_DEVICE_CONFIGURATION',
           'EMP_DEVICES',

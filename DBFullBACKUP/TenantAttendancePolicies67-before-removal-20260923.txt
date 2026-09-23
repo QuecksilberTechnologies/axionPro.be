@@ -1,0 +1,39 @@
+ Id | TenantId |         ModuleCode         |         ModuleName         |     DisplayName     |         URLPath          | ParentModuleId | IsLeafNode | IsModuleDisplayInUI | IsCommonMenu | IsActive |     ImageIconWeb      | ImageIconMobile | ItemPriority |                                                       Remark                                                        | AddedById |         AddedDateTime         | UpdatedById |        UpdatedDateTime        | ModuleScope |      PageName       
+----+----------+----------------------------+----------------------------+---------------------+--------------------------+----------------+------------+---------------------+--------------+----------+-----------------------+-----------------+--------------+---------------------------------------------------------------------------------------------------------------------+-----------+-------------------------------+-------------+-------------------------------+-------------+---------------------
+ 67 |          | TENANT_ATTENDANCE_POLICIES | Tenant Attendance Policies | Attendance Policies | /app/attendance-policies |                | t          | t                   | f            | t        | bi bi-calendar2-check | fact-check      |          505 | Tenant-owned rules that define allowed biometric, mobile, web, manual, office, and work-from-home attendance modes. |         1 | 2026-09-08 19:19:06.991969+00 |           1 | 2026-09-15 07:32:43.672046+00 |           1 | attendance-policies
+(1 row)
+
+ Id  | ModuleId | OperationId | DataViewStructureId | PageTypeId |         PageURL          |    IconURL    | IsCommonItem | IsOperational | Priority |           Remark            | IsActive | AddedById |         AddedDateTime         | UpdatedById |        UpdatedDateTime        
+-----+----------+-------------+---------------------+------------+--------------------------+---------------+--------------+---------------+----------+-----------------------------+----------+-----------+-------------------------------+-------------+-------------------------------
+ 344 |       67 |           1 |                     |            | /app/attendance-policies | plus-circle   | f            | t             |       20 | Add Attendance Policies.    | t        |         1 | 2026-09-08 19:19:06.991969+00 |           1 | 2026-09-15 07:32:43.672046+00
+ 338 |       67 |           2 |                     |            | /app/attendance-policies | pencil-square | f            | t             |       30 | Update Attendance Policies. | t        |         1 | 2026-09-08 19:19:06.991969+00 |           1 | 2026-09-15 07:32:43.672046+00
+ 342 |       67 |           4 |                     |            | /app/attendance-policies | eye           | f            | t             |       10 | View Attendance Policies.   | t        |         1 | 2026-09-08 19:19:06.991969+00 |           1 | 2026-09-15 07:32:43.672046+00
+ 346 |       67 |           3 |                     |            | /app/attendance-policies | trash3        | f            | t             |       40 | Delete Attendance Policies. | t        |         1 | 2026-09-08 19:19:06.991969+00 |           1 | 2026-09-15 07:32:43.672046+00
+(4 rows)
+
+ Id  | TenantId | ParentModuleId | ModuleId | IsLeafNode | IsEnabled | AddedById |         AddedDateTime         | UpdatedById | UpdatedDateTime 
+-----+----------+----------------+----------+------------+-----------+-----------+-------------------------------+-------------+-----------------
+ 493 |        8 |                |       67 | t          | t         |         1 | 2026-09-15 08:29:27.729958+00 |             | 
+(1 row)
+
+  Id  | TenantId | ModuleId | OperationId | IsOperationUsed | IsEnabled | AddedById |         AddedDateTime         | UpdatedById | UpdatedDateTime 
+------+----------+----------+-------------+-----------------+-----------+-----------+-------------------------------+-------------+-----------------
+ 1890 |        8 |       67 |           1 | t               | t         |         1 | 2026-09-15 08:29:27.729958+00 |             | 
+ 1903 |        8 |       67 |           2 | t               | t         |         1 | 2026-09-15 08:29:27.729958+00 |             | 
+ 1911 |        8 |       67 |           3 | t               | t         |         1 | 2026-09-15 08:29:27.729958+00 |             | 
+ 1910 |        8 |       67 |           4 | t               | t         |         1 | 2026-09-15 08:29:27.729958+00 |             | 
+(4 rows)
+
+ Id  | SubscriptionPlanId | ModuleId | IsActive | Remark | AddedById |         AddedDateTime         | UpdatedById |       UpdatedDateTime        
+-----+--------------------+----------+----------+--------+-----------+-------------------------------+-------------+------------------------------
+ 424 |                  2 |       67 | t        |        |         1 | 2026-09-15 04:05:31.834044+00 |             | 2026-09-15 04:05:31.90902+00
+(1 row)
+
+  Id  | RoleId | ModuleId | OperationId | HasAccess | IsActive |                            Remark                            | IsOperational | ImageIcon | AddedById |         AddedDateTime         | UpdatedById | UpdateDateTime | SoftDeletedById | DeletedDateTime | IsSoftDeleted | UpdatedDateTime 
+------+--------+----------+-------------+-----------+----------+--------------------------------------------------------------+---------------+-----------+-----------+-------------------------------+-------------+----------------+-----------------+-----------------+---------------+-----------------
+ 2399 |     22 |       67 |           1 | t         | t        | Auto-assigned during Tenant plan entitlement synchronization |               |           |         1 | 2026-09-15 04:42:52.052069+00 |             |                |                 |                 | f             | 
+ 2419 |     22 |       67 |           3 | t         | t        | Auto-assigned during Tenant plan entitlement synchronization |               |           |         1 | 2026-09-15 04:42:52.052069+00 |             |                |                 |                 | f             | 
+ 2444 |     22 |       67 |           4 | t         | t        | Auto-assigned during Tenant plan entitlement synchronization |               |           |         1 | 2026-09-15 04:42:52.052069+00 |             |                |                 |                 | f             | 
+ 2482 |     22 |       67 |           2 | t         | t        | Auto-assigned during Tenant plan entitlement synchronization |               |           |         1 | 2026-09-15 04:42:52.052069+00 |             |                |                 |                 | f             | 
+(4 rows)
+
