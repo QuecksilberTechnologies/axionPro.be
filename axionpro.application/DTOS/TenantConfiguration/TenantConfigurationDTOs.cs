@@ -426,7 +426,8 @@ public sealed class EmployeeWorkArrangementResponseDTO
 /// <summary>Supplies the date and optional text used to find effective Attendance policy versions.</summary>
 public sealed class AttendancePolicyOptionRequestDTO
 {
-    public DateOnly EffectiveOn { get; set; }
+    /// <summary>Optional policy-effective date; defaults to the server's current UTC date.</summary>
+    public DateOnly? EffectiveOn { get; set; }
     public string? Search { get; set; }
 }
 

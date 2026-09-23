@@ -32,11 +32,12 @@ public sealed class EmployeeWorkArrangementAttendancePolicyOptionsTests
     }
 
     [Test]
-    public void Query_requires_effective_date_and_returns_policy_and_exact_version_identifiers()
+    public void Query_supports_optional_effective_date_and_returns_policy_and_exact_version_identifiers()
     {
         Assert.Multiple(() =>
         {
             Assert.That(typeof(AttendancePolicyOptionRequestDTO).GetProperty(nameof(AttendancePolicyOptionRequestDTO.EffectiveOn)), Is.Not.Null);
+            Assert.That(Nullable.GetUnderlyingType(typeof(AttendancePolicyOptionRequestDTO).GetProperty(nameof(AttendancePolicyOptionRequestDTO.EffectiveOn))!.PropertyType), Is.EqualTo(typeof(DateOnly)));
             Assert.That(typeof(AttendancePolicyOptionResponseDTO).GetProperty(nameof(AttendancePolicyOptionResponseDTO.PolicyId)), Is.Not.Null);
             Assert.That(typeof(AttendancePolicyOptionResponseDTO).GetProperty(nameof(AttendancePolicyOptionResponseDTO.PolicyVersionId)), Is.Not.Null);
             Assert.That(typeof(AttendancePolicyOptionResponseDTO).GetProperty(nameof(AttendancePolicyOptionResponseDTO.VersionNumber)), Is.Not.Null);
@@ -69,7 +70,7 @@ public sealed class EmployeeWorkArrangementAttendancePolicyOptionsTests
     }
 
     [Test]
-    public void Handler_returns_actionable_empty_state_and_validates_authenticated_tenant()
+    public void Handler_defaults_effective_date_returns_actionable_empty_state_and_validates_authenticated_tenant()
     {
         var source = ReadRepositoryFile(
             "axionpro.application",
@@ -81,7 +82,8 @@ public sealed class EmployeeWorkArrangementAttendancePolicyOptionsTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(source, Does.Contain("request.Request.EffectiveOn == default"));
+            Assert.That(source, Does.Contain("request.Request.EffectiveOn"));
+            Assert.That(source, Does.Contain("DateOnly.FromDateTime(DateTime.UtcNow)"));
             Assert.That(source, Does.Contain("await ValidateTenantAsync()"));
             Assert.That(source, Does.Not.Contain("ValidateTenantPermissionAsync(request.Request"));
             Assert.That(source, Does.Contain("Please create and publish an Attendance policy first."));

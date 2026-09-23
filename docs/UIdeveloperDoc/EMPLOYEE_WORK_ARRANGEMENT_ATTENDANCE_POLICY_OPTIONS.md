@@ -25,7 +25,7 @@ GET /api/EmployeeWorkArrangement/attendance-policy-options
 
 | Field | Type | Required | Rule |
 | --- | --- | --- | --- |
-| `effectiveOn` | `date` (`yyyy-MM-dd`) | Yes | Work Arrangement `EffectiveFrom`; policy effective window must contain this date. |
+| `effectiveOn` | `date` (`yyyy-MM-dd`) | No | UI sends Work Arrangement `EffectiveFrom` automatically. If omitted, API uses the server's current UTC date. |
 | `search` | `string` | No | Case-insensitive partial match against Policy name/code and Policy Type name/code. Leading/trailing spaces are ignored. |
 
 Copyable request:
@@ -40,9 +40,9 @@ There is no request JSON, FormData, upload, polling, retry, cancellation, Excel,
 ## UI call order
 
 1. Open Add/Edit Work Arrangement.
-2. Require the user to select `Effective From` first.
-3. Keep Attendance Policy disabled until a valid date exists.
-4. Call this endpoint with that date.
+2. If the form has an `Effective From` value, call this endpoint with that date automatically.
+3. If the form has no date yet, call without `effectiveOn`; the API uses today's UTC date.
+4. Never ask the user to remember or manually type the API lookup date.
 5. Render `displayName`; preserve both `policyId` and `policyVersionId` in client state.
 6. Re-call the endpoint when `Effective From` changes. Clear a previously selected option if it is absent from the new response.
 7. If `data` is empty, show the API message and prevent a policy-dependent submit.
@@ -110,12 +110,12 @@ HTTP `200`:
 
 ## Validation and authentication errors
 
-Missing/default `effectiveOn` uses the standard validation-error middleware path:
+An omitted `effectiveOn` is valid and uses today's UTC date. A malformed supplied date uses the standard model-validation error path:
 
 ```json
 {
   "isSucceeded": false,
-  "message": "EffectiveOn is required and must use a valid date.",
+  "message": "The request is invalid.",
   "data": null,
   "errorCode": "VALIDATION_ERROR"
 }

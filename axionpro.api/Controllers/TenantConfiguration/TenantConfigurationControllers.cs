@@ -110,9 +110,10 @@ public sealed class EmployeeWorkArrangementController(IMediator mediator, ILogge
     /// This read-only dropdown endpoint validates the bearer token and trusted Tenant context only;
     /// it does not require ModuleId or OperationId. The category is resolved by the stable
     /// ATTENDANCE category code, and tenant-generated Policy Type identifiers are never hard-coded.
-    /// EffectiveOn is mandatory. For each policy, the highest Published version whose effective
-    /// window contains that date is returned. An empty successful response tells the UI to ask the
-    /// user to create and publish an Attendance policy first.
+    /// EffectiveOn is optional and defaults to the server's current UTC date. The UI should send
+    /// the Work Arrangement Effective From value automatically when the user selects it. For each
+    /// policy, the highest Published version whose effective window contains that date is returned.
+    /// An empty successful response tells the UI to ask the user to create and publish an Attendance policy first.
     /// </remarks>
     [HttpGet("attendance-policy-options")]
     public async Task<IActionResult> GetAttendancePolicyOptions(

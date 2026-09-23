@@ -197,16 +197,18 @@ public sealed class GetAttendancePolicyOptionsQueryHandler : TenantConfiguration
         GetAttendancePolicyOptionsQuery request,
         CancellationToken cancellationToken)
     {
-        if (request.Request is null || request.Request.EffectiveOn == default)
+        if (request.Request is null)
         {
-            throw new ValidationErrorException("EffectiveOn is required and must use a valid date.");
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
         }
 
         var (tenantId, _) = await ValidateTenantAsync();
+        var effectiveOn = request.Request.EffectiveOn
+            ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var options = await UnitOfWork.EmployeeWorkArrangementRepository
             .GetAttendancePolicyOptionsAsync(
                 tenantId,
-                request.Request.EffectiveOn,
+                effectiveOn,
                 request.Request.Search,
                 cancellationToken);
 
