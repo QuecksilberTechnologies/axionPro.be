@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -73,7 +73,7 @@ public partial class Tenant
 
     public virtual ICollection<LeaveType> LeaveType { get; set; } = new List<LeaveType>();
 
-    public virtual ICollection<OrganizationHolidayCalendar> OrganizationHolidayCalendar { get; set; } = new List<OrganizationHolidayCalendar>();
+    public virtual ICollection<Holiday> Holidays { get; set; } = new List<Holiday>();
 
     public virtual ICollection<PayrollRun> PayrollRun { get; set; } = new List<PayrollRun>();
 

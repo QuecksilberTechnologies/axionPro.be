@@ -1,0 +1,24 @@
+ Id | OperationName |                       Remark                       | OperationType | IsActive | AddedById |         AddedDateTime         | UpdatedById |        UpdatedDateTime        | IconImage 
+----+---------------+----------------------------------------------------+---------------+----------+-----------+-------------------------------+-------------+-------------------------------+-----------
+ 14 | Export        | Export records to a downloadable file              |             4 | t        |         1 | 2026-08-31 09:58:18.302026+00 |             |                               | file-down
+ 23 | Export        | Export authorized module data for spreadsheet use. |            11 | t        |         1 | 2026-09-12 23:03:08.848904+00 |           1 | 2026-09-12 23:03:08.848904+00 | download
+(2 rows)
+
+ Id  | ModuleId | OperationId | DataViewStructureId | PageTypeId |      PageURL       |  IconURL  | IsCommonItem | IsOperational | Priority |              Remark              | IsActive | AddedById |         AddedDateTime         | UpdatedById |        UpdatedDateTime        
+-----+----------+-------------+---------------------+------------+--------------------+-----------+--------------+---------------+----------+----------------------------------+----------+-----------+-------------------------------+-------------+-------------------------------
+   6 |        8 |          14 |                     |            | /employees         | file-down | f            | t             |        6 | Export permission for Employees  | t        |         1 | 2026-08-31 09:58:18.302026+00 |          16 | 2026-09-01 20:49:56.840212+00
+ 125 |       32 |          14 |                     |            | /tenant/audit-logs | file-down | f            | t             |        2 | Export permission for Audit Logs | t        |         1 | 2026-08-31 09:58:18.302026+00 |             | 
+(2 rows)
+
+  Id  | TenantId | ModuleId | OperationId | IsOperationUsed | IsEnabled | AddedById |         AddedDateTime         | UpdatedById | UpdatedDateTime 
+------+----------+----------+-------------+-----------------+-----------+-----------+-------------------------------+-------------+-----------------
+ 1806 |        8 |        8 |          14 | t               | t         |         1 | 2026-09-15 08:29:27.729958+00 |             | 
+ 1872 |        8 |       32 |          14 | t               | t         |         1 | 2026-09-15 08:29:27.729958+00 |             | 
+(2 rows)
+
+  Id  | RoleId | ModuleId | OperationId | HasAccess | IsActive |                            Remark                            | IsOperational | ImageIcon | AddedById |         AddedDateTime         | UpdatedById | UpdateDateTime | SoftDeletedById | DeletedDateTime | IsSoftDeleted | UpdatedDateTime 
+------+--------+----------+-------------+-----------+----------+--------------------------------------------------------------+---------------+-----------+-----------+-------------------------------+-------------+----------------+-----------------+-----------------+---------------+-----------------
+ 2432 |     22 |        8 |          14 | t         | t        | Auto-assigned during Tenant plan entitlement synchronization |               |           |         1 | 2026-09-15 04:42:52.052069+00 |             |                |                 |                 | f             | 
+ 2445 |     22 |       32 |          14 | t         | t        | Auto-assigned during Tenant plan entitlement synchronization |               |           |         1 | 2026-09-15 04:42:52.052069+00 |             |                |                 |                 | f             | 
+(2 rows)
+

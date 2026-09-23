@@ -411,29 +411,7 @@ BEGIN
           AND existing."ModuleId"=target."Id"
           AND existing."OperationId"=enabled."OperationId");
 
-    DELETE FROM axionpro."HostRoleModuleAndPermission" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."RoleModuleAndPermission" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."TenantEnabledOperation" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."TenantEnabledModule" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD')
-       OR "ParentModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."PlanModuleMapping" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."ModuleOperationMapping" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."Module"
-    WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\' OR "ModuleCode"='BULKUPLOAD';
+
 END $bulk_seed$;
 
 COMMIT;

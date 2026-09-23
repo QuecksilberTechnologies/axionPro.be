@@ -72,7 +72,8 @@ public sealed class ModuleOperationSeedContractTests
             Assert.That(sql, Does.Contain("'tenant-roles-permissions'"));
             Assert.That(sql, Does.Contain("Each singular parent inherits the plans of its own functional child."));
             Assert.That(sql, Does.Contain("Existing tenants on plans containing these modules receive the same"));
-            Assert.That(sql, Does.Contain("operation.\"OperationType\"<>11"));
+            Assert.That(sql, Does.Contain("WHERE \"OperationType\" = 11"));
+            Assert.That(sql, Does.Not.Contain("canonical bulk Export operation"));
             Assert.That(sql, Does.Contain("Auto-assigned during Tenant plan entitlement synchronization"));
             Assert.That(standaloneSql, Does.Contain("('TENANT_DEPARTMENT','Tenant-Department','Tenant Department'"));
             Assert.That(standaloneSql, Does.Contain("('DEPARTMENT','TENANT_DEPARTMENT')"));

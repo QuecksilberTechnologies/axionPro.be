@@ -44,8 +44,10 @@ for a later run. Keep earlier failures and link the run that supersedes them.
 | Policy / deployed route smoke | [2026-09-16](policy/deployed-route-smoke/2026-09-16.md) | Live commit and 37 deployed operations verified; authenticated business-flow acceptance needs tenant credentials. |
 | Employee / China and USA identity options | [2026-09-13](employee/country-identity/2026-09-13.md) | China created; identity GET failed with 500 before fix. USA creation blocked by missing country option. Local suite 18 passed, 5 skipped; post-fix live acceptance pending. |
 | Employee / get-all assigned roles | [2026-09-13](employee/get-all-assigned-roles/2026-09-13.md) | Response contract/build pass locally; isolated DB and deployed response verification pending. |
+| Employee / Reset Password module consolidation | [2026-09-23](employee/reset-password-module-consolidation/2026-09-23.md) | Module 38 and all checked dependencies removed from the Development DB; Operation 21, tenant entitlement and role grant moved to `EMP_LIST`; focused suite 3/3 passed. |
 | Bulk / existing-module operation cleanup | [2026-09-13](bulk/module-operation-cleanup/2026-09-13.md) | Target DB cleanup complete: zero bulk modules/orphan entitlements; 22 functional Import/Export mappings. Isolated seed rerun and 36 focused tests passed. |
 | Module / seed metadata and operation cleanup | [2026-09-14](module/module-operation-seed/2026-09-14.md) | Dashboard seeds removed; source contract covers metadata completion and Add/Create cleanup. Isolated PostgreSQL verification remains blocked because the local fixture is unavailable. |
+| Module / duplicate Export operation cleanup | [2026-09-23](module/duplicate-export-operation-cleanup/2026-09-23.md) | Duplicate Export Id 14 and all checked dependencies removed; canonical Id 23 retained and permissions migrated; focused suite 2/2 passed. |
 | Tenant entitlements / Tenant Admin permission sync | [2026-09-15](tenant-entitlements/admin-permission-sync/2026-09-15.md) | Local build and command wiring pass; disposable PostgreSQL behavior test skipped because its required environment is unavailable; deployed acceptance pending. |
 | Module / singular master parent hierarchy | [2026-09-15](module/singular-master-parent-hierarchy/2026-09-15.md) | Final focused canonical leaf, EmployeeType, permission, and source-contract suite: 51 passed, 4 DB-fixture skips; isolated PostgreSQL execution and deployed menu verification remain pending. |
 
@@ -71,3 +73,6 @@ captured. Mark illustrative examples and code/seed expectations explicitly.
 Record exact test names, counts, command, commit/build when known, and links to
 sanitized logs or reports. Redact secrets and sensitive personal data before
 saving evidence. Documentation-only work does not require repeating passed tests.
+## Latest holiday report
+
+- [Holiday rename and Icon field — 2026-09-23](holiday-calendar/rename-to-holiday/2026-09-23.md)

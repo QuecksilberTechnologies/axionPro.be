@@ -1,7 +1,7 @@
 using System.Reflection;
-using axionpro.api.Controllers.HolidayCalandar;
-using axionpro.application.DTOs.OrganizationHolidayCalendar;
-using axionpro.application.Features.HolidayCalandarCmd;
+using axionpro.api.Controllers.Holiday;
+using axionpro.application.DTOs.Holiday;
+using axionpro.application.Features.HolidayCmd;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NUnit.Framework;
@@ -9,13 +9,13 @@ using NUnit.Framework;
 namespace axionpro.automationtests.Unit;
 
 [TestFixture]
-[Category("HolidayCalendarCrud")]
-public sealed class HolidayCalendarCrudContractTests
+[Category("HolidayCrud")]
+public sealed class HolidayCrudContractTests
 {
     [Test]
     public void Controller_requires_authentication_and_exposes_all_crud_routes()
     {
-        var controller = typeof(HolidayCalandarController);
+        var controller = typeof(HolidayController);
         var methods = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance);
 
         Assert.Multiple(() =>
@@ -42,7 +42,10 @@ public sealed class HolidayCalendarCrudContractTests
             Assert.That(typeof(BasicRequestDTO).GetProperty("HolidayYear"), Is.Not.Null);
             Assert.That(typeof(SaveHolidayRequestDTO).GetProperty("TenantId"), Is.Null);
             Assert.That(typeof(UpdateHolidayRequestDTO).GetProperty("TenantId"), Is.Null);
-            Assert.That(typeof(OrganizationHolidayCalendarDTO).GetProperty("Id"), Is.Not.Null);
+            Assert.That(typeof(HolidayDTO).GetProperty("Id"), Is.Not.Null);
+            Assert.That(typeof(SaveHolidayRequestDTO).GetProperty("Icon"), Is.Not.Null);
+            Assert.That(typeof(UpdateHolidayRequestDTO).GetProperty("Icon"), Is.Not.Null);
+            Assert.That(typeof(HolidayDTO).GetProperty("Icon"), Is.Not.Null);
         });
     }
 
@@ -71,7 +74,7 @@ public sealed class HolidayCalendarCrudContractTests
                         && contract.GetGenericArguments()[0] == request)), Is.True, request.Name);
             }
 
-            Assert.That(typeof(HolidayCalendarPermissionBehavior<,>), Is.Not.Null);
+            Assert.That(typeof(HolidayPermissionBehavior<,>), Is.Not.Null);
         });
     }
 }

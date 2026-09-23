@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
-public partial class OrganizationHolidayCalendar
+public partial class Holiday
 {
     public long Id { get; set; }
 
@@ -18,6 +18,8 @@ public partial class OrganizationHolidayCalendar
     public bool IsOptional { get; set; }
 
     public string? Description { get; set; }
+
+    public string? Icon { get; set; }
 
     public bool? IsActive { get; set; }
 

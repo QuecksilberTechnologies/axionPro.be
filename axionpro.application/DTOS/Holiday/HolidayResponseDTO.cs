@@ -1,6 +1,6 @@
-namespace axionpro.application.DTOs.OrganizationHolidayCalendar;
+namespace axionpro.application.DTOs.Holiday;
 
-public sealed class OrganizationHolidayCalendarDTO
+public sealed class HolidayDTO
 {
     public long Id { get; set; }
 
@@ -17,4 +17,6 @@ public sealed class OrganizationHolidayCalendarDTO
     public bool IsActive { get; set; }
 
     public string? Description { get; set; }
+
+    public string? Icon { get; set; }
 }

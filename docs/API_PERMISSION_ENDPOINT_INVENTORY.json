@@ -2832,7 +2832,7 @@
           "media": "application/*+json"
         }
       ],
-      "uiModule": "EMP_PASSWORD_MANAGEMENT",
+      "uiModule": "EMP_LIST",
       "uiOperation": "Reset Password",
       "uiCarrier": "body",
       "classification": "STATIC_MAPPING_PRESENT",
@@ -4731,7 +4731,7 @@
     },
     {
       "method": "GET",
-      "url": "/api/HolidayCalandar/get",
+      "url": "/api/Holiday/get",
       "fields": [],
       "uiModule": "",
       "uiOperation": "",

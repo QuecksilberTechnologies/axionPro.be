@@ -1,4 +1,4 @@
-﻿using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.IRepositories;
 
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
@@ -15,24 +15,24 @@ using Npgsql;
 
 namespace axionpro.persistance.Repositories
 {
-    public class HolidayCalandarRepository : IHolidayCalandarRepository
+    public class HolidayRepository : IHolidayRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly ILogger<HolidayCalandarRepository> _logger;
+        private readonly ILogger<HolidayRepository> _logger;
 
-        public HolidayCalandarRepository(WorkforceDbContext context, ILogger<HolidayCalandarRepository> logger)
+        public HolidayRepository(WorkforceDbContext context, ILogger<HolidayRepository> logger)
         {
             _context = context;
             _logger = logger;
         }
 
-        public Task<List<OrganizationHolidayCalendar>> GetTenantHolidaysAsync(
+        public Task<List<Holiday>> GetTenantHolidaysAsync(
             long tenantId,
             long? tenantLocationId,
             int? year,
             CancellationToken cancellationToken)
         {
-            var query = _context.OrganizationHolidayCalendars.AsNoTracking()
+            var query = _context.Holidays.AsNoTracking()
                 .Where(holiday => holiday.TenantId == tenantId
                     && holiday.IsActive == true
                     && holiday.IsSoftDeleted != true);
@@ -52,12 +52,12 @@ namespace axionpro.persistance.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public Task<OrganizationHolidayCalendar?> GetTenantHolidayAsync(
+        public Task<Holiday?> GetTenantHolidayAsync(
             long tenantId,
             long id,
             CancellationToken cancellationToken)
         {
-            return _context.OrganizationHolidayCalendars.FirstOrDefaultAsync(
+            return _context.Holidays.FirstOrDefaultAsync(
                 holiday => holiday.Id == id
                     && holiday.TenantId == tenantId
                     && holiday.IsActive == true
@@ -65,12 +65,12 @@ namespace axionpro.persistance.Repositories
                 cancellationToken);
         }
 
-        public Task<OrganizationHolidayCalendar?> GetTenantHolidayForWriteAsync(
+        public Task<Holiday?> GetTenantHolidayForWriteAsync(
             long tenantId,
             long id,
             CancellationToken cancellationToken)
         {
-            return _context.OrganizationHolidayCalendars.FirstOrDefaultAsync(
+            return _context.Holidays.FirstOrDefaultAsync(
                 holiday => holiday.Id == id
                     && holiday.TenantId == tenantId
                     && holiday.IsSoftDeleted != true,
@@ -90,14 +90,14 @@ namespace axionpro.persistance.Repositories
                 cancellationToken);
         }
 
-        public Task<OrganizationHolidayCalendar?> FindConflictingHolidayAsync(
+        public Task<Holiday?> FindConflictingHolidayAsync(
             long tenantId,
             long tenantLocationId,
             DateOnly date,
             long? excludeId,
             CancellationToken cancellationToken)
         {
-            return _context.OrganizationHolidayCalendars.AsNoTracking().FirstOrDefaultAsync(
+            return _context.Holidays.AsNoTracking().FirstOrDefaultAsync(
                 holiday => holiday.TenantId == tenantId
                     && holiday.TenantLocationId == tenantLocationId
                     && holiday.HolidayDate == date
@@ -106,22 +106,22 @@ namespace axionpro.persistance.Repositories
                 cancellationToken);
         }
 
-        public Task<List<OrganizationHolidayCalendar>> GetTenantHolidaysForDuplicateCheckAsync(
+        public Task<List<Holiday>> GetTenantHolidaysForDuplicateCheckAsync(
             long tenantId,
             CancellationToken cancellationToken)
         {
-            return _context.OrganizationHolidayCalendars.AsNoTracking()
+            return _context.Holidays.AsNoTracking()
                 .Where(holiday => holiday.TenantId == tenantId && holiday.IsSoftDeleted != true)
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<OrganizationHolidayCalendar> SaveHolidayAsync(
-            OrganizationHolidayCalendar holiday,
+        public async Task<Holiday> SaveHolidayAsync(
+            Holiday holiday,
             CancellationToken cancellationToken)
         {
             if (holiday.Id == 0)
             {
-                await _context.OrganizationHolidayCalendars.AddAsync(holiday, cancellationToken);
+                await _context.Holidays.AddAsync(holiday, cancellationToken);
             }
 
             await SaveChangesWithHolidayConflictAsync(cancellationToken);
@@ -129,7 +129,7 @@ namespace axionpro.persistance.Repositories
         }
 
         public async Task<int> ImportHolidaysAsync(
-            IReadOnlyList<OrganizationHolidayCalendar> holidays,
+            IReadOnlyList<Holiday> holidays,
             CancellationToken cancellationToken)
         {
             if (holidays.Count == 0)
@@ -137,7 +137,7 @@ namespace axionpro.persistance.Repositories
                 return 0;
             }
 
-            await _context.OrganizationHolidayCalendars.AddRangeAsync(holidays, cancellationToken);
+            await _context.Holidays.AddRangeAsync(holidays, cancellationToken);
             return await SaveChangesWithHolidayConflictAsync(cancellationToken);
         }
 
@@ -150,7 +150,7 @@ namespace axionpro.persistance.Repositories
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException
                 {
                     SqlState: PostgresErrorCodes.UniqueViolation,
-                    ConstraintName: "UX_OrganizationHolidayCalendar_Tenant_Location_Date_NotDeleted"
+                    ConstraintName: "UX_Holiday_Tenant_Location_Date_NotDeleted"
                 })
             {
                 throw new ValidationErrorException(
@@ -158,71 +158,71 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<List<OrganizationHolidayCalendar>> GetAllHolidaysAsync()
+        public async Task<List<Holiday>> GetAllHolidaysAsync()
         {
             try
             {
-                return await _context.OrganizationHolidayCalendars
+                return await _context.Holidays
                     .Where(x => x.IsActive==true && !x.IsSoftDeleted == true)
                     .ToListAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error in GetAllHolidaysAsync {ex.Message} -  {ex.InnerException} - {ex.StackTrace}");
-                return new List<OrganizationHolidayCalendar>();
+                return new List<Holiday>();
             }
         }
 
-        public async Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByTenantAsync(long tenantId, int year)
+        public async Task<IEnumerable<Holiday>> GetHolidaysByTenantAsync(long tenantId, int year)
         {
             try
             {
-                return await _context.OrganizationHolidayCalendars
+                return await _context.Holidays
                     .Where(x => x.TenantId == tenantId && x.HolidayDate.Year == year && x.IsActive == true && x.IsSoftDeleted != true)
                     .ToListAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error in GetHolidaysByTenantAsync for tenantId: {tenantId}, year: {year}");
-                return Enumerable.Empty<OrganizationHolidayCalendar>();
+                return Enumerable.Empty<Holiday>();
             }
         }
 
-        public async Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByCountryAsync(int countryId, int year)
+        public async Task<IEnumerable<Holiday>> GetHolidaysByCountryAsync(int countryId, int year)
         {
             try
             {
-                return await _context.OrganizationHolidayCalendars
+                return await _context.Holidays
                     .Where(x => x.TenantLocation.CountryId == countryId && x.HolidayDate.Year == year && x.IsActive == true && x.IsSoftDeleted != true)
                     .ToListAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetHolidaysByCountryAsync for countryId: {CountryId}, year: {Year}", countryId, year);
-                return Enumerable.Empty<OrganizationHolidayCalendar>();
+                return Enumerable.Empty<Holiday>();
             }
         }
 
-        public async Task<IEnumerable<OrganizationHolidayCalendar>> GetHolidaysByStateAsync(int countryId, int stateId, int year)
+        public async Task<IEnumerable<Holiday>> GetHolidaysByStateAsync(int countryId, int stateId, int year)
         {
             try
             {
-                return await _context.OrganizationHolidayCalendars
+                return await _context.Holidays
                     .Where(x => x.TenantLocation.CountryId == countryId && x.TenantLocation.StateId == stateId && x.HolidayDate.Year == year && x.IsActive == true && x.IsSoftDeleted != true)
                     .ToListAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetHolidaysByStateAsync for countryId: {CountryId}, stateId: {StateId}, year: {Year}", countryId, stateId, year);
-                return Enumerable.Empty<OrganizationHolidayCalendar>();
+                return Enumerable.Empty<Holiday>();
             }
         }
 
-        public async Task<OrganizationHolidayCalendar?> GetHolidayByIdAsync(long id)
+        public async Task<Holiday?> GetHolidayByIdAsync(long id)
         {
             try
             {
-                return await _context.OrganizationHolidayCalendars
+                return await _context.Holidays
                     .FirstOrDefaultAsync(x => x.Id == id && x.IsActive == true && !x.IsSoftDeleted == true);
             }
             catch (Exception ex)
@@ -232,11 +232,11 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task AddHolidayAsync(OrganizationHolidayCalendar holiday)
+        public async Task AddHolidayAsync(Holiday holiday)
         {
             try
             {
-                await _context.OrganizationHolidayCalendars.AddAsync(holiday);
+                await _context.Holidays.AddAsync(holiday);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -246,11 +246,11 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task UpdateHolidayAsync(OrganizationHolidayCalendar holiday)
+        public async Task UpdateHolidayAsync(Holiday holiday)
         {
             try
             {
-                _context.OrganizationHolidayCalendars.Update(holiday);
+                _context.Holidays.Update(holiday);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -264,13 +264,13 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                var holiday = await _context.OrganizationHolidayCalendars.FirstOrDefaultAsync(x => x.Id == id && x.IsActive == true && !x.IsSoftDeleted == true);
+                var holiday = await _context.Holidays.FirstOrDefaultAsync(x => x.Id == id && x.IsActive == true && !x.IsSoftDeleted == true);
                 if (holiday != null)
                 {
                     holiday.IsSoftDeleted = true;
                     holiday.SoftDeletedById = SoftDeletedById;
                     holiday.DeletedDateTime = DateTime.UtcNow;
-                    _context.OrganizationHolidayCalendars.Update(holiday);
+                    _context.Holidays.Update(holiday);
                     await _context.SaveChangesAsync();
                 }
             }

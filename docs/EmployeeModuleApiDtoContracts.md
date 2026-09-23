@@ -103,7 +103,7 @@ derived from authenticated context; client-supplied ownership/audit IDs are not 
 | `POST /api/Employee/update-edit-status` | `UpdateEditStatusRequestDTO_` | `ApiResponse<bool>` |
 | `POST /api/Employee/update-verification-status` | `UpdateVerificationStatusRequestDTO_` | `ApiResponse<bool>` |
 | `POST /api/Employee/update-bulk` | `UpdateEmployeeSectionStatusRequestDTO` | `ApiResponse<bool>` |
-| `POST /api/Employee/reset-password` | `ResetEmployeePasswordRequestDTO` | reset result; password values must never be logged |
+| `POST /api/Employee/reset-password` | `ResetEmployeePasswordRequestDTO` | `EMP_LIST` + `Reset Password`; reset result; password values must never be logged |
 
 Principal request fields:
 

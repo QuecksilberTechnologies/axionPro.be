@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 using axionpro.application.Common.Helpers;
-using axionpro.application.DTOs.OrganizationHolidayCalendar;
+using axionpro.application.DTOs.Holiday;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -9,7 +9,7 @@ using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
 
-namespace axionpro.application.Features.HolidayCalandarCmd;
+namespace axionpro.application.Features.HolidayCmd;
 
 #region Import
 
@@ -20,7 +20,7 @@ public sealed class ImportHolidaysCommandHandler(
 {
     private static readonly string[] RequiredColumns =
     [
-        "TenantLocationId", "HolidayName", "HolidayDate", "IsOptional", "Description"
+        "TenantLocationId", "HolidayName", "HolidayDate", "IsOptional", "Description", "Icon"
     ];
 
     public async Task<ApiResponse<HolidayImportResultDTO>> Handle(
@@ -50,7 +50,7 @@ public sealed class ImportHolidaysCommandHandler(
         }
 
         var errors = new List<string>();
-        var parsed = new List<OrganizationHolidayCalendar>();
+        var parsed = new List<Holiday>();
         var fileKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var rowNumbers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in table.Rows)
@@ -60,6 +60,7 @@ public sealed class ImportHolidaysCommandHandler(
             var dateText = Value(row.Values, positions, "HolidayDate");
             var optionalText = Value(row.Values, positions, "IsOptional");
             var description = Value(row.Values, positions, "Description").Trim();
+            var icon = Value(row.Values, positions, "Icon").Trim();
 
             if (!long.TryParse(locationText, NumberStyles.None, CultureInfo.InvariantCulture, out var locationId)
                 || locationId <= 0
@@ -68,9 +69,10 @@ public sealed class ImportHolidaysCommandHandler(
                 || !bool.TryParse(optionalText, out var isOptional)
                 || string.IsNullOrWhiteSpace(name)
                 || name.Length > 100
-                || description.Length > 255)
+                || description.Length > 255
+                || icon.Length > 100)
             {
-                errors.Add($"Row {row.RowNumber}: use a valid TenantLocationId, HolidayName, ISO HolidayDate, boolean IsOptional and Description up to 255 characters.");
+                errors.Add($"Row {row.RowNumber}: use a valid TenantLocationId, HolidayName, ISO HolidayDate, boolean IsOptional, Description up to 255 characters and Icon up to 100 characters.");
                 continue;
             }
 
@@ -83,7 +85,7 @@ public sealed class ImportHolidaysCommandHandler(
 
             rowNumbers[key] = row.RowNumber;
 
-            parsed.Add(new OrganizationHolidayCalendar
+            parsed.Add(new Holiday
             {
                 TenantId = actor.TenantId,
                 TenantLocationId = locationId,
@@ -91,6 +93,7 @@ public sealed class ImportHolidaysCommandHandler(
                 HolidayDate = holidayDate,
                 IsOptional = isOptional,
                 Description = description.Length == 0 ? null : description,
+                Icon = icon.Length == 0 ? null : icon,
                 IsActive = true,
                 IsSoftDeleted = false,
                 AddedById = actor.LoggedInEmployeeId,
@@ -100,7 +103,7 @@ public sealed class ImportHolidaysCommandHandler(
 
         foreach (var locationId in parsed.Select(item => item.TenantLocationId).Distinct())
         {
-            if (!await unitOfWork.HolidayCalandarRepository.TenantLocationExistsAsync(
+            if (!await unitOfWork.HolidayRepository.TenantLocationExistsAsync(
                 actor.TenantId, locationId, cancellationToken))
             {
                 errors.Add($"TenantLocationId {locationId} is inactive or does not belong to this tenant.");
@@ -109,7 +112,7 @@ public sealed class ImportHolidaysCommandHandler(
 
         if (errors.Count == 0)
         {
-            var existing = await unitOfWork.HolidayCalandarRepository.GetTenantHolidaysForDuplicateCheckAsync(
+            var existing = await unitOfWork.HolidayRepository.GetTenantHolidaysForDuplicateCheckAsync(
                 actor.TenantId, cancellationToken);
             var existingByDate = existing
                 .GroupBy(item => Key(item.TenantLocationId, item.HolidayDate), StringComparer.OrdinalIgnoreCase)
@@ -119,7 +122,7 @@ public sealed class ImportHolidaysCommandHandler(
                 if (existingByDate.TryGetValue(Key(item.TenantLocationId, item.HolidayDate), out var conflict))
                 {
                     var rowNumber = rowNumbers[Key(item.TenantLocationId, item.HolidayDate)];
-                    errors.Add($"Row {rowNumber}: {HolidayCalendarValidation.DuplicateMessage(conflict)}");
+                    errors.Add($"Row {rowNumber}: {HolidayValidation.DuplicateMessage(conflict)}");
                 }
             }
         }
@@ -129,7 +132,7 @@ public sealed class ImportHolidaysCommandHandler(
             throw new ValidationErrorException("Holiday import validation failed; no rows were saved.", errors);
         }
 
-        var created = await unitOfWork.HolidayCalandarRepository.ImportHolidaysAsync(parsed, cancellationToken);
+        var created = await unitOfWork.HolidayRepository.ImportHolidaysAsync(parsed, cancellationToken);
 
         return ApiResponse<HolidayImportResultDTO>.Success(new HolidayImportResultDTO
         {
@@ -169,19 +172,20 @@ public sealed class ExportHolidaysQueryHandler(
             throw new ValidationErrorException("TenantLocationId and HolidayYear must be valid when supplied.");
         }
 
-        var holidays = await unitOfWork.HolidayCalandarRepository.GetTenantHolidaysAsync(
+        var holidays = await unitOfWork.HolidayRepository.GetTenantHolidaysAsync(
             actor.TenantId,
             request.DTO.TenantLocationId,
             request.DTO.HolidayYear,
             cancellationToken);
-        var csv = new StringBuilder("TenantLocationId,HolidayName,HolidayDate,IsOptional,Description\r\n");
+        var csv = new StringBuilder("TenantLocationId,HolidayName,HolidayDate,IsOptional,Description,Icon\r\n");
         foreach (var holiday in holidays)
         {
             csv.Append(holiday.TenantLocationId.ToString(CultureInfo.InvariantCulture)).Append(',')
                 .Append(Escape(holiday.HolidayName)).Append(',')
                 .Append(holiday.HolidayDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).Append(',')
                 .Append(holiday.IsOptional ? "true" : "false").Append(',')
-                .Append(Escape(holiday.Description ?? string.Empty)).Append("\r\n");
+                .Append(Escape(holiday.Description ?? string.Empty)).Append(',')
+                .Append(Escape(holiday.Icon ?? string.Empty)).Append("\r\n");
         }
 
         return new UTF8Encoding(true).GetBytes(csv.ToString());

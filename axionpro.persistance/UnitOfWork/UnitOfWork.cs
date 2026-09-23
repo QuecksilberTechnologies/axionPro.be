@@ -64,7 +64,7 @@ public class UnitOfWork : IUnitOfWork
     private IPolicyTypeDocumentRepository? _companyPolicyDocumentRepository;
     private ITenantEmailConfigRepository? _tenantEmailConfigRepository;
     private IDefaultEmailConfigRepository? _defaultEmailConfigRepository;
-    private IHolidayCalandarRepository? _holidayCalandarRepository;
+    private IHolidayRepository? _holidayRepository;
     private ITenantModuleConfigurationRepository? _tenantModuleConfigurationRepository;
     private ITenantParentModuleRepository? _tenantParentModuleRepository;
     private IPlanModuleMappingRepository? _planModuleMappingRepository;
@@ -313,8 +313,8 @@ public class UnitOfWork : IUnitOfWork
     public ILocationRepository LocationRepository =>
         _locationRepository ??= new LocationRepository(_context, _loggerFactory.CreateLogger<LocationRepository>());
 
-    public IHolidayCalandarRepository HolidayCalandarRepository =>
-        _holidayCalandarRepository ??= new HolidayCalandarRepository(_context, _loggerFactory.CreateLogger<HolidayCalandarRepository>());
+    public IHolidayRepository HolidayRepository =>
+        _holidayRepository ??= new HolidayRepository(_context, _loggerFactory.CreateLogger<HolidayRepository>());
 
     public ITenantRepository TenantRepository =>
         _tenantRepository ??= new TenantRepository(_context, _loggerFactory.CreateLogger<TenantRepository>());

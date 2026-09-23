@@ -2,16 +2,16 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Coordinates tenant holiday calendar CRUD requests.
+// Purpose : Coordinates tenant holiday CRUD requests.
 // ================================================================
 
-using axionpro.application.DTOs.OrganizationHolidayCalendar;
-using axionpro.application.Features.HolidayCalandarCmd;
+using axionpro.application.DTOs.Holiday;
+using axionpro.application.Features.HolidayCmd;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace axionpro.api.Controllers.HolidayCalandar;
+namespace axionpro.api.Controllers.Holiday;
 
 /// <summary>
 /// Manages location-based organization holidays for the authenticated tenant.
@@ -19,13 +19,13 @@ namespace axionpro.api.Controllers.HolidayCalandar;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public sealed class HolidayCalandarController(IMediator mediator) : ControllerBase
+public sealed class HolidayController(IMediator mediator) : ControllerBase
 {
     #region Read
 
     /// <summary>Lists active holidays for the current tenant.</summary>
     /// <remarks>
-    /// ModuleId must identify TENANT_POLICY_HOLIDAY_CALENDAR and OperationId must
+    /// ModuleId must identify TENANT_POLICY_HOLIDAY and OperationId must
     /// identify View. TenantLocationId and HolidayYear are optional filters.
     /// Tenant identity comes from the authenticated request, not the query.
     /// </remarks>
@@ -36,7 +36,7 @@ public sealed class HolidayCalandarController(IMediator mediator) : ControllerBa
     }
 
     /// <summary>Gets one nondeleted holiday, including inactive, belonging to the current tenant.</summary>
-    /// <remarks>Requires the View operation for TENANT_POLICY_HOLIDAY_CALENDAR.</remarks>
+    /// <remarks>Requires the View operation for TENANT_POLICY_HOLIDAY.</remarks>
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(
         long id,
@@ -52,7 +52,7 @@ public sealed class HolidayCalandarController(IMediator mediator) : ControllerBa
     #region Write
 
     /// <summary>Creates a holiday for an active location owned by the current tenant.</summary>
-    /// <remarks>Requires the Add operation for TENANT_POLICY_HOLIDAY_CALENDAR.</remarks>
+    /// <remarks>Requires the Add operation for TENANT_POLICY_HOLIDAY.</remarks>
     [HttpPost]
     public async Task<IActionResult> Create(
         [FromBody] SaveHolidayRequestDTO request,
@@ -62,7 +62,7 @@ public sealed class HolidayCalandarController(IMediator mediator) : ControllerBa
     }
 
     /// <summary>Updates an active holiday belonging to the current tenant.</summary>
-    /// <remarks>Requires the Update operation for TENANT_POLICY_HOLIDAY_CALENDAR.</remarks>
+    /// <remarks>Requires the Update operation for TENANT_POLICY_HOLIDAY.</remarks>
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(
         long id,
@@ -74,7 +74,7 @@ public sealed class HolidayCalandarController(IMediator mediator) : ControllerBa
     }
 
     /// <summary>Soft-deletes an active holiday belonging to the current tenant.</summary>
-    /// <remarks>Requires the Delete operation for TENANT_POLICY_HOLIDAY_CALENDAR.</remarks>
+    /// <remarks>Requires the Delete operation for TENANT_POLICY_HOLIDAY.</remarks>
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(
         long id,
@@ -93,7 +93,7 @@ public sealed class HolidayCalandarController(IMediator mediator) : ControllerBa
     /// <remarks>
     /// Requires Import permission. Supply exactly one CSV/XLSX file or pasted
     /// table, with TenantLocationId, HolidayName, HolidayDate, IsOptional and
-    /// Description columns. Invalid input or an existing nondeleted date saves
+    /// Description and Icon columns. Invalid input or an existing nondeleted date saves
     /// no rows; inactive entries also block the date until soft-deleted.
     /// </remarks>
     [HttpPost("import")]
@@ -116,7 +116,7 @@ public sealed class HolidayCalandarController(IMediator mediator) : ControllerBa
         CancellationToken cancellationToken)
     {
         var content = await mediator.Send(new ExportHolidaysQuery(request), cancellationToken);
-        return File(content, "text/csv; charset=utf-8", "organization-holidays.csv");
+        return File(content, "text/csv; charset=utf-8", "holidays.csv");
     }
 
     #endregion

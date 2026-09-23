@@ -6,7 +6,7 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.DTOs.OrganizationHolidayCalendar;
+using axionpro.application.DTOs.Holiday;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.TicketType;

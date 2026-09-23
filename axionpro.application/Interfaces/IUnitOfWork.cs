@@ -1,4 +1,4 @@
-﻿using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.domain.Entity;
 
@@ -47,7 +47,7 @@ namespace axionpro.application.Interfaces
         ITenantModuleConfigurationRepository TenantModuleConfigurationRepository { get; }
         ITenantParentModuleRepository TenantParentModuleRepository { get; }
         ITenantEncryptionKeyRepository TenantEncryptionKeyRepository { get; }
-        IHolidayCalandarRepository HolidayCalandarRepository { get; }
+        IHolidayRepository HolidayRepository { get; }
         IHostUserRepository HostUserRepository { get; }
         IHostRolePermissionRepository HostRolePermissionRepository { get; }
         IHostRoleRepository HostRoleRepository { get; }

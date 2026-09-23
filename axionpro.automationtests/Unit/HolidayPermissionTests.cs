@@ -1,9 +1,9 @@
 using System.Reflection;
 using axionpro.application.Common.Models.Security;
 using axionpro.application.DTOS.RoleModulePermission;
-using axionpro.application.DTOs.OrganizationHolidayCalendar;
+using axionpro.application.DTOs.Holiday;
 using axionpro.application.Exceptions;
-using axionpro.application.Features.HolidayCalandarCmd;
+using axionpro.application.Features.HolidayCmd;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
@@ -13,13 +13,13 @@ using NUnit.Framework;
 namespace axionpro.automationtests.Unit;
 
 [TestFixture]
-[Category("HolidayCalendarPermission")]
-public sealed class HolidayCalendarPermissionTests
+[Category("HolidayPermission")]
+public sealed class HolidayPermissionTests
 {
-    [TestCase("TENANT_POLICY_HOLIDAY_CALENDAR", "Add", 1, true)]
-    [TestCase("TENANT_POLICY_HOLIDAY_CALENDAR", "View", 1, false)]
+    [TestCase("TENANT_POLICY_HOLIDAY", "Add", 1, true)]
+    [TestCase("TENANT_POLICY_HOLIDAY", "View", 1, false)]
     [TestCase("TENANT_POLICY_TYPES", "Add", 1, false)]
-    [TestCase("TENANT_POLICY_HOLIDAY_CALENDAR", "Add", 0, false)]
+    [TestCase("TENANT_POLICY_HOLIDAY", "Add", 0, false)]
     public async Task Create_reaches_handler_only_with_matching_module_operation_and_grant(
         string moduleCode,
         string operationName,
@@ -51,7 +51,7 @@ public sealed class HolidayCalendarPermissionTests
             _ => throw new AssertionException($"Unexpected unit request: {method.Name}")
         });
 
-        var behavior = new HolidayCalendarPermissionBehavior<CreateHolidayCommand, bool>(unit, common);
+        var behavior = new HolidayPermissionBehavior<CreateHolidayCommand, bool>(unit, common);
         var invoked = false;
         Task<bool> Next(CancellationToken _)
         {
@@ -84,7 +84,7 @@ public sealed class HolidayCalendarPermissionTests
     {
         var common = Proxy<ICommonRequestService>((method, _) => method.Name switch
         {
-            "GetModuleCodeAsync" => Task.FromResult<string?>("TENANT_POLICY_HOLIDAY_CALENDAR"),
+            "GetModuleCodeAsync" => Task.FromResult<string?>("TENANT_POLICY_HOLIDAY"),
             "ValidateTenantUserRequestAsync" => Task.FromResult(new CommonDecodedResult
             {
                 Success = true, TenantId = 8, LoggedInEmployeeId = 4, RoleId = 2
@@ -103,7 +103,7 @@ public sealed class HolidayCalendarPermissionTests
             "get_StoreProcedureRepository" => stored,
             _ => throw new AssertionException(method.Name)
         });
-        var behavior = new HolidayCalendarPermissionBehavior<ImportHolidaysCommand, bool>(unit, common);
+        var behavior = new HolidayPermissionBehavior<ImportHolidaysCommand, bool>(unit, common);
         var invoked = false;
         Task<bool> Next(CancellationToken _)
         {

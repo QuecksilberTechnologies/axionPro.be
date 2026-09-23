@@ -6,7 +6,7 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.DTOs.OrganizationHolidayCalendar;
+using axionpro.application.DTOs.Holiday;
 using axionpro.application.DTOS.Role;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.Exceptions;

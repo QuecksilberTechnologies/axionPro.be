@@ -19,7 +19,7 @@ were removed:
 | Removed table | Reason |
 | --- | --- |
 | `DistrictMaster` | Duplicate legacy structure; active location API uses `District`. |
-| `HolidayMaster` | Unused legacy structure; active holiday API uses `OrganizationHolidayCalendar`. |
+| `HolidayMaster` | Unused legacy structure; active holiday API uses `Holiday`. |
 | `NoImagePath` | Empty and absent from runtime behavior. |
 | `demo` | Empty database-only test table. |
 | `dummy1` | Empty database-only test table. |
@@ -56,7 +56,7 @@ exports under `C:\AxionProCodeBase\DBFullBACKUP`.
 - `TenantLocation`, `EmployeeLocationAssignment`.
 - `AttendancePolicy`, `EmployeeWorkArrangement`, `EmployeeWorkPattern`.
 - `PolicyType`, `PolicyTypeDocument`, policy mappings, sandwich rules,
-  compliance rules, and `OrganizationHolidayCalendar`.
+  compliance rules, and `Holiday`.
 - `InterviewSchedule` and `InterviewSdule`, because they have different shapes
   and domain relationships and are not proven duplicates.
 

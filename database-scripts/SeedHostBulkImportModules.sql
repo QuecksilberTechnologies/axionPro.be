@@ -93,23 +93,7 @@ BEGIN
         END LOOP;
     END LOOP;
 
-    -- Remove every direct dependency before deleting obsolete Module rows.
-    DELETE FROM axionpro."HostRoleModuleAndPermission" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."RoleModuleAndPermission" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."TenantEnabledOperation" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."TenantEnabledModule" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\')
-       OR "ParentModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."PlanModuleMapping" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."ModuleOperationMapping" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."Module"
-    WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\';
+
 END $host_bulk_operations$;
 
 COMMIT;

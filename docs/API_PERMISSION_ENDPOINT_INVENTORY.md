@@ -146,7 +146,7 @@ An ID field in Swagger does not by itself prove it is runtime-required: some are
 | POST | /api/Employee/update-edit-status | body:moduleId; body:operationId | DYNAMIC_BODY_MODULE / Allow Editing / body | DYNAMIC_MODULE_REQUIRES_PAYLOAD | src/app/core/services/profile-access-api.ts:49 |
 | POST | /api/Employee/update-verification-status | body:moduleId; body:operationId | DYNAMIC_BODY_MODULE / Verify / body | DYNAMIC_MODULE_REQUIRES_PAYLOAD | src/app/core/services/profile-access-api.ts:43 |
 | POST | /api/Employee/update-bulk | body:moduleId; body:operationId | EMP_LIST / Update / body | STATIC_MAPPING_PRESENT | src/app/core/services/employee-api.ts:129 |
-| POST | /api/Employee/reset-password | body:moduleId; body:operationId | EMP_PASSWORD_MANAGEMENT / Reset Password / body | STATIC_MAPPING_PRESENT | src/app/core/services/employee-api.ts:172 |
+| POST | /api/Employee/reset-password | body:moduleId; body:operationId | EMP_LIST / Reset Password / body | STATIC_MAPPING_PRESENT | src/app/core/services/employee-api.ts:172 |
 | GET | /api/Employee/get-all-percentage | query:ModuleId; query:OperationId | EMP_OVERVIEW / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/employee-api.ts:123 |
 | GET | /api/Employee/get | query:ModuleId; query:OperationId | EMP_OVERVIEW / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/employee-basic-api.ts:135 |
 | GET | /api/Employee/get-summary | query:ModuleId; query:OperationId | EMP_LIST / View / query | STATIC_MAPPING_PRESENT | src/app/core/services/employee-api.ts:143 |
@@ -219,7 +219,7 @@ An ID field in Swagger does not by itself prove it is runtime-required: some are
 | POST | /api/FileUpload/UploadAsset/upload | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
 | GET | /api/Gender/option | None declared | None | NO_ID_FIELDS_IN_SWAGGER | src/app/core/services/users-api.ts:46 |
 | GET | /api/Gender/get | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
-| GET | /api/HolidayCalandar/get | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
+| GET | /api/Holiday/get | None declared | None | NO_ID_FIELDS_IN_SWAGGER | Not statically matched |
 | POST | /api/Host/create-host-user | None declared | None | NO_ID_FIELDS_IN_SWAGGER | src/app/core/services/host-api.ts:71 |
 | POST | /api/Host/create-host-role | None declared | None | NO_ID_FIELDS_IN_SWAGGER | src/app/core/services/host-api.ts:101 |
 | GET | /api/Host/get-host-user-by-id/{id} | None declared | None | NO_ID_FIELDS_IN_SWAGGER | src/app/core/services/host-api.ts:45 |

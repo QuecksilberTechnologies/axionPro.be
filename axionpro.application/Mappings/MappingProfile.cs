@@ -22,7 +22,7 @@ using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.ModuleOperation;
 using axionpro.application.DTOs.Operation;
-using axionpro.application.DTOs.OrganizationHolidayCalendar;
+using axionpro.application.DTOs.Holiday;
 using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Role;
@@ -1163,8 +1163,8 @@ namespace axionpro.application.Mappings
             CreateMap<GetReportingTypeResponseDTO, ReportingType>().ReverseMap();
 
 
-            CreateMap<OrganizationHolidayCalendar, OrganizationHolidayCalendarDTO>();
-            CreateMap<OrganizationHolidayCalendarDTO, OrganizationHolidayCalendar>();
+            CreateMap<Holiday, HolidayDTO>();
+            CreateMap<HolidayDTO, Holiday>();
 
             // `Employee.OfficialEmail` ➝ `EmployeeInfoDTO.OfficialEmail`
 

@@ -14,8 +14,8 @@
 --   5. Device and work management : Tenant locations, attendance policies,
 --                          employee-device enrollment, employee work setup,
 --                          and Host card inventory permission modules.
---   6. Employee password : Child module, dedicated Reset Password operation,
---                          operation mapping, and inherited plan mappings.
+--   6. Employee password : Reset Password operation on the existing EMP_LIST
+--                          module; obsolete standalone module cleanup.
 --   7. Existing module / operation records ko normalize/update karna.
 --   8. Host administration hierarchy and Host authorization baseline.
 --   9. Bulk module planning is documented in ../BULK_MODULE_SEED_REFERENCE.md.
@@ -3902,224 +3902,7 @@ WHERE NOT EXISTS
 )
   AND (seed."ParentModuleCode" IS NULL OR parent."Id" IS NOT NULL);
 
--- Consolidate the legacy Create alias into the canonical Add operation before
--- seeding mappings. Existing permissions are moved in FK-safe order. The
--- operation master then contains one Add action for OperationType 1.
-DO $consolidate_add_operation$
-DECLARE
-    add_operation_id INTEGER;
-    create_operation_id INTEGER;
-BEGIN
-    SELECT "Id"
-    INTO add_operation_id
-    FROM axionpro."Operation"
-    WHERE LOWER(BTRIM("OperationName")) = 'add'
-      AND "OperationType" = 1
-    ORDER BY "IsActive" DESC, "Id"
-    LIMIT 1;
-
-    IF add_operation_id IS NULL THEN
-        SELECT "Id"
-        INTO create_operation_id
-        FROM axionpro."Operation"
-        WHERE LOWER(BTRIM("OperationName")) = 'create'
-          AND "OperationType" = 1
-        ORDER BY "IsActive" DESC, "Id"
-        LIMIT 1;
-
-        IF create_operation_id IS NOT NULL THEN
-            UPDATE axionpro."Operation"
-            SET
-                "OperationName" = 'Add',
-                "Remark" = 'Add a permitted record or queue a new request.',
-                "IsActive" = TRUE,
-                "IconImage" = 'plus-circle',
-                "UpdatedById" = 1,
-                "UpdatedDateTime" = CURRENT_TIMESTAMP
-            WHERE "Id" = create_operation_id;
-
-            add_operation_id := create_operation_id;
-        ELSE
-            INSERT INTO axionpro."Operation"
-            (
-                "OperationName", "Remark", "OperationType", "IsActive",
-                "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "IconImage"
-            )
-            VALUES
-            (
-                'Add', 'Add a permitted record or queue a new request.', 1, TRUE,
-                1, CURRENT_TIMESTAMP, 1, CURRENT_TIMESTAMP, 'plus-circle'
-            )
-            RETURNING "Id" INTO add_operation_id;
-        END IF;
-    END IF;
-
-    -- Remove duplicates that would collide with the canonical Add mapping.
-    DELETE FROM axionpro."ModuleOperationMapping" legacy
-    USING axionpro."Operation" create_operation
-    WHERE legacy."OperationId" = create_operation."Id"
-      AND create_operation."OperationType" = 1
-      AND create_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add')
-      AND EXISTS
-      (
-          SELECT 1
-          FROM axionpro."ModuleOperationMapping" canonical
-          WHERE canonical."ModuleId" = legacy."ModuleId"
-            AND canonical."OperationId" = add_operation_id
-      );
-
-    DELETE FROM axionpro."HostRoleModuleAndPermission" legacy
-    USING axionpro."Operation" create_operation
-    WHERE legacy."OperationId" = create_operation."Id"
-      AND create_operation."OperationType" = 1
-      AND create_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add')
-      AND EXISTS
-      (
-          SELECT 1
-          FROM axionpro."HostRoleModuleAndPermission" canonical
-          WHERE canonical."HostRoleId" = legacy."HostRoleId"
-            AND canonical."ModuleId" = legacy."ModuleId"
-            AND canonical."OperationId" = add_operation_id
-      );
-
-    DELETE FROM axionpro."TenantEnabledOperation" legacy
-    USING axionpro."Operation" create_operation
-    WHERE legacy."OperationId" = create_operation."Id"
-      AND create_operation."OperationType" = 1
-      AND create_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add')
-      AND EXISTS
-      (
-          SELECT 1
-          FROM axionpro."TenantEnabledOperation" canonical
-          WHERE canonical."TenantId" = legacy."TenantId"
-            AND canonical."ModuleId" = legacy."ModuleId"
-            AND canonical."OperationId" = add_operation_id
-      );
-
-    DELETE FROM axionpro."ModuleOperationMapping" duplicate
-    USING axionpro."Operation" duplicate_operation
-    WHERE duplicate."OperationId" = duplicate_operation."Id"
-      AND duplicate_operation."OperationType" = 1
-      AND duplicate_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(duplicate_operation."OperationName")) IN ('create', 'add')
-      AND EXISTS
-      (
-          SELECT 1
-          FROM axionpro."ModuleOperationMapping" retained
-          INNER JOIN axionpro."Operation" retained_operation
-              ON retained_operation."Id" = retained."OperationId"
-          WHERE retained."ModuleId" = duplicate."ModuleId"
-            AND retained."Id" < duplicate."Id"
-            AND retained_operation."OperationType" = 1
-            AND retained_operation."Id" <> add_operation_id
-            AND LOWER(BTRIM(retained_operation."OperationName")) IN ('create', 'add')
-      );
-
-    DELETE FROM axionpro."HostRoleModuleAndPermission" duplicate
-    USING axionpro."Operation" duplicate_operation
-    WHERE duplicate."OperationId" = duplicate_operation."Id"
-      AND duplicate_operation."OperationType" = 1
-      AND duplicate_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(duplicate_operation."OperationName")) IN ('create', 'add')
-      AND EXISTS
-      (
-          SELECT 1
-          FROM axionpro."HostRoleModuleAndPermission" retained
-          INNER JOIN axionpro."Operation" retained_operation
-              ON retained_operation."Id" = retained."OperationId"
-          WHERE retained."HostRoleId" = duplicate."HostRoleId"
-            AND retained."ModuleId" = duplicate."ModuleId"
-            AND retained."Id" < duplicate."Id"
-            AND retained_operation."OperationType" = 1
-            AND retained_operation."Id" <> add_operation_id
-            AND LOWER(BTRIM(retained_operation."OperationName")) IN ('create', 'add')
-      );
-
-    DELETE FROM axionpro."TenantEnabledOperation" duplicate
-    USING axionpro."Operation" duplicate_operation
-    WHERE duplicate."OperationId" = duplicate_operation."Id"
-      AND duplicate_operation."OperationType" = 1
-      AND duplicate_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(duplicate_operation."OperationName")) IN ('create', 'add')
-      AND EXISTS
-      (
-          SELECT 1
-          FROM axionpro."TenantEnabledOperation" retained
-          INNER JOIN axionpro."Operation" retained_operation
-              ON retained_operation."Id" = retained."OperationId"
-          WHERE retained."TenantId" = duplicate."TenantId"
-            AND retained."ModuleId" = duplicate."ModuleId"
-            AND retained."Id" < duplicate."Id"
-            AND retained_operation."OperationType" = 1
-            AND retained_operation."Id" <> add_operation_id
-            AND LOWER(BTRIM(retained_operation."OperationName")) IN ('create', 'add')
-      );
-
-    UPDATE axionpro."ModuleOperationMapping" mapping
-    SET
-        "OperationId" = add_operation_id,
-        "UpdatedById" = 1,
-        "UpdatedDateTime" = CURRENT_TIMESTAMP
-    FROM axionpro."Operation" create_operation
-    WHERE mapping."OperationId" = create_operation."Id"
-      AND create_operation."OperationType" = 1
-      AND create_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add');
-
-    UPDATE axionpro."HostRoleModuleAndPermission" permission
-    SET
-        "OperationId" = add_operation_id,
-        "UpdatedById" = 1,
-        "UpdatedDateTime" = CURRENT_TIMESTAMP
-    FROM axionpro."Operation" create_operation
-    WHERE permission."OperationId" = create_operation."Id"
-      AND create_operation."OperationType" = 1
-      AND create_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add');
-
-    UPDATE axionpro."RoleModuleAndPermission" permission
-    SET
-        "OperationId" = add_operation_id,
-        "UpdatedById" = 1,
-        "UpdatedDateTime" = CURRENT_TIMESTAMP
-    FROM axionpro."Operation" create_operation
-    WHERE permission."OperationId" = create_operation."Id"
-      AND create_operation."OperationType" = 1
-      AND create_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add');
-
-    UPDATE axionpro."TenantEnabledOperation" enabled_operation
-    SET
-        "OperationId" = add_operation_id,
-        "UpdatedById" = 1,
-        "UpdatedDateTime" = CURRENT_TIMESTAMP
-    FROM axionpro."Operation" create_operation
-    WHERE enabled_operation."OperationId" = create_operation."Id"
-      AND create_operation."OperationType" = 1
-      AND create_operation."Id" <> add_operation_id
-      AND LOWER(BTRIM(create_operation."OperationName")) IN ('create', 'add');
-
-    IF to_regclass('axionpro."BulkImportJob"') IS NOT NULL THEN
-        EXECUTE
-            'UPDATE axionpro."BulkImportJob" job '
-            'SET "OperationId" = $1 '
-            'FROM axionpro."Operation" create_operation '
-            'WHERE job."OperationId" = create_operation."Id" '
-            'AND create_operation."OperationType" = 1 '
-            'AND create_operation."Id" <> $1 '
-            'AND LOWER(BTRIM(create_operation."OperationName")) IN (''create'', ''add'')'
-        USING add_operation_id;
-    END IF;
-
-    DELETE FROM axionpro."Operation"
-    WHERE "OperationType" = 1
-      AND "Id" <> add_operation_id
-      AND LOWER(BTRIM("OperationName")) IN ('create', 'add');
-END;
-$consolidate_add_operation$;
+-- Canonical CRUD operations are seeded directly below. Legacy-operation cleanup belongs in a separate migration, not in this production seed.
 
 -- The module seed consumes the platform-wide CRUD actions. Ensure every action
 -- used by these menus has complete labels, icon, type, and audit metadata.
@@ -4303,183 +4086,27 @@ WHERE mapping."ModuleId" = module."Id"
 
 -- ============================================================================
 -- SECTION 8B
--- EMPLOYEE PASSWORD MANAGEMENT MODULE, OPERATION, AND PLAN INHERITANCE
+-- RESET PASSWORD OPERATION ON EMP_LIST
 -- ============================================================================
--- Reset Password is a dedicated security permission. Plans inherit it only
--- where EMP_LIST is already enabled; no role permission is granted here.
--- ============================================================================
-
-DO
-$$
-DECLARE
-    employee_parent_count INTEGER;
-BEGIN
-    SELECT COUNT(*)
-    INTO employee_parent_count
-    FROM axionpro."Module"
-    WHERE "ModuleCode" = 'EMP_MGMT'
-      AND "ParentModuleId" IS NULL
-      AND "IsLeafNode" = FALSE
-      AND "ModuleScope" = 1;
-
-    IF employee_parent_count <> 1 THEN
-        RAISE EXCEPTION
-            'Expected exactly one Tenant-scope EMP_MGMT parent Module, found %.',
-            employee_parent_count;
-    END IF;
-END;
-$$;
-
-INSERT INTO axionpro."Module"
-(
-    "TenantId", "ModuleCode", "ModuleName", "PageName", "DisplayName", "URLPath",
-    "ParentModuleId", "IsLeafNode", "IsModuleDisplayInUI", "IsCommonMenu",
-    "IsActive", "ImageIconWeb", "ImageIconMobile", "ItemPriority", "Remark",
-    "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "ModuleScope"
-)
-SELECT
-    NULL,
-    'EMP_PASSWORD_MANAGEMENT',
-    'Employee-Password-Management',
-    'employee-password-management',
-    'Employee Password Management',
-    '/employees/password-management',
-    parent."Id",
-    TRUE,
-    TRUE,
-    FALSE,
-    TRUE,
-    'bi bi-key',
-    'key',
-    40,
-    'Tenant-admin reset of a selected employee login password.',
-    1,
-    CURRENT_TIMESTAMP,
-    1,
-    CURRENT_TIMESTAMP,
-    1
-FROM axionpro."Module" parent
-WHERE parent."ModuleCode" = 'EMP_MGMT'
-  AND parent."ParentModuleId" IS NULL
-  AND parent."IsLeafNode" = FALSE
-  AND parent."ModuleScope" = 1
-  AND NOT EXISTS
-  (
-      SELECT 1
-      FROM axionpro."Module" existing
-      WHERE existing."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT'
-  );
-
-UPDATE axionpro."Module" module
-SET
-    "TenantId" = NULL,
-    "ModuleName" = 'Employee-Password-Management',
-    "DisplayName" = 'Employee Password Management',
-    "URLPath" = '/employees/password-management',
-    "ParentModuleId" =
-    (
-        SELECT parent."Id"
-        FROM axionpro."Module" parent
-        WHERE parent."ModuleCode" = 'EMP_MGMT'
-          AND parent."ParentModuleId" IS NULL
-          AND parent."IsLeafNode" = FALSE
-          AND parent."ModuleScope" = 1
-    ),
-    "IsLeafNode" = TRUE,
-    "IsModuleDisplayInUI" = TRUE,
-    "IsCommonMenu" = FALSE,
-    "IsActive" = TRUE,
-    "ImageIconWeb" = 'bi bi-key',
-    "ImageIconMobile" = 'key',
-    "ItemPriority" = 40,
-    "Remark" = 'Tenant-admin reset of a selected employee login password.',
-    "AddedById" = COALESCE(module."AddedById", 1),
-    "AddedDateTime" = COALESCE(module."AddedDateTime", CURRENT_TIMESTAMP),
-    "UpdatedById" = 1,
-    "UpdatedDateTime" = CURRENT_TIMESTAMP,
-    "ModuleScope" = 1
-WHERE module."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT';
-
-INSERT INTO axionpro."Operation"
-(
-    "OperationName", "Remark", "OperationType", "IsActive",
-    "AddedById", "AddedDateTime", "IconImage"
-)
-SELECT
-    'Reset Password',
-    'Reset the login password of a selected tenant employee',
-    2,
-    TRUE,
-    1,
-    CURRENT_TIMESTAMP,
-    'key-round'
-WHERE NOT EXISTS
-(
-    SELECT 1
-    FROM axionpro."Operation"
-    WHERE LOWER(BTRIM("OperationName")) = LOWER('Reset Password')
-);
-
+-- Operation Id 21 is the established Reset Password operation. This production
+-- seed maps only the canonical EMP_LIST module and never creates a second module.
 UPDATE axionpro."Operation"
-SET
-    "Remark" = 'Reset the login password of a selected tenant employee',
-    "OperationType" = 2,
-    "IsActive" = TRUE,
-    "IconImage" = 'key-round',
-    "AddedById" = COALESCE("AddedById", 1),
-    "AddedDateTime" = COALESCE("AddedDateTime", CURRENT_TIMESTAMP),
-    "UpdatedById" = 1,
-    "UpdatedDateTime" = CURRENT_TIMESTAMP
-WHERE LOWER(BTRIM("OperationName")) = LOWER('Reset Password');
+SET "Remark"='Reset the login password of a selected tenant employee',
+    "OperationType"=2,"IsActive"=true,"IconImage"='key-round',
+    "UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP
+WHERE "Id"=21 AND lower(btrim("OperationName"))='reset password';
 
 INSERT INTO axionpro."ModuleOperationMapping"
-(
-    "ModuleId", "OperationId", "PageURL", "IconURL", "IsCommonItem",
-    "IsOperational", "Priority", "Remark", "IsActive", "AddedById", "AddedDateTime"
-)
-SELECT
-    module."Id",
-    operation."Id",
-    '/employees/password-management',
-    'key-round',
-    FALSE,
-    TRUE,
-    10,
-    'Allow an authorized tenant administrator to reset an employee password',
-    TRUE,
-    1,
-    CURRENT_TIMESTAMP
+("ModuleId","OperationId","PageURL","IconURL","IsCommonItem","IsOperational",
+ "Priority","Remark","IsActive","AddedById","AddedDateTime")
+SELECT module."Id",21,module."URLPath",'key-round',false,true,10,
+       'Reset a selected employee password from the Employees module.',true,1,CURRENT_TIMESTAMP
 FROM axionpro."Module" module
-INNER JOIN axionpro."Operation" operation
-    ON LOWER(BTRIM(operation."OperationName")) = LOWER('Reset Password')
-WHERE module."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT'
-  AND module."IsLeafNode" = TRUE
-  AND module."ModuleScope" = 1
-  AND NOT EXISTS
-  (
-      SELECT 1
-      FROM axionpro."ModuleOperationMapping" existing
-      WHERE existing."ModuleId" = module."Id"
-        AND existing."OperationId" = operation."Id"
-  );
-
-UPDATE axionpro."ModuleOperationMapping" mapping
-SET
-    "PageURL" = '/employees/password-management',
-    "IconURL" = 'key-round',
-    "IsCommonItem" = FALSE,
-    "IsOperational" = TRUE,
-    "Priority" = 10,
-    "Remark" = 'Allow an authorized tenant administrator to reset an employee password',
-    "IsActive" = TRUE,
-    "UpdatedById" = 1,
-    "UpdatedDateTime" = CURRENT_TIMESTAMP
-FROM axionpro."Module" module
-INNER JOIN axionpro."Operation" operation
-    ON LOWER(BTRIM(operation."OperationName")) = LOWER('Reset Password')
-WHERE mapping."ModuleId" = module."Id"
-  AND mapping."OperationId" = operation."Id"
-  AND module."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT';
+WHERE module."ModuleCode"='EMP_LIST'
+  AND EXISTS (SELECT 1 FROM axionpro."Operation" operation
+              WHERE operation."Id"=21 AND lower(btrim(operation."OperationName"))='reset password')
+  AND NOT EXISTS (SELECT 1 FROM axionpro."ModuleOperationMapping" existing
+                  WHERE existing."ModuleId"=module."Id" AND existing."OperationId"=21);
 
 -- ============================================================================
 -- SECTION 8B
@@ -4521,7 +4148,6 @@ BEGIN
               'TENANT_ATTENDANCE_POLICIES',
               'TENANT_DEVICE_SETUP',
               'TENANT_DEVICE_CONFIGURATION',
-              'EMP_PASSWORD_MANAGEMENT',
               'EMP_DEVICES',
               'EMP_WORK_LOCATIONS',
               'EMP_WORK_ARRANGEMENT',
@@ -4531,9 +4157,9 @@ BEGIN
       AND target_module."ModuleScope" = 1
       AND target_module."IsActive" = TRUE;
 
-    IF target_module_count <> 11 THEN
+    IF target_module_count <> 10 THEN
         RAISE EXCEPTION
-            'Expected eleven active Tenant feature modules before plan inheritance; found %.',
+            'Expected ten active Tenant feature modules before plan inheritance; found %.',
             target_module_count;
     END IF;
 
@@ -4563,7 +4189,6 @@ BEGIN
                'TENANT_ATTENDANCE_POLICIES',
                'TENANT_DEVICE_SETUP',
                'TENANT_DEVICE_CONFIGURATION',
-               'EMP_PASSWORD_MANAGEMENT',
                'EMP_DEVICES',
                'EMP_WORK_LOCATIONS',
                'EMP_WORK_ARRANGEMENT',
@@ -4702,7 +4327,7 @@ DECLARE
     incomplete_operation_metadata_count INTEGER;
     canonical_add_operation_count INTEGER;
     legacy_create_operation_count INTEGER;
-    password_module_count INTEGER;
+    legacy_password_module_count INTEGER;
     reset_password_operation_count INTEGER;
     reset_password_mapping_count INTEGER;
 BEGIN
@@ -4849,7 +4474,7 @@ BEGIN
     END IF;
 
     SELECT COUNT(*)
-    INTO password_module_count
+    INTO legacy_password_module_count
     FROM axionpro."Module"
     WHERE "ModuleCode" = 'EMP_PASSWORD_MANAGEMENT'
       AND "IsLeafNode" = TRUE
@@ -4868,14 +4493,14 @@ BEGIN
         ON module."Id" = mapping."ModuleId"
     INNER JOIN axionpro."Operation" operation
         ON operation."Id" = mapping."OperationId"
-    WHERE module."ModuleCode" = 'EMP_PASSWORD_MANAGEMENT'
+    WHERE module."ModuleCode" = 'EMP_LIST'
       AND LOWER(BTRIM(operation."OperationName")) = LOWER('Reset Password')
       AND mapping."IsActive" = TRUE;
 
-    IF password_module_count <> 1 THEN
+    IF legacy_password_module_count <> 0 THEN
         RAISE EXCEPTION
-            'EMP_PASSWORD_MANAGEMENT module validation failed. Expected 1, found %.',
-            password_module_count;
+            'EMP_PASSWORD_MANAGEMENT cleanup failed. Expected 0 modules, found %.',
+            legacy_password_module_count;
     END IF;
 
     IF reset_password_operation_count <> 1 THEN
@@ -4886,7 +4511,7 @@ BEGIN
 
     IF reset_password_mapping_count <> 1 THEN
         RAISE EXCEPTION
-            'EMP_PASSWORD_MANAGEMENT mapping validation failed. Expected 1, found %.',
+            'EMP_LIST Reset Password mapping validation failed. Expected 1, found %.',
             reset_password_mapping_count;
     END IF;
 END;
@@ -5265,7 +4890,6 @@ SET "PageName" = CASE module."ModuleCode"
     WHEN 'EMP_WORK_ARRANGEMENT' THEN 'employee-work-arrangements'
     WHEN 'EMP_WORK_PATTERN' THEN 'employee-work-patterns'
     WHEN 'EMP_OVERRIDES' THEN 'employee-work-mode-overrides'
-    WHEN 'EMP_PASSWORD_MANAGEMENT' THEN 'employee-password-management'
     ELSE BTRIM(REGEXP_REPLACE(LOWER(BTRIM(module."ModuleCode")), '[^a-z0-9]+', '-', 'g'), '-')
 END
 WHERE module."PageName" IS NULL
@@ -6024,29 +5648,7 @@ BEGIN
           AND existing."ModuleId"=target."Id"
           AND existing."OperationId"=enabled."OperationId");
 
-    DELETE FROM axionpro."HostRoleModuleAndPermission" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."RoleModuleAndPermission" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."TenantEnabledOperation" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."TenantEnabledModule" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD')
-       OR "ParentModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."PlanModuleMapping" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."ModuleOperationMapping" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\'
-          OR "ModuleCode"='BULKUPLOAD');
-    DELETE FROM axionpro."Module"
-    WHERE "ModuleCode" LIKE 'BULK\_%' ESCAPE '\' OR "ModuleCode"='BULKUPLOAD';
+
 END $bulk_seed$;
 
 COMMIT;
@@ -6065,38 +5667,6 @@ ORDER BY module."ModuleCode", operation."OperationType";
 -- END INLINE BULK MODULE SEED
 -- Tenant bulk child-module catalogue removed. Import/Export are mapped directly
 -- to the existing functional modules by the inline seed above.
-
--- EmployeeType previously inherited every operation named Export. Keep only the
--- canonical bulk Export operation (OperationType 11) so the module exposes one
--- CRUD + Import/Export contract without a duplicate Export action.
-DELETE FROM axionpro."TenantEnabledOperation" enabled
-USING axionpro."Module" module, axionpro."Operation" operation
-WHERE enabled."ModuleId"=module."Id"
-  AND enabled."OperationId"=operation."Id"
-  AND module."ModuleCode"='EMPLOYEE_TYPE'
-  AND lower(btrim(operation."OperationName"))='export'
-  AND operation."OperationType"<>11;
-
-UPDATE axionpro."RoleModuleAndPermission" permission
-SET "HasAccess"=FALSE,"IsActive"=FALSE,"IsSoftDeleted"=TRUE,
-    "UpdatedById"=1,"UpdatedDateTime"=CURRENT_TIMESTAMP,
-    "SoftDeletedById"=COALESCE(permission."SoftDeletedById",1),
-    "DeletedDateTime"=COALESCE(permission."DeletedDateTime",CURRENT_TIMESTAMP)
-FROM axionpro."Module" module, axionpro."Operation" operation
-WHERE permission."ModuleId"=module."Id"
-  AND permission."OperationId"=operation."Id"
-  AND module."ModuleCode"='EMPLOYEE_TYPE'
-  AND lower(btrim(operation."OperationName"))='export'
-  AND operation."OperationType"<>11
-  AND NOT permission."IsSoftDeleted";
-
-DELETE FROM axionpro."ModuleOperationMapping" mapping
-USING axionpro."Module" module, axionpro."Operation" operation
-WHERE mapping."ModuleId"=module."Id"
-  AND mapping."OperationId"=operation."Id"
-  AND module."ModuleCode"='EMPLOYEE_TYPE'
-  AND lower(btrim(operation."OperationName"))='export'
-  AND operation."OperationType"<>11;
 
 -- Existing tenants on plans containing these modules receive the same
 -- missing-only snapshot that SynchronizeTenantPlanEntitlements creates.
@@ -6376,8 +5946,7 @@ WHERE module."ModuleCode"
           'EMP_WORK_LOCATIONS',
           'EMP_WORK_ARRANGEMENT',
           'EMP_WORK_PATTERN',
-          'EMP_OVERRIDES',
-          'EMP_PASSWORD_MANAGEMENT'
+          'EMP_OVERRIDES'
       )
 
 ORDER BY
@@ -6481,22 +6050,7 @@ BEGIN
     END LOOP;
 
     -- Remove every direct dependency before deleting obsolete Module rows.
-    DELETE FROM axionpro."HostRoleModuleAndPermission" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."RoleModuleAndPermission" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."TenantEnabledOperation" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."TenantEnabledModule" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\')
-       OR "ParentModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."PlanModuleMapping" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."ModuleOperationMapping" WHERE "ModuleId" IN
-      (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\');
-    DELETE FROM axionpro."Module"
-    WHERE "ModuleCode" LIKE 'HOST%\_BULK' ESCAPE '\';
+
 END $host_bulk_operations$;
 
 COMMIT;
@@ -6566,6 +6120,14 @@ ORDER BY module."ModuleCode",operation."OperationType";
 */
 BEGIN;
 
+UPDATE axionpro."Module"
+SET "ModuleCode" = 'TENANT_POLICY_HOLIDAY',
+    "ModuleName" = 'Holiday',
+    "DisplayName" = 'Holiday',
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP
+WHERE upper(btrim("ModuleCode")) = 'TENANT_POLICY_HOLIDAY_CALENDAR';
+
 CREATE TEMP TABLE policy_module_seed
 (
     "ModuleCode" varchar(50) PRIMARY KEY,
@@ -6590,7 +6152,7 @@ INSERT INTO policy_module_seed VALUES
 ('TENANT_POLICY_APPROVALS','Policy-Approvals','Policy Approvals','/app/policies/approvals','tenant-policy-approvals','TENANT_POLICIES',true,650,'Policy review, approval, rejection and publication queue.','bi bi-check2-square','checkmark-done-outline'),
 ('TENANT_POLICY_ACKNOWLEDGEMENTS','Policy-Acknowledgements','Policy Acknowledgements','/app/policies/acknowledgements','tenant-policy-acknowledgements','TENANT_POLICIES',true,660,'Employee policy delivery, view and acknowledgement tracking.','bi bi-person-check-fill','reader-outline'),
 ('TENANT_POLICY_AUDIT','Policy-Audit','Policy Audit','/app/policies/audit','tenant-policy-audit','TENANT_POLICIES',true,670,'Immutable policy change and lifecycle evidence.','bi bi-clock-history','time-outline'),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Organization-Holiday-Calendar','Organization Holiday Calendar','/app/holidays','tenant-policy-holiday-calendar','TENANT_POLICIES',true,680,'Location-based organization holidays.','bi bi-calendar-event','calendar-outline');
+('TENANT_POLICY_HOLIDAY','Holiday','Holiday','/app/holidays','tenant-policy-holiday-calendar','TENANT_POLICIES',true,680,'Location-based holidays.','bi bi-calendar-event','calendar-outline');
 
 INSERT INTO axionpro."Module"
 ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId","IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","ModuleScope","IsActive","ImageIconWeb","ImageIconMobile","ItemPriority","Remark","AddedById","AddedDateTime","PageName")
@@ -6620,7 +6182,7 @@ UPDATE axionpro."Module" parent SET "ParentModuleId"=NULL
 WHERE upper(btrim(parent."ModuleCode"))='TENANT_POLICIES';
 
 CREATE TEMP TABLE policy_operation_seed
-("OperationName" varchar(100), "OperationType" integer, "Remark" varchar(500), "IconImage" varchar(100)) ON COMMIT DROP;
+("OperationName" varchar(100) PRIMARY KEY, "OperationType" integer, "Remark" varchar(500), "IconImage" varchar(100)) ON COMMIT DROP;
 INSERT INTO policy_operation_seed VALUES
 ('Submit',19,'Submit a draft policy version for review.','send'),
 ('Review',20,'Review a submitted policy version.','search-check'),
@@ -6635,7 +6197,8 @@ FROM policy_operation_seed seed
 WHERE NOT EXISTS (SELECT 1 FROM axionpro."Operation" operation WHERE lower(btrim(operation."OperationName"))=lower(seed."OperationName"));
 
 CREATE TEMP TABLE policy_module_operation_seed
-("ModuleCode" varchar(50), "OperationName" varchar(100), "OperationType" integer, "Priority" integer) ON COMMIT DROP;
+("ModuleCode" varchar(50), "OperationName" varchar(100), "OperationType" integer, "Priority" integer,
+ PRIMARY KEY ("ModuleCode", "OperationName")) ON COMMIT DROP;
 INSERT INTO policy_module_operation_seed VALUES
 ('TENANT_POLICY_TYPES','View',4,10),('TENANT_POLICY_TYPES','Add',1,20),('TENANT_POLICY_TYPES','Update',2,30),('TENANT_POLICY_TYPES','Delete',3,40),('TENANT_POLICY_TYPES','Active',4,50),('TENANT_POLICY_TYPES','Inactive',4,60),('TENANT_POLICY_TYPES','Import',12,70),('TENANT_POLICY_TYPES','Export',11,80),
 ('TENANT_POLICY_DEFINITIONS','View',4,10),('TENANT_POLICY_DEFINITIONS','Add',1,20),('TENANT_POLICY_DEFINITIONS','Update',2,30),('TENANT_POLICY_DEFINITIONS','Delete',3,40),('TENANT_POLICY_DEFINITIONS','Active',4,50),('TENANT_POLICY_DEFINITIONS','Inactive',4,60),('TENANT_POLICY_DEFINITIONS','Import',12,70),('TENANT_POLICY_DEFINITIONS','Export',11,80),('TENANT_POLICY_DEFINITIONS','Upload',14,90),('TENANT_POLICY_DEFINITIONS','Download',13,100),('TENANT_POLICY_DEFINITIONS','Submit',19,110),('TENANT_POLICY_DEFINITIONS','Review',20,120),('TENANT_POLICY_DEFINITIONS','Approve',5,130),('TENANT_POLICY_DEFINITIONS','Reject',6,140),('TENANT_POLICY_DEFINITIONS','Publish',28,150),('TENANT_POLICY_DEFINITIONS','Archive',29,160),
@@ -6644,12 +6207,12 @@ INSERT INTO policy_module_operation_seed VALUES
 ('TENANT_POLICY_APPROVALS','View',4,10),('TENANT_POLICY_APPROVALS','Review',20,20),('TENANT_POLICY_APPROVALS','Approve',5,30),('TENANT_POLICY_APPROVALS','Reject',6,40),('TENANT_POLICY_APPROVALS','Publish',28,50),
 ('TENANT_POLICY_ACKNOWLEDGEMENTS','View',4,10),('TENANT_POLICY_ACKNOWLEDGEMENTS','Acknowledge',30,20),('TENANT_POLICY_ACKNOWLEDGEMENTS','Export',11,30),
 ('TENANT_POLICY_AUDIT','View',4,10),('TENANT_POLICY_AUDIT','Export',11,20),
-('TENANT_POLICY_HOLIDAY_CALENDAR','View',4,10),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Add',1,20),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Update',2,30),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Delete',3,40),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Import',12,50),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Export',11,60);
+('TENANT_POLICY_HOLIDAY','View',4,10),
+('TENANT_POLICY_HOLIDAY','Add',1,20),
+('TENANT_POLICY_HOLIDAY','Update',2,30),
+('TENANT_POLICY_HOLIDAY','Delete',3,40),
+('TENANT_POLICY_HOLIDAY','Import',12,50),
+('TENANT_POLICY_HOLIDAY','Export',11,60);
 
 INSERT INTO axionpro."ModuleOperationMapping"
 ("ModuleId","OperationId","PageURL","IconURL","IsCommonItem","IsOperational","Priority","Remark","IsActive","AddedById","AddedDateTime")

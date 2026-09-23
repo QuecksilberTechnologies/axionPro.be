@@ -52,7 +52,7 @@ public partial class Locality
 public partial class TenantLocation
 {
     public virtual ICollection<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; } = new List<EmployeeDeviceEnrollment>();
-    public virtual ICollection<OrganizationHolidayCalendar> OrganizationHolidayCalendars { get; set; } = new List<OrganizationHolidayCalendar>();
+    public virtual ICollection<Holiday> Holidays { get; set; } = new List<Holiday>();
 }
 
 /// <summary>Adds employee-enrollment navigation to a physical Tenant device.</summary>

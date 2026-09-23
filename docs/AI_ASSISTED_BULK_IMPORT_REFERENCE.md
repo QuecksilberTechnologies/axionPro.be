@@ -1,5 +1,13 @@
 # AxionPro bulk import: implementation reference and UI handoff
 
+## 2026-09-23 Holiday rename and Icon — COMPLETE (local code and Development DB)
+
+- Renamed the API root to `/api/Holiday`, the entity/table/DTO/repository/features/tests to `Holiday`, and the module identity to `TENANT_POLICY_HOLIDAY` / `Holiday`.
+- Added nullable `Icon varchar(100)` to create, update, response, import and export contracts.
+- Applied the guarded DB migration after a data-only backup. All 31 Tenant 8 / Jabalpur 2026 rows remain; the old table is absent.
+- Retained module Id 118, `/app/holidays`, immutable page key, six operation mappings and 10 active plan mappings. The seed and migration reruns were idempotent.
+- See `docs/testing/holiday-calendar/rename-to-holiday/2026-09-23.md` and `docs/UIdeveloperDoc/HOLIDAY.md` for validation and UI handoff.
+
 ## 2026-09-22 Holiday Calendar import/export — WIP
 
 - 2026-09-22 duplicate-date change: Holiday Calendar create/update/import now
@@ -18,7 +26,7 @@
   are in `docs/testing/holiday-calendar/live-2026-jabalpur/2026-09-22.md`.
 
 - Requested scope: add Import and Export to the existing
-  `TENANT_POLICY_HOLIDAY_CALENDAR` module and holiday API.
+  `TENANT_POLICY_HOLIDAY` module and holiday API.
 - Implemented locally: bounded synchronous CSV/XLSX import using the shared
   table reader; tenant-location ownership and all-row validation; existing
   date conflict rejection; tenant-scoped CSV export with matching headers.
@@ -31,7 +39,7 @@
 - Local API build and rollback-only CSV import/export DB test passed. Authenticated
   HTTP import/export and deployed acceptance remain PENDING. See
   `docs/testing/holiday-calendar/import-export/2026-09-22.md` and
-  `docs/UIdeveloperDoc/ORGANIZATION_HOLIDAY_CALENDAR.md`.
+  `docs/UIdeveloperDoc/HOLIDAY.md`.
 
 Updated: 2026-09-11. Read this file before continuing bulk-import work in any session.
 Maintain user decisions, implementation sequence and COMPLETE / WIP / PENDING status.

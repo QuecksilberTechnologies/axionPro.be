@@ -1,6 +1,6 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.DTOs.BaseDTO;
-using axionpro.application.DTOs.OrganizationHolidayCalendar;
+using axionpro.application.DTOs.Holiday;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -8,21 +8,21 @@ using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
 
-namespace axionpro.application.Features.HolidayCalandarCmd;
+namespace axionpro.application.Features.HolidayCmd;
 
 #region Requests
 
 public sealed record ListHolidaysQuery(BasicRequestDTO DTO)
-    : IRequest<ApiResponse<IReadOnlyList<OrganizationHolidayCalendarDTO>>>;
+    : IRequest<ApiResponse<IReadOnlyList<HolidayDTO>>>;
 
 public sealed record GetHolidayQuery(HolidayByIdRequestDTO DTO)
-    : IRequest<ApiResponse<OrganizationHolidayCalendarDTO>>;
+    : IRequest<ApiResponse<HolidayDTO>>;
 
 public sealed record CreateHolidayCommand(SaveHolidayRequestDTO DTO)
-    : IRequest<ApiResponse<OrganizationHolidayCalendarDTO>>;
+    : IRequest<ApiResponse<HolidayDTO>>;
 
 public sealed record UpdateHolidayCommand(UpdateHolidayRequestDTO DTO)
-    : IRequest<ApiResponse<OrganizationHolidayCalendarDTO>>;
+    : IRequest<ApiResponse<HolidayDTO>>;
 
 public sealed record DeleteHolidayCommand(HolidayByIdRequestDTO DTO)
     : IRequest<ApiResponse<bool>>;
@@ -37,7 +37,7 @@ public sealed record ExportHolidaysQuery(BasicRequestDTO DTO)
 
 #region Permission pipeline
 
-public sealed class HolidayCalendarPermissionBehavior<TRequest, TResponse>(
+public sealed class HolidayPermissionBehavior<TRequest, TResponse>(
     IUnitOfWork unitOfWork,
     ICommonRequestService commonRequestService)
     : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
@@ -76,9 +76,9 @@ public sealed class HolidayCalendarPermissionBehavior<TRequest, TResponse>(
         }
 
         var moduleCode = await commonRequestService.GetModuleCodeAsync(dto.ModuleId);
-        if (!string.Equals(moduleCode, "TENANT_POLICY_HOLIDAY_CALENDAR", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(moduleCode, "TENANT_POLICY_HOLIDAY", StringComparison.OrdinalIgnoreCase))
         {
-            throw new ForbiddenAccessException("The selected module is not valid for holiday calendar.");
+            throw new ForbiddenAccessException("The selected module is not valid for holidays.");
         }
 
         var expectedOperation = request switch
@@ -120,15 +120,15 @@ public sealed class HolidayCalendarPermissionBehavior<TRequest, TResponse>(
 
 #region Handlers
 
-internal static class HolidayCalendarValidation
+internal static class HolidayValidation
 {
-    public static string DuplicateMessage(OrganizationHolidayCalendar existing)
+    public static string DuplicateMessage(Holiday existing)
     {
         var status = existing.IsActive == true ? "active" : "inactive";
         return $"A holiday entry already exists for this location and date (Id {existing.Id}, {status}). Edit that entry or soft-delete it before creating another.";
     }
 
-    public static void Validate(long tenantLocationId, string name, DateOnly date, string? description)
+    public static void Validate(long tenantLocationId, string name, DateOnly date, string? description, string? icon)
     {
         if (tenantLocationId <= 0)
         {
@@ -149,11 +149,16 @@ internal static class HolidayCalendarValidation
         {
             throw new ValidationErrorException("Description must not exceed 255 characters.");
         }
+
+        if (icon?.Length > 100)
+        {
+            throw new ValidationErrorException("Icon must not exceed 100 characters.");
+        }
     }
 
-    public static OrganizationHolidayCalendarDTO ToDTO(OrganizationHolidayCalendar holiday)
+    public static HolidayDTO ToDTO(Holiday holiday)
     {
-        return new OrganizationHolidayCalendarDTO
+        return new HolidayDTO
         {
             Id = holiday.Id,
             TenantId = holiday.TenantId ?? 0,
@@ -162,7 +167,8 @@ internal static class HolidayCalendarValidation
             HolidayDate = holiday.HolidayDate,
             IsOptional = holiday.IsOptional,
             IsActive = holiday.IsActive == true,
-            Description = holiday.Description
+            Description = holiday.Description,
+            Icon = holiday.Icon
         };
     }
 }
@@ -170,9 +176,9 @@ internal static class HolidayCalendarValidation
 public sealed class ListHolidaysQueryHandler(
     IUnitOfWork unitOfWork,
     ICommonRequestService commonRequestService)
-    : IRequestHandler<ListHolidaysQuery, ApiResponse<IReadOnlyList<OrganizationHolidayCalendarDTO>>>
+    : IRequestHandler<ListHolidaysQuery, ApiResponse<IReadOnlyList<HolidayDTO>>>
 {
-    public async Task<ApiResponse<IReadOnlyList<OrganizationHolidayCalendarDTO>>> Handle(
+    public async Task<ApiResponse<IReadOnlyList<HolidayDTO>>> Handle(
         ListHolidaysQuery request,
         CancellationToken cancellationToken)
     {
@@ -182,14 +188,14 @@ public sealed class ListHolidaysQueryHandler(
             throw new ValidationErrorException("TenantLocationId and HolidayYear must be valid when supplied.");
         }
 
-        var holidays = await unitOfWork.HolidayCalandarRepository.GetTenantHolidaysAsync(
+        var holidays = await unitOfWork.HolidayRepository.GetTenantHolidaysAsync(
             actor.TenantId,
             request.DTO.TenantLocationId,
             request.DTO.HolidayYear,
             cancellationToken);
 
-        return ApiResponse<IReadOnlyList<OrganizationHolidayCalendarDTO>>.Success(
-            holidays.Select(HolidayCalendarValidation.ToDTO).ToList(),
+        return ApiResponse<IReadOnlyList<HolidayDTO>>.Success(
+            holidays.Select(HolidayValidation.ToDTO).ToList(),
             "Holidays retrieved successfully.");
     }
 }
@@ -197,20 +203,20 @@ public sealed class ListHolidaysQueryHandler(
 public sealed class GetHolidayQueryHandler(
     IUnitOfWork unitOfWork,
     ICommonRequestService commonRequestService)
-    : IRequestHandler<GetHolidayQuery, ApiResponse<OrganizationHolidayCalendarDTO>>
+    : IRequestHandler<GetHolidayQuery, ApiResponse<HolidayDTO>>
 {
-    public async Task<ApiResponse<OrganizationHolidayCalendarDTO>> Handle(
+    public async Task<ApiResponse<HolidayDTO>> Handle(
         GetHolidayQuery request,
         CancellationToken cancellationToken)
     {
         var actor = await commonRequestService.ValidateTenantUserRequestAsync();
-        var holiday = await unitOfWork.HolidayCalandarRepository.GetTenantHolidayForWriteAsync(
+        var holiday = await unitOfWork.HolidayRepository.GetTenantHolidayForWriteAsync(
             actor.TenantId,
             request.DTO.Id,
             cancellationToken) ?? throw new NotFoundException("Holiday was not found.");
 
-        return ApiResponse<OrganizationHolidayCalendarDTO>.Success(
-            HolidayCalendarValidation.ToDTO(holiday),
+        return ApiResponse<HolidayDTO>.Success(
+            HolidayValidation.ToDTO(holiday),
             "Holiday retrieved successfully.");
     }
 }
@@ -218,30 +224,30 @@ public sealed class GetHolidayQueryHandler(
 public sealed class CreateHolidayCommandHandler(
     IUnitOfWork unitOfWork,
     ICommonRequestService commonRequestService)
-    : IRequestHandler<CreateHolidayCommand, ApiResponse<OrganizationHolidayCalendarDTO>>
+    : IRequestHandler<CreateHolidayCommand, ApiResponse<HolidayDTO>>
 {
-    public async Task<ApiResponse<OrganizationHolidayCalendarDTO>> Handle(
+    public async Task<ApiResponse<HolidayDTO>> Handle(
         CreateHolidayCommand request,
         CancellationToken cancellationToken)
     {
         var actor = await commonRequestService.ValidateTenantUserRequestAsync();
         var dto = request.DTO;
-        HolidayCalendarValidation.Validate(dto.TenantLocationId, dto.HolidayName, dto.HolidayDate, dto.Description);
-        if (!await unitOfWork.HolidayCalandarRepository.TenantLocationExistsAsync(
+        HolidayValidation.Validate(dto.TenantLocationId, dto.HolidayName, dto.HolidayDate, dto.Description, dto.Icon);
+        if (!await unitOfWork.HolidayRepository.TenantLocationExistsAsync(
             actor.TenantId, dto.TenantLocationId, cancellationToken))
         {
             throw new ValidationErrorException("Tenant location is not active or does not belong to this tenant.");
         }
 
         var name = dto.HolidayName.Trim();
-        var conflict = await unitOfWork.HolidayCalandarRepository.FindConflictingHolidayAsync(
+        var conflict = await unitOfWork.HolidayRepository.FindConflictingHolidayAsync(
             actor.TenantId, dto.TenantLocationId, dto.HolidayDate, null, cancellationToken);
         if (conflict is not null)
         {
-            throw new ValidationErrorException(HolidayCalendarValidation.DuplicateMessage(conflict));
+            throw new ValidationErrorException(HolidayValidation.DuplicateMessage(conflict));
         }
 
-        var holiday = new OrganizationHolidayCalendar
+        var holiday = new Holiday
         {
             TenantId = actor.TenantId,
             TenantLocationId = dto.TenantLocationId,
@@ -249,15 +255,16 @@ public sealed class CreateHolidayCommandHandler(
             HolidayDate = dto.HolidayDate,
             IsOptional = dto.IsOptional,
             Description = dto.Description?.Trim(),
+            Icon = dto.Icon?.Trim(),
             IsActive = true,
             IsSoftDeleted = false,
             AddedById = actor.LoggedInEmployeeId,
             AddedDateTime = DateTime.UtcNow
         };
 
-        await unitOfWork.HolidayCalandarRepository.SaveHolidayAsync(holiday, cancellationToken);
-        return ApiResponse<OrganizationHolidayCalendarDTO>.Success(
-            HolidayCalendarValidation.ToDTO(holiday),
+        await unitOfWork.HolidayRepository.SaveHolidayAsync(holiday, cancellationToken);
+        return ApiResponse<HolidayDTO>.Success(
+            HolidayValidation.ToDTO(holiday),
             "Holiday created successfully.");
     }
 }
@@ -265,30 +272,30 @@ public sealed class CreateHolidayCommandHandler(
 public sealed class UpdateHolidayCommandHandler(
     IUnitOfWork unitOfWork,
     ICommonRequestService commonRequestService)
-    : IRequestHandler<UpdateHolidayCommand, ApiResponse<OrganizationHolidayCalendarDTO>>
+    : IRequestHandler<UpdateHolidayCommand, ApiResponse<HolidayDTO>>
 {
-    public async Task<ApiResponse<OrganizationHolidayCalendarDTO>> Handle(
+    public async Task<ApiResponse<HolidayDTO>> Handle(
         UpdateHolidayCommand request,
         CancellationToken cancellationToken)
     {
         var actor = await commonRequestService.ValidateTenantUserRequestAsync();
         var dto = request.DTO;
-        HolidayCalendarValidation.Validate(dto.TenantLocationId, dto.HolidayName, dto.HolidayDate, dto.Description);
-        var holiday = await unitOfWork.HolidayCalandarRepository.GetTenantHolidayForWriteAsync(
+        HolidayValidation.Validate(dto.TenantLocationId, dto.HolidayName, dto.HolidayDate, dto.Description, dto.Icon);
+        var holiday = await unitOfWork.HolidayRepository.GetTenantHolidayForWriteAsync(
             actor.TenantId, dto.Id, cancellationToken) ?? throw new NotFoundException("Holiday was not found.");
 
-        if (!await unitOfWork.HolidayCalandarRepository.TenantLocationExistsAsync(
+        if (!await unitOfWork.HolidayRepository.TenantLocationExistsAsync(
             actor.TenantId, dto.TenantLocationId, cancellationToken))
         {
             throw new ValidationErrorException("Tenant location is not active or does not belong to this tenant.");
         }
 
         var name = dto.HolidayName.Trim();
-        var conflict = await unitOfWork.HolidayCalandarRepository.FindConflictingHolidayAsync(
+        var conflict = await unitOfWork.HolidayRepository.FindConflictingHolidayAsync(
             actor.TenantId, dto.TenantLocationId, dto.HolidayDate, dto.Id, cancellationToken);
         if (conflict is not null)
         {
-            throw new ValidationErrorException(HolidayCalendarValidation.DuplicateMessage(conflict));
+            throw new ValidationErrorException(HolidayValidation.DuplicateMessage(conflict));
         }
 
         holiday.TenantLocationId = dto.TenantLocationId;
@@ -296,12 +303,13 @@ public sealed class UpdateHolidayCommandHandler(
         holiday.HolidayDate = dto.HolidayDate;
         holiday.IsOptional = dto.IsOptional;
         holiday.Description = dto.Description?.Trim();
+        holiday.Icon = dto.Icon?.Trim();
         holiday.UpdatedById = actor.LoggedInEmployeeId;
         holiday.UpdatedDateTime = DateTime.UtcNow;
 
-        await unitOfWork.HolidayCalandarRepository.SaveHolidayAsync(holiday, cancellationToken);
-        return ApiResponse<OrganizationHolidayCalendarDTO>.Success(
-            HolidayCalendarValidation.ToDTO(holiday),
+        await unitOfWork.HolidayRepository.SaveHolidayAsync(holiday, cancellationToken);
+        return ApiResponse<HolidayDTO>.Success(
+            HolidayValidation.ToDTO(holiday),
             "Holiday updated successfully.");
     }
 }
@@ -316,7 +324,7 @@ public sealed class DeleteHolidayCommandHandler(
         CancellationToken cancellationToken)
     {
         var actor = await commonRequestService.ValidateTenantUserRequestAsync();
-        var holiday = await unitOfWork.HolidayCalandarRepository.GetTenantHolidayForWriteAsync(
+        var holiday = await unitOfWork.HolidayRepository.GetTenantHolidayForWriteAsync(
             actor.TenantId,
             request.DTO.Id,
             cancellationToken) ?? throw new NotFoundException("Holiday was not found.");
@@ -325,7 +333,7 @@ public sealed class DeleteHolidayCommandHandler(
         holiday.IsSoftDeleted = true;
         holiday.SoftDeletedById = actor.LoggedInEmployeeId;
         holiday.DeletedDateTime = DateTime.UtcNow;
-        await unitOfWork.HolidayCalandarRepository.SaveHolidayAsync(holiday, cancellationToken);
+        await unitOfWork.HolidayRepository.SaveHolidayAsync(holiday, cancellationToken);
 
         return ApiResponse<bool>.Success(true, "Holiday deleted successfully.");
     }

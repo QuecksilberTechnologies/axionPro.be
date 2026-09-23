@@ -1,14 +1,14 @@
-# Organization Holiday Calendar
+# Holiday
 
 ## Purpose
 
-`OrganizationHolidayCalendar` now assigns each holiday to one physical tenant
+`Holiday` now assigns each holiday to one physical tenant
 location. Country and state are resolved through `TenantLocation`; they are not
 copied into the holiday row. The year is derived from `HolidayDate`.
 
 ## Current API and permission flow
 
-The menu module is `TENANT_POLICY_HOLIDAY_CALENDAR` under `TENANT_POLICIES`,
+The menu module is `TENANT_POLICY_HOLIDAY` under `TENANT_POLICIES`,
 with route `/app/holidays`. The `View`, `Add`, `Update`, `Delete`, `Import`, and `Export` operations
 are mapped through the existing tenant permission pipeline. The UI must resolve
 current `moduleId` and `operationId` through the authenticated menu/permission
@@ -21,18 +21,18 @@ validated authentication context. A caller cannot choose another tenant.
 
 | Action | Route | Operation | Inputs | Persistence |
 | --- | --- | --- | --- | --- |
-| List | `GET /api/HolidayCalandar/get` | View | `moduleId`, `operationId`; optional `tenantLocationId`, `holidayYear` | Read active, nondeleted holidays of authenticated tenant |
-| Detail | `GET /api/HolidayCalandar/{id}` | View | `moduleId`, `operationId` query | Read one nondeleted holiday, including inactive, of authenticated tenant |
-| Create | `POST /api/HolidayCalandar` | Add | JSON body below | Insert `OrganizationHolidayCalendar` |
-| Update | `PUT /api/HolidayCalandar/{id}` | Update | JSON body below; path Id wins | Update same tenant's active row |
-| Delete | `DELETE /api/HolidayCalandar/{id}` | Delete | `moduleId`, `operationId` query | Soft-delete row; retain history/audit |
-| Import | `POST /api/HolidayCalandar/import` | Import | multipart form with permission IDs and CSV/XLSX `file` or `pastedText` | Reject existing same-date rows (active or inactive); insert only when the whole file is valid |
-| Export | `GET /api/HolidayCalandar/export` | Export | permission IDs; optional `tenantLocationId`, `holidayYear` | Download UTF-8 CSV of active tenant holidays |
+| List | `GET /api/Holiday/get` | View | `moduleId`, `operationId`; optional `tenantLocationId`, `holidayYear` | Read active, nondeleted holidays of authenticated tenant |
+| Detail | `GET /api/Holiday/{id}` | View | `moduleId`, `operationId` query | Read one nondeleted holiday, including inactive, of authenticated tenant |
+| Create | `POST /api/Holiday` | Add | JSON body below | Insert `Holiday` |
+| Update | `PUT /api/Holiday/{id}` | Update | JSON body below; path Id wins | Update same tenant's active row |
+| Delete | `DELETE /api/Holiday/{id}` | Delete | `moduleId`, `operationId` query | Soft-delete row; retain history/audit |
+| Import | `POST /api/Holiday/import` | Import | multipart form with permission IDs and CSV/XLSX `file` or `pastedText` | Reject existing same-date rows (active or inactive); insert only when the whole file is valid |
+| Export | `GET /api/Holiday/export` | Export | permission IDs; optional `tenantLocationId`, `holidayYear` | Download UTF-8 CSV of active tenant holidays |
 
 Copyable list example (IDs illustrative):
 
 ```http
-GET /api/HolidayCalandar/get?moduleId=118&operationId=4&tenantLocationId=5&holidayYear=2027
+GET /api/Holiday/get?moduleId=118&operationId=4&tenantLocationId=5&holidayYear=2027
 Authorization: Bearer <token>
 ```
 
@@ -46,14 +46,15 @@ Copyable create example (IDs illustrative):
   "holidayName": "Republic Day",
   "holidayDate": "2027-01-26",
   "isOptional": false,
-  "description": "Mumbai office holiday"
+  "description": "Mumbai office holiday",
+  "icon": "bi bi-flag"
 }
 ```
 
 Update uses the same holiday fields with the Update operation. Example:
 
 ```http
-PUT /api/HolidayCalandar/42
+PUT /api/Holiday/42
 Content-Type: application/json
 ```
 
@@ -65,21 +66,22 @@ Content-Type: application/json
   "holidayName": "Republic Day",
   "holidayDate": "2027-01-26",
   "isOptional": false,
-  "description": "India office holiday"
+  "description": "India office holiday",
+  "icon": "bi bi-flag"
 }
 ```
 
 Delete example (IDs illustrative):
 
 ```http
-DELETE /api/HolidayCalandar/42?moduleId=118&operationId=3
+DELETE /api/Holiday/42?moduleId=118&operationId=3
 Authorization: Bearer <token>
 ```
 
 Import form example (IDs illustrative):
 
 ```text
-POST /api/HolidayCalandar/import
+POST /api/Holiday/import
 Content-Type: multipart/form-data
 moduleId=118
 operationId=<current Import operation ID>
@@ -92,9 +94,9 @@ column names exactly; `HolidayDate` is ISO `YYYY-MM-DD` and `IsOptional` is
 `true` or `false`:
 
 ```csv
-TenantLocationId,HolidayName,HolidayDate,IsOptional,Description
-5,Republic Day,2027-01-26,false,India office holiday
-5,Optional Festival Holiday,2027-03-25,true,Employee choice
+TenantLocationId,HolidayName,HolidayDate,IsOptional,Description,Icon
+5,Republic Day,2027-01-26,false,India office holiday,bi bi-flag
+5,Optional Festival Holiday,2027-03-25,true,Employee choice,bi bi-stars
 ```
 
 The location must be active and belong to the authenticated tenant. A duplicate
@@ -129,12 +131,12 @@ Representative import response (illustrative):
 Export example (IDs illustrative):
 
 ```http
-GET /api/HolidayCalandar/export?moduleId=118&operationId=<current Export operation ID>&tenantLocationId=5&holidayYear=2027
+GET /api/Holiday/export?moduleId=118&operationId=<current Export operation ID>&tenantLocationId=5&holidayYear=2027
 Authorization: Bearer <token>
 ```
 
 The response is `text/csv; charset=utf-8` with attachment filename
-`organization-holidays.csv`; even an empty result contains the same header.
+`holidays.csv`; even an empty result contains the same header.
 Its columns match the import template. Reimporting unchanged rows returns a
 duplicate validation error; it does not insert or overwrite them.
 CSV text cells are quoted and spreadsheet-formula prefixes are escaped.
@@ -153,7 +155,8 @@ Representative successful create/detail response; actual IDs will differ:
     "holidayDate": "2027-01-26",
     "isOptional": false,
     "isActive": true,
-    "description": "Mumbai office holiday"
+    "description": "Mumbai office holiday",
+    "icon": "bi bi-flag"
   },
   "errors": []
 }
@@ -192,7 +195,8 @@ Illustrative duplicate response (HTTP 400; actual Id/status come from the DB):
 ```
 
 `holidayDate` is ISO `YYYY-MM-DD`, without time/timezone. `holidayName` is 1–100
-characters; optional `description` is at most 255. Only one non-soft-deleted
+characters; optional `description` is at most 255 and optional `icon` is at most
+100 characters. Only one non-soft-deleted
 holiday is allowed per tenant/location/date, regardless of name or `IsActive`.
 The duplicate error includes the existing Id and active/inactive status. Use
 GET by Id and PUT to edit an inactive entry, or DELETE by Id to soft-delete it;
@@ -208,13 +212,13 @@ first checking the list for an existing matching holiday.
 
 ## Persistence
 
-Data is stored in `axionpro."OrganizationHolidayCalendar"`. `TenantLocationId`
+Data is stored in `axionpro."Holiday"`. `TenantLocationId`
 references `axionpro."TenantLocation"("Id")`. Country, state, district and city
 come from that location relationship. The retained fields are:
 
 - `TenantId` for tenant isolation
 - `TenantLocationId` for the applicable office/location
-- `HolidayName`, `HolidayDate`, `IsOptional`, and `Description`
+- `HolidayName`, `HolidayDate`, `IsOptional`, `Description`, and nullable `Icon`
 - active, soft-delete, and audit fields
 
 `CountryCode`, `StateCode`, `HolidayYear`, and duplicate `Remark` are removed by
@@ -223,17 +227,20 @@ migration intentionally stops instead of guessing when unmapped rows exist.
 
 ## Validation status
 
-- Local API build: PASS on 2026-09-22.
-- Focused automated tests: 14 passed, 0 failed, 0 skipped on 2026-09-22
-  (3 prior schema/refactor tests, 3 CRUD route/contract tests, 1
-  rollback-only PostgreSQL CRUD test, 1 rollback-only import/export round-trip,
-  and 6 permission cases).
+- Rename/Icon scenario: [2026-09-23 report](../testing/holiday-calendar/rename-to-holiday/2026-09-23.md).
+- Current local route is `/api/Holiday`; the previous `/api/HolidayCalandar` route is no longer exposed.
+- Development DB rename preserved all 31 existing Tenant 8 / Jabalpur 2026 rows and added nullable `Icon varchar(100)`.
+
+- Local solution build: PASS with 0 errors on 2026-09-23; existing repository warnings remain.
+- Focused automated tests: 16 passed, 0 failed, 0 skipped on 2026-09-23,
+  including schema/seed, CRUD contract, permission, rollback-only PostgreSQL
+  CRUD and import/export coverage.
 - Local HTTP authentication smoke: all five routes returned 401 without a token.
-- Target DB migration: APPLIED on 2026-09-22 to the Development-configured
-  `workforcedb_34hi_duis` database. The table had 0 rows beforehand. Post-migration
-  inspection confirmed 15 columns, `HolidayDate` as `date`, required
-  `TenantLocationId`, and its FK. A table-level backup was saved under
-  `C:\AxionProCodeBase\DBFullBACKUP` before migration.
+- Target DB rename migration: APPLIED on 2026-09-23 to the Development-configured
+  database. Post-migration inspection confirmed `axionpro."Holiday"`, nullable
+  `Icon varchar(100)`, renamed constraints/indexes/sequence, and all 31 existing
+  Tenant 8 / Jabalpur 2026 rows. A data-only backup was saved under the repository's
+  local `DBFullBACKUP` directory before migration.
 - Deployed API CRUD and tenant permission verification: NOT RUN. The database
   test covers repository persistence, tenant filtering, duplicate detection and
   soft-delete in a rolled-back transaction; it does not exercise HTTP/auth.

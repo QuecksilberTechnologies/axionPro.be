@@ -59,7 +59,7 @@ Core guarantees:
 `Tenant`, `Country`, `State`, `District`, `Locality`, `TenantLocation`,
 `EmployeeType`, `Department`, `Designation`, `Employee`, `Gender`, `Role`,
 `EmployeeLocationAssignment`, `EmployeeWorkArrangement`, `EmployeeWorkPattern`,
-`AttendancePolicy` and `OrganizationHolidayCalendar` remain source masters.
+`AttendancePolicy` and `Holiday` remain source masters.
 
 Currency is stored as an ISO-4217 three-character code because the application
 already uses the shared currency enum/provider. Time zone comes from

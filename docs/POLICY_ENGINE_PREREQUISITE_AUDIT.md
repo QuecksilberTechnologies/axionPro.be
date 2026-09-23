@@ -36,7 +36,7 @@ They are **not reusable** and must not be treated as existing foundations.
 | Existing table | Finding | Required action |
 | --- | --- | --- |
 | `AttendancePolicy` | Columns support biometric/mobile/web/manual/WFH and geofence flags, but its required `PolicyTypeId` points to a deleted table. | Replace that FK with the new stable policy/version relationship. Do not use as-is. |
-| `OrganizationHolidayCalendar` | Location FK and `date` are compatible, but each row is an unversioned holiday. | Retain as calendar dates only after adding a versioned calendar header/location assignment design. |
+| `Holiday` | Location FK and `date` are compatible, but each row is an unversioned holiday. | Retain as calendar dates only after adding a versioned calendar header/location assignment design. |
 | `LeaveType` | Can remain the leave-category master. | New policy-version benefit/rule mapping must reference it; it is not itself a policy. |
 
 ### Existing transaction tables requiring repair

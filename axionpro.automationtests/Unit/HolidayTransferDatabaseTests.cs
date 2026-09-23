@@ -1,9 +1,9 @@
 using System.Reflection;
 using System.Text;
 using axionpro.application.Common.Models.Security;
-using axionpro.application.DTOs.OrganizationHolidayCalendar;
+using axionpro.application.DTOs.Holiday;
 using axionpro.application.Exceptions;
-using axionpro.application.Features.HolidayCalandarCmd;
+using axionpro.application.Features.HolidayCmd;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.persistance.Data.Context;
@@ -16,8 +16,8 @@ using NUnit.Framework;
 namespace axionpro.automationtests.Unit;
 
 [TestFixture]
-[Category("HolidayCalendarTransferDatabase")]
-public sealed class HolidayCalendarTransferDatabaseTests
+[Category("HolidayTransferDatabase")]
+public sealed class HolidayTransferDatabaseTests
 {
     [Test]
     public async Task Csv_import_export_duplicate_and_invalid_row_are_transactionally_safe()
@@ -37,9 +37,9 @@ public sealed class HolidayCalendarTransferDatabaseTests
             .Where(item => item.IsActive && !item.IsSoftDeleted)
             .OrderBy(item => item.Id)
             .FirstAsync();
-        var repository = new HolidayCalandarRepository(
+        var repository = new HolidayRepository(
             context,
-            NullLogger<HolidayCalandarRepository>.Instance);
+            NullLogger<HolidayRepository>.Instance);
         var actor = new CommonDecodedResult
         {
             Success = true,
@@ -48,13 +48,13 @@ public sealed class HolidayCalendarTransferDatabaseTests
             RoleId = 2
         };
         var common = Proxy<ICommonRequestService>((_, _) => Task.FromResult(actor));
-        var unit = Proxy<IUnitOfWork>((method, _) => method.Name == "get_HolidayCalandarRepository"
+        var unit = Proxy<IUnitOfWork>((method, _) => method.Name == "get_HolidayRepository"
             ? repository
             : throw new AssertionException($"Unexpected unit request: {method.Name}"));
         var importer = new ImportHolidaysCommandHandler(unit, common);
         var exporter = new ExportHolidaysQueryHandler(unit, common);
-        var csv = "TenantLocationId,HolidayName,HolidayDate,IsOptional,Description\r\n"
-            + $"{location.Id},Calendar Import Verification,2099-12-29,false,Annual office holiday\r\n";
+        var csv = "TenantLocationId,HolidayName,HolidayDate,IsOptional,Description,Icon\r\n"
+            + $"{location.Id},Calendar Import Verification,2099-12-29,false,Annual office holiday,bi bi-calendar-event\r\n";
 
         try
         {
@@ -79,6 +79,7 @@ public sealed class HolidayCalendarTransferDatabaseTests
             var exportedText = Encoding.UTF8.GetString(exported);
             Assert.That(exportedText, Does.Contain("Calendar Import Verification"));
             Assert.That(exportedText, Does.Contain("2099-12-29"));
+            Assert.That(exportedText, Does.Contain("bi bi-calendar-event"));
 
             var repeatError = Assert.ThrowsAsync<ValidationErrorException>(async () =>
                 await importer.Handle(new ImportHolidaysCommand(new ImportHolidayRequestDTO
@@ -87,8 +88,9 @@ public sealed class HolidayCalendarTransferDatabaseTests
                 }), CancellationToken.None));
             Assert.That(repeatError!.Errors.Any(error => error.Contains("already exists")), Is.True);
 
-            var stored = await context.OrganizationHolidayCalendars.SingleAsync(item =>
+            var stored = await context.Holidays.SingleAsync(item =>
                 item.TenantId == location.TenantId && item.HolidayName == "Calendar Import Verification");
+            Assert.That(stored.Icon, Is.EqualTo("bi bi-calendar-event"));
             stored.IsActive = false;
             await context.SaveChangesAsync();
             Assert.ThrowsAsync<ValidationErrorException>(async () =>
@@ -103,7 +105,7 @@ public sealed class HolidayCalendarTransferDatabaseTests
                 {
                     PastedText = invalid
                 }), CancellationToken.None));
-            Assert.That(await context.OrganizationHolidayCalendars.CountAsync(item =>
+            Assert.That(await context.Holidays.CountAsync(item =>
                 item.TenantId == location.TenantId && item.HolidayName == "Calendar Import Verification"),
                 Is.EqualTo(1));
 

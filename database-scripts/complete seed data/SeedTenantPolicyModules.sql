@@ -8,6 +8,14 @@ BEGIN;
 ALTER TABLE axionpro."Module"
     ADD COLUMN IF NOT EXISTS "PageName" character varying(100);
 
+UPDATE axionpro."Module"
+SET "ModuleCode" = 'TENANT_POLICY_HOLIDAY',
+    "ModuleName" = 'Holiday',
+    "DisplayName" = 'Holiday',
+    "UpdatedById" = 1,
+    "UpdatedDateTime" = CURRENT_TIMESTAMP
+WHERE upper(btrim("ModuleCode")) = 'TENANT_POLICY_HOLIDAY_CALENDAR';
+
 CREATE TEMP TABLE policy_module_seed
 (
     "ModuleCode" varchar(50) PRIMARY KEY,
@@ -32,7 +40,7 @@ INSERT INTO policy_module_seed VALUES
 ('TENANT_POLICY_APPROVALS','Policy-Approvals','Policy Approvals','/app/policies/approvals','tenant-policy-approvals','TENANT_POLICIES',true,650,'Policy review, approval, rejection and publication queue.','bi bi-check2-square','checkmark-done-outline'),
 ('TENANT_POLICY_ACKNOWLEDGEMENTS','Policy-Acknowledgements','Policy Acknowledgements','/app/policies/acknowledgements','tenant-policy-acknowledgements','TENANT_POLICIES',true,660,'Employee policy delivery, view and acknowledgement tracking.','bi bi-person-check-fill','reader-outline'),
 ('TENANT_POLICY_AUDIT','Policy-Audit','Policy Audit','/app/policies/audit','tenant-policy-audit','TENANT_POLICIES',true,670,'Immutable policy change and lifecycle evidence.','bi bi-clock-history','time-outline'),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Organization-Holiday-Calendar','Organization Holiday Calendar','/app/holidays','tenant-policy-holiday-calendar','TENANT_POLICIES',true,680,'Location-based organization holidays.','bi bi-calendar-event','calendar-outline');
+('TENANT_POLICY_HOLIDAY','Holiday','Holiday','/app/holidays','tenant-policy-holiday-calendar','TENANT_POLICIES',true,680,'Location-based holidays.','bi bi-calendar-event','calendar-outline');
 
 INSERT INTO axionpro."Module"
 ("TenantId","ModuleCode","ModuleName","DisplayName","URLPath","ParentModuleId","IsLeafNode","IsModuleDisplayInUI","IsCommonMenu","ModuleScope","IsActive","ImageIconWeb","ImageIconMobile","ItemPriority","Remark","AddedById","AddedDateTime","PageName")
@@ -62,7 +70,7 @@ UPDATE axionpro."Module" parent SET "ParentModuleId"=NULL
 WHERE upper(btrim(parent."ModuleCode"))='TENANT_POLICIES';
 
 CREATE TEMP TABLE policy_operation_seed
-("OperationName" varchar(100), "OperationType" integer, "Remark" varchar(500), "IconImage" varchar(100)) ON COMMIT DROP;
+("OperationName" varchar(100) PRIMARY KEY, "OperationType" integer, "Remark" varchar(500), "IconImage" varchar(100)) ON COMMIT DROP;
 INSERT INTO policy_operation_seed VALUES
 ('Submit',19,'Submit a draft policy version for review.','send'),
 ('Review',20,'Review a submitted policy version.','search-check'),
@@ -77,7 +85,8 @@ FROM policy_operation_seed seed
 WHERE NOT EXISTS (SELECT 1 FROM axionpro."Operation" operation WHERE lower(btrim(operation."OperationName"))=lower(seed."OperationName"));
 
 CREATE TEMP TABLE policy_module_operation_seed
-("ModuleCode" varchar(50), "OperationName" varchar(100), "OperationType" integer, "Priority" integer) ON COMMIT DROP;
+("ModuleCode" varchar(50), "OperationName" varchar(100), "OperationType" integer, "Priority" integer,
+ PRIMARY KEY ("ModuleCode", "OperationName")) ON COMMIT DROP;
 INSERT INTO policy_module_operation_seed VALUES
 ('TENANT_POLICY_TYPES','View',4,10),('TENANT_POLICY_TYPES','Add',1,20),('TENANT_POLICY_TYPES','Update',2,30),('TENANT_POLICY_TYPES','Delete',3,40),('TENANT_POLICY_TYPES','Active',4,50),('TENANT_POLICY_TYPES','Inactive',4,60),('TENANT_POLICY_TYPES','Import',12,70),('TENANT_POLICY_TYPES','Export',11,80),
 ('TENANT_POLICY_DEFINITIONS','View',4,10),('TENANT_POLICY_DEFINITIONS','Add',1,20),('TENANT_POLICY_DEFINITIONS','Update',2,30),('TENANT_POLICY_DEFINITIONS','Delete',3,40),('TENANT_POLICY_DEFINITIONS','Active',4,50),('TENANT_POLICY_DEFINITIONS','Inactive',4,60),('TENANT_POLICY_DEFINITIONS','Import',12,70),('TENANT_POLICY_DEFINITIONS','Export',11,80),('TENANT_POLICY_DEFINITIONS','Upload',14,90),('TENANT_POLICY_DEFINITIONS','Download',13,100),('TENANT_POLICY_DEFINITIONS','Submit',19,110),('TENANT_POLICY_DEFINITIONS','Review',20,120),('TENANT_POLICY_DEFINITIONS','Approve',5,130),('TENANT_POLICY_DEFINITIONS','Reject',6,140),('TENANT_POLICY_DEFINITIONS','Publish',28,150),('TENANT_POLICY_DEFINITIONS','Archive',29,160),
@@ -86,12 +95,12 @@ INSERT INTO policy_module_operation_seed VALUES
 ('TENANT_POLICY_APPROVALS','View',4,10),('TENANT_POLICY_APPROVALS','Review',20,20),('TENANT_POLICY_APPROVALS','Approve',5,30),('TENANT_POLICY_APPROVALS','Reject',6,40),('TENANT_POLICY_APPROVALS','Publish',28,50),
 ('TENANT_POLICY_ACKNOWLEDGEMENTS','View',4,10),('TENANT_POLICY_ACKNOWLEDGEMENTS','Acknowledge',30,20),('TENANT_POLICY_ACKNOWLEDGEMENTS','Export',11,30),
 ('TENANT_POLICY_AUDIT','View',4,10),('TENANT_POLICY_AUDIT','Export',11,20),
-('TENANT_POLICY_HOLIDAY_CALENDAR','View',4,10),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Add',1,20),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Update',2,30),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Delete',3,40),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Import',12,50),
-('TENANT_POLICY_HOLIDAY_CALENDAR','Export',11,60);
+('TENANT_POLICY_HOLIDAY','View',4,10),
+('TENANT_POLICY_HOLIDAY','Add',1,20),
+('TENANT_POLICY_HOLIDAY','Update',2,30),
+('TENANT_POLICY_HOLIDAY','Delete',3,40),
+('TENANT_POLICY_HOLIDAY','Import',12,50),
+('TENANT_POLICY_HOLIDAY','Export',11,60);
 
 INSERT INTO axionpro."ModuleOperationMapping"
 ("ModuleId","OperationId","PageURL","IconURL","IsCommonItem","IsOperational","Priority","Remark","IsActive","AddedById","AddedDateTime")

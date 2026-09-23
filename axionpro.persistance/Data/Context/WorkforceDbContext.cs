@@ -210,7 +210,7 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<Operation> Operations { get; set; }
 
-        public virtual DbSet<OrganizationHolidayCalendar> OrganizationHolidayCalendars { get; set; }
+        public virtual DbSet<Holiday> Holidays { get; set; }
 
         public virtual DbSet<PageTypeEnum> PageTypeEnums { get; set; }
 
@@ -2157,30 +2157,31 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.UpdatedDateTime).HasColumnName("UpdatedDateTime");
         });
 
-        modelBuilder.Entity<OrganizationHolidayCalendar>(entity =>
+        modelBuilder.Entity<Holiday>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Organiza__3214EC077FBA239C");
+            entity.HasKey(e => e.Id).HasName("PK_Holiday");
 
-            entity.ToTable("OrganizationHolidayCalendar", "axionpro");
+            entity.ToTable("Holiday", "axionpro");
 
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.HolidayName).HasMaxLength(100);
+            entity.Property(e => e.Icon).HasMaxLength(100);
             entity.Property(e => e.HolidayDate).HasColumnType("date");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
 
             entity.HasIndex(e => new { e.TenantLocationId, e.HolidayDate })
-                .HasDatabaseName("IX_OrganizationHolidayCalendar_Location_Date");
+                .HasDatabaseName("IX_Holiday_Location_Date");
 
-            entity.HasOne(d => d.Tenant).WithMany(p => p.OrganizationHolidayCalendar)
+            entity.HasOne(d => d.Tenant).WithMany(p => p.Holidays)
                 .HasForeignKey(d => d.TenantId)
-                .HasConstraintName("FK_OrganizationHolidayCalendar_Tenant");
+                .HasConstraintName("FK_Holiday_Tenant");
 
-            entity.HasOne(d => d.TenantLocation).WithMany(p => p.OrganizationHolidayCalendars)
+            entity.HasOne(d => d.TenantLocation).WithMany(p => p.Holidays)
                 .HasForeignKey(d => d.TenantLocationId)
                 .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("FK_OrganizationHolidayCalendar_TenantLocation");
+                .HasConstraintName("FK_Holiday_TenantLocation");
         });
 
         modelBuilder.Entity<PageTypeEnum>(entity =>

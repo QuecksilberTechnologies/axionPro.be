@@ -1,7 +1,7 @@
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.Common;
 
-namespace axionpro.application.DTOs.OrganizationHolidayCalendar;
+namespace axionpro.application.DTOs.Holiday;
 
 public sealed class HolidayByIdRequestDTO : PermissionRequestDTO
 {
@@ -19,6 +19,8 @@ public sealed class SaveHolidayRequestDTO : PermissionRequestDTO
     public bool IsOptional { get; set; }
 
     public string? Description { get; set; }
+
+    public string? Icon { get; set; }
 }
 
 public sealed class UpdateHolidayRequestDTO : PermissionRequestDTO
@@ -34,6 +36,8 @@ public sealed class UpdateHolidayRequestDTO : PermissionRequestDTO
     public bool IsOptional { get; set; }
 
     public string? Description { get; set; }
+
+    public string? Icon { get; set; }
 }
 
 public sealed class ImportHolidayRequestDTO : BulkImportPreviewRequestDTO

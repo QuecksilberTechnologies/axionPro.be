@@ -6,10 +6,11 @@ CREATE TEMP TABLE holiday_source (
     "HolidayName" varchar(100) NOT NULL,
     "HolidayDate" date NOT NULL,
     "IsOptional" boolean NOT NULL,
-    "Description" varchar(255)
+    "Description" varchar(255),
+    "Icon" varchar(100)
 ) ON COMMIT DROP;
 
-\copy holiday_source ("TenantLocationId", "HolidayName", "HolidayDate", "IsOptional", "Description") FROM 'docs/testing/holiday-calendar/live-2026-jabalpur/holidays-2026.csv' WITH (FORMAT csv, HEADER true, ENCODING 'UTF8')
+\copy holiday_source ("TenantLocationId", "HolidayName", "HolidayDate", "IsOptional", "Description", "Icon") FROM 'docs/testing/holiday-calendar/live-2026-jabalpur/holidays-2026.csv' WITH (FORMAT csv, HEADER true, ENCODING 'UTF8')
 
 DO $$
 BEGIN
@@ -36,14 +37,14 @@ BEGIN
     END IF;
 END $$;
 
-INSERT INTO axionpro."OrganizationHolidayCalendar"
+INSERT INTO axionpro."Holiday"
     ("TenantId", "TenantLocationId", "HolidayName", "HolidayDate", "IsOptional",
-     "Description", "IsActive", "IsSoftDeleted", "AddedDateTime")
+     "Description", "Icon", "IsActive", "IsSoftDeleted", "AddedDateTime")
 SELECT 8, src."TenantLocationId", src."HolidayName", src."HolidayDate",
-       src."IsOptional", src."Description", true, false, now()
+       src."IsOptional", src."Description", src."Icon", true, false, now()
 FROM holiday_source AS src
 WHERE NOT EXISTS (
-    SELECT 1 FROM axionpro."OrganizationHolidayCalendar" AS existing
+    SELECT 1 FROM axionpro."Holiday" AS existing
     WHERE existing."TenantId" = 8
       AND existing."TenantLocationId" = src."TenantLocationId"
       AND existing."HolidayDate" = src."HolidayDate"

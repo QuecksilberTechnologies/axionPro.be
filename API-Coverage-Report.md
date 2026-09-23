@@ -395,7 +395,7 @@ Generated: 2026-08-28 02:21:45 +05:30
 | ExperienceController (axionpro.api/Controllers/Employee/ExperienceController.cs) | 5 | 5 | 0 |
 | FileUploadController (axionpro.api/Controllers/FileUpload/FileUploadController.cs) | 1 | 0 | 1 |
 | GenderController (axionpro.api/Controllers/Gender/GenderController.cs) | 2 | 1 | 1 |
-| HolidayCalandarController (axionpro.api/Controllers/HolidayCalandar/HolidayCalandarController.cs) | 1 | 0 | 1 |
+| HolidayController (axionpro.api/Controllers/Holiday/HolidayController.cs) | 1 | 0 | 1 |
 | HostAccessController (axionpro.api/Controllers/Host/HostAccessController.cs) | 1 | 0 | 1 |
 | HostController (axionpro.api/Controllers/Host/HostController.cs) | 14 | 13 | 1 |
 | HostRolePermissionController (axionpro.api/Controllers/Host/HostRolePermissionController.cs) | 2 | 2 | 0 |
@@ -550,7 +550,7 @@ Generated: 2026-08-28 02:21:45 +05:30
 | No exact Angular call | POST /api/FileUpload/UploadAsset/upload | FileUploadController.UploadAsset | axionpro.api/Controllers/FileUpload/FileUploadController.cs:42 |
 | No exact Angular call | GET /api/Gender/get | GenderController.GetAllGenderAsync | axionpro.api/Controllers/Gender/GenderController.cs:63 |
 | Used by Angular | GET /api/Gender/option | GenderController.getGender | axionpro.api/Controllers/Gender/GenderController.cs:44 |
-| No exact Angular call | GET /api/HolidayCalandar/get | HolidayCalandarController.GetAllEmployeeInfo | axionpro.api/Controllers/HolidayCalandar/HolidayCalandarController.cs:42 |
+| No exact Angular call | GET /api/Holiday/get | HolidayController.GetAllEmployeeInfo | axionpro.api/Controllers/Holiday/HolidayController.cs:42 |
 | Used by Angular | POST /api/Host/change-host-user-password | HostController.ChangeHostUserPassword | axionpro.api/Controllers/Host/HostController.cs:177 |
 | Used by Angular | POST /api/Host/create-host-role | HostController.CreateHostRole | axionpro.api/Controllers/Host/HostController.cs:64 |
 | Used by Angular | POST /api/Host/create-host-user | HostController.CreateHostUser | axionpro.api/Controllers/Host/HostController.cs:46 |

@@ -612,7 +612,7 @@ BEGIN
     DELETE FROM axionpro."PolicyLeaveTypeMapping" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."LeaveType" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."DayCombination" WHERE "TenantId" = v_tenant_id;
-    DELETE FROM axionpro."OrganizationHolidayCalendar" WHERE "TenantId" = v_tenant_id;
+    DELETE FROM axionpro."Holiday" WHERE "TenantId" = v_tenant_id;
 
     DELETE FROM axionpro."PayrollRun" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."SalaryStructure" WHERE "TenantId" = v_tenant_id;

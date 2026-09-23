@@ -8,8 +8,8 @@ using NUnit.Framework;
 namespace axionpro.automationtests.Unit;
 
 [TestFixture]
-[Category("HolidayCalendarCrudDatabase")]
-public sealed class HolidayCalendarCrudDatabaseTests
+[Category("HolidayCrudDatabase")]
+public sealed class HolidayCrudDatabaseTests
 {
     [Test]
     public async Task Repository_create_read_update_and_soft_delete_stays_tenant_scoped()
@@ -30,11 +30,11 @@ public sealed class HolidayCalendarCrudDatabaseTests
             .Where(item => item.IsActive && !item.IsSoftDeleted)
             .OrderBy(item => item.Id)
             .FirstAsync();
-        var repository = new HolidayCalandarRepository(
+        var repository = new HolidayRepository(
             context,
-            NullLogger<HolidayCalandarRepository>.Instance);
+            NullLogger<HolidayRepository>.Instance);
 
-        var holiday = new OrganizationHolidayCalendar
+        var holiday = new Holiday
         {
             TenantId = location.TenantId,
             TenantLocationId = location.Id,
@@ -43,6 +43,7 @@ public sealed class HolidayCalendarCrudDatabaseTests
             IsOptional = false,
             IsActive = true,
             IsSoftDeleted = false,
+            Icon = "bi bi-calendar-event",
             AddedDateTime = DateTime.UtcNow
         };
 
@@ -69,6 +70,9 @@ public sealed class HolidayCalendarCrudDatabaseTests
             Assert.That((await repository.GetTenantHolidayAsync(
                 location.TenantId, holiday.Id, CancellationToken.None))?.Description,
                 Is.EqualTo("Updated in rollback transaction"));
+            Assert.That((await repository.GetTenantHolidayAsync(
+                location.TenantId, holiday.Id, CancellationToken.None))?.Icon,
+                Is.EqualTo("bi bi-calendar-event"));
 
             holiday.IsActive = false;
             await repository.SaveHolidayAsync(holiday, CancellationToken.None);

@@ -14,7 +14,9 @@
   section identifiers, read-only rows and the update-bulk payload contract.
 - [Employee list assigned roles](EMPLOYEE_GET_ALL_ASSIGNED_ROLES.md) — existing
   Employee get-all route with the `assignedRoles` response contract.
-- [Organization Holiday Calendar](ORGANIZATION_HOLIDAY_CALENDAR.md) — location-based
+- [Employee Reset Password](EMPLOYEE_RESET_PASSWORD.md) — Reset Password operation
+  on `EMP_LIST`; standalone Module 38 removal and request contract.
+- [Holiday](HOLIDAY.md) — location-based
   holiday persistence, date-only response contract, and rollout status.
 - [Locality and Locality Type API](LOCALITY_AND_LOCALITY_TYPE_API.md) — Country/State/
   District/Locality lookup flow, City/Town/Village types, and TenantLocation payload.
