@@ -49,11 +49,15 @@ Representative response:
   "message": "Holiday calendar display constants retrieved successfully.",
   "data": {
     "styles": [
-      { "statusCode": "MANDATORY_HOLIDAY", "label": "Mandatory holiday", "backgroundColor": "#DC2626", "textColor": "#FFFFFF", "priority": 500 },
-      { "statusCode": "LEAVE_TAKEN", "label": "Taken", "backgroundColor": "#16A34A", "textColor": "#FFFFFF", "priority": 400 },
-      { "statusCode": "LEAVE_PENDING", "label": "Pending", "backgroundColor": "#2563EB", "textColor": "#FFFFFF", "priority": 300 },
-      { "statusCode": "OPTIONAL_HOLIDAY", "label": "Optional holiday", "backgroundColor": "#F59E0B", "textColor": "#111827", "priority": 200 },
-      { "statusCode": "WORKING_DAY", "label": "Working day", "backgroundColor": "#FFFFFF", "textColor": "#111827", "priority": 0 }
+      { "statusCode": "MANDATORY_HOLIDAY", "label": "Mandatory holiday", "backgroundColor": "#DC2626", "textColor": "#FFFFFF", "priority": 900 },
+      { "statusCode": "ON_LEAVE", "label": "On leave", "backgroundColor": "#16A34A", "textColor": "#FFFFFF", "priority": 800 },
+      { "statusCode": "TAKEN", "label": "Taken", "backgroundColor": "#16A34A", "textColor": "#FFFFFF", "priority": 700 },
+      { "statusCode": "APPROVED", "label": "Approved", "backgroundColor": "#2563EB", "textColor": "#FFFFFF", "priority": 600 },
+      { "statusCode": "PENDING", "label": "Pending", "backgroundColor": "#EAB308", "textColor": "#111827", "priority": 500 },
+      { "statusCode": "OPTIONAL_HOLIDAY", "label": "Optional holiday", "backgroundColor": "#F59E0B", "textColor": "#111827", "priority": 400 },
+      { "statusCode": "REJECTED", "label": "Rejected", "backgroundColor": "#6B7280", "textColor": "#FFFFFF", "priority": 300 },
+      { "statusCode": "CANCELLED", "label": "Cancelled", "backgroundColor": "#9CA3AF", "textColor": "#111827", "priority": 200 },
+      { "statusCode": "WEEKLY_OFF", "label": "Weekly off", "backgroundColor": "#D1D5DB", "textColor": "#111827", "priority": 100 }
     ]
   },
   "errors": []
@@ -64,9 +68,10 @@ UI mapping:
 
 - Holiday `isOptional=false` → `MANDATORY_HOLIDAY`.
 - Holiday `isOptional=true` → `OPTIONAL_HOLIDAY`.
-- Approved employee leave date → `LEAVE_TAKEN`.
-- Pending employee leave-request date → `LEAVE_PENDING`.
-- Date with none of these events → `WORKING_DAY`.
+- Pending leave request → `PENDING`; approved request → `APPROVED`.
+- Employee currently on leave → `ON_LEAVE`; completed leave date → `TAKEN`.
+- Rejected or cancelled request → `REJECTED` or `CANCELLED`.
+- Configured weekly rest day → `WEEKLY_OFF`.
 - If multiple event sources identify the same date, render the style with the highest numeric `priority`.
 
 Colors are application constants, not Holiday-table columns. This API does not fetch employee leave history or leave requests; those APIs supply the date/status data and these constants supply presentation metadata.
