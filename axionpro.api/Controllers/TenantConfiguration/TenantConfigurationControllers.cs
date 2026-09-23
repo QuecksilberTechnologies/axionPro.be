@@ -104,6 +104,26 @@ public sealed class EmployeeDeviceEnrollmentController(IMediator mediator, ILogg
 [Route("api/[controller]")]
 public sealed class EmployeeWorkArrangementController(IMediator mediator, ILoggerService logger) : TenantConfigurationControllerBase(mediator, logger)
 {
+    #region Employee Work Arrangement Dropdowns
+    /// <summary>Gets effective Published Attendance policy versions for the authenticated Tenant.</summary>
+    /// <remarks>
+    /// This read-only dropdown endpoint validates the bearer token and trusted Tenant context only;
+    /// it does not require ModuleId or OperationId. The category is resolved by the stable
+    /// ATTENDANCE category code, and tenant-generated Policy Type identifiers are never hard-coded.
+    /// EffectiveOn is mandatory. For each policy, the highest Published version whose effective
+    /// window contains that date is returned. An empty successful response tells the UI to ask the
+    /// user to create and publish an Attendance policy first.
+    /// </remarks>
+    [HttpGet("attendance-policy-options")]
+    public async Task<IActionResult> GetAttendancePolicyOptions(
+        [FromQuery] AttendancePolicyOptionRequestDTO request,
+        CancellationToken cancellationToken)
+    {
+        Logger.LogInfo("Received EmployeeWorkArrangement attendance-policy-options request.");
+        return Ok(await Mediator.Send(new GetAttendancePolicyOptionsQuery(request), cancellationToken));
+    }
+    #endregion
+
     #region Employee Work Arrangement CRUD
     /// <summary>Creates the employee's long-running Office, Remote, Hybrid, or WFH attendance arrangement.</summary>
     [HttpPost("create")] public async Task<IActionResult> Create([FromBody] CreateEmployeeWorkArrangementRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkArrangement create request."); return Ok(await Mediator.Send(new CreateEmployeeWorkArrangementCommand(dto), ct)); }

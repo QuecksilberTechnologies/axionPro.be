@@ -16,6 +16,7 @@
   Employee get-all route with the `assignedRoles` response contract.
 - [Employee Reset Password](EMPLOYEE_RESET_PASSWORD.md) — Reset Password operation
   on `EMP_LIST`; standalone Module 38 removal and request contract.
+- [Employee Work Arrangement Attendance Policy Options](EMPLOYEE_WORK_ARRANGEMENT_ATTENDANCE_POLICY_OPTIONS.md) — token-only, effective-date-based Published Attendance policy dropdown and empty-state contract.
 - [Holiday](HOLIDAY.md) — location-based
   holiday persistence, date-only response contract, and rollout status.
 - [Locality and Locality Type API](LOCALITY_AND_LOCALITY_TYPE_API.md) — Country/State/

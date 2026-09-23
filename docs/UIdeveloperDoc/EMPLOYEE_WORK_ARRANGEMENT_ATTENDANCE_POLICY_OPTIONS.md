@@ -1,0 +1,161 @@
+# Employee Work Arrangement: Attendance Policy Options API
+
+## Purpose
+
+The Add/Edit Work Arrangement screen needs an Attendance policy dropdown. This endpoint reads the authenticated Tenant's generic Policy Framework and returns the exact Published policy version effective on the Work Arrangement start date.
+
+The lookup does not use seeded numeric category IDs or tenant-generated Policy Type IDs. It follows the relationship from the stable seeded `PolicyCategory.CategoryCode = ATTENDANCE` value through `PolicyType`, `Policy`, and `PolicyVersion`.
+
+## Authentication and permission
+
+- Bearer token: required.
+- Trusted `TenantId` and logged-in employee: resolved from the token by the existing tenant-request validation flow.
+- `ModuleId` and `OperationId`: not accepted and not checked for this read-only dropdown endpoint, per the approved requirement.
+- Missing/invalid authentication returns HTTP `401` through the standard middleware response.
+
+The existing Work Arrangement Create/Update/Delete APIs retain their existing permission and employee-data-access behavior.
+
+## Route
+
+```http
+GET /api/EmployeeWorkArrangement/attendance-policy-options
+```
+
+### Query parameters
+
+| Field | Type | Required | Rule |
+| --- | --- | --- | --- |
+| `effectiveOn` | `date` (`yyyy-MM-dd`) | Yes | Work Arrangement `EffectiveFrom`; policy effective window must contain this date. |
+| `search` | `string` | No | Case-insensitive partial match against Policy name/code and Policy Type name/code. Leading/trailing spaces are ignored. |
+
+Copyable request:
+
+```http
+GET /api/EmployeeWorkArrangement/attendance-policy-options?effectiveOn=2026-10-01&search=hybrid
+Authorization: Bearer <access-token>
+```
+
+There is no request JSON, FormData, upload, polling, retry, cancellation, Excel, or CSV contract for this read-only GET.
+
+## UI call order
+
+1. Open Add/Edit Work Arrangement.
+2. Require the user to select `Effective From` first.
+3. Keep Attendance Policy disabled until a valid date exists.
+4. Call this endpoint with that date.
+5. Render `displayName`; preserve both `policyId` and `policyVersionId` in client state.
+6. Re-call the endpoint when `Effective From` changes. Clear a previously selected option if it is absent from the new response.
+7. If `data` is empty, show the API message and prevent a policy-dependent submit.
+
+Recommended empty-state text returned by the API:
+
+```text
+No published attendance policy is available for the selected effective date. Please create and publish an Attendance policy first.
+```
+
+## Server-side selection rules
+
+The endpoint applies all of these rules:
+
+- authenticated `TenantId` on `PolicyType`, `Policy`, and `PolicyVersion`;
+- `PolicyCategory.CategoryCode = ATTENDANCE` and category active;
+- Policy Type active and not soft deleted;
+- Policy active and not soft deleted;
+- Policy Version active;
+- Policy Status active and `StatusCode = PUBLISHED`;
+- `PolicyVersion.EffectiveFrom <= effectiveOn`;
+- `PolicyVersion.EffectiveTo` is null or `>= effectiveOn`.
+
+If overlapping Published versions of one Policy match the date, the highest `VersionNumber`, then highest `PolicyVersionId`, wins deterministically. Draft, Under Review, Approved, Archived, inactive, deleted, other-tenant, other-category, expired and not-yet-effective records are excluded.
+
+`IsCurrent` is deliberately not the sole date filter. A historical or future Work Arrangement must resolve the Published version valid on its own start date.
+
+## Success response
+
+```json
+{
+  "isSucceeded": true,
+  "message": "Attendance policy options retrieved successfully.",
+  "data": [
+    {
+      "policyId": 105,
+      "policyVersionId": 318,
+      "policyCode": "INDIA_HYBRID_ATTENDANCE",
+      "policyName": "India Hybrid Attendance Policy",
+      "policyTypeId": 9,
+      "policyTypeCode": "HYBRID_ATTENDANCE",
+      "policyTypeName": "Hybrid Attendance",
+      "versionNumber": 2,
+      "effectiveFrom": "2026-07-01",
+      "effectiveTo": null,
+      "displayName": "India Hybrid Attendance Policy - v2"
+    }
+  ],
+  "errors": []
+}
+```
+
+## No configured/effective Attendance policy
+
+HTTP `200`:
+
+```json
+{
+  "isSucceeded": true,
+  "message": "No published attendance policy is available for the selected effective date. Please create and publish an Attendance policy first.",
+  "data": [],
+  "errors": []
+}
+```
+
+## Validation and authentication errors
+
+Missing/default `effectiveOn` uses the standard validation-error middleware path:
+
+```json
+{
+  "isSucceeded": false,
+  "message": "EffectiveOn is required and must use a valid date.",
+  "data": null,
+  "errorCode": "VALIDATION_ERROR"
+}
+```
+
+Missing token was locally observed as HTTP `401`:
+
+```json
+{
+  "IsSucceeded": false,
+  "Message": "The request is not authenticated.",
+  "Data": null,
+  "Errors": [],
+  "ErrorCode": "UNAUTHORIZED"
+}
+```
+
+## Tables and persistence
+
+Read only:
+
+- `PolicyCategory`
+- `PolicyType`
+- `Policy`
+- `PolicyVersion`
+- `PolicyStatus`
+
+The endpoint creates, updates, or deletes no database rows and stores no files.
+
+## Current integration boundary
+
+The current Work Arrangement create/update DTO still exposes legacy `AttendancePolicyId` and validates it against the legacy `AttendancePolicy` table. The new dropdown returns generic `PolicyVersionId`. UI must not send `policyVersionId` into that legacy field. Converting Work Arrangement persistence to a `PolicyVersion` foreign key requires a separately approved schema/data migration and create/update contract change.
+
+## Verification status — 2026-09-23
+
+- API project build: PASS, 0 errors; existing repository warnings remain.
+- New endpoint contract tests: PASS, 4/4.
+- Combined Employee Work Arrangement and Policy Framework regression selection: PASS, 23/23.
+- Local HTTP without token: PASS, HTTP 401 with standard `UNAUTHORIZED` response.
+- Authenticated database result/isolation call: not run because no test credential was supplied in this run.
+- Deployed verification: not run.
+
+Scenario evidence: [2026-09-23](../testing/employee-work-arrangement/attendance-policy-options/2026-09-23.md).

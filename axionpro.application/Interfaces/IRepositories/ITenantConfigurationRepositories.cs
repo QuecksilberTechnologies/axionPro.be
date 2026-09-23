@@ -139,6 +139,12 @@ public interface IEmployeeWorkArrangementRepository
         long requestingEmployeeId,
         int requestingRoleTypeId,
         CancellationToken cancellationToken);
+    /// <summary>Gets effective Published Attendance policy versions for a token-authenticated Tenant.</summary>
+    Task<List<AttendancePolicyOptionResponseDTO>> GetAttendancePolicyOptionsAsync(
+        long tenantId,
+        DateOnly effectiveOn,
+        string? search,
+        CancellationToken cancellationToken);
     /// <summary>Determines whether the Employee is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the AttendancePolicy is active and owned by the Tenant.</summary>

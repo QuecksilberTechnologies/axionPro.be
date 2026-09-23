@@ -412,6 +412,78 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
     }
 
     /// <inheritdoc />
+    public async Task<List<AttendancePolicyOptionResponseDTO>> GetAttendancePolicyOptionsAsync(
+        long tenantId,
+        DateOnly effectiveOn,
+        string? search,
+        CancellationToken cancellationToken)
+    {
+        const string attendanceCategoryCode = "ATTENDANCE";
+        const string publishedStatusCode = "PUBLISHED";
+
+        var normalizedSearch = search?.Trim();
+        var query =
+            from version in Context.PolicyVersions.AsNoTracking()
+            join policy in Context.Policies.AsNoTracking() on version.PolicyId equals policy.Id
+            join policyType in Context.PolicyTypes.AsNoTracking() on policy.PolicyTypeId equals policyType.Id
+            join category in Context.PolicyCategories.AsNoTracking() on policyType.PolicyCategoryId equals category.Id
+            join status in Context.PolicyStatuses.AsNoTracking() on version.PolicyStatusId equals status.Id
+            where version.TenantId == tenantId
+                && policy.TenantId == tenantId
+                && policyType.TenantId == tenantId
+                && category.CategoryCode == attendanceCategoryCode
+                && category.IsActive
+                && policyType.IsActive == true
+                && policyType.IsSoftDelete != true
+                && policy.IsActive
+                && !policy.IsSoftDeleted
+                && version.IsActive
+                && status.IsActive
+                && status.StatusCode == publishedStatusCode
+                && version.EffectiveFrom <= effectiveOn
+                && (!version.EffectiveTo.HasValue || version.EffectiveTo.Value >= effectiveOn)
+            select new AttendancePolicyOptionResponseDTO
+            {
+                PolicyId = policy.Id,
+                PolicyVersionId = version.Id,
+                PolicyCode = policy.PolicyCode,
+                PolicyName = policy.PolicyName,
+                PolicyTypeId = policyType.Id,
+                PolicyTypeCode = policyType.PolicyTypeCode ?? string.Empty,
+                PolicyTypeName = policyType.PolicyName,
+                VersionNumber = version.VersionNumber,
+                EffectiveFrom = version.EffectiveFrom,
+                EffectiveTo = version.EffectiveTo
+            };
+
+        if (!string.IsNullOrWhiteSpace(normalizedSearch))
+        {
+            var pattern = $"%{normalizedSearch}%";
+            query = query.Where(x =>
+                EF.Functions.ILike(x.PolicyName, pattern)
+                || EF.Functions.ILike(x.PolicyCode, pattern)
+                || EF.Functions.ILike(x.PolicyTypeName, pattern)
+                || EF.Functions.ILike(x.PolicyTypeCode, pattern));
+        }
+
+        var candidates = await query.ToListAsync(cancellationToken);
+        return candidates
+            .GroupBy(x => x.PolicyId)
+            .Select(group => group
+                .OrderByDescending(x => x.VersionNumber)
+                .ThenByDescending(x => x.PolicyVersionId)
+                .First())
+            .OrderBy(x => x.PolicyName)
+            .ThenBy(x => x.PolicyCode)
+            .Select(x =>
+            {
+                x.DisplayName = $"{x.PolicyName} - v{x.VersionNumber}";
+                return x;
+            })
+            .ToList();
+    }
+
+    /// <inheritdoc />
     public Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken) => Context.Employees.AnyAsync(x => x.Id == employeeId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
     public Task<bool> IsEligibleAttendancePolicyAsync(long tenantId, int policyId, CancellationToken cancellationToken) => Context.AttendancePolicies.AnyAsync(x => x.Id == policyId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);

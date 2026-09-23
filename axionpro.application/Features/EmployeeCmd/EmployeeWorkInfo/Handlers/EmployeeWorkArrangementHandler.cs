@@ -64,6 +64,12 @@ public sealed class GetEmployeeWorkArrangementsQuery(EmployeeWorkArrangementFilt
     /// <summary>Gets filters.</summary>
     public EmployeeWorkArrangementFilterRequestDTO Filter { get; } = filter;
 }
+/// <summary>Retrieves effective Published Attendance policy versions for dropdown selection.</summary>
+public sealed class GetAttendancePolicyOptionsQuery(AttendancePolicyOptionRequestDTO request) : IRequest<ApiResponse<List<AttendancePolicyOptionResponseDTO>>>
+{
+    /// <summary>Gets the effective-date and text-search values.</summary>
+    public AttendancePolicyOptionRequestDTO Request { get; } = request;
+}
 #endregion
 #region Handler
 /// <summary>Handles employee work arrangement creation.</summary>
@@ -172,5 +178,43 @@ public sealed class GetEmployeeWorkArrangementsQueryHandler : TenantConfiguratio
     public GetEmployeeWorkArrangementsQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = mapper;
     /// <inheritdoc />
     public async Task<ApiResponse<List<EmployeeWorkArrangementResponseDTO>>> Handle(GetEmployeeWorkArrangementsQuery request, CancellationToken ct) { var filter = request.Filter ?? new EmployeeWorkArrangementFilterRequestDTO(); var validation = await ValidateTenantDataAccessContextAsync(); long? employeeId = null; if (!string.IsNullOrWhiteSpace(filter.EmployeeId)) { var context = await ValidateTenantAndDecodeOptionalEmployeeIdAsync(filter.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, ct); employeeId = context.EmployeeId; } filter.ResolvedEmployeeId = employeeId; var p = await UnitOfWork.EmployeeWorkArrangementRepository.GetPagedAsync(validation.TenantId, filter, validation.LoggedInEmployeeId, validation.RoleTypeId, ct); return Paged(p.Data.Select(entity => _mapper.Map<EmployeeWorkArrangementResponseDTO>(entity)).ToList(), p.PageNumber, p.PageSize, p.TotalCount, "Employee work arrangements retrieved successfully."); }
+}
+
+/// <summary>Handles the token-authenticated Attendance policy dropdown query.</summary>
+public sealed class GetAttendancePolicyOptionsQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetAttendancePolicyOptionsQuery, ApiResponse<List<AttendancePolicyOptionResponseDTO>>>
+{
+    /// <summary>Initializes the Attendance policy dropdown handler.</summary>
+    public GetAttendancePolicyOptionsQueryHandler(
+        IUnitOfWork unitOfWork,
+        ICommonRequestService commonRequestService,
+        ILogger<TenantConfigurationHandlerBase> logger)
+        : base(unitOfWork, commonRequestService, logger)
+    {
+    }
+
+    /// <inheritdoc />
+    public async Task<ApiResponse<List<AttendancePolicyOptionResponseDTO>>> Handle(
+        GetAttendancePolicyOptionsQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (request.Request is null || request.Request.EffectiveOn == default)
+        {
+            throw new ValidationErrorException("EffectiveOn is required and must use a valid date.");
+        }
+
+        var (tenantId, _) = await ValidateTenantAsync();
+        var options = await UnitOfWork.EmployeeWorkArrangementRepository
+            .GetAttendancePolicyOptionsAsync(
+                tenantId,
+                request.Request.EffectiveOn,
+                request.Request.Search,
+                cancellationToken);
+
+        var message = options.Count == 0
+            ? "No published attendance policy is available for the selected effective date. Please create and publish an Attendance policy first."
+            : "Attendance policy options retrieved successfully.";
+
+        return ApiResponse<List<AttendancePolicyOptionResponseDTO>>.Success(options, message);
+    }
 }
 #endregion

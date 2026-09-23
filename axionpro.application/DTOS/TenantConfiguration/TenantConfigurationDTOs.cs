@@ -423,6 +423,29 @@ public sealed class EmployeeWorkArrangementResponseDTO
     public bool IsActive { get; set; }
 }
 
+/// <summary>Supplies the date and optional text used to find effective Attendance policy versions.</summary>
+public sealed class AttendancePolicyOptionRequestDTO
+{
+    public DateOnly EffectiveOn { get; set; }
+    public string? Search { get; set; }
+}
+
+/// <summary>Describes one effective Published Attendance policy version for dropdown selection.</summary>
+public sealed class AttendancePolicyOptionResponseDTO
+{
+    public long PolicyId { get; set; }
+    public long PolicyVersionId { get; set; }
+    public string PolicyCode { get; set; } = string.Empty;
+    public string PolicyName { get; set; } = string.Empty;
+    public int PolicyTypeId { get; set; }
+    public string PolicyTypeCode { get; set; } = string.Empty;
+    public string PolicyTypeName { get; set; } = string.Empty;
+    public int VersionNumber { get; set; }
+    public DateOnly EffectiveFrom { get; set; }
+    public DateOnly? EffectiveTo { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
+}
+
 /// <summary>Supplies client-editable values for an employee work-pattern day.</summary>
 public class CreateEmployeeWorkPatternRequestDTO : PermissionRequestDTO
 {
