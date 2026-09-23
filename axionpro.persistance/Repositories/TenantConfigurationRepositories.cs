@@ -418,9 +418,6 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
         string? search,
         CancellationToken cancellationToken)
     {
-        const string attendanceCategoryCode = "ATTENDANCE";
-        const string publishedStatusCode = "PUBLISHED";
-
         var normalizedSearch = search?.Trim();
         var query =
             from version in Context.PolicyVersions.AsNoTracking()
@@ -431,7 +428,7 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
             where version.TenantId == tenantId
                 && policy.TenantId == tenantId
                 && policyType.TenantId == tenantId
-                && category.CategoryCode == attendanceCategoryCode
+                && category.CategoryCode == AppConstants.PolicyCategoryCodes.Attendance
                 && category.IsActive
                 && policyType.IsActive == true
                 && policyType.IsSoftDelete != true
@@ -439,7 +436,7 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
                 && !policy.IsSoftDeleted
                 && version.IsActive
                 && status.IsActive
-                && status.StatusCode == publishedStatusCode
+                && status.StatusCode == AppConstants.PolicyStatusCodes.Published
                 && version.EffectiveFrom <= effectiveOn
                 && (!version.EffectiveTo.HasValue || version.EffectiveTo.Value >= effectiveOn)
             select new AttendancePolicyOptionResponseDTO

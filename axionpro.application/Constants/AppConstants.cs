@@ -446,6 +446,22 @@ namespace axionpro.application.Constants
         // Add other constants as needed
         public static readonly string DefaultDateFormat = "yyyy-MM-dd";
         // etc.
+
+        #region Policy Codes
+
+        /// <summary>Defines stable seeded Policy Category codes used for relationship-based lookup.</summary>
+        public static class PolicyCategoryCodes
+        {
+            public const string Attendance = "ATTENDANCE";
+        }
+
+        /// <summary>Defines stable seeded Policy Status codes used for lifecycle filtering.</summary>
+        public static class PolicyStatusCodes
+        {
+            public const string Published = "PUBLISHED";
+        }
+
+        #endregion
     }
 
 

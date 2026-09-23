@@ -3,6 +3,7 @@ using axionpro.api.Controllers.TenantConfiguration;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo.Handlers;
+using axionpro.application.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Routing;
 using NUnit.Framework;
@@ -55,8 +56,10 @@ public sealed class EmployeeWorkArrangementAttendancePolicyOptionsTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(source, Does.Contain("const string attendanceCategoryCode = \"ATTENDANCE\""));
-            Assert.That(source, Does.Contain("const string publishedStatusCode = \"PUBLISHED\""));
+            Assert.That(AppConstants.PolicyCategoryCodes.Attendance, Is.EqualTo("ATTENDANCE"));
+            Assert.That(AppConstants.PolicyStatusCodes.Published, Is.EqualTo("PUBLISHED"));
+            Assert.That(source, Does.Contain("AppConstants.PolicyCategoryCodes.Attendance"));
+            Assert.That(source, Does.Contain("AppConstants.PolicyStatusCodes.Published"));
             Assert.That(source, Does.Contain("policyType.TenantId == tenantId"));
             Assert.That(source, Does.Contain("policyType.IsActive == true"));
             Assert.That(source, Does.Contain("policyType.IsSoftDelete != true"));
