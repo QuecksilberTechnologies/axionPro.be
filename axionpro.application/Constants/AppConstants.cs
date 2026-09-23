@@ -461,6 +461,36 @@ namespace axionpro.application.Constants
             public const string Published = "PUBLISHED";
         }
 
+        /// <summary>Defines stable employee-calendar event keys returned to UI clients.</summary>
+        public static class CalendarStatusCodes
+        {
+            public const string MandatoryHoliday = "MANDATORY_HOLIDAY";
+            public const string OptionalHoliday = "OPTIONAL_HOLIDAY";
+            public const string Pending = "PENDING";
+            public const string Approved = "APPROVED";
+            public const string OnLeave = "ON_LEAVE";
+            public const string Taken = "TAKEN";
+            public const string Rejected = "REJECTED";
+            public const string Cancelled = "CANCELLED";
+            public const string WeeklyOff = "WEEKLY_OFF";
+        }
+
+        /// <summary>Defines the shared employee-calendar display palette.</summary>
+        public static class CalendarColors
+        {
+            public const string MandatoryHoliday = "#DC2626";
+            public const string OptionalHoliday = "#F59E0B";
+            public const string Pending = "#EAB308";
+            public const string Approved = "#2563EB";
+            public const string OnLeave = "#16A34A";
+            public const string Taken = "#16A34A";
+            public const string Rejected = "#6B7280";
+            public const string Cancelled = "#9CA3AF";
+            public const string WeeklyOff = "#D1D5DB";
+            public const string LightText = "#FFFFFF";
+            public const string DarkText = "#111827";
+        }
+
         #endregion
     }
 

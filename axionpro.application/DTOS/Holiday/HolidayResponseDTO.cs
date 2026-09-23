@@ -20,3 +20,15 @@ public sealed class HolidayDTO
 
     public string? Icon { get; set; }
 }
+
+/// <summary>Describes one stable UI style used to render an employee-calendar date.</summary>
+public sealed record HolidayCalendarStyleDTO(
+    string StatusCode,
+    string Label,
+    string BackgroundColor,
+    string TextColor,
+    int Priority);
+
+/// <summary>Returns the shared employee-calendar color palette and overlap precedence.</summary>
+public sealed record HolidayCalendarDisplayConstantsDTO(
+    IReadOnlyList<HolidayCalendarStyleDTO> Styles);

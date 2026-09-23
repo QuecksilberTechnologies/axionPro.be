@@ -28,6 +28,48 @@ validated authentication context. A caller cannot choose another tenant.
 | Delete | `DELETE /api/Holiday/{id}` | Delete | `moduleId`, `operationId` query | Soft-delete row; retain history/audit |
 | Import | `POST /api/Holiday/import` | Import | multipart form with permission IDs and CSV/XLSX `file` or `pastedText` | Reject existing same-date rows (active or inactive); insert only when the whole file is valid |
 | Export | `GET /api/Holiday/export` | Export | permission IDs; optional `tenantLocationId`, `holidayYear` | Download UTF-8 CSV of active tenant holidays |
+| Calendar display constants | `GET /api/Holiday/calendar-display-constants` | Token only | No query/body/permission IDs | Read stable status/color/priority constants; no persistence |
+
+### Employee calendar display constants
+
+The UI must call this once when opening the employee calendar and cache the result for the current application session:
+
+```http
+GET /api/Holiday/calendar-display-constants
+Authorization: Bearer <token>
+```
+
+This endpoint validates the bearer token and trusted Tenant context. It does not accept `moduleId` or `operationId`, because it returns shared, non-persistent display constants only.
+
+Representative response:
+
+```json
+{
+  "isSucceeded": true,
+  "message": "Holiday calendar display constants retrieved successfully.",
+  "data": {
+    "styles": [
+      { "statusCode": "MANDATORY_HOLIDAY", "label": "Mandatory holiday", "backgroundColor": "#DC2626", "textColor": "#FFFFFF", "priority": 500 },
+      { "statusCode": "LEAVE_TAKEN", "label": "Taken", "backgroundColor": "#16A34A", "textColor": "#FFFFFF", "priority": 400 },
+      { "statusCode": "LEAVE_PENDING", "label": "Pending", "backgroundColor": "#2563EB", "textColor": "#FFFFFF", "priority": 300 },
+      { "statusCode": "OPTIONAL_HOLIDAY", "label": "Optional holiday", "backgroundColor": "#F59E0B", "textColor": "#111827", "priority": 200 },
+      { "statusCode": "WORKING_DAY", "label": "Working day", "backgroundColor": "#FFFFFF", "textColor": "#111827", "priority": 0 }
+    ]
+  },
+  "errors": []
+}
+```
+
+UI mapping:
+
+- Holiday `isOptional=false` → `MANDATORY_HOLIDAY`.
+- Holiday `isOptional=true` → `OPTIONAL_HOLIDAY`.
+- Approved employee leave date → `LEAVE_TAKEN`.
+- Pending employee leave-request date → `LEAVE_PENDING`.
+- Date with none of these events → `WORKING_DAY`.
+- If multiple event sources identify the same date, render the style with the highest numeric `priority`.
+
+Colors are application constants, not Holiday-table columns. This API does not fetch employee leave history or leave requests; those APIs supply the date/status data and these constants supply presentation metadata.
 
 Copyable list example (IDs illustrative):
 
@@ -226,6 +268,8 @@ the guarded migration. Existing rows require an explicit location mapping; the
 migration intentionally stops instead of guessing when unmapped rows exist.
 
 ## Validation status
+
+- Calendar-display constants scenario: [2026-09-24 report](../testing/holiday-calendar/calendar-display-constants/2026-09-24.md).
 
 - Rename/Icon scenario: [2026-09-23 report](../testing/holiday-calendar/rename-to-holiday/2026-09-23.md).
 - Current local route is `/api/Holiday`; the previous `/api/HolidayCalandar` route is no longer exposed.

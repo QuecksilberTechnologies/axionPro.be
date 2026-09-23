@@ -2,6 +2,7 @@ using System.Reflection;
 using axionpro.api.Controllers.Holiday;
 using axionpro.application.DTOs.Holiday;
 using axionpro.application.Features.HolidayCmd;
+using axionpro.application.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NUnit.Framework;
@@ -28,6 +29,35 @@ public sealed class HolidayCrudContractTests
             Assert.That(methods.Single(method => method.Name == "Delete").GetCustomAttribute<HttpDeleteAttribute>()?.Template, Is.EqualTo("{id:long}"));
             Assert.That(methods.Single(method => method.Name == "Import").GetCustomAttribute<HttpPostAttribute>()?.Template, Is.EqualTo("import"));
             Assert.That(methods.Single(method => method.Name == "Export").GetCustomAttribute<HttpGetAttribute>()?.Template, Is.EqualTo("export"));
+            Assert.That(methods.Single(method => method.Name == "GetCalendarDisplayConstants").GetCustomAttribute<HttpGetAttribute>()?.Template, Is.EqualTo("calendar-display-constants"));
+        });
+    }
+
+    [Test]
+    public void Calendar_display_constants_are_token_only_stable_and_have_deterministic_priority()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(AppConstants.CalendarStatusCodes.MandatoryHoliday, Is.EqualTo("MANDATORY_HOLIDAY"));
+            Assert.That(AppConstants.CalendarStatusCodes.OptionalHoliday, Is.EqualTo("OPTIONAL_HOLIDAY"));
+            Assert.That(AppConstants.CalendarStatusCodes.Pending, Is.EqualTo("PENDING"));
+            Assert.That(AppConstants.CalendarStatusCodes.Approved, Is.EqualTo("APPROVED"));
+            Assert.That(AppConstants.CalendarStatusCodes.OnLeave, Is.EqualTo("ON_LEAVE"));
+            Assert.That(AppConstants.CalendarStatusCodes.Taken, Is.EqualTo("TAKEN"));
+            Assert.That(AppConstants.CalendarStatusCodes.Rejected, Is.EqualTo("REJECTED"));
+            Assert.That(AppConstants.CalendarStatusCodes.Cancelled, Is.EqualTo("CANCELLED"));
+            Assert.That(AppConstants.CalendarStatusCodes.WeeklyOff, Is.EqualTo("WEEKLY_OFF"));
+            Assert.That(AppConstants.CalendarColors.MandatoryHoliday, Is.EqualTo("#DC2626"));
+            Assert.That(AppConstants.CalendarColors.OptionalHoliday, Is.EqualTo("#F59E0B"));
+            Assert.That(AppConstants.CalendarColors.Pending, Is.EqualTo("#EAB308"));
+            Assert.That(AppConstants.CalendarColors.Approved, Is.EqualTo("#2563EB"));
+            Assert.That(AppConstants.CalendarColors.OnLeave, Is.EqualTo("#16A34A"));
+            Assert.That(AppConstants.CalendarColors.Taken, Is.EqualTo("#16A34A"));
+            Assert.That(AppConstants.CalendarColors.Rejected, Is.EqualTo("#6B7280"));
+            Assert.That(AppConstants.CalendarColors.Cancelled, Is.EqualTo("#9CA3AF"));
+            Assert.That(AppConstants.CalendarColors.WeeklyOff, Is.EqualTo("#D1D5DB"));
+            Assert.That(typeof(GetHolidayCalendarDisplayConstantsQuery).GetProperties().Any(property => property.Name is "ModuleId" or "OperationId"), Is.False);
+            Assert.That(typeof(GetHolidayCalendarDisplayConstantsQueryHandler), Is.Not.Null);
         });
     }
 

@@ -1,4 +1,5 @@
 using axionpro.application.Common.Helpers;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOs.Holiday;
 using axionpro.application.Exceptions;
@@ -32,6 +33,9 @@ public sealed record ImportHolidaysCommand(ImportHolidayRequestDTO DTO)
 
 public sealed record ExportHolidaysQuery(BasicRequestDTO DTO)
     : IRequest<byte[]>;
+
+public sealed record GetHolidayCalendarDisplayConstantsQuery
+    : IRequest<ApiResponse<HolidayCalendarDisplayConstantsDTO>>;
 
 #endregion
 
@@ -119,6 +123,85 @@ public sealed class HolidayPermissionBehavior<TRequest, TResponse>(
 #endregion
 
 #region Handlers
+
+/// <summary>Returns the token-authenticated, non-persistent employee-calendar display palette.</summary>
+public sealed class GetHolidayCalendarDisplayConstantsQueryHandler(
+    ICommonRequestService commonRequestService)
+    : IRequestHandler<GetHolidayCalendarDisplayConstantsQuery, ApiResponse<HolidayCalendarDisplayConstantsDTO>>
+{
+    public async Task<ApiResponse<HolidayCalendarDisplayConstantsDTO>> Handle(
+        GetHolidayCalendarDisplayConstantsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var actor = await commonRequestService.ValidateTenantUserRequestAsync();
+        if (!actor.Success || actor.TenantId <= 0 || actor.LoggedInEmployeeId <= 0)
+        {
+            throw new UnauthorizedAccessException(actor.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        var styles = new List<HolidayCalendarStyleDTO>
+        {
+            new(
+                AppConstants.CalendarStatusCodes.MandatoryHoliday,
+                "Mandatory holiday",
+                AppConstants.CalendarColors.MandatoryHoliday,
+                AppConstants.CalendarColors.LightText,
+                900),
+            new(
+                AppConstants.CalendarStatusCodes.OnLeave,
+                "On leave",
+                AppConstants.CalendarColors.OnLeave,
+                AppConstants.CalendarColors.LightText,
+                800),
+            new(
+                AppConstants.CalendarStatusCodes.Taken,
+                "Taken",
+                AppConstants.CalendarColors.Taken,
+                AppConstants.CalendarColors.LightText,
+                700),
+            new(
+                AppConstants.CalendarStatusCodes.Approved,
+                "Approved",
+                AppConstants.CalendarColors.Approved,
+                AppConstants.CalendarColors.LightText,
+                600),
+            new(
+                AppConstants.CalendarStatusCodes.Pending,
+                "Pending",
+                AppConstants.CalendarColors.Pending,
+                AppConstants.CalendarColors.DarkText,
+                500),
+            new(
+                AppConstants.CalendarStatusCodes.OptionalHoliday,
+                "Optional holiday",
+                AppConstants.CalendarColors.OptionalHoliday,
+                AppConstants.CalendarColors.DarkText,
+                400),
+            new(
+                AppConstants.CalendarStatusCodes.Rejected,
+                "Rejected",
+                AppConstants.CalendarColors.Rejected,
+                AppConstants.CalendarColors.LightText,
+                300),
+            new(
+                AppConstants.CalendarStatusCodes.Cancelled,
+                "Cancelled",
+                AppConstants.CalendarColors.Cancelled,
+                AppConstants.CalendarColors.DarkText,
+                200),
+            new(
+                AppConstants.CalendarStatusCodes.WeeklyOff,
+                "Weekly off",
+                AppConstants.CalendarColors.WeeklyOff,
+                AppConstants.CalendarColors.DarkText,
+                100)
+        };
+
+        return ApiResponse<HolidayCalendarDisplayConstantsDTO>.Success(
+            new HolidayCalendarDisplayConstantsDTO(styles),
+            "Holiday calendar display constants retrieved successfully.");
+    }
+}
 
 internal static class HolidayValidation
 {

@@ -23,6 +23,18 @@ public sealed class HolidayController(IMediator mediator) : ControllerBase
 {
     #region Read
 
+    /// <summary>Gets the shared color/status palette used by the employee calendar.</summary>
+    /// <remarks>
+    /// Requires a valid bearer token and trusted Tenant context. ModuleId and OperationId are not
+    /// required because this endpoint returns non-persistent UI constants only. Priority resolves
+    /// date overlaps: the highest numeric value wins. No database row is created or changed.
+    /// </remarks>
+    [HttpGet("calendar-display-constants")]
+    public async Task<IActionResult> GetCalendarDisplayConstants(CancellationToken cancellationToken)
+    {
+        return Ok(await mediator.Send(new GetHolidayCalendarDisplayConstantsQuery(), cancellationToken));
+    }
+
     /// <summary>Lists active holidays for the current tenant.</summary>
     /// <remarks>
     /// ModuleId must identify TENANT_POLICY_HOLIDAY and OperationId must
