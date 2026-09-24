@@ -106,6 +106,7 @@ public class UnitOfWork : IUnitOfWork
     private IUnStructuredEmployeePolicyTypeMappingRepository? _unStructuredEmployeePolicyTypeMappingRepository;
     private IUserLoginReopsitory? _userLoginRepository;
     private IEmailTemplateRepository? _emailTemplateRepository;
+    private ITenantEmailTemplateRepository? _tenantEmailTemplateRepository;
     private ISubscriptionRepository? _subscriptionRepository;
     private ITenantSubscriptionRepository? _tenantSubscriptionRepository;
     private IModuleRepository? _moduleRepository;
@@ -330,6 +331,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IEmailTemplateRepository EmailTemplateRepository =>
         _emailTemplateRepository ??= new EmailTemplateRepository(_context);
+
+    public ITenantEmailTemplateRepository TenantEmailTemplateRepository =>
+        _tenantEmailTemplateRepository ??= new TenantEmailTemplateRepository(_context);
 
     public ICandidateRegistrationRepository CandidatesRegistrationRepository =>
         _candidateRegistrationRepository ??= new CandidateRegistrationRepository(_context, _loggerFactory.CreateLogger<CandidateRegistrationRepository>());

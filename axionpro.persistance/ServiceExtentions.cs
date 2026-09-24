@@ -117,6 +117,7 @@ namespace axionpro.persistance
             services.AddScoped<IDesignationRepository, DesignationRepository>();
             services.AddScoped<ICandidateCategorySkillRepository, CandidateCategorySkillRepository>();
             services.AddScoped<IEmailTemplateRepository, EmailTemplateRepository>();
+            services.AddScoped<ITenantEmailTemplateRepository, TenantEmailTemplateRepository>();
             services.AddScoped<ITenantRepository, TenantRepository>();
             services.AddScoped<ILocationRepository, LocationRepository>();
             services.AddScoped<ITenantEmailConfigRepository, TenantEmailConfigRepository>();

@@ -154,6 +154,7 @@ namespace axionpro.application.Constants
             public const string DuplicateEmailTemplateCode = "An email template with this code already exists.";
             public const string EmailTemplateMustBeInactiveToDelete = "Deactivate the email template before deleting it.";
             public const string EmailTemplateHasDeliveryHistory = "The email template cannot be deleted because it has queued or delivered email history.";
+            public const string UnsupportedEmailTemplateCode = "Select a predefined email template code.";
             public const string DefaultEmailConfigNotFound = "The requested default email configuration was not found.";
             public const string DuplicateDefaultEmailConfigName = "A default email configuration with this name already exists.";
             public const string DefaultEmailConfigMustRemainActive = "At least one active email configuration is required for Tenant registration.";
@@ -582,6 +583,20 @@ namespace axionpro.application.Constants
         public static readonly string BirthdayWishEmail = "BIRTHDAY_WISH";
         public static readonly string LeaveApprovalEmail = "LEAVE_APPROVAL";
         public static readonly string AccountVerificationEmail = "ACCOUNT_VERIFICATION";
+
+        private static readonly HashSet<string> SupportedEmailTemplateCodes = new(
+            StringComparer.OrdinalIgnoreCase)
+        {
+            WelcomeEmail,
+            ForgotPasswordEmail,
+            BirthdayWishEmail,
+            LeaveApprovalEmail,
+            AccountVerificationEmail
+        };
+
+        public static bool IsSupportedEmailTemplateCode(string? templateCode) =>
+            !string.IsNullOrWhiteSpace(templateCode) &&
+            SupportedEmailTemplateCodes.Contains(templateCode.Trim());
         #endregion
 
         //   public static readonly DateOnly SystemOnlyTodaysDate= DateOnly.MaxValue;

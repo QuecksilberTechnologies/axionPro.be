@@ -81,6 +81,7 @@ namespace axionpro.application.Interfaces
         ICandidateCategorySkillRepository CandidateCategorySkillRepository { get; }
         IEmployeeTypeRepository EmployeeTypeRepository { get; }
         IEmailTemplateRepository EmailTemplateRepository { get; }
+        ITenantEmailTemplateRepository TenantEmailTemplateRepository { get; }
         IUserRoleRepository UserRoleRepository { get; }
         ICategoryRepository CategoryRepository { get; }
         IRoleRepository RoleRepository { get; }

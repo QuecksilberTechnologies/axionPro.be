@@ -23,6 +23,7 @@ public sealed class EmailService : IEmailService
     private readonly ITenantEmailConfigRepository _tenantEmailConfigRepository;
     private readonly IDefaultEmailConfigRepository _defaultEmailConfigRepository;
     private readonly IEmailTemplateRepository _templateRepository;
+    private readonly ITenantEmailTemplateRepository _tenantTemplateRepository;
     private readonly ITenantKeyResolver _tenantKeyResolver;
     private readonly IEncryptionService _encryptionService;
     private readonly ILogger<EmailService> _logger;
@@ -31,6 +32,7 @@ public sealed class EmailService : IEmailService
         ITenantEmailConfigRepository tenantEmailConfigRepository,
         IDefaultEmailConfigRepository defaultEmailConfigRepository,
         IEmailTemplateRepository templateRepository,
+        ITenantEmailTemplateRepository tenantTemplateRepository,
         ITenantKeyResolver tenantKeyResolver,
         IEncryptionService encryptionService,
         ILogger<EmailService> logger)
@@ -38,6 +40,7 @@ public sealed class EmailService : IEmailService
         _tenantEmailConfigRepository = tenantEmailConfigRepository;
         _defaultEmailConfigRepository = defaultEmailConfigRepository;
         _templateRepository = templateRepository;
+        _tenantTemplateRepository = tenantTemplateRepository;
         _tenantKeyResolver = tenantKeyResolver;
         _encryptionService = encryptionService;
         _logger = logger;
@@ -92,13 +95,6 @@ public sealed class EmailService : IEmailService
     {
         try
         {
-            var template = await _templateRepository.GetTemplateByCodeAsync(templateCode);
-            if (template is null || !template.IsActive)
-            {
-                _logger.LogWarning("Email template missing or inactive | Code={TemplateCode}", templateCode);
-                return false;
-            }
-
             var emailConfiguration = await ResolveSmtpConfigurationAsync(
                 tenantId,
                 preferHostEmailConfiguration);
@@ -111,6 +107,19 @@ public sealed class EmailService : IEmailService
                     templateCode,
                     tenantId,
                     recipientEmail is not null);
+                return false;
+            }
+
+            var template = await ResolveEmailTemplateAsync(
+                templateCode,
+                tenantId,
+                emailConfiguration.Source);
+            if (template is null)
+            {
+                _logger.LogWarning(
+                    "Email template missing or inactive in both Tenant and Host sources | Code={TemplateCode} | TenantId={TenantId}",
+                    templateCode,
+                    tenantId);
                 return false;
             }
 
@@ -173,6 +182,33 @@ public sealed class EmailService : IEmailService
                 toEmail);
             return false;
         }
+    }
+
+    private async Task<ResolvedEmailTemplate?> ResolveEmailTemplateAsync(
+        string templateCode,
+        long? tenantId,
+        string configurationSource)
+    {
+        if (string.Equals(configurationSource, "Tenant", StringComparison.Ordinal) && tenantId is > 0)
+        {
+            var tenantTemplate = await _tenantTemplateRepository.GetActiveByCodeAsync(
+                tenantId.Value,
+                templateCode);
+            if (tenantTemplate is not null)
+            {
+                return new ResolvedEmailTemplate(tenantTemplate.Subject, tenantTemplate.Body);
+            }
+
+            _logger.LogWarning(
+                "Active Tenant email template is unavailable; falling back to the Host template | Code={TemplateCode} | TenantId={TenantId}",
+                templateCode,
+                tenantId);
+        }
+
+        var hostTemplate = await _templateRepository.GetTemplateByCodeAsync(templateCode);
+        return hostTemplate is null
+            ? null
+            : new ResolvedEmailTemplate(hostTemplate.Subject, hostTemplate.Body);
     }
 
     private async Task<ResolvedSmtpConfiguration?> ResolveSmtpConfigurationAsync(
@@ -382,6 +418,10 @@ public sealed class EmailService : IEmailService
         string FromEmail,
         TenantEmailTemplateContext TenantContext,
         string Source);
+
+    private sealed record ResolvedEmailTemplate(
+        string Subject,
+        string Body);
 
     private sealed record TenantEmailTemplateContext(
         string TenantName,

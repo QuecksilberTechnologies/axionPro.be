@@ -633,6 +633,7 @@ public sealed class HostApiRegressionTests
                     Subject = "Verification",
                     Body = "{{VerificationUrl}}"
                 })),
+            CreateProxy<ITenantEmailTemplateRepository>((_, _) => Task.FromResult<TenantEmailTemplate?>(null)),
             CreateProxy<ITenantKeyResolver>((_, _) => throw new InvalidOperationException("Unexpected key lookup.")),
             CreateProxy<IEncryptionService>((_, _) => throw new InvalidOperationException("Unexpected decryption.")),
             NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance);
@@ -644,8 +645,72 @@ public sealed class HostApiRegressionTests
         Assert.Multiple(() =>
         {
             Assert.That(sent, Is.False);
-            Assert.That(tenantReads, Is.EqualTo(scenario == 2 ? 1 : 0));
-            Assert.That(hostReads, Is.EqualTo(scenario == 2 ? 1 : 0));
+            Assert.That(tenantReads, Is.EqualTo(1));
+            Assert.That(hostReads, Is.EqualTo(1));
+        });
+    }
+
+    [TestCase("Tenant", true, "Tenant subject", 1, 0)]
+    [TestCase("Tenant", false, "Host subject", 1, 1)]
+    [TestCase("HostDefault", true, "Host subject", 0, 1)]
+    public async Task Email_service_resolves_tenant_template_only_for_tenant_smtp_and_falls_back_by_code(
+        string configurationSource,
+        bool tenantTemplateExists,
+        string expectedSubject,
+        int expectedTenantReads,
+        int expectedHostReads)
+    {
+        var tenantReads = 0;
+        var hostReads = 0;
+        var service = new axionpro.infrastructure.MailService.EmailService(
+            CreateProxy<ITenantEmailConfigRepository>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
+            CreateProxy<IDefaultEmailConfigRepository>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
+            CreateProxy<IEmailTemplateRepository>((method, _) =>
+            {
+                Assert.That(method.Name, Is.EqualTo(nameof(IEmailTemplateRepository.GetTemplateByCodeAsync)));
+                hostReads++;
+                return Task.FromResult<EmailTemplate?>(new EmailTemplate
+                {
+                    IsActive = true,
+                    Subject = "Host subject",
+                    Body = "Host body"
+                });
+            }),
+            CreateProxy<ITenantEmailTemplateRepository>((method, _) =>
+            {
+                Assert.That(method.Name, Is.EqualTo(nameof(ITenantEmailTemplateRepository.GetActiveByCodeAsync)));
+                tenantReads++;
+                return Task.FromResult<TenantEmailTemplate?>(tenantTemplateExists
+                    ? new TenantEmailTemplate
+                    {
+                        TenantId = 71,
+                        IsActive = true,
+                        Subject = "Tenant subject",
+                        Body = "Tenant body"
+                    }
+                    : null);
+            }),
+            CreateProxy<ITenantKeyResolver>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
+            CreateProxy<IEncryptionService>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
+            NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance);
+
+        var resolver = typeof(axionpro.infrastructure.MailService.EmailService).GetMethod(
+            "ResolveEmailTemplateAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(resolver, Is.Not.Null);
+
+        var resolutionTask = (Task)resolver!.Invoke(
+            service,
+            [ConstantValues.WelcomeEmail, 71L, configurationSource])!;
+        await resolutionTask;
+        var resolution = resolutionTask.GetType().GetProperty("Result")!.GetValue(resolutionTask);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(resolution, Is.Not.Null);
+            Assert.That(resolution!.GetType().GetProperty("Subject")!.GetValue(resolution), Is.EqualTo(expectedSubject));
+            Assert.That(tenantReads, Is.EqualTo(expectedTenantReads));
+            Assert.That(hostReads, Is.EqualTo(expectedHostReads));
         });
     }
 

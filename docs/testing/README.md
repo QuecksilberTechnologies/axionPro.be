@@ -54,6 +54,7 @@ for a later run. Keep earlier failures and link the run that supersedes them.
 | Module / duplicate Export operation cleanup | [2026-09-23](module/duplicate-export-operation-cleanup/2026-09-23.md) | Duplicate Export Id 14 and all checked dependencies removed; canonical Id 23 retained and permissions migrated; focused suite 2/2 passed. |
 | Module / Tenant Attendance Policies removal | [2026-09-23](module/tenant-attendance-policies-removal/2026-09-23.md) | Module Id 67, four mappings, tenant entitlements, plan mapping and role grants removed from Development DB; production seed definition removed; focused suite 2/2 passed. |
 | Tenant entitlements / Tenant Admin permission sync | [2026-09-15](tenant-entitlements/admin-permission-sync/2026-09-15.md) | Local build and command wiring pass; disposable PostgreSQL behavior test skipped because its required environment is unavailable; deployed acceptance pending. |
+| Tenant Email Template / CRUD and seed | [2026-09-24](tenant-email-template/crud-and-seed/2026-09-24.md) | Tenant table/data, module child, CRUD permission flow, four mappings, plan and enabled-tenant entries implemented; configured target seed verified; authenticated HTTP pending. |
 | Module / singular master parent hierarchy | [2026-09-15](module/singular-master-parent-hierarchy/2026-09-15.md) | Final focused canonical leaf, EmployeeType, permission, and source-contract suite: 51 passed, 4 DB-fixture skips; isolated PostgreSQL execution and deployed menu verification remain pending. |
 
 ## Existing evidence kept at its original location

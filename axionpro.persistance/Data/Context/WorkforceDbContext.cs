@@ -126,6 +126,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<EmailQueue> EmailQueues { get; set; }
 
         public virtual DbSet<EmailTemplate> EmailTemplates { get; set; }
+        public virtual DbSet<TenantEmailTemplate> TenantEmailTemplates { get; set; }
         public virtual DbSet<Employee> Employees { get; set; }
 
         public virtual DbSet<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; }
@@ -1108,6 +1109,28 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.UpdatedFromIp)
                 .HasMaxLength(50)
                 .HasColumnName("UpdatedFromIP");
+        });
+
+        modelBuilder.Entity<TenantEmailTemplate>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_TenantEmailTemplate");
+            entity.ToTable("TenantEmailTemplate", "axionpro");
+            entity.HasIndex(e => new { e.TenantId, e.TemplateCode })
+                .IsUnique()
+                .HasDatabaseName("UX_TenantEmailTemplate_Tenant_TemplateCode");
+            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
+            entity.Property(e => e.AddedFromIp).HasMaxLength(50).HasColumnName("AddedFromIP");
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.FromEmail).HasMaxLength(150);
+            entity.Property(e => e.FromName).HasMaxLength(100);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.Subject).HasMaxLength(250);
+            entity.Property(e => e.TemplateCode).HasMaxLength(100);
+            entity.Property(e => e.TemplateName).HasMaxLength(150);
+            entity.Property(e => e.UpdatedFromIp).HasMaxLength(50).HasColumnName("UpdatedFromIP");
+            entity.HasOne(e => e.Tenant).WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TenantEmailTemplate_Tenant");
         });
 
         modelBuilder.Entity<Employee>(entity =>

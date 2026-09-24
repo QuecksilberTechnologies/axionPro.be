@@ -331,9 +331,9 @@ internal sealed record EmailTemplateInput(
         bool isActive)
     {
         var normalizedCode = RequireAndTrim(templateCode, 100).ToUpperInvariant();
-        if (normalizedCode.Any(char.IsWhiteSpace))
+        if (!ConstantValues.IsSupportedEmailTemplateCode(normalizedCode))
         {
-            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+            throw new ValidationErrorException(AppConstants.ErrorMessages.UnsupportedEmailTemplateCode);
         }
 
         return new EmailTemplateInput(

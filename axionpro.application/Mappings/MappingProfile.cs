@@ -1202,6 +1202,7 @@ namespace axionpro.application.Mappings
             //CreateMap<EmailTemplate, EmailTemplateDTO>();
             CreateMap<EmailTemplate, EmailTemplateDTO>().ReverseMap();
             CreateMap<EmailTemplate, EmailTemplateResponseDTO>();
+            CreateMap<TenantEmailTemplate, TenantEmailTemplateResponseDTO>();
 
             CreateMap<Tenant, DTOs.Registration.TenantCreateRequestDTO>().ReverseMap();
             CreateMap<LoginCredential, GetMinimalEmployeeResponseDTO>().ReverseMap();
