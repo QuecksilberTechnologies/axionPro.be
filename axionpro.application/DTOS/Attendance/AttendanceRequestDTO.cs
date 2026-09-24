@@ -6,7 +6,7 @@ namespace axionpro.application.DTOs.Attendance;
 public sealed class AttendanceRequestDTO
 {
     public AttendancePunchAction Action { get; set; }
-    public AttendanceChannel Channel { get; set; }
+    [Range(1, int.MaxValue)] public int AttendanceDeviceTypeId { get; set; }
     public long? TenantLocationId { get; set; }
     [Range(-90, 90)] public decimal? Latitude { get; set; }
     [Range(-180, 180)] public decimal? Longitude { get; set; }
@@ -16,11 +16,16 @@ public sealed class AttendanceRequestDTO
 }
 
 public sealed record AttendancePunchResponseDTO(long Id, AttendancePunchAction Action,
-    AttendanceChannel Channel, DateOnly WorkDate, DateTime OccurredAtUtc,
+    int AttendanceDeviceTypeId, string AttendanceDeviceTypeCode, string AttendanceDeviceType,
+    DateOnly WorkDate, DateTime OccurredAtUtc,
     long? TenantLocationId, decimal? DistanceFromLocationMeters, bool IsCurrentlyCheckedIn);
 
 public sealed record AttendancePunchItemDTO(long Id, AttendancePunchAction Action,
-    AttendanceChannel Channel, DateTime OccurredAtUtc, long? TenantLocationId);
+    int AttendanceDeviceTypeId, string AttendanceDeviceTypeCode, string AttendanceDeviceType,
+    DateTime OccurredAtUtc, long? TenantLocationId);
 
 public sealed record AttendanceTodayResponseDTO(DateOnly WorkDate, bool IsCurrentlyCheckedIn,
     IReadOnlyList<AttendancePunchItemDTO> Punches);
+
+public sealed record AttendanceDeviceTypeOptionDTO(int Id, string Code, string Name,
+    bool RequiresDeviceRegistration);

@@ -12,6 +12,8 @@ public sealed record MarkAttendanceCommand(AttendanceRequestDTO Request)
     : IRequest<ApiResponse<AttendancePunchResponseDTO>>;
 
 public sealed record GetTodayAttendanceQuery : IRequest<ApiResponse<AttendanceTodayResponseDTO>>;
+public sealed record GetAttendanceDeviceTypesQuery
+    : IRequest<ApiResponse<IReadOnlyList<AttendanceDeviceTypeOptionDTO>>>;
 
 /// <summary>Marks attendance only for the employee represented by the validated Tenant token.</summary>
 public sealed class MarkAttendanceCommandHandler(IAttendanceRepository repository,
@@ -22,10 +24,9 @@ public sealed class MarkAttendanceCommandHandler(IAttendanceRepository repositor
         CancellationToken cancellationToken)
     {
         var request = command.Request ?? throw new ValidationErrorException("Attendance request is required.");
-        if (!Enum.IsDefined(request.Action) || !Enum.IsDefined(request.Channel)
-            || request.Channel is AttendanceChannel.Biometric or AttendanceChannel.Manual
+        if (!Enum.IsDefined(request.Action) || request.AttendanceDeviceTypeId <= 0
             || request.IdempotencyKey == Guid.Empty)
-            throw new ValidationErrorException("Action, Mobile/Web channel, and IdempotencyKey are required.");
+            throw new ValidationErrorException("Action, AttendanceDeviceTypeId, and IdempotencyKey are required.");
         if (request.Latitude.HasValue != request.Longitude.HasValue)
             throw new ValidationErrorException("Latitude and Longitude must be supplied together.");
 
@@ -36,6 +37,25 @@ public sealed class MarkAttendanceCommandHandler(IAttendanceRepository repositor
         var result = await repository.MarkAsync(actor.TenantId, actor.LoggedInEmployeeId,
             request, DateTime.UtcNow, cancellationToken);
         return ApiResponse<AttendancePunchResponseDTO>.Success(result, "Attendance punch recorded successfully.");
+    }
+}
+
+/// <summary>Returns the active attendance source catalogue for authenticated Tenant users.</summary>
+public sealed class GetAttendanceDeviceTypesQueryHandler(IAttendanceRepository repository,
+    ICommonRequestService commonRequestService)
+    : IRequestHandler<GetAttendanceDeviceTypesQuery,
+        ApiResponse<IReadOnlyList<AttendanceDeviceTypeOptionDTO>>>
+{
+    public async Task<ApiResponse<IReadOnlyList<AttendanceDeviceTypeOptionDTO>>> Handle(
+        GetAttendanceDeviceTypesQuery query, CancellationToken cancellationToken)
+    {
+        var actor = await commonRequestService.ValidateTenantUserRequestAsync();
+        if (!actor.Success || actor.TenantId <= 0 || actor.LoggedInEmployeeId <= 0)
+            throw new UnauthorizedAccessException(actor.ErrorMessage ?? "Unauthorized request.");
+
+        var result = await repository.GetActiveDeviceTypesAsync(cancellationToken);
+        return ApiResponse<IReadOnlyList<AttendanceDeviceTypeOptionDTO>>.Success(result,
+            "Attendance device types retrieved successfully.");
     }
 }
 

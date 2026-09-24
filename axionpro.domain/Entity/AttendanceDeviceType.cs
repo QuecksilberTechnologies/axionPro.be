@@ -9,6 +9,8 @@ public partial class AttendanceDeviceType
 
     public string? DeviceType { get; set; }
 
+    public string DeviceTypeCode { get; set; } = string.Empty;
+
     public string? Remark { get; set; }
 
     public bool? IsActive { get; set; }
@@ -26,4 +28,6 @@ public partial class AttendanceDeviceType
     public virtual ICollection<EmployeeDailyAttendance> EmployeeDailyAttendance { get; set; } = new List<EmployeeDailyAttendance>();
 
     public virtual ICollection<UserAttendanceSetting> UserAttendanceSetting { get; set; } = new List<UserAttendanceSetting>();
+
+    public virtual ICollection<EmployeeAttendancePunch> EmployeeAttendancePunches { get; set; } = new List<EmployeeAttendancePunch>();
 }

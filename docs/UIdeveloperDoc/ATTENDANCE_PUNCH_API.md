@@ -13,7 +13,7 @@ Authentication: Tenant bearer token. This is an employee self-service action, so
 ```json
 {
   "action": 1,
-  "channel": 1,
+  "attendanceDeviceTypeId": 1,
   "tenantLocationId": 1,
   "latitude": 23.1815,
   "longitude": 79.9864,
@@ -23,7 +23,7 @@ Authentication: Tenant bearer token. This is an employee self-service action, so
 }
 ```
 
-`action`: `1 = CheckIn`, `2 = CheckOut`. `channel`: `1 = Mobile`, `2 = Web`. The server rejects Biometric and Manual values on this endpoint. Generate one UUID per button action and reuse the same UUID only while retrying that action.
+`action`: `1 = CheckIn`, `2 = CheckOut`. Load `attendanceDeviceTypeId` from `GET /api/Attendance/device-types`; never hard-code its numeric value. This employee endpoint accepts the stable `MOBILE` and `WEB` types and rejects Biometric and Manual types. Generate one UUID per button action and reuse the same UUID only while retrying that action.
 
 The authoritative time is the server UTC time. `clientOccurredAt` is audit information. For physical work modes, omit `tenantLocationId` to use the arrangement primary location, or send an allowed location. For Work From Home, omit the location. Send latitude and longitude together when policy requires GPS. The API checks the active employee, effective arrangement, typed published policy configuration, allowed channel, location assignment/scope, attendance-enabled location, geofence, local work date and check-in/check-out order.
 
@@ -36,7 +36,9 @@ Representative success:
   "data": {
     "id": 101,
     "action": 1,
-    "channel": 1,
+    "attendanceDeviceTypeId": 1,
+    "attendanceDeviceTypeCode": "MOBILE",
+    "attendanceDeviceType": "Mobile",
     "workDate": "2026-09-24",
     "occurredAtUtc": "2026-09-24T05:00:03Z",
     "tenantLocationId": 1,
@@ -52,6 +54,10 @@ Expected validation/conflict messages include inactive employee, no effective ar
 
 Authentication: Tenant bearer token. It returns the authenticated employee's local business date, ordered immutable punch timeline, and `isCurrentlyCheckedIn`. Call on page load and after each successful punch.
 
+### `GET /api/Attendance/device-types`
+
+Authentication: Tenant bearer token. Returns active seeded attendance sources with `id`, stable `code`, display `name`, and `requiresDeviceRegistration`. Load this lookup before submitting a punch. `MOBILE`, `WEB`, `BIOMETRIC`, and `MANUAL` are server-owned codes; only Mobile/Web are accepted by the self-service mark endpoint.
+
 ## Persistence and concurrency
 
 Apply `database-scripts/AddEmployeeAttendancePunch.sql`. `EmployeeAttendancePunch` is an immutable ledger. A unique Tenant/employee/idempotency-key index makes network retries safe. A PostgreSQL transaction advisory lock serializes simultaneous punches for one employee. Work date uses the selected location timezone, or the active head-office timezone when no physical location applies.
@@ -61,7 +67,7 @@ Apply `database-scripts/AddEmployeeAttendancePunch.sql`. `EmployeeAttendancePunc
 1. Call `GET /today`.
 2. If `isCurrentlyCheckedIn` is false, show Check in; otherwise show Check out.
 3. Obtain browser/mobile GPS only when required by the selected policy and work mode.
-4. Submit explicit `action`, channel and a new idempotency UUID.
+4. Submit explicit `action`, the selected `attendanceDeviceTypeId`, and a new idempotency UUID.
 5. Disable repeated clicks until the call finishes. A retry caused by a timeout must reuse that UUID.
 
 ## Tested status

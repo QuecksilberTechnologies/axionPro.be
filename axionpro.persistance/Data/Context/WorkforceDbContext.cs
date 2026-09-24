@@ -595,6 +595,8 @@ namespace axionpro.persistance.Data.Context
 
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
             entity.Property(e => e.DeviceType).HasMaxLength(50);
+            entity.Property(e => e.DeviceTypeCode).HasMaxLength(30);
+            entity.HasIndex(e => e.DeviceTypeCode).IsUnique();
             entity.Property(e => e.IsDeviceRegister).HasDefaultValue(false);
             entity.Property(e => e.Remark).HasMaxLength(255);
         });
@@ -1314,6 +1316,11 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.DistanceFromLocationMeters).HasPrecision(12, 2);
             entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.IdempotencyKey }).IsUnique();
             entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.WorkDate, e.OccurredAtUtc });
+            entity.HasOne(e => e.AttendanceDeviceType)
+                .WithMany(e => e.EmployeeAttendancePunches)
+                .HasForeignKey(e => e.AttendanceDeviceTypeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_EmployeeAttendancePunch_AttendanceDeviceType");
         });
 
         modelBuilder.Entity<EmployeeDependent>(entity =>

@@ -33,6 +33,7 @@ public sealed class AttendancePunchFlowTests
             Assert.That(controller, Does.Contain("[Authorize]"));
             Assert.That(controller, Does.Contain("[HttpPost(\"mark-attendance\")]"));
             Assert.That(controller, Does.Contain("[HttpGet(\"today\")]"));
+            Assert.That(controller, Does.Contain("[HttpGet(\"device-types\")]"));
             Assert.That(controller, Does.Contain("new MarkAttendanceCommand"));
             Assert.That(controller, Does.Contain("new GetTodayAttendanceQuery"));
         });
@@ -58,6 +59,13 @@ public sealed class AttendancePunchFlowTests
             Assert.That(repository, Does.Contain("IsAttendanceAllowed"));
             Assert.That(script, Does.Contain("UX_EmployeeAttendancePunch_Idempotency"));
             Assert.That(script, Does.Contain("IdempotencyKey"));
+            Assert.That(script, Does.Contain("AttendanceDeviceTypeId"));
+            Assert.That(script, Does.Contain("DeviceTypeCode"));
+            Assert.That(script, Does.Contain("'MOBILE'"));
+            Assert.That(script, Does.Contain("'WEB'"));
+            Assert.That(script, Does.Contain("'BIOMETRIC'"));
+            Assert.That(script, Does.Contain("'MANUAL'"));
+            Assert.That(script, Does.Not.Contain("\"Channel\" smallint"));
         });
     }
 

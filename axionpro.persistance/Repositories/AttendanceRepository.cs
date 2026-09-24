@@ -1,4 +1,5 @@
 using System.Data;
+using static axionpro.application.Constants.ConstantValues;
 using axionpro.application.DTOs.Attendance;
 using axionpro.application.Exceptions;
 using axionpro.application.Features.AttendanceCmd;
@@ -15,6 +16,7 @@ public sealed class AttendanceRepository(WorkforceDbContext context) : IAttendan
         AttendanceRequestDTO request, DateTime serverUtcNow, CancellationToken cancellationToken)
     {
         var existing = await context.EmployeeAttendancePunches.AsNoTracking()
+            .Include(x => x.AttendanceDeviceType)
             .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.EmployeeId == employeeId
                 && x.IdempotencyKey == request.IdempotencyKey, cancellationToken);
         if (existing != null) return Map(existing);
@@ -25,6 +27,7 @@ public sealed class AttendanceRepository(WorkforceDbContext context) : IAttendan
             $"SELECT pg_advisory_xact_lock({attendanceLockKey})", cancellationToken);
 
         existing = await context.EmployeeAttendancePunches.AsNoTracking()
+            .Include(x => x.AttendanceDeviceType)
             .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.EmployeeId == employeeId
                 && x.IdempotencyKey == request.IdempotencyKey, cancellationToken);
         if (existing != null) return Map(existing);
@@ -58,9 +61,19 @@ public sealed class AttendanceRepository(WorkforceDbContext context) : IAttendan
             .FirstOrDefaultAsync(x => x.TenantId == tenantId
                 && x.PolicyVersionId == arrangement.PolicyVersionId!.Value, cancellationToken)
             ?? throw new ValidationErrorException("The effective Attendance policy has no execution configuration.");
-        if (request.Channel == AttendanceChannel.Mobile && !configuration.AllowMobile
-            || request.Channel == AttendanceChannel.Web && !configuration.AllowWeb)
-            throw new ForbiddenAccessException("The selected attendance channel is disabled by policy.");
+        var deviceType = await context.AttendanceDeviceTypes.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == request.AttendanceDeviceTypeId
+                && x.IsActive == true, cancellationToken)
+            ?? throw new ValidationErrorException("The selected Attendance device type is invalid or inactive.");
+        var deviceTypeCode = deviceType.DeviceTypeCode.Trim().ToUpperInvariant();
+        var isAllowedSelfServiceType = deviceTypeCode is AttendanceDeviceMobile or AttendanceDeviceWeb;
+        if (!isAllowedSelfServiceType)
+            throw new ValidationErrorException("This endpoint accepts Mobile or Web attendance only.");
+        if (deviceTypeCode == AttendanceDeviceMobile && !configuration.AllowMobile
+            || deviceTypeCode == AttendanceDeviceWeb && !configuration.AllowWeb)
+            throw new ForbiddenAccessException("The selected attendance device type is disabled by policy.");
+        // Attach the catalogue row as existing so adding a punch can never insert or modify seed data.
+        context.Attach(deviceType);
 
         var locationId = request.TenantLocationId ?? arrangement.PrimaryTenantLocationId;
         var workMode = (WorkMode)arrangement.WorkMode;
@@ -125,7 +138,8 @@ public sealed class AttendanceRepository(WorkforceDbContext context) : IAttendan
             TenantId = tenantId, EmployeeId = employeeId, EmployeeWorkArrangementId = arrangement.Id,
             PolicyVersionId = arrangement.PolicyVersionId.Value, TenantLocationId = locationId,
             WorkDate = workDate, OccurredAtUtc = utc, ClientOccurredAt = request.ClientOccurredAt,
-            Channel = (short)request.Channel, PunchAction = (short)request.Action,
+            AttendanceDeviceTypeId = deviceType.Id, AttendanceDeviceType = deviceType,
+            PunchAction = (short)request.Action,
             Latitude = request.Latitude, Longitude = request.Longitude, AccuracyMeters = request.AccuracyMeters,
             DistanceFromLocationMeters = distance, IdempotencyKey = request.IdempotencyKey,
             AddedById = employeeId, AddedDateTime = utc
@@ -151,12 +165,24 @@ public sealed class AttendanceRepository(WorkforceDbContext context) : IAttendan
                 && x.WorkDate == workDate)
             .OrderBy(x => x.OccurredAtUtc).ThenBy(x => x.Id)
             .Select(x => new AttendancePunchItemDTO(x.Id,
-                (AttendancePunchAction)x.PunchAction, (AttendanceChannel)x.Channel,
+                (AttendancePunchAction)x.PunchAction, x.AttendanceDeviceTypeId,
+                x.AttendanceDeviceType.DeviceTypeCode, x.AttendanceDeviceType.DeviceType ?? string.Empty,
                 x.OccurredAtUtc, x.TenantLocationId))
             .ToListAsync(cancellationToken);
 
         return new AttendanceTodayResponseDTO(workDate,
             punches.LastOrDefault()?.Action == AttendancePunchAction.CheckIn, punches);
+    }
+
+    public async Task<IReadOnlyList<AttendanceDeviceTypeOptionDTO>> GetActiveDeviceTypesAsync(
+        CancellationToken cancellationToken)
+    {
+        return await context.AttendanceDeviceTypes.AsNoTracking()
+            .Where(x => x.IsActive == true)
+            .OrderBy(x => x.Id)
+            .Select(x => new AttendanceDeviceTypeOptionDTO(x.Id, x.DeviceTypeCode,
+                x.DeviceType ?? string.Empty, x.IsDeviceRegister == true))
+            .ToListAsync(cancellationToken);
     }
 
     private async Task ValidateLocationScopeAsync(AttendancePolicyVersionConfiguration configuration,
@@ -213,7 +239,8 @@ public sealed class AttendanceRepository(WorkforceDbContext context) : IAttendan
     }
 
     private static AttendancePunchResponseDTO Map(EmployeeAttendancePunch x) => new(x.Id,
-        (AttendancePunchAction)x.PunchAction, (AttendanceChannel)x.Channel, x.WorkDate,
+        (AttendancePunchAction)x.PunchAction, x.AttendanceDeviceTypeId,
+        x.AttendanceDeviceType.DeviceTypeCode, x.AttendanceDeviceType.DeviceType ?? string.Empty, x.WorkDate,
         x.OccurredAtUtc, x.TenantLocationId, x.DistanceFromLocationMeters,
         x.PunchAction == (short)AttendancePunchAction.CheckIn);
 }

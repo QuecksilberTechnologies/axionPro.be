@@ -608,6 +608,13 @@ namespace axionpro.application.Constants
             SupportedEmailTemplateCodes.Contains(templateCode.Trim());
         #endregion
 
+        #region Attendance Device Types
+        public const string AttendanceDeviceMobile = "MOBILE";
+        public const string AttendanceDeviceWeb = "WEB";
+        public const string AttendanceDeviceBiometric = "BIOMETRIC";
+        public const string AttendanceDeviceManual = "MANUAL";
+        #endregion
+
         //   public static readonly DateOnly SystemOnlyTodaysDate= DateOnly.MaxValue;
 
         //int adminRoleId = await _unitOfWork.RoleRepository.GetRoleIdByRoleInfoAsync(role);

@@ -65,6 +65,14 @@ namespace axionpro.api.Controllers.Attendance
                 {
                     return Ok(await _mediator.Send(new GetTodayAttendanceQuery()));
                 }
+                /// <summary>Gets active attendance device/source types for attendance UI controls.</summary>
+                /// <remarks>Authenticated lookup endpoint. UI must use returned IDs and must not hard-code them.</remarks>
+                [Authorize]
+                [HttpGet("device-types")]
+                public async Task<IActionResult> GetAttendanceDeviceTypes()
+                {
+                    return Ok(await _mediator.Send(new GetAttendanceDeviceTypesQuery()));
+                }
         #region TIMMY HTTPS Test
                 /// <summary>
                 /// Not-Used-In-Angular.
