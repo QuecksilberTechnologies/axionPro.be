@@ -44,6 +44,7 @@ namespace axionpro.infrastructure
                     "BulkImport:BatchTimeoutSeconds must be between 5 and 300.")
                 .ValidateOnStart();
             services.AddHostedService<BulkImportWorker>();
+            services.AddHostedService<EmailQueueWorker>();
             // Register background service
              services.AddHostedService<CommonBackgroundService>();  // ✅ This is mandatory
              services.AddMemoryCache();

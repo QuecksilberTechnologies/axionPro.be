@@ -9,6 +9,12 @@ public partial class EmailQueue
 
     public int TemplateId { get; set; }
 
+    public long? TenantId { get; set; }
+
+    public string? TemplateCode { get; set; }
+
+    public string? PlaceholdersJson { get; set; }
+
     public string ToEmail { get; set; } = null!;
 
     public string? CcEmail { get; set; }
@@ -26,6 +32,10 @@ public partial class EmailQueue
     public string? ErrorMessage { get; set; }
 
     public int? RetryCount { get; set; }
+
+    public bool IsProcessing { get; set; }
+
+    public DateTime? ProcessingStartedDateTime { get; set; }
 
     public DateTime? AddedDateTime { get; set; }
 

@@ -29,4 +29,10 @@ public interface IEmailService
         string toEmail,
         long? TenantId,
         Dictionary<string, string> placeholders);
+
+    Task<int?> QueueTemplatedEmailAsync(
+        string templateCode,
+        string toEmail,
+        long? TenantId,
+        Dictionary<string, string> placeholders);
 }

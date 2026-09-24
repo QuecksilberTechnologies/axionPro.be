@@ -1079,6 +1079,8 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.IsSent).HasDefaultValue(false);
             entity.Property(e => e.RetryCount).HasDefaultValue(0);
+            entity.Property(e => e.IsProcessing).HasDefaultValue(false);
+            entity.Property(e => e.TemplateCode).HasMaxLength(100);
             entity.Property(e => e.Subject).HasMaxLength(500);
             entity.Property(e => e.ToEmail).HasMaxLength(250);
 

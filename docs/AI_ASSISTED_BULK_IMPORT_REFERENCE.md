@@ -1,5 +1,13 @@
 # AxionPro bulk import: implementation reference and UI handoff
 
+## 2026-09-24 Employee invitation email smoke
+
+- Employee import completion does not automatically send welcome email. Invitation delivery remains the explicit authenticated `bulk/send-invitations` action.
+- Focused invitation/template tests: 8 passed, 0 failed, 1 isolated-DB test skipped.
+- Configured DB readiness for Tenant 8 passed: one active Tenant SMTP configuration, one active Tenant `WELCOME_EMAIL`, one active fallback `WELCOME_EMAIL`, and one active default SMTP configuration.
+- A real external message was not sent because an approved disposable recipient was not supplied. Actual mailbox delivery remains NOT RUN, not a pass.
+- Evidence: `docs/testing/bulk/employee-invitation-email/2026-09-24.md`.
+
 ## 2026-09-23 Holiday rename and Icon — COMPLETE (local code and Development DB)
 
 - Renamed the API root to `/api/Holiday`, the entity/table/DTO/repository/features/tests to `Holiday`, and the module identity to `TENANT_POLICY_HOLIDAY` / `Holiday`.

@@ -111,6 +111,28 @@ public sealed class TenantEmailTemplateContractTests
         });
     }
 
+    [Test]
+    public void Queue_worker_keeps_tenant_code_retry_and_atomic_claim_contract()
+    {
+        var worker = Read("axionpro.infrastructure", "BackgroundJob", "EmailQueueWorker.cs");
+        var repository = Read("axionpro.persistance", "Repositories", "EmailQueueRepository.cs");
+        var migration = Read("database-scripts", "AlterEmailQueueForTenantTemplateResolution.sql");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(worker, Does.Contain("SendTemplatedEmailAsync("));
+            Assert.That(worker, Does.Contain("templateCode,"));
+            Assert.That(worker, Does.Contain("item.ToEmail,"));
+            Assert.That(worker, Does.Contain("item.TenantId,"));
+            Assert.That(worker, Does.Contain("MaximumRetries = 5"));
+            Assert.That(repository, Does.Contain("FOR UPDATE SKIP LOCKED"));
+            Assert.That(repository, Does.Contain("ProcessingStartedDateTime"));
+            Assert.That(migration, Does.Contain("\"TenantId\" bigint"));
+            Assert.That(migration, Does.Contain("\"TemplateCode\" character varying(100)"));
+            Assert.That(migration, Does.Contain("\"PlaceholdersJson\" text"));
+        });
+    }
+
     private static string Read(params string[] parts)
     {
         var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);

@@ -145,6 +145,10 @@ Template selection follows SMTP ownership:
 
 An inactive Tenant template behaves like a missing template. If the selected Host/default template is also missing or inactive, delivery returns `false` and records a warning; it does not send content from an unrelated template code. `SendTemplatedEmailUsingHostConfigAsync` always uses Host SMTP and the Host/default template because it is intended for pre-trust registration flows.
 
+Queued delivery stores `TenantId`, stable `TemplateCode`, recipient and placeholder JSON. The worker claims one pending row atomically, then applies the same runtime resolution table above. A failed delivery clears its processing lease, records an error and increments `RetryCount`; after five attempts it is no longer selected automatically. Existing queue rows receive `TemplateCode` from their current central `TemplateId` during the database migration.
+
+Queue processing applies to flows that call `QueueTemplatedEmailAsync`. Existing business handlers that call `SendTemplatedEmailAsync` continue to send immediately until each handler is explicitly migrated, because moving them changes when their current success or failure response is returned.
+
 ## Status
 
 Implemented and built locally on 2026-09-24. The configured target DB was seeded and verified with module Id 119 under parent 46, four operation mappings, one active plan mapping, one enabled tenant module, four enabled tenant operations, and 10 copied rows. Constant-backed code validation and Tenant-to-Host delivery fallback are implemented locally. Authenticated deployed HTTP CRUD and live SMTP acceptance remain pending.

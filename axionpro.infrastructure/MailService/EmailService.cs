@@ -8,6 +8,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using System.Net.Sockets;
+using System.Text.Json;
 
 namespace axionpro.infrastructure.MailService;
 
@@ -27,12 +28,14 @@ public sealed class EmailService : IEmailService
     private readonly ITenantKeyResolver _tenantKeyResolver;
     private readonly IEncryptionService _encryptionService;
     private readonly ILogger<EmailService> _logger;
+    private readonly IEmailQueueRepository _emailQueueRepository;
 
     public EmailService(
         ITenantEmailConfigRepository tenantEmailConfigRepository,
         IDefaultEmailConfigRepository defaultEmailConfigRepository,
         IEmailTemplateRepository templateRepository,
         ITenantEmailTemplateRepository tenantTemplateRepository,
+        IEmailQueueRepository emailQueueRepository,
         ITenantKeyResolver tenantKeyResolver,
         IEncryptionService encryptionService,
         ILogger<EmailService> logger)
@@ -41,6 +44,7 @@ public sealed class EmailService : IEmailService
         _defaultEmailConfigRepository = defaultEmailConfigRepository;
         _templateRepository = templateRepository;
         _tenantTemplateRepository = tenantTemplateRepository;
+        _emailQueueRepository = emailQueueRepository;
         _tenantKeyResolver = tenantKeyResolver;
         _encryptionService = encryptionService;
         _logger = logger;
@@ -85,6 +89,17 @@ public sealed class EmailService : IEmailService
             tenantId,
             placeholders,
             preferHostEmailConfiguration: true);
+
+    public Task<int?> QueueTemplatedEmailAsync(
+        string templateCode,
+        string toEmail,
+        long? tenantId,
+        Dictionary<string, string> placeholders) =>
+        _emailQueueRepository.EnqueueAsync(
+            templateCode,
+            toEmail,
+            tenantId,
+            JsonSerializer.Serialize(placeholders));
 
     private async Task<bool> SendTemplatedEmailInternalAsync(
         string templateCode,

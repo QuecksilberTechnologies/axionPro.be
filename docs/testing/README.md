@@ -1,5 +1,6 @@
 # Scenario test reports
 
+- [Employee bulk invitation email smoke — 2026-09-24](bulk/employee-invitation-email/2026-09-24.md)
 - [All durable bulk targets — live smoke test — 2026-09-19](bulk/all-live-smoke/2026-09-19.md)
 - [Tenant Policy interactive HTML simulator — 2026-09-18](policy/interactive-html-simulator/2026-09-18.md)
 
@@ -82,3 +83,4 @@ saving evidence. Documentation-only work does not require repeating passed tests
 ## Latest holiday report
 
 - [Holiday rename and Icon field — 2026-09-23](holiday-calendar/rename-to-holiday/2026-09-23.md)
+ - [Tenant email queue runtime resolution — 2026-09-24](tenant-email-template/queue-runtime-resolution/2026-09-24.md)

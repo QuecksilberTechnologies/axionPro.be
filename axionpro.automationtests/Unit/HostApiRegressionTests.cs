@@ -634,6 +634,7 @@ public sealed class HostApiRegressionTests
                     Body = "{{VerificationUrl}}"
                 })),
             CreateProxy<ITenantEmailTemplateRepository>((_, _) => Task.FromResult<TenantEmailTemplate?>(null)),
+            CreateProxy<IEmailQueueRepository>((method, _) => throw new AssertionException($"Unexpected queue call: {method.Name}.")),
             CreateProxy<ITenantKeyResolver>((_, _) => throw new InvalidOperationException("Unexpected key lookup.")),
             CreateProxy<IEncryptionService>((_, _) => throw new InvalidOperationException("Unexpected decryption.")),
             NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance);
@@ -690,6 +691,7 @@ public sealed class HostApiRegressionTests
                     }
                     : null);
             }),
+            CreateProxy<IEmailQueueRepository>((method, _) => throw new AssertionException($"Unexpected queue call: {method.Name}.")),
             CreateProxy<ITenantKeyResolver>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
             CreateProxy<IEncryptionService>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
             NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance);
