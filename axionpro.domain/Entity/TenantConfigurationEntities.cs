@@ -228,7 +228,8 @@ public partial class EmployeeWorkArrangement
     public long Id { get; set; }
     public long TenantId { get; set; }
     public long EmployeeId { get; set; }
-    public int AttendancePolicyId { get; set; }
+    public int? AttendancePolicyId { get; set; }
+    public long? PolicyVersionId { get; set; }
     public long? PrimaryTenantLocationId { get; set; }
     public short WorkMode { get; set; }
     public short? HybridType { get; set; }
@@ -247,7 +248,8 @@ public partial class EmployeeWorkArrangement
     public DateTime? SoftDeletedDateTime { get; set; }
     public virtual Tenant Tenant { get; set; } = null!;
     public virtual Employee Employee { get; set; } = null!;
-    public virtual AttendancePolicy AttendancePolicy { get; set; } = null!;
+    public virtual AttendancePolicy? AttendancePolicy { get; set; }
+    public virtual PolicyVersion? PolicyVersion { get; set; }
     public virtual TenantLocation? PrimaryTenantLocation { get; set; }
     public virtual ICollection<EmployeeWorkPattern> EmployeeWorkPattern { get; set; } = new List<EmployeeWorkPattern>();
     public virtual ICollection<EmployeeWorkModeOverrideRequest> EmployeeWorkModeOverrideRequest { get; set; } = new List<EmployeeWorkModeOverrideRequest>();

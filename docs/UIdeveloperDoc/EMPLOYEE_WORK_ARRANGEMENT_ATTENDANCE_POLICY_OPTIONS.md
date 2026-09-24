@@ -145,11 +145,55 @@ Read only:
 
 The endpoint creates, updates, or deletes no database rows and stores no files.
 
-## Current integration boundary
+## Work Arrangement create/update integration
 
-The current Work Arrangement create/update DTO still exposes legacy `AttendancePolicyId` and validates it against the legacy `AttendancePolicy` table. The new dropdown returns generic `PolicyVersionId`. UI must not send `policyVersionId` into that legacy field. Converting Work Arrangement persistence to a `PolicyVersion` foreign key requires a separately approved schema/data migration and create/update contract change.
+Create and Update now persist the exact generic Policy version selected by the dropdown. Send `policyVersionId`; do not send the legacy `attendancePolicyId`.
 
-## Verification status — 2026-09-23
+Illustrative create payload:
+
+```json
+{
+  "moduleId": 24,
+  "operationId": 1,
+  "employeeId": "<encoded-employee-id>",
+  "policyVersionId": 318,
+  "primaryTenantLocationId": 5,
+  "workMode": 3,
+  "hybridType": 2,
+  "minimumOfficeDaysPerWeek": 3,
+  "minimumOfficeDaysPerMonth": 12,
+  "maximumWFHDaysPerMonth": 2,
+  "effectiveFrom": "2026-09-24",
+  "effectiveTo": null,
+  "isActive": true
+}
+```
+
+The numeric permission IDs above are illustrative. Resolve them from the authenticated menu/permission flow.
+
+Before saving, the API checks that `policyVersionId` belongs to the authenticated Tenant and resolves through an active, non-deleted Attendance Policy Type and Policy to an active `PUBLISHED` version whose effective window contains `effectiveFrom`. A missing, Draft, expired, future, inactive, deleted, wrong-category, or other-tenant version returns the standard validation response with:
+
+```json
+{
+  "isSucceeded": false,
+  "message": "Select a published Attendance policy version that is effective on the Work Arrangement start date.",
+  "data": null,
+  "errors": [],
+  "errorCode": "VALIDATION_ERROR"
+}
+```
+
+`hybridType` is mandatory only when `workMode` is Hybrid. For non-Hybrid modes, send `hybridType: null`.
+
+The schema migration is additive:
+
+- new writes use nullable `EmployeeWorkArrangement.PolicyVersionId` with a foreign key to `PolicyVersion`;
+- legacy `AttendancePolicyId` becomes nullable and remains for historical compatibility;
+- no guessed automatic backfill is performed between the legacy and generic policy systems.
+
+Apply `database-scripts/AddPolicyVersionToEmployeeWorkArrangement.sql` before deploying the updated API.
+
+## Verification status — 2026-09-24
 
 - API project build: PASS, 0 errors; existing repository warnings remain.
 - New endpoint contract tests: PASS, 4/4.

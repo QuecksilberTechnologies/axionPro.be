@@ -363,7 +363,7 @@ public enum EmployeeDeviceCredentialType : short
 public class CreateEmployeeWorkArrangementRequestDTO : PermissionRequestDTO
 {
     public string EmployeeId { get; set; } = string.Empty;
-    public int AttendancePolicyId { get; set; }
+    public long PolicyVersionId { get; set; }
     public long? PrimaryTenantLocationId { get; set; }
     public WorkMode WorkMode { get; set; }
     public HybridType? HybridType { get; set; }
@@ -393,7 +393,7 @@ public sealed class EmployeeWorkArrangementFilterRequestDTO : PermissionRequestD
 {
     public string? EmployeeId { get; set; }
     [JsonIgnore] public long? ResolvedEmployeeId { get; set; }
-    public int? AttendancePolicyId { get; set; }
+    public long? PolicyVersionId { get; set; }
     public long? PrimaryTenantLocationId { get; set; }
     public WorkMode? WorkMode { get; set; }
     public bool? IsActive { get; set; }
@@ -407,7 +407,8 @@ public sealed class EmployeeWorkArrangementResponseDTO
     public long Id { get; set; }
     public long EmployeeId { get; set; }
     public string EmployeeName { get; set; } = string.Empty;
-    public int AttendancePolicyId { get; set; }
+    public long PolicyVersionId { get; set; }
+    public long PolicyId { get; set; }
     public string AttendancePolicyName { get; set; } = string.Empty;
     public long? PrimaryTenantLocationId { get; set; }
     public string? PrimaryTenantLocationName { get; set; }

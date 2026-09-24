@@ -3439,6 +3439,7 @@ namespace axionpro.persistance.Data.Context
             {
                 entity.ToTable("EmployeeWorkArrangement", "axionpro");
                 entity.HasIndex(e => e.AttendancePolicyId, "IX_EmployeeWorkArrangement_AttendancePolicyId");
+                entity.HasIndex(e => e.PolicyVersionId, "IX_EmployeeWorkArrangement_PolicyVersionId");
                 entity.HasIndex(e => e.EmployeeId, "IX_EmployeeWorkArrangement_EmployeeId");
                 entity.HasIndex(e => e.PrimaryTenantLocationId, "IX_EmployeeWorkArrangement_PrimaryLocationId");
                 entity.HasIndex(e => e.TenantId, "IX_EmployeeWorkArrangement_TenantId");
@@ -3452,6 +3453,8 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkArrangement_Employee");
                 entity.HasOne(e => e.AttendancePolicy).WithMany(e => e.EmployeeWorkArrangement)
                     .HasForeignKey(e => e.AttendancePolicyId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkArrangement_AttendancePolicy");
+                entity.HasOne(e => e.PolicyVersion).WithMany(e => e.EmployeeWorkArrangements)
+                    .HasForeignKey(e => e.PolicyVersionId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkArrangement_PolicyVersion");
                 entity.HasOne(e => e.PrimaryTenantLocation).WithMany(e => e.EmployeeWorkArrangement)
                     .HasForeignKey(e => e.PrimaryTenantLocationId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkArrangement_PrimaryLocation");
             });

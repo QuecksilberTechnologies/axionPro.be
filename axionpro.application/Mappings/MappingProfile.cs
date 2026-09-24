@@ -359,6 +359,8 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
                 .ForMember(d => d.IsSoftDeleted, o => o.Ignore()).ForMember(d => d.Tenant, o => o.Ignore())
                 .ForMember(d => d.Employee, o => o.Ignore()).ForMember(d => d.AttendancePolicy, o => o.Ignore())
+                .ForMember(d => d.AttendancePolicyId, o => o.Ignore())
+                .ForMember(d => d.PolicyVersion, o => o.Ignore())
                 .ForMember(d => d.PrimaryTenantLocation, o => o.Ignore()).ForMember(d => d.EmployeeWorkPattern, o => o.Ignore())
                 .ForMember(d => d.EmployeeWorkModeOverrideRequest, o => o.Ignore());
             CreateMap<UpdateEmployeeWorkArrangementRequestDTO, EmployeeWorkArrangement>()
@@ -436,7 +438,9 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.WorkMode, o => o.MapFrom(s => (WorkMode)s.WorkMode))
                 .ForMember(d => d.HybridType, o => o.MapFrom(s => s.HybridType.HasValue ? (HybridType?)s.HybridType.Value : null))
                 .ForMember(d => d.EmployeeName, o => o.MapFrom(s => EmployeeName(s.Employee)))
-                .ForMember(d => d.AttendancePolicyName, o => o.MapFrom(s => s.AttendancePolicy != null ? s.AttendancePolicy.PolicyName : string.Empty))
+                .ForMember(d => d.PolicyVersionId, o => o.MapFrom(s => s.PolicyVersionId ?? 0))
+                .ForMember(d => d.PolicyId, o => o.MapFrom(s => s.PolicyVersion != null ? s.PolicyVersion.PolicyId : 0))
+                .ForMember(d => d.AttendancePolicyName, o => o.MapFrom(s => s.PolicyVersion != null && s.PolicyVersion.Policy != null ? s.PolicyVersion.Policy.PolicyName : string.Empty))
                 .ForMember(d => d.PrimaryTenantLocationName, o => o.MapFrom(s => s.PrimaryTenantLocation != null ? s.PrimaryTenantLocation.LocationName : null))
                 .ForMember(d => d.WorkModeName, o => o.MapFrom(s => ((WorkMode)s.WorkMode).ToString()))
                 .ForMember(d => d.HybridTypeName, o => o.MapFrom(s => s.HybridType.HasValue ? ((HybridType)s.HybridType.Value).ToString() : null));

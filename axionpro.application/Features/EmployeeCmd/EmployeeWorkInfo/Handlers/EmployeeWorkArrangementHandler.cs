@@ -95,12 +95,58 @@ public sealed class CreateEmployeeWorkArrangementCommandHandler : TenantConfigur
     #endregion
     private async Task ValidateRefs(long tenantId, long employeeId, CreateEmployeeWorkArrangementRequestDTO dto, long? excludeId, CancellationToken ct)
     {
-        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyAsync(tenantId, dto.AttendancePolicyId, ct) || (dto.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct))) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        }
+
+        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyVersionAsync(tenantId, dto.PolicyVersionId, dto.EffectiveFrom, ct))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidAttendancePolicyVersion);
+        }
+
+        if (dto.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        }
+
         if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
     }
     private static void Validate(CreateEmployeeWorkArrangementRequestDTO dto)
     {
-        if (dto is null || string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.AttendancePolicyId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom) || !Enum.IsDefined(dto.WorkMode) || (dto.HybridType.HasValue && !Enum.IsDefined(dto.HybridType.Value)) || (dto.WorkMode == WorkMode.Hybrid && !dto.HybridType.HasValue) || (dto.WorkMode != WorkMode.Hybrid && dto.HybridType.HasValue) || !Within(dto.MinimumOfficeDaysPerWeek, 7) || !Within(dto.MinimumOfficeDaysPerMonth, 31) || !Within(dto.MaximumWFHDaysPerMonth, 31)) throw new ValidationErrorException(dto?.HybridType.HasValue == true || dto?.WorkMode == WorkMode.Hybrid ? AppConstants.ErrorMessages.InvalidHybridConfiguration : AppConstants.ErrorMessages.InvalidEffectiveDateRange);
+        if (dto is null || string.IsNullOrWhiteSpace(dto.EmployeeId))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing);
+        }
+
+        if (dto.PolicyVersionId <= 0)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidAttendancePolicyVersion);
+        }
+
+        if (dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange);
+        }
+
+        if (!Enum.IsDefined(dto.WorkMode))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        }
+
+        if ((dto.HybridType.HasValue && !Enum.IsDefined(dto.HybridType.Value))
+            || (dto.WorkMode == WorkMode.Hybrid && !dto.HybridType.HasValue)
+            || (dto.WorkMode != WorkMode.Hybrid && dto.HybridType.HasValue))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidHybridConfiguration);
+        }
+
+        if (!Within(dto.MinimumOfficeDaysPerWeek, 7)
+            || !Within(dto.MinimumOfficeDaysPerMonth, 31)
+            || !Within(dto.MaximumWFHDaysPerMonth, 31))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidWorkArrangementDayCounts);
+        }
     }
     private static bool Within(short? value, short maximum) => !value.HasValue || (value.Value >= 0 && value.Value <= maximum);
 }
@@ -131,12 +177,58 @@ public sealed class UpdateEmployeeWorkArrangementCommandHandler : TenantConfigur
     #endregion
     private async Task ValidateRefs(long tenantId, long employeeId, CreateEmployeeWorkArrangementRequestDTO dto, long? excludeId, CancellationToken ct)
     {
-        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyAsync(tenantId, dto.AttendancePolicyId, ct) || (dto.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct))) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        }
+
+        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyVersionAsync(tenantId, dto.PolicyVersionId, dto.EffectiveFrom, ct))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidAttendancePolicyVersion);
+        }
+
+        if (dto.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        }
+
         if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
     }
     private static void Validate(CreateEmployeeWorkArrangementRequestDTO dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.AttendancePolicyId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom) || !Enum.IsDefined(dto.WorkMode) || (dto.HybridType.HasValue && !Enum.IsDefined(dto.HybridType.Value)) || (dto.WorkMode == WorkMode.Hybrid && !dto.HybridType.HasValue) || (dto.WorkMode != WorkMode.Hybrid && dto.HybridType.HasValue) || !Within(dto.MinimumOfficeDaysPerWeek, 7) || !Within(dto.MinimumOfficeDaysPerMonth, 31) || !Within(dto.MaximumWFHDaysPerMonth, 31)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidHybridConfiguration);
+        if (string.IsNullOrWhiteSpace(dto.EmployeeId))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing);
+        }
+
+        if (dto.PolicyVersionId <= 0)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidAttendancePolicyVersion);
+        }
+
+        if (dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange);
+        }
+
+        if (!Enum.IsDefined(dto.WorkMode))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        }
+
+        if ((dto.HybridType.HasValue && !Enum.IsDefined(dto.HybridType.Value))
+            || (dto.WorkMode == WorkMode.Hybrid && !dto.HybridType.HasValue)
+            || (dto.WorkMode != WorkMode.Hybrid && dto.HybridType.HasValue))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidHybridConfiguration);
+        }
+
+        if (!Within(dto.MinimumOfficeDaysPerWeek, 7)
+            || !Within(dto.MinimumOfficeDaysPerMonth, 31)
+            || !Within(dto.MaximumWFHDaysPerMonth, 31))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidWorkArrangementDayCounts);
+        }
     }
     private static bool Within(short? value, short maximum) => !value.HasValue || (value.Value >= 0 && value.Value <= maximum);
 }

@@ -58,6 +58,7 @@ public sealed class Policy
     public DateTime? UpdatedDateTime { get; set; }
     public long? SoftDeletedById { get; set; }
     public DateTime? SoftDeletedDateTime { get; set; }
+    public ICollection<PolicyVersion> PolicyVersions { get; set; } = new List<PolicyVersion>();
 }
 
 public sealed class PolicyVersion
@@ -81,6 +82,8 @@ public sealed class PolicyVersion
     public DateTime AddedDateTime { get; set; }
     public long? UpdatedById { get; set; }
     public DateTime? UpdatedDateTime { get; set; }
+    public Policy Policy { get; set; } = null!;
+    public ICollection<EmployeeWorkArrangement> EmployeeWorkArrangements { get; set; } = new List<EmployeeWorkArrangement>();
 }
 
 public sealed class PolicyRule

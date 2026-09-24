@@ -184,6 +184,61 @@ public sealed class EmployeeWorkArrangementAttendancePolicyOptionsTests
         });
     }
 
+    [Test]
+    public void Work_arrangement_write_contract_persists_the_selected_policy_version()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeof(CreateEmployeeWorkArrangementRequestDTO).GetProperty(nameof(CreateEmployeeWorkArrangementRequestDTO.PolicyVersionId)), Is.Not.Null);
+            Assert.That(typeof(CreateEmployeeWorkArrangementRequestDTO).GetProperty("AttendancePolicyId"), Is.Null);
+            Assert.That(typeof(EmployeeWorkArrangementResponseDTO).GetProperty(nameof(EmployeeWorkArrangementResponseDTO.PolicyVersionId)), Is.Not.Null);
+            Assert.That(typeof(EmployeeWorkArrangementResponseDTO).GetProperty(nameof(EmployeeWorkArrangementResponseDTO.PolicyId)), Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public void Work_arrangement_write_validation_uses_attendance_published_status_and_effective_window()
+    {
+        var repositorySource = ReadRepositoryFile(
+            "axionpro.persistance",
+            "Repositories",
+            "TenantConfigurationRepositories.cs");
+        var handlerSource = ReadRepositoryFile(
+            "axionpro.application",
+            "Features",
+            "EmployeeCmd",
+            "EmployeeWorkInfo",
+            "Handlers",
+            "EmployeeWorkArrangementHandler.cs");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(repositorySource, Does.Contain("IsEligibleAttendancePolicyVersionAsync"));
+            Assert.That(repositorySource, Does.Contain("version.Id == policyVersionId"));
+            Assert.That(repositorySource, Does.Contain("AppConstants.PolicyCategoryCodes.Attendance"));
+            Assert.That(repositorySource, Does.Contain("AppConstants.PolicyStatusCodes.Published"));
+            Assert.That(repositorySource, Does.Contain("version.EffectiveFrom <= effectiveOn"));
+            Assert.That(handlerSource, Does.Contain("dto.PolicyVersionId, dto.EffectiveFrom"));
+            Assert.That(handlerSource, Does.Contain("InvalidAttendancePolicyVersion"));
+        });
+    }
+
+    [Test]
+    public void Work_arrangement_schema_migration_is_additive_and_does_not_guess_legacy_mapping()
+    {
+        var source = ReadRepositoryFile(
+            "database-scripts",
+            "AddPolicyVersionToEmployeeWorkArrangement.sql");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(source, Does.Contain("ADD COLUMN IF NOT EXISTS \"PolicyVersionId\" bigint"));
+            Assert.That(source, Does.Contain("ALTER COLUMN \"AttendancePolicyId\" DROP NOT NULL"));
+            Assert.That(source, Does.Contain("FK_EmployeeWorkArrangement_PolicyVersion"));
+            Assert.That(source, Does.Not.Contain("UPDATE axionpro.\"EmployeeWorkArrangement\""));
+        });
+    }
+
     private static string ReadRepositoryFile(params string[] pathParts)
     {
         var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);

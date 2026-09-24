@@ -139,6 +139,8 @@ namespace axionpro.application.Constants
             public const string DuplicateEmployeeWorkPatternDay = "The work arrangement already has an active pattern for this day.";
             public const string InvalidEffectiveDateRange = "The end date cannot be earlier than the start date.";
             public const string InvalidHybridConfiguration = "Hybrid type is required only when work mode is Hybrid.";
+            public const string InvalidAttendancePolicyVersion = "Select an active Published Attendance policy version that is effective on the arrangement start date.";
+            public const string InvalidWorkArrangementDayCounts = "Work arrangement day counts must be zero or greater and within their weekly or monthly limits.";
             public const string InvalidOverrideWorkMode = "Hybrid work mode is not allowed for a temporary override request.";
             public const string DeviceMasterNotFound = "The requested device master was not found.";
             public const string DuplicateDeviceMaster = "A live device master already uses this device code or company and model combination.";

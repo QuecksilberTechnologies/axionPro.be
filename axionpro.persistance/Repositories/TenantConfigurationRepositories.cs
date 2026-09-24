@@ -389,7 +389,7 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
 
     /// <inheritdoc />
     public Task<EmployeeWorkArrangement?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken) =>
-        Context.EmployeeWorkArrangements.AsNoTracking().Include(x => x.Employee).Include(x => x.AttendancePolicy).Include(x => x.PrimaryTenantLocation).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
+        Context.EmployeeWorkArrangements.AsNoTracking().Include(x => x.Employee).Include(x => x.PolicyVersion).ThenInclude(x => x!.Policy).Include(x => x.PrimaryTenantLocation).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
     public Task<EmployeeWorkArrangement?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken) =>
@@ -399,10 +399,10 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
     public async Task<PagedResponseDTO<EmployeeWorkArrangement>> GetPagedAsync(long tenantId, EmployeeWorkArrangementFilterRequestDTO filter, long requestingEmployeeId, int requestingRoleTypeId, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
-        var query = Context.EmployeeWorkArrangements.AsNoTracking().Include(x => x.Employee).Include(x => x.AttendancePolicy).Include(x => x.PrimaryTenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
+        var query = Context.EmployeeWorkArrangements.AsNoTracking().Include(x => x.Employee).Include(x => x.PolicyVersion).ThenInclude(x => x!.Policy).Include(x => x.PrimaryTenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
         if (requestingRoleTypeId != ConstantValues.RoleTypeAdmin) query = query.Where(x => x.EmployeeId == requestingEmployeeId);
         if (filter.ResolvedEmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.ResolvedEmployeeId.Value);
-        if (filter.AttendancePolicyId.HasValue) query = query.Where(x => x.AttendancePolicyId == filter.AttendancePolicyId.Value);
+        if (filter.PolicyVersionId.HasValue) query = query.Where(x => x.PolicyVersionId == filter.PolicyVersionId.Value);
         if (filter.PrimaryTenantLocationId.HasValue) query = query.Where(x => x.PrimaryTenantLocationId == filter.PrimaryTenantLocationId.Value);
         if (filter.WorkMode.HasValue) query = query.Where(x => x.WorkMode == (short)filter.WorkMode.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
@@ -483,7 +483,28 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
     /// <inheritdoc />
     public Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken) => Context.Employees.AnyAsync(x => x.Id == employeeId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
-    public Task<bool> IsEligibleAttendancePolicyAsync(long tenantId, int policyId, CancellationToken cancellationToken) => Context.AttendancePolicies.AnyAsync(x => x.Id == policyId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
+    public Task<bool> IsEligibleAttendancePolicyVersionAsync(long tenantId, long policyVersionId, DateOnly effectiveOn, CancellationToken cancellationToken) =>
+        (from version in Context.PolicyVersions
+         join policy in Context.Policies on version.PolicyId equals policy.Id
+         join policyType in Context.PolicyTypes on policy.PolicyTypeId equals policyType.Id
+         join category in Context.PolicyCategories on policyType.PolicyCategoryId equals category.Id
+         join status in Context.PolicyStatuses on version.PolicyStatusId equals status.Id
+         where version.Id == policyVersionId
+             && version.TenantId == tenantId
+             && policy.TenantId == tenantId
+             && policyType.TenantId == tenantId
+             && category.CategoryCode == AppConstants.PolicyCategoryCodes.Attendance
+             && category.IsActive
+             && policyType.IsActive == true
+             && policyType.IsSoftDelete != true
+             && policy.IsActive
+             && !policy.IsSoftDeleted
+             && version.IsActive
+             && status.IsActive
+             && status.StatusCode == AppConstants.PolicyStatusCodes.Published
+             && version.EffectiveFrom <= effectiveOn
+             && (!version.EffectiveTo.HasValue || version.EffectiveTo.Value >= effectiveOn)
+         select version.Id).AnyAsync(cancellationToken);
     /// <inheritdoc />
     public Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken) => Context.TenantLocations.AnyAsync(x => x.Id == locationId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />

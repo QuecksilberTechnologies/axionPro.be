@@ -63,6 +63,8 @@ public partial class WorkforceDbContext
             entity.Property(e => e.EffectiveTo).HasColumnType("date");
             entity.Property(e => e.ChangeSummary).HasMaxLength(1000);
             entity.HasIndex(e => new { e.PolicyId, e.VersionNumber }).IsUnique();
+            entity.HasOne(e => e.Policy).WithMany(e => e.PolicyVersions)
+                .HasForeignKey(e => e.PolicyId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<PolicyRule>(entity =>

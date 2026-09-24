@@ -147,8 +147,8 @@ public interface IEmployeeWorkArrangementRepository
         CancellationToken cancellationToken);
     /// <summary>Determines whether the Employee is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
-    /// <summary>Determines whether the AttendancePolicy is active and owned by the Tenant.</summary>
-    Task<bool> IsEligibleAttendancePolicyAsync(long tenantId, int policyId, CancellationToken cancellationToken);
+    /// <summary>Determines whether the version is an active, Published Attendance policy effective on the requested date.</summary>
+    Task<bool> IsEligibleAttendancePolicyVersionAsync(long tenantId, long policyVersionId, DateOnly effectiveOn, CancellationToken cancellationToken);
     /// <summary>Determines whether the location is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken);
     /// <summary>Determines whether another live current arrangement exists for the Employee.</summary>
