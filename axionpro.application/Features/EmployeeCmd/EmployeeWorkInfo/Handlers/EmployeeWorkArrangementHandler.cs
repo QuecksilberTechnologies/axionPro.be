@@ -105,13 +105,64 @@ public sealed class CreateEmployeeWorkArrangementCommandHandler : TenantConfigur
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidAttendancePolicyVersion);
         }
 
-        if (dto.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct))
+        var attendanceConfiguration = await UnitOfWork.EmployeeWorkArrangementRepository
+            .GetAttendanceConfigurationAsync(tenantId, dto.PolicyVersionId, ct)
+            ?? throw new ValidationErrorException(AppConstants.ErrorMessages.AttendancePolicyConfigurationRequired);
+        if (!EmployeeWorkConfigurationRules.IsAllowedByAttendancePolicy(dto.WorkMode, dto.PrimaryTenantLocationId, attendanceConfiguration))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.AttendancePolicyLocationScopeMismatch);
+        }
+
+        await ValidatePrimaryLocationAsync(tenantId, employeeId, dto, ct);
+
+        if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, dto.EffectiveFrom, dto.EffectiveTo, excludeId, ct))
+        {
+            throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
+        }
+    }
+
+    private async Task ValidatePrimaryLocationAsync(long tenantId, long employeeId, CreateEmployeeWorkArrangementRequestDTO dto, CancellationToken ct)
+    {
+        // WFH has no physical primary location; location-based modes must resolve to one authoritative assignment.
+        if (dto.WorkMode == WorkMode.WorkFromHome && dto.PrimaryTenantLocationId.HasValue)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.WorkFromHomePrimaryLocationNotAllowed);
+        }
+
+        if (dto.WorkMode is WorkMode.Office or WorkMode.Hybrid or WorkMode.ClientSite
+            && !dto.PrimaryTenantLocationId.HasValue)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementPrimaryLocationRequired);
+        }
+
+        if (!dto.PrimaryTenantLocationId.HasValue)
+        {
+            return;
+        }
+
+        var locationType = await UnitOfWork.EmployeeWorkArrangementRepository.GetEligibleLocationTypeAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct);
+        if (!locationType.HasValue)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
         }
 
-        if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
+        if (!EmployeeWorkConfigurationRules.IsLocationTypeCompatible(dto.WorkMode, locationType.Value))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementLocationTypeMismatch);
+        }
+
+        if (!await UnitOfWork.EmployeeWorkArrangementRepository.HasCoveringPrimaryLocationAssignmentAsync(
+            tenantId,
+            employeeId,
+            dto.PrimaryTenantLocationId.Value,
+            dto.EffectiveFrom,
+            dto.EffectiveTo,
+            ct))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementPrimaryLocationAssignmentRequired);
+        }
     }
+
     private static void Validate(CreateEmployeeWorkArrangementRequestDTO dto)
     {
         if (dto is null || string.IsNullOrWhiteSpace(dto.EmployeeId))
@@ -187,13 +238,64 @@ public sealed class UpdateEmployeeWorkArrangementCommandHandler : TenantConfigur
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidAttendancePolicyVersion);
         }
 
-        if (dto.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct))
+        var attendanceConfiguration = await UnitOfWork.EmployeeWorkArrangementRepository
+            .GetAttendanceConfigurationAsync(tenantId, dto.PolicyVersionId, ct)
+            ?? throw new ValidationErrorException(AppConstants.ErrorMessages.AttendancePolicyConfigurationRequired);
+        if (!EmployeeWorkConfigurationRules.IsAllowedByAttendancePolicy(dto.WorkMode, dto.PrimaryTenantLocationId, attendanceConfiguration))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.AttendancePolicyLocationScopeMismatch);
+        }
+
+        await ValidatePrimaryLocationAsync(tenantId, employeeId, dto, ct);
+
+        if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, dto.EffectiveFrom, dto.EffectiveTo, excludeId, ct))
+        {
+            throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
+        }
+    }
+
+    private async Task ValidatePrimaryLocationAsync(long tenantId, long employeeId, CreateEmployeeWorkArrangementRequestDTO dto, CancellationToken ct)
+    {
+        // Keep the arrangement primary location aligned with the employee's effective location assignment.
+        if (dto.WorkMode == WorkMode.WorkFromHome && dto.PrimaryTenantLocationId.HasValue)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.WorkFromHomePrimaryLocationNotAllowed);
+        }
+
+        if (dto.WorkMode is WorkMode.Office or WorkMode.Hybrid or WorkMode.ClientSite
+            && !dto.PrimaryTenantLocationId.HasValue)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementPrimaryLocationRequired);
+        }
+
+        if (!dto.PrimaryTenantLocationId.HasValue)
+        {
+            return;
+        }
+
+        var locationType = await UnitOfWork.EmployeeWorkArrangementRepository.GetEligibleLocationTypeAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct);
+        if (!locationType.HasValue)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
         }
 
-        if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
+        if (!EmployeeWorkConfigurationRules.IsLocationTypeCompatible(dto.WorkMode, locationType.Value))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementLocationTypeMismatch);
+        }
+
+        if (!await UnitOfWork.EmployeeWorkArrangementRepository.HasCoveringPrimaryLocationAssignmentAsync(
+            tenantId,
+            employeeId,
+            dto.PrimaryTenantLocationId.Value,
+            dto.EffectiveFrom,
+            dto.EffectiveTo,
+            ct))
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementPrimaryLocationAssignmentRequired);
+        }
     }
+
     private static void Validate(CreateEmployeeWorkArrangementRequestDTO dto)
     {
         if (string.IsNullOrWhiteSpace(dto.EmployeeId))
@@ -249,7 +351,80 @@ public sealed class UpdateEmployeeWorkArrangementStatusCommandHandler : TenantCo
     /// <summary>Initializes handler.</summary>
     public UpdateEmployeeWorkArrangementStatusCommandHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(UpdateEmployeeWorkArrangementStatusCommand request, CancellationToken ct) { var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetForUpdateAsync(tenantId, request.DTO.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); await EnsureEmployeeDataAccessAsync(validation, e.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, ct); if (!request.DTO.IsActive && e.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.HasLiveActiveDependenciesAsync(tenantId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeWorkArrangementInUse); if (request.DTO.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, e.EmployeeId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement); e.IsActive = request.DTO.IsActive; e.UpdatedById = validation.LoggedInEmployeeId; e.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct); return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementStatusUpdated); }
+    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(UpdateEmployeeWorkArrangementStatusCommand request, CancellationToken ct)
+    {
+        var validation = await ValidateTenantDataAccessContextAsync();
+        var tenantId = validation.TenantId;
+        if (request.DTO is null || request.DTO.Id <= 0)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        var entity = await UnitOfWork.EmployeeWorkArrangementRepository.GetForUpdateAsync(tenantId, request.DTO.Id, ct)
+            ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound);
+        await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, ct);
+
+        if (!request.DTO.IsActive && entity.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.HasLiveActiveDependenciesAsync(tenantId, entity.Id, ct))
+        {
+            throw new ConflictException(AppConstants.ErrorMessages.EmployeeWorkArrangementInUse);
+        }
+
+        if (request.DTO.IsActive)
+        {
+            if (await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, entity.EmployeeId, entity.EffectiveFrom, entity.EffectiveTo, entity.Id, ct))
+            {
+                throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
+            }
+
+            if (!entity.PolicyVersionId.HasValue
+                || !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyVersionAsync(tenantId, entity.PolicyVersionId.Value, entity.EffectiveFrom, ct))
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidAttendancePolicyVersion);
+            }
+
+            var workMode = (WorkMode)entity.WorkMode;
+            var attendanceConfiguration = await UnitOfWork.EmployeeWorkArrangementRepository
+                .GetAttendanceConfigurationAsync(tenantId, entity.PolicyVersionId.Value, ct)
+                ?? throw new ValidationErrorException(AppConstants.ErrorMessages.AttendancePolicyConfigurationRequired);
+            if (!EmployeeWorkConfigurationRules.IsAllowedByAttendancePolicy(workMode, entity.PrimaryTenantLocationId, attendanceConfiguration))
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.AttendancePolicyLocationScopeMismatch);
+            }
+
+            if (workMode == WorkMode.WorkFromHome && entity.PrimaryTenantLocationId.HasValue)
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.WorkFromHomePrimaryLocationNotAllowed);
+            }
+
+            if (workMode is WorkMode.Office or WorkMode.Hybrid or WorkMode.ClientSite
+                && !entity.PrimaryTenantLocationId.HasValue)
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementPrimaryLocationRequired);
+            }
+
+            if (entity.PrimaryTenantLocationId.HasValue)
+            {
+                var locationType = await UnitOfWork.EmployeeWorkArrangementRepository.GetEligibleLocationTypeAsync(tenantId, entity.PrimaryTenantLocationId.Value, ct);
+                if (!locationType.HasValue || !EmployeeWorkConfigurationRules.IsLocationTypeCompatible(workMode, locationType.Value))
+                {
+                    throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementLocationTypeMismatch);
+                }
+
+                if (!await UnitOfWork.EmployeeWorkArrangementRepository.HasCoveringPrimaryLocationAssignmentAsync(tenantId, entity.EmployeeId, entity.PrimaryTenantLocationId.Value, entity.EffectiveFrom, entity.EffectiveTo, ct))
+                {
+                    throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementPrimaryLocationAssignmentRequired);
+                }
+            }
+        }
+
+        entity.IsActive = request.DTO.IsActive;
+        entity.UpdatedById = validation.LoggedInEmployeeId;
+        entity.UpdatedDateTime = DateTime.UtcNow;
+        await UnitOfWork.SaveChangesAsync(ct);
+        return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(
+            _mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, entity.Id, ct))!),
+            AppConstants.SuccessMessages.EmployeeWorkArrangementStatusUpdated);
+    }
 }
 
 /// <summary>Handles employee work arrangement retrieval.</summary>

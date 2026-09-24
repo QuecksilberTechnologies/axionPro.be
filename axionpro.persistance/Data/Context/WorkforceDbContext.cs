@@ -148,6 +148,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<EmployeeCategorySkill> EmployeeCategorySkills { get; set; }
 
         public virtual DbSet<EmployeeDailyAttendance> EmployeeDailyAttendances { get; set; }
+        public virtual DbSet<EmployeeAttendancePunch> EmployeeAttendancePunches { get; set; }
 
         public virtual DbSet<EmployeeDependent> EmployeeDependents { get; set; }
 
@@ -228,6 +229,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<PolicyDocumentType> PolicyDocumentTypes { get; set; }
         public virtual DbSet<Policy> Policies { get; set; }
         public virtual DbSet<PolicyVersion> PolicyVersions { get; set; }
+        public virtual DbSet<AttendancePolicyVersionConfiguration> AttendancePolicyVersionConfigurations { get; set; }
         public virtual DbSet<PolicyRule> PolicyRules { get; set; }
         public virtual DbSet<PolicyApplicability> PolicyApplicabilities { get; set; }
         public virtual DbSet<PolicyAssignment> PolicyAssignments { get; set; }
@@ -1300,6 +1302,18 @@ namespace axionpro.persistance.Data.Context
                 .HasForeignKey(d => d.WorkstationTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_WorkstationType");
+        });
+
+        modelBuilder.Entity<EmployeeAttendancePunch>(entity =>
+        {
+            entity.ToTable("EmployeeAttendancePunch", "axionpro");
+            entity.Property(e => e.WorkDate).HasColumnType("date");
+            entity.Property(e => e.Latitude).HasPrecision(10, 7);
+            entity.Property(e => e.Longitude).HasPrecision(10, 7);
+            entity.Property(e => e.AccuracyMeters).HasPrecision(10, 2);
+            entity.Property(e => e.DistanceFromLocationMeters).HasPrecision(12, 2);
+            entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.IdempotencyKey }).IsUnique();
+            entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.WorkDate, e.OccurredAtUtc });
         });
 
         modelBuilder.Entity<EmployeeDependent>(entity =>
@@ -3365,10 +3379,9 @@ namespace axionpro.persistance.Data.Context
                 entity.HasIndex(e => e.EmployeeId, "IX_EmployeeLocationAssignment_EmployeeId");
                 entity.HasIndex(e => e.TenantId, "IX_EmployeeLocationAssignment_TenantId");
                 entity.HasIndex(e => e.TenantLocationId, "IX_EmployeeLocationAssignment_TenantLocationId");
-                entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.TenantLocationId }, "UX_EmployeeLocationAssignment_Employee_Location")
-                    .IsUnique().HasFilter("((\"IsActive\" = true) AND (\"IsSoftDeleted\" = false))");
-                entity.HasIndex(e => new { e.TenantId, e.EmployeeId }, "UX_EmployeeLocationAssignment_Primary")
-                    .IsUnique().HasFilter("((\"IsPrimary\" = true) AND (\"IsActive\" = true) AND (\"IsSoftDeleted\" = false))");
+                // Date-window overlap is enforced by the application; a unique key would reject valid history/future rows.
+                entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.TenantLocationId, e.EffectiveFrom }, "IX_EmployeeLocationAssignment_Employee_Location_EffectiveFrom");
+                entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.IsPrimary, e.EffectiveFrom }, "IX_EmployeeLocationAssignment_Primary_EffectiveFrom");
                 entity.Property(e => e.IsAttendanceAllowed).HasDefaultValue(true);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -3468,8 +3481,8 @@ namespace axionpro.persistance.Data.Context
                 entity.HasIndex(e => e.EmployeeId, "IX_EmployeeWorkArrangement_EmployeeId");
                 entity.HasIndex(e => e.PrimaryTenantLocationId, "IX_EmployeeWorkArrangement_PrimaryLocationId");
                 entity.HasIndex(e => e.TenantId, "IX_EmployeeWorkArrangement_TenantId");
-                entity.HasIndex(e => new { e.TenantId, e.EmployeeId }, "UX_EmployeeWorkArrangement_Current")
-                    .IsUnique().HasFilter("((\"IsActive\" = true) AND (\"IsSoftDeleted\" = false))");
+                // Multiple active historical/future rows are valid when their effective windows do not overlap.
+                entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.EffectiveFrom }, "IX_EmployeeWorkArrangement_Employee_EffectiveFrom");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.EmployeeWorkArrangements)

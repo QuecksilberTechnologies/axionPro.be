@@ -187,10 +187,59 @@ The response includes `hasClientId`, `hasClientSecret`, and `hasWebhookSecret`. 
 - Automated unit, database concurrency, webhook replay/out-of-order, refund-limit, tax, proration and reconciliation tests.
 - Authenticated sandbox checkout, mandate, renewal failure/retry, refund and invoice smoke tests.
 
+## Remaining APIs and system processes
+
+The following work is **not implemented yet** and is required before end-to-end billing can be released.
+
+### Payment-provider integration
+
+- Create Cashfree checkout/order and return the provider payment session identifier.
+- Verify the current payment/order status with Cashfree server-to-server.
+- Create and manage the recurring subscription or mandate.
+- Cancel a provider mandate when renewal is cancelled.
+- Receive Cashfree webhooks, verify their signatures and process them idempotently.
+- Submit queued full/partial refunds to Cashfree and verify the final refund status.
+
+### Remaining HostAdmin APIs
+
+- Transaction detail by transaction identifier.
+- Refund detail by refund identifier.
+- Reconciliation issue list with individual stale order/webhook/payment details.
+- Reconcile a selected order or payment with the provider.
+- Retry an eligible failed payment attempt.
+- Webhook-event list and detail views.
+- Invoice list, invoice detail and invoice download.
+- Billing dashboard totals and status breakdown.
+- Transaction, refund and invoice exports.
+
+### Remaining Tenant APIs
+
+- Get/update the Tenant billing profile.
+- Return country/currency-specific available plans and effective prices.
+- Create checkout with a server-calculated price and tax snapshot.
+- Get the current order/payment status.
+- Get the current subscription, renewal, pending change and grace state.
+- Upgrade immediately with verified proration payment.
+- Schedule downgrade for the next billing cycle.
+- Cancel renewal at period end.
+- List and download Tenant-isolated invoices.
+
+### Required background processing
+
+- Process recurring payments and the configured three retry attempts.
+- Apply the configured one-day grace period and suspension transition.
+- Reconcile missed/out-of-order webhooks and stale pending orders.
+- Generate immutable invoice numbers, tax snapshots and PDF documents.
+- Activate or renew Tenant entitlement only after verified payment.
+- Suspend entitlement after failed retries and grace expiry.
+- Update payment, invoice and order states after a verified refund result.
+
+Current Host refund creation only validates the refundable balance and writes a `Requested` queue record. Current webhook retry only moves an eligible failed event back to `Pending`. Neither operation calls Cashfree until the provider adapter and worker are implemented.
+
 ## Tested and deployed status
 
 - Configured database: 15/15 billing tables verified; seven Host billing modules and 16 exact operation mappings/grants verified after an idempotent rerun.
 - Local API build: passed with 0 errors.
-- Focused automated contracts: 5 passed, 0 failed, 0 skipped.
+- Focused automated contracts: 6 passed, 0 failed, 0 skipped.
 - Authenticated Host configuration HTTP smoke test: not run because a test bearer token was not provided.
 - Cashfree sandbox and production payment flow: not deployed or accepted.

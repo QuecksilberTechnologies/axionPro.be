@@ -1,12 +1,11 @@
-﻿using axionpro.application.DTOs.Attendance;
-using axionpro.domain.Entity; using MediatR;
+using axionpro.application.DTOs.Attendance;
 
-namespace axionpro.application.Interfaces.IRepositories
+namespace axionpro.application.Interfaces.IRepositories;
+
+public interface IAttendanceRepository
 {
-    public interface IAttendanceRepository
-    {
-      public Task<UserAttendanceSetting> GetUserAttendanceSettingByIdAsync(AttendanceRequestDTO attendanceRequestDTO);
-      public Task<bool> AddEmployeeAttendanceAsync(AttendanceRequestDTO attendanceRequestDTO);
-
-    }
+    Task<AttendancePunchResponseDTO> MarkAsync(long tenantId, long employeeId,
+        AttendanceRequestDTO request, DateTime serverUtcNow, CancellationToken cancellationToken);
+    Task<AttendanceTodayResponseDTO> GetTodayAsync(long tenantId, long employeeId,
+        DateTime serverUtcNow, CancellationToken cancellationToken);
 }

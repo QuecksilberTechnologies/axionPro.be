@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using axionpro.application.DTOs.BaseDTO;
+using axionpro.domain.Entity;
 using Microsoft.AspNetCore.Http;
 
 namespace axionpro.application.DTOS.Policy;
@@ -57,6 +58,20 @@ public class CreatePolicyRequestDTO : PermissionRequestDTO
     [MaxLength(1000)] public string? ChangeSummary { get; set; }
     public List<PolicyRuleInputDTO> Rules { get; set; } = new();
     public List<PolicyApplicabilityInputDTO> Applicability { get; set; } = new();
+    public AttendancePolicyVersionConfigurationDTO? AttendanceConfiguration { get; set; }
+}
+
+public sealed class AttendancePolicyVersionConfigurationDTO
+{
+    public AttendanceLocationScope AttendanceLocationScope { get; set; }
+    public bool AllowBiometric { get; set; }
+    public bool AllowMobile { get; set; }
+    public bool AllowWeb { get; set; }
+    public bool AllowManualAttendance { get; set; }
+    public bool AllowWorkFromHome { get; set; }
+    public bool RequireGeoFenceForOffice { get; set; }
+    public bool RequireGpsForRemote { get; set; }
+    public bool AllowOutsideLocationWithApproval { get; set; }
 }
 
 public sealed class UpdatePolicyDraftRequestDTO : CreatePolicyRequestDTO
@@ -218,7 +233,8 @@ public sealed record PolicyDetailResponseDTO(long Id, string Code, string Name, 
     long VersionId, int VersionNumber, short StatusId, string Status,
     DateOnly EffectiveFrom, DateOnly? EffectiveTo, string? ChangeSummary,
     IReadOnlyList<PolicyRuleResponseDTO> Rules,
-    IReadOnlyList<PolicyApplicabilityResponseDTO> Applicability);
+    IReadOnlyList<PolicyApplicabilityResponseDTO> Applicability,
+    AttendancePolicyVersionConfigurationDTO? AttendanceConfiguration);
 public sealed record PolicyAssignmentResultDTO(int Inserted, int Existing);
 public sealed record ResolvedPolicyResponseDTO(long PolicyId, long PolicyVersionId, string PolicyCode, string PolicyName, int Priority, string ResolutionSource);
 public sealed record PolicyDocumentResponseDTO(long Id, long PolicyVersionId, short DocumentTypeId, string Title, string OriginalFileName, string ContentType, long FileSizeBytes, string? LanguageCode, bool IsEmployeeVisible, string Url);

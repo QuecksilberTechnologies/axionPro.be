@@ -206,6 +206,10 @@ public sealed class EmployeeProfileCharacterizationTests
                 StringComparison.Ordinal) == true)
             .Where(type => type.GetInterfaces().Any(contract =>
                 contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IRequest<>)))
+            // This read-only dropdown intentionally authenticates the Tenant token only. It does not
+            // represent a module operation and never accepts an employee identifier from the caller.
+            .Where(type => type.FullName !=
+                "axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo.Handlers.GetAttendancePolicyOptionsQuery")
             .OrderBy(type => type.FullName)
             .ToArray();
 

@@ -1,0 +1,73 @@
+using axionpro.application.Features.AttendanceCmd;
+using axionpro.domain.Entity;
+using Microsoft.AspNetCore.Authorization;
+using NUnit.Framework;
+
+namespace axionpro.automationtests.Unit;
+
+[TestFixture]
+[Category("Attendance")]
+public sealed class AttendancePunchFlowTests
+{
+    [TestCase(null, AttendancePunchAction.CheckIn, true)]
+    [TestCase(null, AttendancePunchAction.CheckOut, false)]
+    [TestCase(AttendancePunchAction.CheckIn, AttendancePunchAction.CheckIn, false)]
+    [TestCase(AttendancePunchAction.CheckIn, AttendancePunchAction.CheckOut, true)]
+    [TestCase(AttendancePunchAction.CheckOut, AttendancePunchAction.CheckIn, true)]
+    [TestCase(AttendancePunchAction.CheckOut, AttendancePunchAction.CheckOut, false)]
+    public void Punch_state_machine_rejects_duplicate_or_out_of_order_actions(
+        AttendancePunchAction? previous, AttendancePunchAction requested, bool expected)
+    {
+        Assert.That(AttendancePunchRules.IsAllowedTransition(previous, requested), Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void Attendance_controller_requires_authentication_and_exposes_mark_and_today_routes()
+    {
+        var root = FindRepositoryRoot();
+        var controller = File.ReadAllText(Path.Combine(root, "axionpro.api", "Controllers",
+            "Attendance", "AttendanceController.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(controller, Does.Contain("[Authorize]"));
+            Assert.That(controller, Does.Contain("[HttpPost(\"mark-attendance\")]"));
+            Assert.That(controller, Does.Contain("[HttpGet(\"today\")]"));
+            Assert.That(controller, Does.Contain("new MarkAttendanceCommand"));
+            Assert.That(controller, Does.Contain("new GetTodayAttendanceQuery"));
+        });
+    }
+
+    [Test]
+    public void Punch_contract_uses_token_employee_identity_and_database_idempotency()
+    {
+        var root = FindRepositoryRoot();
+        var handler = File.ReadAllText(Path.Combine(root, "axionpro.application", "Features",
+            "AttendanceCmd", "AttendancePunchHandler.cs"));
+        var repository = File.ReadAllText(Path.Combine(root, "axionpro.persistance", "Repositories",
+            "AttendanceRepository.cs"));
+        var script = File.ReadAllText(Path.Combine(root, "database-scripts", "AddEmployeeAttendancePunch.sql"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(handler, Does.Contain("ValidateTenantUserRequestAsync"));
+            Assert.That(handler, Does.Contain("LoggedInEmployeeId"));
+            Assert.That(handler, Does.Not.Contain("ModuleId"));
+            Assert.That(repository, Does.Contain("pg_advisory_xact_lock"));
+            Assert.That(repository, Does.Contain("RequireGeoFenceForOffice"));
+            Assert.That(repository, Does.Contain("IsAttendanceAllowed"));
+            Assert.That(script, Does.Contain("UX_EmployeeAttendancePunch_Idempotency"));
+            Assert.That(script, Does.Contain("IdempotencyKey"));
+        });
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "AxionPro.sln")))
+            directory = directory.Parent;
+
+        Assert.That(directory, Is.Not.Null, "Repository root containing AxionPro.sln was not found.");
+        return directory!.FullName;
+    }
+}

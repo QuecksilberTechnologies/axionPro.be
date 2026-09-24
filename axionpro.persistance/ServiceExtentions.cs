@@ -157,6 +157,7 @@ namespace axionpro.persistance
              services.AddScoped<IHostUserRepository, HostUserRepository>();
             services.AddScoped<ITenantLocationRepository, TenantLocationRepository>();
             services.AddScoped<IAttendancePolicyRepository, AttendancePolicyRepository>();
+            services.AddScoped<IAttendanceRepository, AttendanceRepository>();
             services.AddScoped<IEmployeeLocationAssignmentRepository, EmployeeLocationAssignmentRepository>();
             services.AddScoped<IEmployeeDeviceEnrollmentRepository, EmployeeDeviceEnrollmentRepository>();
             services.AddScoped<IEmployeeEnrollmentAtDeviceRepository, EmployeeEnrollmentAtDeviceRepository>();

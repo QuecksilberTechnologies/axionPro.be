@@ -95,8 +95,8 @@ public sealed class CreateEmployeeLocationAssignmentCommandHandler : TenantConfi
     private async Task ValidateReferences(long tenantId, long employeeId, CreateEmployeeLocationAssignmentRequestDTO dto, long? excludeId, CancellationToken ct)
     {
         if (!await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleLocationAsync(tenantId, dto.TenantLocationId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
-        if (dto.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, employeeId, dto.TenantLocationId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
-        if (dto.IsActive && dto.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
+        if (dto.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, employeeId, dto.TenantLocationId, dto.EffectiveFrom, dto.EffectiveTo, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
+        if (dto.IsActive && dto.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, employeeId, dto.EffectiveFrom, dto.EffectiveTo, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
     }
     private static void Validate(CreateEmployeeLocationAssignmentRequestDTO dto) { if (dto is null || string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.TenantLocationId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange); }
 }
@@ -125,6 +125,23 @@ public sealed class UpdateEmployeeLocationAssignmentCommandHandler : TenantConfi
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
+
+        // Moving an assignment to another location must not orphan an arrangement that uses the old location.
+        if (entity.TenantLocationId != request.DTO.TenantLocationId
+            && await UnitOfWork.EmployeeLocationAssignmentRepository.WouldInvalidatePrimaryWorkArrangementAsync(
+                tenantId,
+                employeeId,
+                entity.TenantLocationId,
+                false,
+                false,
+                false,
+                entity.EffectiveFrom,
+                entity.EffectiveTo,
+                ct))
+        {
+            throw new ConflictException(AppConstants.ErrorMessages.EmployeeLocationAssignmentInUse);
+        }
+
         await ValidateReferences(tenantId, employeeId, request.DTO, entity.Id, ct);
         _mapper.Map(request.DTO, entity); entity.EmployeeId = employeeId; entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct);
         return ApiResponse<EmployeeLocationAssignmentResponseDTO>.Success(_mapper.Map<EmployeeLocationAssignmentResponseDTO>((await UnitOfWork.EmployeeLocationAssignmentRepository.GetByIdAsync(tenantId, entity.Id, ct))!), AppConstants.SuccessMessages.EmployeeLocationAssignmentUpdated);
@@ -133,8 +150,23 @@ public sealed class UpdateEmployeeLocationAssignmentCommandHandler : TenantConfi
     private async Task ValidateReferences(long tenantId, long employeeId, CreateEmployeeLocationAssignmentRequestDTO dto, long? excludeId, CancellationToken ct)
     {
         if (!await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleLocationAsync(tenantId, dto.TenantLocationId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
-        if (dto.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, employeeId, dto.TenantLocationId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
-        if (dto.IsActive && dto.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
+        if (dto.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, employeeId, dto.TenantLocationId, dto.EffectiveFrom, dto.EffectiveTo, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
+        if (dto.IsActive && dto.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, employeeId, dto.EffectiveFrom, dto.EffectiveTo, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
+
+        // Keep the assignment and every work arrangement that consumes it consistent in both directions.
+        if (await UnitOfWork.EmployeeLocationAssignmentRepository.WouldInvalidatePrimaryWorkArrangementAsync(
+            tenantId,
+            employeeId,
+            dto.TenantLocationId,
+            dto.IsPrimary,
+            dto.IsAttendanceAllowed,
+            dto.IsActive,
+            dto.EffectiveFrom,
+            dto.EffectiveTo,
+            ct))
+        {
+            throw new ConflictException(AppConstants.ErrorMessages.EmployeeLocationAssignmentInUse);
+        }
     }
     private static void Validate(CreateEmployeeLocationAssignmentRequestDTO dto) { if (string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.TenantLocationId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange); }
 }
@@ -148,7 +180,35 @@ public sealed class DeleteEmployeeLocationAssignmentCommandHandler : TenantConfi
     #endregion
     #region Handle
     /// <inheritdoc />
-    public async Task<ApiResponse<bool>> Handle(DeleteEmployeeLocationAssignmentCommand request, CancellationToken ct) { var validation = await ValidateTenantDataAccessContextAsync(); var entity = await UnitOfWork.EmployeeLocationAssignmentRepository.GetForUpdateAsync(validation.TenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeLocationAssignmentNotFound); await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeId, EmployeeDataAccessRequirement.WorkLocation, ct); entity.IsSoftDeleted = true; entity.IsActive = false; entity.SoftDeletedById = validation.LoggedInEmployeeId; entity.SoftDeletedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct); return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeLocationAssignmentDeleted); }
+    public async Task<ApiResponse<bool>> Handle(DeleteEmployeeLocationAssignmentCommand request, CancellationToken ct)
+    {
+        var validation = await ValidateTenantDataAccessContextAsync();
+        var entity = await UnitOfWork.EmployeeLocationAssignmentRepository.GetForUpdateAsync(validation.TenantId, request.Id, ct)
+            ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeLocationAssignmentNotFound);
+        await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeId, EmployeeDataAccessRequirement.WorkLocation, ct);
+
+        // Deleting a primary assignment must not leave a live arrangement pointing at an unusable location.
+        if (await UnitOfWork.EmployeeLocationAssignmentRepository.WouldInvalidatePrimaryWorkArrangementAsync(
+            validation.TenantId,
+            entity.EmployeeId,
+            entity.TenantLocationId,
+            false,
+            false,
+            false,
+            entity.EffectiveFrom,
+            entity.EffectiveTo,
+            ct))
+        {
+            throw new ConflictException(AppConstants.ErrorMessages.EmployeeLocationAssignmentInUse);
+        }
+
+        entity.IsSoftDeleted = true;
+        entity.IsActive = false;
+        entity.SoftDeletedById = validation.LoggedInEmployeeId;
+        entity.SoftDeletedDateTime = DateTime.UtcNow;
+        await UnitOfWork.SaveChangesAsync(ct);
+        return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeLocationAssignmentDeleted);
+    }
     #endregion
 }
 
@@ -165,8 +225,9 @@ public sealed class UpdateEmployeeLocationAssignmentStatusCommandHandler : Tenan
     public async Task<ApiResponse<EmployeeLocationAssignmentResponseDTO>> Handle(UpdateEmployeeLocationAssignmentStatusCommand request, CancellationToken ct)
     {
         var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var entity = await UnitOfWork.EmployeeLocationAssignmentRepository.GetForUpdateAsync(tenantId, request.DTO.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeLocationAssignmentNotFound); await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeId, EmployeeDataAccessRequirement.WorkLocation, ct);
-        if (request.DTO.IsActive && entity.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, entity.EmployeeId, entity.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
-        if (request.DTO.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, entity.EmployeeId, entity.TenantLocationId, entity.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
+        if (request.DTO.IsActive && entity.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, entity.EmployeeId, entity.EffectiveFrom, entity.EffectiveTo, entity.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
+        if (request.DTO.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, entity.EmployeeId, entity.TenantLocationId, entity.EffectiveFrom, entity.EffectiveTo, entity.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
+        if (!request.DTO.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.WouldInvalidatePrimaryWorkArrangementAsync(tenantId, entity.EmployeeId, entity.TenantLocationId, entity.IsPrimary, entity.IsAttendanceAllowed, false, entity.EffectiveFrom, entity.EffectiveTo, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeLocationAssignmentInUse);
         entity.IsActive = request.DTO.IsActive; entity.UpdatedById = validation.LoggedInEmployeeId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct); return ApiResponse<EmployeeLocationAssignmentResponseDTO>.Success(_mapper.Map<EmployeeLocationAssignmentResponseDTO>((await UnitOfWork.EmployeeLocationAssignmentRepository.GetByIdAsync(tenantId, entity.Id, ct))!), AppConstants.SuccessMessages.EmployeeLocationAssignmentStatusUpdated);
     }
     #endregion

@@ -1,5 +1,7 @@
 # UI developer documents
 
+- [Attendance Punch API](ATTENDANCE_PUNCH_API.md) — authenticated employee Mobile/Web check-in, check-out, idempotency, geofence and today status contract.
+
 - [Full Policy With Example](fullPolicyWithExample.md) — single consolidated guide with table ownership, UI screens, applicability, lifecycle, IOCL and Dubai-to-India transfer, leave balances, diagrams, APIs and implementation gaps.
 
 - [Tenant Policy Live Flow Simulator](policy-live-simulator/README.md) — shareable standalone folder; double-click start, live DDL, rule/applicability builder, all 37 policy endpoints, DB-table impact and safe local JSON files.
@@ -17,6 +19,7 @@
 - [Employee Reset Password](EMPLOYEE_RESET_PASSWORD.md) — Reset Password operation
   on `EMP_LIST`; standalone Module 38 removal and request contract.
 - [Employee Work Arrangement Attendance Policy Options](EMPLOYEE_WORK_ARRANGEMENT_ATTENDANCE_POLICY_OPTIONS.md) — token-only, effective-date-based Published Attendance policy dropdown and empty-state contract.
+- [Employee Work Location and Arrangement Validation](EMPLOYEE_WORK_LOCATION_ARRANGEMENT_VALIDATION.md) — effective-window overlap, primary assignment coverage, work-mode/location-type rules, and deployment migration.
 - [Holiday](HOLIDAY.md) — location-based
   holiday persistence, date-only response contract, and rollout status.
 - [Locality and Locality Type API](LOCALITY_AND_LOCALITY_TYPE_API.md) — Country/State/

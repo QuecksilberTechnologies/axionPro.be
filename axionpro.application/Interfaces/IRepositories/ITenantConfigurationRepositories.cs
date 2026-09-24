@@ -74,10 +74,12 @@ public interface IEmployeeLocationAssignmentRepository
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the location is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken);
-    /// <summary>Determines whether a live assignment already uses the Employee/location pair.</summary>
-    Task<bool> AssignmentExistsAsync(long tenantId, long employeeId, long locationId, long? excludeId, CancellationToken cancellationToken);
-    /// <summary>Determines whether another live primary assignment exists for the Employee.</summary>
-    Task<bool> PrimaryAssignmentExistsAsync(long tenantId, long employeeId, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Determines whether an overlapping live assignment already uses the Employee/location pair.</summary>
+    Task<bool> AssignmentExistsAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Determines whether another overlapping live primary assignment exists for the Employee.</summary>
+    Task<bool> PrimaryAssignmentExistsAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Determines whether a proposed assignment change would invalidate a live work arrangement that uses it as primary.</summary>
+    Task<bool> WouldInvalidatePrimaryWorkArrangementAsync(long tenantId, long employeeId, long locationId, bool isPrimary, bool isAttendanceAllowed, bool isActive, DateOnly effectiveFrom, DateOnly? effectiveTo, CancellationToken cancellationToken);
     /// <summary>Adds a prepared employee-location assignment.</summary>
     Task AddAsync(EmployeeLocationAssignment entity, CancellationToken cancellationToken);
 }
@@ -149,10 +151,16 @@ public interface IEmployeeWorkArrangementRepository
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the version is an active, Published Attendance policy effective on the requested date.</summary>
     Task<bool> IsEligibleAttendancePolicyVersionAsync(long tenantId, long policyVersionId, DateOnly effectiveOn, CancellationToken cancellationToken);
+    /// <summary>Gets the typed execution settings for an Attendance policy version.</summary>
+    Task<AttendancePolicyVersionConfiguration?> GetAttendanceConfigurationAsync(long tenantId, long policyVersionId, CancellationToken cancellationToken);
     /// <summary>Determines whether the location is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken);
-    /// <summary>Determines whether another live current arrangement exists for the Employee.</summary>
-    Task<bool> CurrentArrangementExistsAsync(long tenantId, long employeeId, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Determines whether another live arrangement overlaps the proposed effective window.</summary>
+    Task<bool> CurrentArrangementExistsAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Determines whether the selected primary location has a primary, attendance-allowed assignment covering the full arrangement window.</summary>
+    Task<bool> HasCoveringPrimaryLocationAssignmentAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly? effectiveTo, CancellationToken cancellationToken);
+    /// <summary>Gets the active Tenant location type used to validate the selected work mode.</summary>
+    Task<TenantLocationType?> GetEligibleLocationTypeAsync(long tenantId, long locationId, CancellationToken cancellationToken);
     /// <summary>Determines whether active children block deactivation.</summary>
     Task<bool> HasLiveActiveDependenciesAsync(long tenantId, long arrangementId, CancellationToken cancellationToken);
     /// <summary>Determines whether any live children block soft deletion.</summary>

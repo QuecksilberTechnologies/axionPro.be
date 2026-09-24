@@ -177,9 +177,11 @@ public sealed class EmployeeTypeCrudBehaviorTests
             Assert.That(script, Does.Contain("EMPLOYEE_TYPE"));
             Assert.That(script, Does.Contain("EMP_MGMT"));
             Assert.That(script, Does.Contain("EMP_LIST"));
-            Assert.That(script, Does.Contain("IN ('add','update','delete','view','import','export')"));
-            Assert.That(script, Does.Contain("DELETE FROM axionpro.\"TenantEnabledOperation\""));
-            Assert.That(script, Does.Contain("DELETE FROM axionpro.\"ModuleOperationMapping\""));
+            Assert.That(script, Does.Contain("IN ('add','update','delete','view')"));
+            Assert.That(script, Does.Contain("'import' AND op.\"OperationType\"=12"));
+            Assert.That(script, Does.Contain("'export' AND op.\"OperationType\"=11"));
+            Assert.That(script, Does.Not.Contain("DELETE FROM axionpro.\"TenantEnabledOperation\""));
+            Assert.That(script, Does.Not.Contain("DELETE FROM axionpro.\"ModuleOperationMapping\""));
         });
     }
 

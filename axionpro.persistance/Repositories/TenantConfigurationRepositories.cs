@@ -248,9 +248,58 @@ public sealed class EmployeeLocationAssignmentRepository : TenantConfigurationRe
     /// <inheritdoc />
     public Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken) => Context.TenantLocations.AnyAsync(x => x.Id == locationId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
-    public Task<bool> AssignmentExistsAsync(long tenantId, long employeeId, long locationId, long? excludeId, CancellationToken cancellationToken) => Context.EmployeeLocationAssignments.AnyAsync(x => x.TenantId == tenantId && x.EmployeeId == employeeId && x.TenantLocationId == locationId && x.IsActive && !x.IsSoftDeleted && (!excludeId.HasValue || x.Id != excludeId.Value), cancellationToken);
+    public Task<bool> AssignmentExistsAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken) =>
+        Context.EmployeeLocationAssignments.AnyAsync(
+            x => x.TenantId == tenantId
+                && x.EmployeeId == employeeId
+                && x.TenantLocationId == locationId
+                && x.IsActive
+                && !x.IsSoftDeleted
+                && (!excludeId.HasValue || x.Id != excludeId.Value)
+                && (!effectiveTo.HasValue || x.EffectiveFrom <= effectiveTo.Value)
+                && (!x.EffectiveTo.HasValue || x.EffectiveTo.Value >= effectiveFrom),
+            cancellationToken);
     /// <inheritdoc />
-    public Task<bool> PrimaryAssignmentExistsAsync(long tenantId, long employeeId, long? excludeId, CancellationToken cancellationToken) => Context.EmployeeLocationAssignments.AnyAsync(x => x.TenantId == tenantId && x.EmployeeId == employeeId && x.IsPrimary && x.IsActive && !x.IsSoftDeleted && (!excludeId.HasValue || x.Id != excludeId.Value), cancellationToken);
+    public Task<bool> PrimaryAssignmentExistsAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken) =>
+        Context.EmployeeLocationAssignments.AnyAsync(
+            x => x.TenantId == tenantId
+                && x.EmployeeId == employeeId
+                && x.IsPrimary
+                && x.IsActive
+                && !x.IsSoftDeleted
+                && (!excludeId.HasValue || x.Id != excludeId.Value)
+                && (!effectiveTo.HasValue || x.EffectiveFrom <= effectiveTo.Value)
+                && (!x.EffectiveTo.HasValue || x.EffectiveTo.Value >= effectiveFrom),
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<bool> WouldInvalidatePrimaryWorkArrangementAsync(long tenantId, long employeeId, long locationId, bool isPrimary, bool isAttendanceAllowed, bool isActive, DateOnly effectiveFrom, DateOnly? effectiveTo, CancellationToken cancellationToken)
+    {
+        // A primary location assignment is part of an arrangement's executable attendance contract.
+        // Removing any of its required flags immediately invalidates every live arrangement using it.
+        if (!isPrimary || !isAttendanceAllowed || !isActive)
+        {
+            return Context.EmployeeWorkArrangements.AnyAsync(
+                x => x.TenantId == tenantId
+                    && x.EmployeeId == employeeId
+                    && x.PrimaryTenantLocationId == locationId
+                    && x.IsActive
+                    && !x.IsSoftDeleted,
+                cancellationToken);
+        }
+
+        return Context.EmployeeWorkArrangements.AnyAsync(
+            x => x.TenantId == tenantId
+                && x.EmployeeId == employeeId
+                && x.PrimaryTenantLocationId == locationId
+                && x.IsActive
+                && !x.IsSoftDeleted
+                && (effectiveFrom > x.EffectiveFrom
+                    || (x.EffectiveTo.HasValue
+                        ? !effectiveTo.HasValue || effectiveTo.Value < x.EffectiveTo.Value
+                        : effectiveTo.HasValue)),
+            cancellationToken);
+    }
 
     #endregion
 
@@ -506,9 +555,49 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
              && (!version.EffectiveTo.HasValue || version.EffectiveTo.Value >= effectiveOn)
          select version.Id).AnyAsync(cancellationToken);
     /// <inheritdoc />
+    public Task<AttendancePolicyVersionConfiguration?> GetAttendanceConfigurationAsync(long tenantId, long policyVersionId, CancellationToken cancellationToken) =>
+        Context.AttendancePolicyVersionConfigurations.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId, cancellationToken);
+    /// <inheritdoc />
     public Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken) => Context.TenantLocations.AnyAsync(x => x.Id == locationId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
-    public Task<bool> CurrentArrangementExistsAsync(long tenantId, long employeeId, long? excludeId, CancellationToken cancellationToken) => Context.EmployeeWorkArrangements.AnyAsync(x => x.TenantId == tenantId && x.EmployeeId == employeeId && x.IsActive && !x.IsSoftDeleted && (!excludeId.HasValue || x.Id != excludeId.Value), cancellationToken);
+    public Task<bool> CurrentArrangementExistsAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken) =>
+        Context.EmployeeWorkArrangements.AnyAsync(
+            x => x.TenantId == tenantId
+                && x.EmployeeId == employeeId
+                && x.IsActive
+                && !x.IsSoftDeleted
+                && (!excludeId.HasValue || x.Id != excludeId.Value)
+                && (!effectiveTo.HasValue || x.EffectiveFrom <= effectiveTo.Value)
+                && (!x.EffectiveTo.HasValue || x.EffectiveTo.Value >= effectiveFrom),
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<bool> HasCoveringPrimaryLocationAssignmentAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly? effectiveTo, CancellationToken cancellationToken) =>
+        Context.EmployeeLocationAssignments.AnyAsync(
+            x => x.TenantId == tenantId
+                && x.EmployeeId == employeeId
+                && x.TenantLocationId == locationId
+                && x.IsPrimary
+                && x.IsAttendanceAllowed
+                && x.IsActive
+                && !x.IsSoftDeleted
+                && x.EffectiveFrom <= effectiveFrom
+                && (effectiveTo.HasValue
+                    ? !x.EffectiveTo.HasValue || x.EffectiveTo.Value >= effectiveTo.Value
+                    : !x.EffectiveTo.HasValue),
+            cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<TenantLocationType?> GetEligibleLocationTypeAsync(long tenantId, long locationId, CancellationToken cancellationToken)
+    {
+        var locationType = await Context.TenantLocations
+            .Where(x => x.Id == locationId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted)
+            .Select(x => (short?)x.LocationType)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return locationType.HasValue ? (TenantLocationType)locationType.Value : null;
+    }
     /// <inheritdoc />
     public async Task<bool> HasLiveActiveDependenciesAsync(long tenantId, long arrangementId, CancellationToken cancellationToken) =>
         await Context.EmployeeWorkPatterns.AnyAsync(x => x.TenantId == tenantId && x.EmployeeWorkArrangementId == arrangementId && x.IsActive && !x.IsSoftDeleted, cancellationToken)

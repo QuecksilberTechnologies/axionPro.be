@@ -83,7 +83,30 @@ public sealed class PolicyVersion
     public long? UpdatedById { get; set; }
     public DateTime? UpdatedDateTime { get; set; }
     public Policy Policy { get; set; } = null!;
+    public AttendancePolicyVersionConfiguration? AttendanceConfiguration { get; set; }
     public ICollection<EmployeeWorkArrangement> EmployeeWorkArrangements { get; set; } = new List<EmployeeWorkArrangement>();
+}
+
+/// <summary>Stores the typed execution settings owned by one generic Attendance policy version.</summary>
+public sealed class AttendancePolicyVersionConfiguration
+{
+    public long Id { get; set; }
+    public long TenantId { get; set; }
+    public long PolicyVersionId { get; set; }
+    public short AttendanceLocationScope { get; set; }
+    public bool AllowBiometric { get; set; }
+    public bool AllowMobile { get; set; }
+    public bool AllowWeb { get; set; }
+    public bool AllowManualAttendance { get; set; }
+    public bool AllowWorkFromHome { get; set; }
+    public bool RequireGeoFenceForOffice { get; set; }
+    public bool RequireGpsForRemote { get; set; }
+    public bool AllowOutsideLocationWithApproval { get; set; }
+    public long AddedById { get; set; }
+    public DateTime AddedDateTime { get; set; }
+    public long? UpdatedById { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+    public PolicyVersion PolicyVersion { get; set; } = null!;
 }
 
 public sealed class PolicyRule

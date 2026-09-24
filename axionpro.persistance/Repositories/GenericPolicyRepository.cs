@@ -1,4 +1,5 @@
 using System.Text.Json;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Policy;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.IRepositories;
@@ -133,6 +134,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         ValidateRulesAndScopes(dto.Rules, dto.Applicability);
         await ValidateScopeReferencesAsync(tenantId, dto.Applicability, cancellationToken);
         await ValidatePolicyReferencesAsync(tenantId, dto.OwnerDepartmentId, dto.Rules, cancellationToken);
+        await ValidateAttendanceConfigurationAsync(tenantId, dto.PolicyTypeId, dto.AttendanceConfiguration, cancellationToken);
         var code = NormalizeCode(dto.PolicyCode);
         if (!await context.PolicyTypes.AnyAsync(x => x.Id == dto.PolicyTypeId && x.TenantId == tenantId && x.IsActive == true && x.IsSoftDelete != true, cancellationToken))
             throw new ValidationErrorException("PolicyTypeId is not active for this tenant.");
@@ -147,6 +149,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var version = new PolicyVersion { TenantId = tenantId, PolicyId = policy.Id, VersionNumber = 1, PolicyStatusId = Draft, EffectiveFrom = dto.EffectiveFrom, EffectiveTo = dto.EffectiveTo, ChangeSummary = dto.ChangeSummary?.Trim(), RuleSchemaVersion = 1, IsActive = true, AddedById = actorId, AddedDateTime = now };
         context.PolicyVersions.Add(version);
         await context.SaveChangesAsync(cancellationToken);
+        await UpsertAttendanceConfigurationAsync(tenantId, actorId, version.Id, dto.AttendanceConfiguration, now, cancellationToken);
         AddRulesAndApplicability(tenantId, actorId, version.Id, dto.Rules, dto.Applicability, now);
         AddAudit(tenantId, actorId, policy.Id, version.Id, "Policy", policy.Id, "CREATE", null, JsonSerializer.Serialize(new { policy.PolicyCode, policy.PolicyName }));
         await context.SaveChangesAsync(cancellationToken);
@@ -160,6 +163,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         ValidateRulesAndScopes(dto.Rules, dto.Applicability);
         await ValidateScopeReferencesAsync(tenantId, dto.Applicability, cancellationToken);
         await ValidatePolicyReferencesAsync(tenantId, dto.OwnerDepartmentId, dto.Rules, cancellationToken);
+        await ValidateAttendanceConfigurationAsync(tenantId, dto.PolicyTypeId, dto.AttendanceConfiguration, cancellationToken);
         var policy = await context.Policies.FirstOrDefaultAsync(x => x.Id == dto.PolicyId && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken) ?? throw new NotFoundException("Policy was not found.");
         var version = await context.PolicyVersions.FirstOrDefaultAsync(x => x.Id == dto.PolicyVersionId && x.PolicyId == policy.Id && x.TenantId == tenantId, cancellationToken) ?? throw new NotFoundException("Policy version was not found.");
         if (version.PolicyStatusId != Draft && version.PolicyStatusId != Rejected) throw new ConflictException("Only draft or rejected versions can be edited.");
@@ -171,6 +175,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         version.EffectiveFrom = dto.EffectiveFrom; version.EffectiveTo = dto.EffectiveTo; version.ChangeSummary = dto.ChangeSummary?.Trim(); version.UpdatedById = actorId; version.UpdatedDateTime = DateTime.UtcNow; version.PolicyStatusId = Draft;
         context.PolicyRules.RemoveRange(context.PolicyRules.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
         context.PolicyApplicabilities.RemoveRange(context.PolicyApplicabilities.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
+        await UpsertAttendanceConfigurationAsync(tenantId, actorId, version.Id, dto.AttendanceConfiguration, DateTime.UtcNow, cancellationToken);
         AddRulesAndApplicability(tenantId, actorId, version.Id, dto.Rules, dto.Applicability, DateTime.UtcNow);
         AddAudit(tenantId, actorId, policy.Id, version.Id, "PolicyVersion", version.Id, "UPDATE_DRAFT", null, null);
         await context.SaveChangesAsync(cancellationToken);
@@ -189,8 +194,19 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         context.PolicyVersions.Add(version); await context.SaveChangesAsync(cancellationToken);
         var rules = await context.PolicyRules.AsNoTracking().Where(x => x.PolicyVersionId == source.Id).ToListAsync(cancellationToken);
         var scopes = await context.PolicyApplicabilities.AsNoTracking().Where(x => x.PolicyVersionId == source.Id).ToListAsync(cancellationToken);
+        var attendanceConfiguration = await context.AttendancePolicyVersionConfigurations.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.PolicyVersionId == source.Id && x.TenantId == tenantId, cancellationToken);
         context.PolicyRules.AddRange(rules.Select(x => new PolicyRule { TenantId = tenantId, PolicyVersionId = version.Id, PolicyRuleTypeId = x.PolicyRuleTypeId, RuleName = x.RuleName, RuleOrder = x.RuleOrder, RuleConfiguration = x.RuleConfiguration, IsActive = x.IsActive, AddedById = actorId, AddedDateTime = DateTime.UtcNow }));
         context.PolicyApplicabilities.AddRange(scopes.Select(x => CloneScope(x, version.Id, actorId)));
+        if (attendanceConfiguration != null)
+        {
+            context.AttendancePolicyVersionConfigurations.Add(MapAttendanceConfiguration(
+                tenantId,
+                actorId,
+                version.Id,
+                ToDto(attendanceConfiguration),
+                DateTime.UtcNow));
+        }
         AddAudit(tenantId, actorId, policy.Id, version.Id, "PolicyVersion", version.Id, "CLONE", null, JsonSerializer.Serialize(new { SourceVersionId = source.Id }));
         await context.SaveChangesAsync(cancellationToken); await transaction.CommitAsync(cancellationToken);
         return await GetDetailAsync(tenantId, policy.Id, version.Id, cancellationToken);
@@ -224,6 +240,19 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         if (target == Published)
         {
             var categoryId = await GetPolicyCategoryIdAsync(tenantId, version.PolicyId, cancellationToken);
+            var categoryCode = categoryId.HasValue
+                ? await context.PolicyCategories.AsNoTracking()
+                    .Where(x => x.Id == categoryId.Value)
+                    .Select(x => x.CategoryCode)
+                    .FirstOrDefaultAsync(cancellationToken)
+                : null;
+            if (string.Equals(categoryCode, AppConstants.PolicyCategoryCodes.Attendance, StringComparison.OrdinalIgnoreCase)
+                && !await context.AttendancePolicyVersionConfigurations.AsNoTracking()
+                    .AnyAsync(x => x.TenantId == tenantId && x.PolicyVersionId == version.Id, cancellationToken))
+            {
+                throw new ConflictException(AppConstants.ErrorMessages.AttendancePolicyConfigurationRequired);
+            }
+
             var mandatoryStages = await context.PolicyApprovalStages.AsNoTracking()
                 .Where(x => x.TenantId == tenantId && x.IsActive && x.IsMandatory
                     && (x.PolicyCategoryId == null || x.PolicyCategoryId == categoryId))
@@ -769,12 +798,130 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
                 x.WorkArrangementType, x.EmploymentStatus, x.MinimumServiceDays,
                 x.EffectiveFrom, x.EffectiveTo))
             .ToListAsync(cancellationToken);
+        var attendanceConfiguration = await context.AttendancePolicyVersionConfigurations.AsNoTracking()
+            .Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId)
+            .Select(x => new AttendancePolicyVersionConfigurationDTO
+            {
+                AttendanceLocationScope = (AttendanceLocationScope)x.AttendanceLocationScope,
+                AllowBiometric = x.AllowBiometric,
+                AllowMobile = x.AllowMobile,
+                AllowWeb = x.AllowWeb,
+                AllowManualAttendance = x.AllowManualAttendance,
+                AllowWorkFromHome = x.AllowWorkFromHome,
+                RequireGeoFenceForOffice = x.RequireGeoFenceForOffice,
+                RequireGpsForRemote = x.RequireGpsForRemote,
+                AllowOutsideLocationWithApproval = x.AllowOutsideLocationWithApproval
+            })
+            .FirstOrDefaultAsync(cancellationToken);
         return new PolicyDetailResponseDTO(policy.Id, policy.PolicyCode, policy.PolicyName,
             policy.Summary, policy.PolicyTypeId, policy.OwnerDepartmentId,
             policy.DefaultCurrencyCode, version.Id, version.VersionNumber,
             version.PolicyStatusId, status, version.EffectiveFrom, version.EffectiveTo,
-            version.ChangeSummary, rules, scopes);
+            version.ChangeSummary, rules, scopes, attendanceConfiguration);
     }
+
+    private async Task ValidateAttendanceConfigurationAsync(
+        long tenantId,
+        int policyTypeId,
+        AttendancePolicyVersionConfigurationDTO? configuration,
+        CancellationToken cancellationToken)
+    {
+        var categoryCode = await (from policyType in context.PolicyTypes.AsNoTracking()
+                                  join category in context.PolicyCategories.AsNoTracking()
+                                      on policyType.PolicyCategoryId equals category.Id
+                                  where policyType.Id == policyTypeId && policyType.TenantId == tenantId
+                                  select category.CategoryCode)
+            .FirstOrDefaultAsync(cancellationToken);
+        var isAttendance = string.Equals(categoryCode, AppConstants.PolicyCategoryCodes.Attendance, StringComparison.OrdinalIgnoreCase);
+        if (isAttendance && configuration == null)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.AttendancePolicyConfigurationRequired);
+        }
+        if (!isAttendance && configuration != null)
+        {
+            throw new ValidationErrorException("AttendanceConfiguration is allowed only for an Attendance policy type.");
+        }
+        if (configuration == null)
+        {
+            return;
+        }
+        if (!Enum.IsDefined(configuration.AttendanceLocationScope))
+        {
+            throw new ValidationErrorException("AttendanceLocationScope is invalid.");
+        }
+        if (!configuration.AllowBiometric && !configuration.AllowMobile
+            && !configuration.AllowWeb && !configuration.AllowManualAttendance)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.AttendancePolicyChannelRequired);
+        }
+    }
+
+    private async Task UpsertAttendanceConfigurationAsync(long tenantId, long actorId, long policyVersionId,
+        AttendancePolicyVersionConfigurationDTO? dto, DateTime now, CancellationToken cancellationToken)
+    {
+        var existing = context.AttendancePolicyVersionConfigurations.Local
+            .FirstOrDefault(x => x.PolicyVersionId == policyVersionId && x.TenantId == tenantId)
+            ?? await context.AttendancePolicyVersionConfigurations
+                .FirstOrDefaultAsync(x => x.PolicyVersionId == policyVersionId && x.TenantId == tenantId, cancellationToken);
+        if (dto == null)
+        {
+            if (existing != null)
+            {
+                context.AttendancePolicyVersionConfigurations.Remove(existing);
+            }
+            return;
+        }
+        if (existing == null)
+        {
+            context.AttendancePolicyVersionConfigurations.Add(
+                MapAttendanceConfiguration(tenantId, actorId, policyVersionId, dto, now));
+            return;
+        }
+        ApplyAttendanceConfiguration(existing, dto);
+        existing.UpdatedById = actorId;
+        existing.UpdatedDateTime = now;
+    }
+
+    private static AttendancePolicyVersionConfiguration MapAttendanceConfiguration(long tenantId, long actorId,
+        long policyVersionId, AttendancePolicyVersionConfigurationDTO dto, DateTime now)
+    {
+        var entity = new AttendancePolicyVersionConfiguration
+        {
+            TenantId = tenantId,
+            PolicyVersionId = policyVersionId,
+            AddedById = actorId,
+            AddedDateTime = now
+        };
+        ApplyAttendanceConfiguration(entity, dto);
+        return entity;
+    }
+
+    private static void ApplyAttendanceConfiguration(AttendancePolicyVersionConfiguration entity,
+        AttendancePolicyVersionConfigurationDTO dto)
+    {
+        entity.AttendanceLocationScope = (short)dto.AttendanceLocationScope;
+        entity.AllowBiometric = dto.AllowBiometric;
+        entity.AllowMobile = dto.AllowMobile;
+        entity.AllowWeb = dto.AllowWeb;
+        entity.AllowManualAttendance = dto.AllowManualAttendance;
+        entity.AllowWorkFromHome = dto.AllowWorkFromHome;
+        entity.RequireGeoFenceForOffice = dto.RequireGeoFenceForOffice;
+        entity.RequireGpsForRemote = dto.RequireGpsForRemote;
+        entity.AllowOutsideLocationWithApproval = dto.AllowOutsideLocationWithApproval;
+    }
+
+    private static AttendancePolicyVersionConfigurationDTO ToDto(AttendancePolicyVersionConfiguration entity) => new()
+    {
+        AttendanceLocationScope = (AttendanceLocationScope)entity.AttendanceLocationScope,
+        AllowBiometric = entity.AllowBiometric,
+        AllowMobile = entity.AllowMobile,
+        AllowWeb = entity.AllowWeb,
+        AllowManualAttendance = entity.AllowManualAttendance,
+        AllowWorkFromHome = entity.AllowWorkFromHome,
+        RequireGeoFenceForOffice = entity.RequireGeoFenceForOffice,
+        RequireGpsForRemote = entity.RequireGpsForRemote,
+        AllowOutsideLocationWithApproval = entity.AllowOutsideLocationWithApproval
+    };
 
     private void AddRulesAndApplicability(long tenantId, long actorId, long versionId, IEnumerable<PolicyRuleInputDTO> rules, IEnumerable<PolicyApplicabilityInputDTO> scopes, DateTime now)
     {

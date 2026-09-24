@@ -67,6 +67,16 @@ public partial class WorkforceDbContext
                 .HasForeignKey(e => e.PolicyId).OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<AttendancePolicyVersionConfiguration>(entity =>
+        {
+            entity.ToTable("AttendancePolicyVersionConfiguration", "axionpro");
+            entity.HasIndex(e => e.PolicyVersionId).IsUnique();
+            entity.HasIndex(e => new { e.TenantId, e.PolicyVersionId }).IsUnique();
+            entity.HasOne(e => e.PolicyVersion).WithOne(e => e.AttendanceConfiguration)
+                .HasForeignKey<AttendancePolicyVersionConfiguration>(e => e.PolicyVersionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<PolicyRule>(entity =>
         {
             entity.ToTable("PolicyRule", "axionpro");

@@ -1,23 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.ComponentModel.DataAnnotations;
+using axionpro.domain.Entity;
 
-namespace axionpro.application.DTOs.Attendance
+namespace axionpro.application.DTOs.Attendance;
+
+public sealed class AttendanceRequestDTO
 {
-    public class AttendanceRequestDTO
-    {
-        public long? Id { get; set; } // Primary Key
-        public int? EmployeeId { get; set; } // Foreign Key to Employee
-        public string? LoginId { get; set; } //  
-        public DateTime AttendanceDate { get; set; } // Date of Attendance
-        public int? AttendanceDeviceTypeId { get; set; } // Device Type (e.g., Mobile, Biometric)
-        public int? WorkstationTypeId { get; set; } // Workstation Type
-        public decimal? Latitude { get; set; } // Latitude for Geolocation
-        public decimal? Longitude { get; set; } // Longitude for Geolocation
-        public byte[]? ClickedImage { get; set; } // Path or URL of the Image
-
-    }
-
+    public AttendancePunchAction Action { get; set; }
+    public AttendanceChannel Channel { get; set; }
+    public long? TenantLocationId { get; set; }
+    [Range(-90, 90)] public decimal? Latitude { get; set; }
+    [Range(-180, 180)] public decimal? Longitude { get; set; }
+    [Range(0, 10000)] public decimal? AccuracyMeters { get; set; }
+    public DateTime? ClientOccurredAt { get; set; }
+    public Guid IdempotencyKey { get; set; }
 }
+
+public sealed record AttendancePunchResponseDTO(long Id, AttendancePunchAction Action,
+    AttendanceChannel Channel, DateOnly WorkDate, DateTime OccurredAtUtc,
+    long? TenantLocationId, decimal? DistanceFromLocationMeters, bool IsCurrentlyCheckedIn);
+
+public sealed record AttendancePunchItemDTO(long Id, AttendancePunchAction Action,
+    AttendanceChannel Channel, DateTime OccurredAtUtc, long? TenantLocationId);
+
+public sealed record AttendanceTodayResponseDTO(DateOnly WorkDate, bool IsCurrentlyCheckedIn,
+    IReadOnlyList<AttendancePunchItemDTO> Punches);

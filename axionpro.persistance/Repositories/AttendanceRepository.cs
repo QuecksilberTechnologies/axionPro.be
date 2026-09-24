@@ -1,141 +1,219 @@
-﻿using axionpro.application.Constants;
+using System.Data;
 using axionpro.application.DTOs.Attendance;
-using axionpro.application.DTOs.UserLogin;
+using axionpro.application.Exceptions;
+using axionpro.application.Features.AttendanceCmd;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace axionpro.persistance.Repositories
+namespace axionpro.persistance.Repositories;
+
+public sealed class AttendanceRepository(WorkforceDbContext context) : IAttendanceRepository
 {
-    public class AttendanceRepository : IAttendanceRepository
+    public async Task<AttendancePunchResponseDTO> MarkAsync(long tenantId, long employeeId,
+        AttendanceRequestDTO request, DateTime serverUtcNow, CancellationToken cancellationToken)
     {
-        private readonly WorkforceDbContext? _context;
-        private readonly ILogger? _logger;
-        public AttendanceRepository(WorkforceDbContext? context, ILogger<AttendanceRepository>? logger)
+        var existing = await context.EmployeeAttendancePunches.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.EmployeeId == employeeId
+                && x.IdempotencyKey == request.IdempotencyKey, cancellationToken);
+        if (existing != null) return Map(existing);
+
+        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+        var attendanceLockKey = unchecked((tenantId * 397) ^ employeeId);
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT pg_advisory_xact_lock({attendanceLockKey})", cancellationToken);
+
+        existing = await context.EmployeeAttendancePunches.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.EmployeeId == employeeId
+                && x.IdempotencyKey == request.IdempotencyKey, cancellationToken);
+        if (existing != null) return Map(existing);
+
+        if (!await context.Employees.AsNoTracking().AnyAsync(x => x.Id == employeeId
+            && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken))
+            throw new ValidationErrorException("The authenticated employee is not active.");
+
+        var utc = DateTime.SpecifyKind(serverUtcNow, DateTimeKind.Utc);
+        // Effective-dated attendance rules follow the employee's business day, not the UTC calendar day.
+        var initialTimeZoneId = request.TenantLocationId.HasValue
+            ? await context.TenantLocations.AsNoTracking()
+                .Where(x => x.Id == request.TenantLocationId.Value && x.TenantId == tenantId
+                    && x.IsActive && !x.IsSoftDeleted)
+                .Select(x => x.TimeZoneId).FirstOrDefaultAsync(cancellationToken)
+            : null;
+        initialTimeZoneId ??= await GetHeadOfficeTimeZoneAsync(tenantId, cancellationToken);
+        var utcDate = ConvertToWorkDate(utc, initialTimeZoneId);
+        var arrangements = await context.EmployeeWorkArrangements.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.EmployeeId == employeeId && x.IsActive
+                && !x.IsSoftDeleted && x.PolicyVersionId.HasValue
+                && x.EffectiveFrom <= utcDate && (!x.EffectiveTo.HasValue || x.EffectiveTo >= utcDate))
+            .ToListAsync(cancellationToken);
+        if (arrangements.Count != 1)
+            throw new ConflictException(arrangements.Count == 0
+                ? "No effective work arrangement is configured for today."
+                : "More than one effective work arrangement exists for today.");
+        var arrangement = arrangements[0];
+
+        var configuration = await context.AttendancePolicyVersionConfigurations.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.TenantId == tenantId
+                && x.PolicyVersionId == arrangement.PolicyVersionId!.Value, cancellationToken)
+            ?? throw new ValidationErrorException("The effective Attendance policy has no execution configuration.");
+        if (request.Channel == AttendanceChannel.Mobile && !configuration.AllowMobile
+            || request.Channel == AttendanceChannel.Web && !configuration.AllowWeb)
+            throw new ForbiddenAccessException("The selected attendance channel is disabled by policy.");
+
+        var locationId = request.TenantLocationId ?? arrangement.PrimaryTenantLocationId;
+        var workMode = (WorkMode)arrangement.WorkMode;
+        TenantLocation? location = null;
+        if (workMode == WorkMode.WorkFromHome)
         {
-            _context = context;
-            _logger = logger;
-        }     
-
-      
-            public  async Task<UserAttendanceSetting?> GetUserAttendanceSettingByIdAsync(AttendanceRequestDTO attendanceRequestDTO)
-            {
-                try
-                {
-                    // Validate context
-                    if (_context == null)
-                    {
-                        _logger?.LogError("Database context is null.");
-                        throw new InvalidOperationException("Database context is not initialized.");
-                    }
-
-                    // Log the incoming request details
-                    _logger?.LogInformation("Fetching UserAttendanceSetting for EmployeeId: {EmployeeId}, DeviceTypeId: {DeviceTypeId}, WorkstationTypeId: {WorkstationTypeId}",
-                        attendanceRequestDTO.EmployeeId, attendanceRequestDTO.AttendanceDeviceTypeId, attendanceRequestDTO.WorkstationTypeId);
-             //   2  desktop or 1 office
-                    // Fetch UserAttendanceSetting
-                    var userAttendanceSetting = await _context.UserAttendanceSettings
-                        .FirstOrDefaultAsync(uas => uas.EmployeeId == attendanceRequestDTO.EmployeeId
-                            && uas.AttendanceDeviceTypeId == attendanceRequestDTO.AttendanceDeviceTypeId
-                            && uas.WorkstationTypeId == attendanceRequestDTO.WorkstationTypeId
-                            && uas.IsActive);
-
-                    // If no record found, log and return null
-                    if (userAttendanceSetting == null)
-                    {
-                        _logger?.LogWarning("No UserAttendanceSetting found for EmployeeId: {EmployeeId}, DeviceTypeId: {DeviceTypeId}, WorkstationTypeId: {WorkstationTypeId}.",
-                            attendanceRequestDTO.EmployeeId, attendanceRequestDTO.AttendanceDeviceTypeId, attendanceRequestDTO.WorkstationTypeId);
-                        return null;
-                    }
-           
-
-                // Check EmployeeDailyAttendance for matching conditions
-                //    var isAttendanceMarked = await _context.EmployeeDailyAttendances.AnyAsync(eda => eda.EmployeeId == attendanceRequestDTO.EmployeeId);
-
-                // var marked =  await AddEmployeeAttendanceAsync(attendanceRequestDTO);
-
-
-
-                //var isBreakCondition = await _context.EmployeeDailyAttendances.AnyAsync(eda => eda.EmployeeId == attendanceRequestDTO.EmployeeId
-                //        && eda.WorkstationTypeId == 1
-                //        && userAttendanceSetting.WorkstationTypeId == 1 && eda.IsMarked);
-
-
-                return userAttendanceSetting;
-                }
-                catch (Exception ex)
-                {
-                    // Log exception details
-                    _logger?.LogError(ex, "Error occurred while fetching UserAttendanceSetting.");
-                    throw; // Re-throw the exception to be handled by the caller
-                }
-            }
-
-
-
-
-
-
-
-        public async Task<bool> AddEmployeeAttendanceAsync(AttendanceRequestDTO attendanceRequestDTO)
+            if (!configuration.AllowWorkFromHome || request.TenantLocationId.HasValue)
+                throw new ForbiddenAccessException("Work From Home attendance is not allowed by policy.");
+        }
+        else
         {
-            try
+            if (!locationId.HasValue) throw new ValidationErrorException("A work location is required.");
+            location = await context.TenantLocations.AsNoTracking().FirstOrDefaultAsync(x =>
+                x.Id == locationId.Value && x.TenantId == tenantId && x.IsActive
+                && !x.IsSoftDeleted && x.IsAttendanceAllowed, cancellationToken)
+                ?? throw new ValidationErrorException("The attendance location is invalid or disabled.");
+            await ValidateLocationScopeAsync(configuration, arrangement, employeeId, location.Id, utcDate, cancellationToken);
+        }
+
+        var requireGps = workMode == WorkMode.WorkFromHome
+            ? configuration.RequireGpsForRemote
+            : configuration.RequireGeoFenceForOffice;
+        decimal? distance = null;
+        if (requireGps)
+        {
+            if (!request.Latitude.HasValue || !request.Longitude.HasValue)
+                throw new ValidationErrorException("GPS coordinates are required by the Attendance policy.");
+            if (location != null && configuration.RequireGeoFenceForOffice)
             {
-                // Validation logic...
-
-                // Check if attendance already exists
-                /*
-                bool isAttendanceExists = await _context.EmployeeDailyAttendances.AnyAsync(eda =>
-                    eda.EmployeeId == attendanceRequestDTO.EmployeeId.Value &&
-                    eda.AttendanceDate.Date == attendanceRequestDTO.AttendanceDate.Date &&
-                    eda.WorkstationTypeId == attendanceRequestDTO.WorkstationTypeId.Value);
-
-                if (isAttendanceExists)
-                {
-                    _logger?.LogInformation("Attendance already exists for EmployeeId: {EmployeeId} on {AttendanceDate}.", attendanceRequestDTO.EmployeeId, attendanceRequestDTO.AttendanceDate.Date);
-                    return false; // Prevent duplicate entry
-                }
-                */
-
-                // Map DTO to Entity
-                var newAttendance = new EmployeeDailyAttendance
-                {
-                    EmployeeId = attendanceRequestDTO.EmployeeId.Value,
-                    AttendanceDate = attendanceRequestDTO.AttendanceDate,
-                    AttendanceDeviceTypeId = attendanceRequestDTO.AttendanceDeviceTypeId.Value,
-                    WorkstationTypeId = attendanceRequestDTO.WorkstationTypeId.Value,
-                    Latitude = (double?)attendanceRequestDTO.Latitude,
-                    Longitude = (double?)attendanceRequestDTO.Longitude,
-                    ClickedImage = attendanceRequestDTO.ClickedImage,
-                    IsLate = false, // Default
-                    IsActive = true,
-                    IsMarked = true,
-                    AddedById = attendanceRequestDTO.EmployeeId.Value,
-                    AddedDateTime = DateTime.UtcNow
-                };
-
-                // Save record
-                await _context.EmployeeDailyAttendances.AddAsync(newAttendance);
-                await _context.SaveChangesAsync();
-
-                _logger?.LogInformation("Attendance record added successfully for EmployeeId: {EmployeeId}.", attendanceRequestDTO.EmployeeId);
-                return true; // Success
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "An error occurred while adding attendance for EmployeeId: {EmployeeId}.", attendanceRequestDTO.EmployeeId);
-                throw; // Re-throw exception after logging
+                if (!location.Latitude.HasValue || !location.Longitude.HasValue
+                    || !location.GeoFenceRadiusMeters.HasValue || location.GeoFenceRadiusMeters <= 0)
+                    throw new ValidationErrorException("The selected location has no complete geofence configuration.");
+                distance = (decimal)DistanceMeters((double)request.Latitude.Value, (double)request.Longitude.Value,
+                    (double)location.Latitude.Value, (double)location.Longitude.Value);
+                if (distance > location.GeoFenceRadiusMeters.Value + (request.AccuracyMeters ?? 0))
+                    throw new ForbiddenAccessException("You are outside the allowed attendance geofence.");
             }
         }
 
+        var timeZoneId = location?.TimeZoneId ?? await context.TenantLocations.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.IsHeadOffice && x.IsActive && !x.IsSoftDeleted)
+            .Select(x => x.TimeZoneId).FirstOrDefaultAsync(cancellationToken) ?? "UTC";
+        var workDate = ConvertToWorkDate(utc, timeZoneId);
+        if (workDate != utcDate)
+            throw new ConflictException("The location business date differs from the effective work arrangement date. Refresh and try again.");
+
+        var last = await context.EmployeeAttendancePunches.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.EmployeeId == employeeId && x.WorkDate == workDate)
+            .OrderByDescending(x => x.OccurredAtUtc).ThenByDescending(x => x.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+        var lastAction = last == null ? (AttendancePunchAction?)null : (AttendancePunchAction)last.PunchAction;
+        var checkedIn = lastAction == AttendancePunchAction.CheckIn;
+        if (!AttendancePunchRules.IsAllowedTransition(lastAction, request.Action)
+            && request.Action == AttendancePunchAction.CheckIn)
+            throw new ConflictException("Employee is already checked in.");
+        if (!AttendancePunchRules.IsAllowedTransition(lastAction, request.Action)
+            && request.Action == AttendancePunchAction.CheckOut)
+            throw new ConflictException("Check-in is required before check-out.");
+
+        var entity = new EmployeeAttendancePunch
+        {
+            TenantId = tenantId, EmployeeId = employeeId, EmployeeWorkArrangementId = arrangement.Id,
+            PolicyVersionId = arrangement.PolicyVersionId.Value, TenantLocationId = locationId,
+            WorkDate = workDate, OccurredAtUtc = utc, ClientOccurredAt = request.ClientOccurredAt,
+            Channel = (short)request.Channel, PunchAction = (short)request.Action,
+            Latitude = request.Latitude, Longitude = request.Longitude, AccuracyMeters = request.AccuracyMeters,
+            DistanceFromLocationMeters = distance, IdempotencyKey = request.IdempotencyKey,
+            AddedById = employeeId, AddedDateTime = utc
+        };
+        context.EmployeeAttendancePunches.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return Map(entity);
     }
+
+    public async Task<AttendanceTodayResponseDTO> GetTodayAsync(long tenantId, long employeeId,
+        DateTime serverUtcNow, CancellationToken cancellationToken)
+    {
+        if (!await context.Employees.AsNoTracking().AnyAsync(x => x.Id == employeeId
+            && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken))
+            throw new ValidationErrorException("The authenticated employee is not active.");
+
+        var utc = DateTime.SpecifyKind(serverUtcNow, DateTimeKind.Utc);
+        var workDate = ConvertToWorkDate(utc,
+            await GetHeadOfficeTimeZoneAsync(tenantId, cancellationToken));
+        var punches = await context.EmployeeAttendancePunches.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.EmployeeId == employeeId
+                && x.WorkDate == workDate)
+            .OrderBy(x => x.OccurredAtUtc).ThenBy(x => x.Id)
+            .Select(x => new AttendancePunchItemDTO(x.Id,
+                (AttendancePunchAction)x.PunchAction, (AttendanceChannel)x.Channel,
+                x.OccurredAtUtc, x.TenantLocationId))
+            .ToListAsync(cancellationToken);
+
+        return new AttendanceTodayResponseDTO(workDate,
+            punches.LastOrDefault()?.Action == AttendancePunchAction.CheckIn, punches);
+    }
+
+    private async Task ValidateLocationScopeAsync(AttendancePolicyVersionConfiguration configuration,
+        EmployeeWorkArrangement arrangement, long employeeId, long locationId, DateOnly date,
+        CancellationToken cancellationToken)
+    {
+        var scope = (AttendanceLocationScope)configuration.AttendanceLocationScope;
+        if (scope == AttendanceLocationScope.RemoteAnywhere)
+            throw new ForbiddenAccessException("This policy permits remote attendance only.");
+        if (scope == AttendanceLocationScope.PrimaryLocationOnly
+            && arrangement.PrimaryTenantLocationId != locationId)
+            throw new ForbiddenAccessException("Attendance is allowed only at the primary location.");
+        if (scope == AttendanceLocationScope.AssignedLocations
+            && !await context.EmployeeLocationAssignments.AsNoTracking().AnyAsync(x =>
+                x.TenantId == arrangement.TenantId && x.EmployeeId == employeeId
+                && x.TenantLocationId == locationId && x.IsAttendanceAllowed && x.IsActive
+                && !x.IsSoftDeleted && x.EffectiveFrom <= date
+                && (!x.EffectiveTo.HasValue || x.EffectiveTo >= date), cancellationToken))
+            throw new ForbiddenAccessException("The location is not assigned to this employee.");
+    }
+
+    private static double DistanceMeters(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double radius = 6371000;
+        static double Rad(double value) => value * Math.PI / 180;
+        var dLat = Rad(lat2 - lat1); var dLon = Rad(lon2 - lon1);
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+            + Math.Cos(Rad(lat1)) * Math.Cos(Rad(lat2)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        return radius * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+    }
+
+    private async Task<string> GetHeadOfficeTimeZoneAsync(long tenantId,
+        CancellationToken cancellationToken)
+    {
+        return await context.TenantLocations.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.IsHeadOffice && x.IsActive && !x.IsSoftDeleted)
+            .Select(x => x.TimeZoneId).FirstOrDefaultAsync(cancellationToken) ?? "UTC";
+    }
+
+    private static DateOnly ConvertToWorkDate(DateTime utc, string timeZoneId)
+    {
+        try
+        {
+            return DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, timeZoneId));
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            throw new ValidationErrorException("The work location time zone is invalid.");
+        }
+        catch (InvalidTimeZoneException)
+        {
+            throw new ValidationErrorException("The work location time zone is invalid.");
+        }
+    }
+
+    private static AttendancePunchResponseDTO Map(EmployeeAttendancePunch x) => new(x.Id,
+        (AttendancePunchAction)x.PunchAction, (AttendanceChannel)x.Channel, x.WorkDate,
+        x.OccurredAtUtc, x.TenantLocationId, x.DistanceFromLocationMeters,
+        x.PunchAction == (short)AttendancePunchAction.CheckIn);
 }
-                            
