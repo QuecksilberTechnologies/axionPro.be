@@ -196,10 +196,12 @@ Apply `database-scripts/AddPolicyVersionToEmployeeWorkArrangement.sql` before de
 ## Verification status — 2026-09-24
 
 - API project build: PASS, 0 errors; existing repository warnings remain.
-- New endpoint contract tests: PASS, 4/4.
-- Combined Employee Work Arrangement and Policy Framework regression selection: PASS, 23/23.
+- Employee Work Arrangement focused backend tests: PASS, 9/9.
+- Angular form schema tests: PASS, 9/9.
+- Angular production build: PASS; existing bundle-budget warnings remain.
 - Local HTTP without token: PASS, HTTP 401 with standard `UNAUTHORIZED` response.
-- Authenticated database result/isolation call: not run because no test credential was supplied in this run.
+- Additive DB migration: PASS on the configured target; nullable bigint column, FK, index and nullable legacy column verified.
+- Authenticated create/read-back: not run because matching API/UI builds have not yet been deployed.
 - Deployed verification: not run.
 
-Scenario evidence: [initial implementation — 2026-09-23](../testing/employee-work-arrangement/attendance-policy-options/2026-09-23.md); [permission-pipeline regression — 2026-09-24](../testing/employee-work-arrangement/attendance-policy-options/2026-09-24.md).
+Scenario evidence: [initial implementation — 2026-09-23](../testing/employee-work-arrangement/attendance-policy-options/2026-09-23.md); [permission-pipeline regression — 2026-09-24](../testing/employee-work-arrangement/attendance-policy-options/2026-09-24.md); [PolicyVersion persistence — 2026-09-24](../testing/employee-work-arrangement/policy-version-persistence/2026-09-24.md).
