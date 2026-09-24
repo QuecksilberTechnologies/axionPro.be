@@ -58,6 +58,14 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
                 validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
         }
 
+        // This dropdown only exposes active, published Attendance policy options for the
+        // Tenant resolved from the authenticated token. It has no module operation of its
+        // own, so the validated Tenant context is its complete authorization boundary.
+        if (typeof(TRequest) == typeof(EmployeeWorkInfo.Handlers.GetAttendancePolicyOptionsQuery))
+        {
+            return await next();
+        }
+
         var permissionRequest = ResolvePermissionRequest(request);
         if (permissionRequest is null)
         {

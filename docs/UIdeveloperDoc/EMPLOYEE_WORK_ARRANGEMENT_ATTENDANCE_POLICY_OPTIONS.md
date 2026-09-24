@@ -158,4 +158,4 @@ The current Work Arrangement create/update DTO still exposes legacy `AttendanceP
 - Authenticated database result/isolation call: not run because no test credential was supplied in this run.
 - Deployed verification: not run.
 
-Scenario evidence: [2026-09-23](../testing/employee-work-arrangement/attendance-policy-options/2026-09-23.md).
+Scenario evidence: [initial implementation — 2026-09-23](../testing/employee-work-arrangement/attendance-policy-options/2026-09-23.md); [permission-pipeline regression — 2026-09-24](../testing/employee-work-arrangement/attendance-policy-options/2026-09-24.md).
