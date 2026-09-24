@@ -46,6 +46,7 @@ public sealed class TenantEmailTemplateContractTests
             Assert.That(routes, Does.Contain("GET:get-by-id/{id:int}"));
             Assert.That(routes, Does.Contain("POST:update"));
             Assert.That(routes, Does.Contain("POST:update-status"));
+            Assert.That(routes, Does.Contain("POST:sync"));
             Assert.That(routes, Does.Contain("DELETE:delete/{id:int}"));
         });
     }

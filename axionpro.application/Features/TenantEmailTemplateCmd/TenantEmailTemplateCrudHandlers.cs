@@ -32,6 +32,12 @@ public sealed record UpdateTenantEmailTemplateStatusCommand(UpdateTenantEmailTem
     public PermissionRequestDTO? PermissionRequest => DTO?.PermissionRequest;
 }
 
+public sealed record SyncTenantEmailTemplatesCommand(SyncTenantEmailTemplatesRequestDTO? DTO)
+    : IRequest<ApiResponse<SyncTenantEmailTemplatesResponseDTO>>, ITenantEmailTemplatePermissionRequest
+{
+    public PermissionRequestDTO? PermissionRequest => DTO?.PermissionRequest;
+}
+
 public sealed record DeleteTenantEmailTemplateCommand(int Id, PermissionRequestDTO? PermissionRequest)
     : IRequest<ApiResponse<bool>>, ITenantEmailTemplatePermissionRequest;
 
@@ -120,6 +126,81 @@ public sealed class DeleteTenantEmailTemplateCommandHandler(IUnitOfWork unitOfWo
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmailTemplateDeleted);
     }
+}
+
+public sealed class SyncTenantEmailTemplatesCommandHandler(
+    IUnitOfWork unitOfWork,
+    ICommonRequestService commonRequestService)
+    : IRequestHandler<SyncTenantEmailTemplatesCommand, ApiResponse<SyncTenantEmailTemplatesResponseDTO>>
+{
+    public async Task<ApiResponse<SyncTenantEmailTemplatesResponseDTO>> Handle(
+        SyncTenantEmailTemplatesCommand request,
+        CancellationToken cancellationToken)
+    {
+        _ = request.DTO ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        var actor = await TenantEmailTemplateActor.GetAsync(commonRequestService);
+        var defaultTemplates = await unitOfWork.EmailTemplateRepository.GetActiveTemplatesAsync(cancellationToken);
+        var existingCodes = await unitOfWork.TenantEmailTemplateRepository.GetTemplateCodesAsync(
+            actor.TenantId,
+            cancellationToken);
+        var existingCodeSet = existingCodes
+            .Where(code => !string.IsNullOrWhiteSpace(code))
+            .Select(code => code.Trim())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var missingTemplates = defaultTemplates
+            .Where(template =>
+                ConstantValues.IsSupportedEmailTemplateCode(template.TemplateCode) &&
+                !existingCodeSet.Contains(template.TemplateCode!.Trim()))
+            .GroupBy(template => template.TemplateCode!.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.OrderByDescending(template => template.AddedDateTime)
+                .ThenByDescending(template => template.Id)
+                .First())
+            .Select(template => CopyDefaultTemplate(template, actor.TenantId, actor.EmployeeId))
+            .ToList();
+
+        if (missingTemplates.Count > 0)
+        {
+            await unitOfWork.TenantEmailTemplateRepository.AddRangeAsync(missingTemplates, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        var response = new SyncTenantEmailTemplatesResponseDTO
+        {
+            ActiveDefaultTemplateCount = defaultTemplates.Count,
+            ExistingTenantTemplateCount = existingCodeSet.Count,
+            InsertedTemplateCount = missingTemplates.Count,
+            InsertedTemplateCodes = missingTemplates
+                .Select(template => template.TemplateCode!)
+                .OrderBy(code => code)
+                .ToList()
+        };
+
+        return ApiResponse<SyncTenantEmailTemplatesResponseDTO>.Success(
+            response,
+            AppConstants.SuccessMessages.TenantEmailTemplatesSynchronized);
+    }
+
+    private static TenantEmailTemplate CopyDefaultTemplate(
+        EmailTemplate source,
+        long tenantId,
+        long employeeId) => new()
+    {
+        TenantId = tenantId,
+        TemplateName = source.TemplateName,
+        TemplateCode = source.TemplateCode!.Trim().ToUpperInvariant(),
+        Subject = source.Subject,
+        Body = source.Body,
+        FromEmail = source.FromEmail,
+        FromName = source.FromName,
+        CcEmail = source.CcEmail,
+        BccEmail = source.BccEmail,
+        Category = source.Category,
+        LanguageCode = source.LanguageCode,
+        IsActive = true,
+        AddedById = employeeId,
+        AddedDateTime = DateTime.UtcNow
+    };
 }
 
 public sealed class GetTenantEmailTemplateByIdQueryHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, IMapper mapper)

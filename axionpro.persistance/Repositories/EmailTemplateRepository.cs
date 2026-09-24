@@ -37,6 +37,14 @@ public sealed class EmailTemplateRepository(WorkforceDbContext context) : IEmail
             .AsNoTracking()
             .FirstOrDefaultAsync(template => template.Id == id, cancellationToken);
 
+    public Task<List<EmailTemplate>> GetActiveTemplatesAsync(CancellationToken cancellationToken = default) =>
+        context.EmailTemplates
+            .AsNoTracking()
+            .Where(template => template.IsActive && template.TemplateCode != null)
+            .OrderBy(template => template.TemplateCode)
+            .ThenBy(template => template.Id)
+            .ToListAsync(cancellationToken);
+
     public Task<EmailTemplate?> GetForUpdateAsync(int id, CancellationToken cancellationToken = default) =>
         context.EmailTemplates
             .FirstOrDefaultAsync(template => template.Id == id, cancellationToken);

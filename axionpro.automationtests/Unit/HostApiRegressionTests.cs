@@ -715,6 +715,129 @@ public sealed class HostApiRegressionTests
     }
 
     [Test]
+    [Category("TenantEmailTemplate")]
+    public async Task Tenant_template_sync_inserts_only_missing_active_defaults_and_preserves_inactive_existing_code()
+    {
+        var inserted = new List<TenantEmailTemplate>();
+        var defaultRepository = CreateProxy<IEmailTemplateRepository>((method, _) => method.Name switch
+        {
+            nameof(IEmailTemplateRepository.GetActiveTemplatesAsync) => Task.FromResult(new List<EmailTemplate>
+            {
+                new() { Id = 1, TemplateCode = ConstantValues.WelcomeEmail, TemplateName = "Welcome", Subject = "Welcome", Body = "Body", IsActive = true },
+                new() { Id = 2, TemplateCode = ConstantValues.ForgotPasswordEmail, TemplateName = "Forgot", Subject = "Reset", Body = "Body", IsActive = true }
+            }),
+            _ => throw new AssertionException($"Unexpected default-template repository call: {method.Name}.")
+        });
+        var tenantRepository = CreateProxy<ITenantEmailTemplateRepository>((method, args) => method.Name switch
+        {
+            nameof(ITenantEmailTemplateRepository.GetTemplateCodesAsync) =>
+                Task.FromResult(new List<string> { ConstantValues.WelcomeEmail }),
+            nameof(ITenantEmailTemplateRepository.AddRangeAsync) => CaptureTemplates(args, inserted),
+            _ => throw new AssertionException($"Unexpected Tenant-template repository call: {method.Name}.")
+        });
+        var unitOfWork = CreateProxy<IUnitOfWork>((method, _) => method.Name switch
+        {
+            "get_EmailTemplateRepository" => defaultRepository,
+            "get_TenantEmailTemplateRepository" => tenantRepository,
+            nameof(IUnitOfWork.SaveChangesAsync) => Task.FromResult(1),
+            _ => throw new AssertionException($"Unexpected unit-of-work call: {method.Name}.")
+        });
+        var commonRequestService = CreateProxy<ICommonRequestService>((method, _) => method.Name switch
+        {
+            nameof(ICommonRequestService.ValidateTenantUserRequestAsync) => Task.FromResult(new CommonDecodedResult
+            {
+                Success = true,
+                TenantId = 71,
+                LoggedInEmployeeId = 12
+            }),
+            _ => throw new AssertionException($"Unexpected common-request call: {method.Name}.")
+        });
+        var handler = new axionpro.application.Features.TenantEmailTemplateCmd.SyncTenantEmailTemplatesCommandHandler(
+            unitOfWork,
+            commonRequestService);
+
+        var result = await handler.Handle(
+            new axionpro.application.Features.TenantEmailTemplateCmd.SyncTenantEmailTemplatesCommand(
+                new axionpro.application.DTOs.EmailTemplate.SyncTenantEmailTemplatesRequestDTO
+                {
+                    PermissionRequest = new PermissionRequestDTO { ModuleId = 119, OperationId = 1 }
+                }),
+            CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSucceeded, Is.True);
+            Assert.That(result.Data.ActiveDefaultTemplateCount, Is.EqualTo(2));
+            Assert.That(result.Data.ExistingTenantTemplateCount, Is.EqualTo(1));
+            Assert.That(result.Data.InsertedTemplateCount, Is.EqualTo(1));
+            Assert.That(inserted.Single().TemplateCode, Is.EqualTo(ConstantValues.ForgotPasswordEmail));
+            Assert.That(inserted.Single().TenantId, Is.EqualTo(71));
+            Assert.That(inserted.Single().IsActive, Is.True);
+        });
+    }
+
+    [Test]
+    [Category("TenantEmailTemplate")]
+    public async Task Tenant_template_sync_is_idempotent_when_every_active_default_code_exists()
+    {
+        var defaultRepository = CreateProxy<IEmailTemplateRepository>((method, _) => method.Name switch
+        {
+            nameof(IEmailTemplateRepository.GetActiveTemplatesAsync) => Task.FromResult(new List<EmailTemplate>
+            {
+                new() { Id = 1, TemplateCode = ConstantValues.WelcomeEmail, TemplateName = "Welcome", Subject = "Welcome", Body = "Body", IsActive = true }
+            }),
+            _ => throw new AssertionException($"Unexpected default-template repository call: {method.Name}.")
+        });
+        var tenantRepository = CreateProxy<ITenantEmailTemplateRepository>((method, _) => method.Name switch
+        {
+            nameof(ITenantEmailTemplateRepository.GetTemplateCodesAsync) =>
+                Task.FromResult(new List<string> { ConstantValues.WelcomeEmail }),
+            nameof(ITenantEmailTemplateRepository.AddRangeAsync) => throw new AssertionException("No templates should be inserted."),
+            _ => throw new AssertionException($"Unexpected Tenant-template repository call: {method.Name}.")
+        });
+        var unitOfWork = CreateProxy<IUnitOfWork>((method, _) => method.Name switch
+        {
+            "get_EmailTemplateRepository" => defaultRepository,
+            "get_TenantEmailTemplateRepository" => tenantRepository,
+            nameof(IUnitOfWork.SaveChangesAsync) => throw new AssertionException("SaveChanges should not run when no templates are missing."),
+            _ => throw new AssertionException($"Unexpected unit-of-work call: {method.Name}.")
+        });
+        var commonRequestService = CreateProxy<ICommonRequestService>((method, _) => method.Name switch
+        {
+            nameof(ICommonRequestService.ValidateTenantUserRequestAsync) => Task.FromResult(new CommonDecodedResult
+            {
+                Success = true,
+                TenantId = 71,
+                LoggedInEmployeeId = 12
+            }),
+            _ => throw new AssertionException($"Unexpected common-request call: {method.Name}.")
+        });
+        var handler = new axionpro.application.Features.TenantEmailTemplateCmd.SyncTenantEmailTemplatesCommandHandler(
+            unitOfWork,
+            commonRequestService);
+
+        var result = await handler.Handle(
+            new axionpro.application.Features.TenantEmailTemplateCmd.SyncTenantEmailTemplatesCommand(
+                new axionpro.application.DTOs.EmailTemplate.SyncTenantEmailTemplatesRequestDTO
+                {
+                    PermissionRequest = new PermissionRequestDTO { ModuleId = 119, OperationId = 1 }
+                }),
+            CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Data.InsertedTemplateCount, Is.Zero);
+            Assert.That(result.Data.InsertedTemplateCodes, Is.Empty);
+        });
+    }
+
+    private static Task CaptureTemplates(object?[]? arguments, List<TenantEmailTemplate> destination)
+    {
+        destination.AddRange((IEnumerable<TenantEmailTemplate>)arguments![0]!);
+        return Task.CompletedTask;
+    }
+
+    [Test]
     public void Onboarding_credential_lookup_uses_only_the_current_tenant_email_and_active_employee()
     {
         var tenant = CreateTenant(isVerified: false, credentialIsOnboard: false);

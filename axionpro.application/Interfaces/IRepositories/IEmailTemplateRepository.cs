@@ -13,6 +13,7 @@ public interface IEmailTemplateRepository
     /// Gets an active template by its business code for the existing mail-delivery flow.
     /// </summary>
     Task<EmailTemplate?> GetTemplateByCodeAsync(string templateCode, CancellationToken cancellationToken = default);
+    Task<List<EmailTemplate>> GetActiveTemplatesAsync(CancellationToken cancellationToken = default);
 
     Task<EmailTemplate?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<EmailTemplate?> GetForUpdateAsync(int id, CancellationToken cancellationToken = default);

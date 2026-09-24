@@ -30,6 +30,19 @@ public sealed class UpdateTenantEmailTemplateStatusRequestDTO
     public PermissionRequestDTO? PermissionRequest { get; set; }
 }
 
+public sealed class SyncTenantEmailTemplatesRequestDTO
+{
+    public PermissionRequestDTO? PermissionRequest { get; set; }
+}
+
+public sealed class SyncTenantEmailTemplatesResponseDTO
+{
+    public int ActiveDefaultTemplateCount { get; init; }
+    public int ExistingTenantTemplateCount { get; init; }
+    public int InsertedTemplateCount { get; init; }
+    public IReadOnlyList<string> InsertedTemplateCodes { get; init; } = [];
+}
+
 public sealed class TenantEmailTemplateListRequestDTO : PermissionRequestDTO
 {
     public string? Search { get; set; }

@@ -11,6 +11,8 @@ public interface ITenantEmailTemplateRepository
     Task<TenantEmailTemplate?> GetForUpdateAsync(long tenantId, int id, CancellationToken cancellationToken = default);
     Task<PagedResponseDTO<TenantEmailTemplate>> GetPagedAsync(long tenantId, TenantEmailTemplateListRequestDTO filter, CancellationToken cancellationToken = default);
     Task<bool> TemplateCodeExistsAsync(long tenantId, string templateCode, int? excludedId = null, CancellationToken cancellationToken = default);
+    Task<List<string>> GetTemplateCodesAsync(long tenantId, CancellationToken cancellationToken = default);
     Task AddAsync(TenantEmailTemplate template, CancellationToken cancellationToken = default);
+    Task AddRangeAsync(IEnumerable<TenantEmailTemplate> templates, CancellationToken cancellationToken = default);
     void Remove(TenantEmailTemplate template);
 }

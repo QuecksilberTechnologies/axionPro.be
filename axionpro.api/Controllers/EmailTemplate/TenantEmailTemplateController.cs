@@ -68,6 +68,20 @@ public sealed class TenantEmailTemplateController(IMediator mediator) : Controll
             cancellationToken));
     }
 
+    /// <summary>
+    /// Copies active default templates that do not already exist for the authenticated Tenant.
+    /// Existing active or inactive Tenant templates are left unchanged. Requires Add permission.
+    /// </summary>
+    [HttpPost("sync")]
+    public async Task<IActionResult> Sync(
+        [FromBody] SyncTenantEmailTemplatesRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await mediator.Send(
+            new SyncTenantEmailTemplatesCommand(dto),
+            cancellationToken));
+    }
+
     /// <summary>Deletes an inactive template from the authenticated Tenant.</summary>
     [HttpDelete("delete/{id:int}")]
     public async Task<IActionResult> Delete(

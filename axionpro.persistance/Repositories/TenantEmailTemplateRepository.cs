@@ -70,8 +70,22 @@ public sealed class TenantEmailTemplateRepository(WorkforceDbContext context) : 
             x.TemplateCode.ToUpper() == code && (!excludedId.HasValue || x.Id != excludedId.Value), cancellationToken);
     }
 
+    public Task<List<string>> GetTemplateCodesAsync(
+        long tenantId,
+        CancellationToken cancellationToken = default) =>
+        context.TenantEmailTemplates
+            .AsNoTracking()
+            .Where(template => template.TenantId == tenantId && template.TemplateCode != null)
+            .Select(template => template.TemplateCode!)
+            .ToListAsync(cancellationToken);
+
     public async Task AddAsync(TenantEmailTemplate template, CancellationToken cancellationToken = default) =>
         await context.TenantEmailTemplates.AddAsync(template, cancellationToken);
+
+    public async Task AddRangeAsync(
+        IEnumerable<TenantEmailTemplate> templates,
+        CancellationToken cancellationToken = default) =>
+        await context.TenantEmailTemplates.AddRangeAsync(templates, cancellationToken);
 
     public void Remove(TenantEmailTemplate template) => context.TenantEmailTemplates.Remove(template);
 }

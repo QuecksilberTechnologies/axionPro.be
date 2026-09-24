@@ -357,6 +357,7 @@ namespace axionpro.application.Constants
             public const string EmailTemplateStatusUpdated = "Email template status updated successfully.";
             public const string EmailTemplateDeleted = "Email template deleted successfully.";
             public const string EmailTemplateRetrieved = "Email templates retrieved successfully.";
+            public const string TenantEmailTemplatesSynchronized = "Missing tenant email templates synchronized successfully.";
             public const string DefaultEmailConfigCreated = "Default email configuration created successfully.";
             public const string DefaultEmailConfigUpdated = "Default email configuration updated successfully.";
             public const string DefaultEmailConfigDeleted = "Default email configuration deleted successfully.";

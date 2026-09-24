@@ -22,6 +22,7 @@ Supported mappings are View, Add, Update and Delete. `update-status` uses Update
 | GET | `/api/TenantEmailTemplate/get-by-id/{id}` | View |
 | POST | `/api/TenantEmailTemplate/update` | Update |
 | POST | `/api/TenantEmailTemplate/update-status` | Update |
+| POST | `/api/TenantEmailTemplate/sync` | Add |
 | DELETE | `/api/TenantEmailTemplate/delete/{id}` | Delete |
 
 ## Create JSON
@@ -92,6 +93,41 @@ Uses the create fields and adds `id`. Send the Update operation in `permissionRe
 ```
 
 Delete requires the template to be inactive. The delete permission values are query parameters. There is no upload, FormData, Excel/CSV, polling, retry, or cancellation workflow in this API.
+
+## Sync missing templates
+
+```http
+POST /api/TenantEmailTemplate/sync
+Authorization: Bearer <access-token>
+Content-Type: application/json
+```
+
+```json
+{
+  "permissionRequest": {
+    "moduleId": 119,
+    "operationId": 1
+  }
+}
+```
+
+Sync uses the existing Add permission. It reads active default templates and inserts only codes that are completely absent for the authenticated Tenant. An existing Tenant row blocks copying regardless of whether that row is active or inactive. A previously hard-deleted row is absent, so the next sync creates a fresh active row. Existing Tenant content is never updated or reactivated.
+
+Example response:
+
+```json
+{
+  "isSucceeded": true,
+  "message": "Missing tenant email templates synchronized successfully.",
+  "data": {
+    "activeDefaultTemplateCount": 5,
+    "existingTenantTemplateCount": 4,
+    "insertedTemplateCount": 1,
+    "insertedTemplateCodes": ["WELCOME_EMAIL"]
+  },
+  "errors": []
+}
+```
 
 ## Persistence
 
