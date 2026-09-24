@@ -79,6 +79,20 @@ namespace axionpro.infrastructure.CommonRequest
                 : module.ModuleCode.Trim();
         }
 
+        /// <summary>Resolves the canonical operation name used to bind HTTP actions to permissions.</summary>
+        public async Task<string?> GetActiveOperationNameAsync(int operationId)
+        {
+            if (operationId <= 0)
+            {
+                return null;
+            }
+
+            var operation = await _uow.OperationRepository.GetOperationByIdAsync(operationId);
+            return operation?.IsActive == true && !string.IsNullOrWhiteSpace(operation.OperationName)
+                ? operation.OperationName.Trim()
+                : null;
+        }
+
         /// <summary>
         /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
         /// </summary>

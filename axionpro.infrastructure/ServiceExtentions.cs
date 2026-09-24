@@ -43,6 +43,19 @@ namespace axionpro.infrastructure
                 .Validate(value => value.BatchTimeoutSeconds is >= 5 and <= 300,
                     "BulkImport:BatchTimeoutSeconds must be between 5 and 300.")
                 .ValidateOnStart();
+            services.AddOptions<axionpro.application.Common.Models.BillingOptions>()
+                .Bind(configuration.GetSection(axionpro.application.Common.Models.BillingOptions.SectionName))
+                .Validate(value => value.PaymentRetryCount is >= 1 and <= 10,
+                    "Billing:PaymentRetryCount must be between 1 and 10.")
+                .Validate(value => value.GracePeriodDays is >= 0 and <= 30,
+                    "Billing:GracePeriodDays must be between 0 and 30.")
+                .Validate(value => value.WebhookProcessingRetryCount is >= 1 and <= 20,
+                    "Billing:WebhookProcessingRetryCount must be between 1 and 20.")
+                .Validate(value => value.ReconciliationLookbackDays is >= 1 and <= 90,
+                    "Billing:ReconciliationLookbackDays must be between 1 and 90.")
+                .Validate(value => value.PaymentTimeoutMinutes is >= 5 and <= 1440,
+                    "Billing:PaymentTimeoutMinutes must be between 5 and 1440.")
+                .ValidateOnStart();
             services.AddHostedService<BulkImportWorker>();
             services.AddHostedService<EmailQueueWorker>();
             // Register background service

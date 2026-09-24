@@ -124,6 +124,8 @@ namespace axionpro.persistance
             services.AddScoped<ITenantEmailConfigRepository, TenantEmailConfigRepository>();
             services.AddScoped<IDefaultEmailConfigRepository, DefaultEmailConfigRepository>();
             services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+            services.AddScoped<IHostBillingConfigurationRepository, HostBillingConfigurationRepository>();
+            services.AddScoped<IHostBillingAdministrationRepository, HostBillingAdministrationRepository>();
             services.AddScoped<ITenantSubscriptionRepository, TenantSubscriptionRepository>();
             services.AddScoped<IPlanModuleMappingRepository, PlanModuleMappingRepository>();
             services.AddScoped<IModuleRepository, ModuleRepository>();

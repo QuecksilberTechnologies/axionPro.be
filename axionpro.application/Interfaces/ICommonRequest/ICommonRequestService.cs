@@ -30,6 +30,9 @@ namespace axionpro.application.Interfaces.ICommonRequest
         /// <returns>The module code, or <see langword="null"/> when the module does not exist.</returns>
         Task<string?> GetModuleCodeAsync(int moduleId);
 
+        /// <summary>Resolves the canonical name of an active operation.</summary>
+        Task<string?> GetActiveOperationNameAsync(int operationId);
+
         /// <summary>
         /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
         /// </summary>

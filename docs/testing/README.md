@@ -1,5 +1,6 @@
 # Scenario test reports
 
+- [Subscription billing foundation — 2026-09-24](billing/foundation/2026-09-24.md)
 - [Employee bulk invitation email smoke — 2026-09-24](bulk/employee-invitation-email/2026-09-24.md)
 - [All durable bulk targets — live smoke test — 2026-09-19](bulk/all-live-smoke/2026-09-19.md)
 - [Tenant Policy interactive HTML simulator — 2026-09-18](policy/interactive-html-simulator/2026-09-18.md)
