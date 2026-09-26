@@ -176,6 +176,22 @@ public sealed class EmployeeWorkModeOverrideController(IMediator mediator, ILogg
     [HttpPost("update")] public async Task<IActionResult> Update([FromBody] UpdateEmployeeWorkModeOverrideRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride update request."); return Ok(await Mediator.Send(new UpdateEmployeeWorkModeOverrideCommand(dto), ct)); }
     /// <summary>Activates or deactivates an override without deleting its audit history.</summary>
     [HttpPost("update-status")] public async Task<IActionResult> UpdateStatus([FromBody] UpdateEmployeeWorkModeOverrideStatusRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride status request."); return Ok(await Mediator.Send(new UpdateEmployeeWorkModeOverrideStatusCommand(dto), ct)); }
+    /// <summary>Approves or rejects a pending override after revalidating its dates and references.</summary>
+    /// <summary>Approves a pending work-mode override after revalidating its dates and dependencies.</summary>
+    [HttpPost("approve")]
+    public async Task<IActionResult> Approve([FromBody] EmployeeWorkModeOverrideDecisionRequestDTO dto, CancellationToken ct)
+    {
+        Logger.LogInfo("Received EmployeeWorkModeOverride approval request.");
+        return Ok(await Mediator.Send(new DecideEmployeeWorkModeOverrideCommand(dto, true), ct));
+    }
+
+    /// <summary>Rejects a pending work-mode override and records the mandatory rejection remark.</summary>
+    [HttpPost("reject")]
+    public async Task<IActionResult> Reject([FromBody] EmployeeWorkModeOverrideDecisionRequestDTO dto, CancellationToken ct)
+    {
+        Logger.LogInfo("Received EmployeeWorkModeOverride rejection request.");
+        return Ok(await Mediator.Send(new DecideEmployeeWorkModeOverrideCommand(dto, false), ct));
+    }
     /// <summary>Soft-deletes a temporary work-mode request that is no longer applicable.</summary>
     [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride delete request."); return Ok(await Mediator.Send(new DeleteEmployeeWorkModeOverrideCommand(id, permissionRequest), ct)); }
     #endregion

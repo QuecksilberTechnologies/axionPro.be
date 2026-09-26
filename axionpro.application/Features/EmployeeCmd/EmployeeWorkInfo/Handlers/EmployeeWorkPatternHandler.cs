@@ -64,6 +64,101 @@ public sealed class GetEmployeeWorkPatternsQuery(EmployeeWorkPatternFilterReques
 
 #endregion
 
+/// <summary>Applies the shared arrangement, policy, location, and weekday rules.</summary>
+internal static class EmployeeWorkPatternValidator
+{
+    public static async Task<EmployeeWorkArrangement> ValidateAsync(
+        IUnitOfWork unitOfWork,
+        long tenantId,
+        CreateEmployeeWorkPatternRequestDTO dto,
+        long? excludeId,
+        CancellationToken cancellationToken)
+    {
+        var arrangement = await unitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(
+            tenantId,
+            dto.EmployeeWorkArrangementId,
+            cancellationToken);
+        if (arrangement is null || !arrangement.IsActive)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        }
+
+        await EmployeeWorkArrangementReferenceValidator.ValidateEmployeeAsync(
+            unitOfWork.EmployeeWorkArrangementRepository,
+            tenantId,
+            arrangement.EmployeeId,
+            cancellationToken);
+
+        if (!dto.IsWorkingDay)
+        {
+            if (dto.TenantLocationId.HasValue)
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.WorkPatternDayOffLocationNotAllowed);
+            }
+        }
+        else
+        {
+            if (dto.WorkMode == WorkMode.WorkFromHome && dto.TenantLocationId.HasValue)
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.WorkModeOverrideLocationNotAllowed);
+            }
+
+            if (dto.WorkMode is WorkMode.Office or WorkMode.Field or WorkMode.ClientSite
+                && !dto.TenantLocationId.HasValue)
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.WorkPatternLocationRequired);
+            }
+
+            if (dto.TenantLocationId.HasValue)
+            {
+                var location = await unitOfWork.EmployeeWorkArrangementRepository.GetLocationForValidationAsync(
+                    tenantId,
+                    dto.TenantLocationId.Value,
+                    cancellationToken);
+                if (location is null || !location.IsActive
+                    || !EmployeeWorkConfigurationRules.IsLocationTypeCompatible(dto.WorkMode, (TenantLocationType)location.LocationType))
+                {
+                    throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementLocationTypeMismatch);
+                }
+
+                var patternTo = arrangement.EffectiveTo ?? DateOnly.MaxValue;
+                if (!await unitOfWork.EmployeeWorkArrangementRepository.HasCoveringAttendanceLocationAssignmentAsync(
+                    tenantId,
+                    arrangement.EmployeeId,
+                    dto.TenantLocationId.Value,
+                    arrangement.EffectiveFrom,
+                    patternTo,
+                    cancellationToken))
+                {
+                    throw new ValidationErrorException(AppConstants.ErrorMessages.WorkPatternLocationAssignmentRequired);
+                }
+            }
+
+            if (arrangement.PolicyVersionId is long policyVersionId)
+            {
+                var configuration = await unitOfWork.EmployeeWorkArrangementRepository.GetAttendanceConfigurationAsync(tenantId, policyVersionId, cancellationToken)
+                    ?? throw new ValidationErrorException(AppConstants.ErrorMessages.AttendancePolicyConfigurationRequired);
+                if (!EmployeeWorkConfigurationRules.IsAllowedByAttendancePolicy(dto.WorkMode, dto.TenantLocationId, configuration))
+                {
+                    throw new ValidationErrorException(AppConstants.ErrorMessages.WorkPatternPolicyMismatch);
+                }
+            }
+        }
+
+        if (dto.IsActive && await unitOfWork.EmployeeWorkPatternRepository.PatternDayExistsAsync(
+            tenantId,
+            dto.EmployeeWorkArrangementId,
+            (short)dto.DayOfWeek,
+            excludeId,
+            cancellationToken))
+        {
+            throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeWorkPatternDay);
+        }
+
+        return arrangement;
+    }
+}
+
 #region Handler
 
 /// <summary>Handles employee work-pattern creation.</summary>
@@ -73,22 +168,16 @@ public sealed class CreateEmployeeWorkPatternCommandHandler : TenantConfiguratio
     public CreateEmployeeWorkPatternCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkPatternResponseDTO>> Handle(CreateEmployeeWorkPatternCommand request, CancellationToken cancellationToken)
     {
-        var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; var actorId = validation.LoggedInEmployeeId; Validate(request.DTO); await ValidateReferencesAsync(tenantId, request.DTO, null, cancellationToken);
-        var arrangement = await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, request.DTO.EmployeeWorkArrangementId, cancellationToken) ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; var actorId = validation.LoggedInEmployeeId; Validate(request.DTO); var arrangement = await EmployeeWorkPatternValidator.ValidateAsync(UnitOfWork, tenantId, request.DTO, null, cancellationToken);
         await EnsureEmployeeDataAccessAsync(validation, arrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken);
         var entity = _mapper.Map<EmployeeWorkPattern>(request.DTO); entity.TenantId = tenantId; entity.IsSoftDeleted = false; entity.AddedById = actorId; entity.AddedDateTime = DateTime.UtcNow;
         await UnitOfWork.EmployeeWorkPatternRepository.AddAsync(entity, cancellationToken); await UnitOfWork.SaveChangesAsync(cancellationToken);
         var stored = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken);
         return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(stored!), AppConstants.SuccessMessages.EmployeeWorkPatternCreated);
     }
-    private async Task ValidateReferencesAsync(long tenantId, CreateEmployeeWorkPatternRequestDTO dto, long? excludeId, CancellationToken cancellationToken)
-    {
-        if (!await UnitOfWork.EmployeeWorkPatternRepository.IsEligibleArrangementAsync(tenantId, dto.EmployeeWorkArrangementId, cancellationToken) || (dto.TenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkPatternRepository.IsEligibleLocationAsync(tenantId, dto.TenantLocationId.Value, cancellationToken))) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
-        if (dto.IsActive && await UnitOfWork.EmployeeWorkPatternRepository.PatternDayExistsAsync(tenantId, dto.EmployeeWorkArrangementId, (short)dto.DayOfWeek, excludeId, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeWorkPatternDay);
-    }
     private static void Validate(CreateEmployeeWorkPatternRequestDTO dto)
     {
-        if (dto is null || dto.EmployeeWorkArrangementId <= 0 || !Enum.IsDefined(dto.DayOfWeek) || !Enum.IsDefined(dto.WorkMode)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        if (dto is null || dto.EmployeeWorkArrangementId <= 0 || !Enum.IsDefined(dto.DayOfWeek) || !Enum.IsDefined(dto.WorkMode) || (dto.IsWorkingDay && dto.WorkMode == WorkMode.Hybrid)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
     }
 }
 
@@ -102,17 +191,15 @@ public sealed class UpdateEmployeeWorkPatternCommandHandler : TenantConfiguratio
         var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; var actorId = validation.LoggedInEmployeeId; if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); Validate(request.DTO);
         var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound);
         await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeWorkArrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken);
-        if (!await UnitOfWork.EmployeeWorkPatternRepository.IsEligibleArrangementAsync(tenantId, request.DTO.EmployeeWorkArrangementId, cancellationToken) || (request.DTO.TenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkPatternRepository.IsEligibleLocationAsync(tenantId, request.DTO.TenantLocationId.Value, cancellationToken))) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
-        var requestedArrangement = await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, request.DTO.EmployeeWorkArrangementId, cancellationToken) ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        var requestedArrangement = await EmployeeWorkPatternValidator.ValidateAsync(UnitOfWork, tenantId, request.DTO, entity.Id, cancellationToken);
         await EnsureEmployeeDataAccessAsync(validation, requestedArrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken);
-        if (request.DTO.IsActive && await UnitOfWork.EmployeeWorkPatternRepository.PatternDayExistsAsync(tenantId, request.DTO.EmployeeWorkArrangementId, (short)request.DTO.DayOfWeek, entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeWorkPatternDay);
         _mapper.Map(request.DTO, entity); entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken);
         var stored = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken);
         return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(stored!), AppConstants.SuccessMessages.EmployeeWorkPatternUpdated);
     }
     private static void Validate(CreateEmployeeWorkPatternRequestDTO dto)
     {
-        if (dto.EmployeeWorkArrangementId <= 0 || !Enum.IsDefined(dto.DayOfWeek) || !Enum.IsDefined(dto.WorkMode)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        if (dto.EmployeeWorkArrangementId <= 0 || !Enum.IsDefined(dto.DayOfWeek) || !Enum.IsDefined(dto.WorkMode) || (dto.IsWorkingDay && dto.WorkMode == WorkMode.Hybrid)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
     }
 }
 
@@ -130,7 +217,7 @@ public sealed class UpdateEmployeeWorkPatternStatusCommandHandler : TenantConfig
     private readonly IMapper _mapper;
     public UpdateEmployeeWorkPatternStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkPatternResponseDTO>> Handle(UpdateEmployeeWorkPatternStatusCommand request, CancellationToken cancellationToken)
-    { var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeWorkArrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken); if (request.DTO.IsActive && await UnitOfWork.EmployeeWorkPatternRepository.PatternDayExistsAsync(tenantId, entity.EmployeeWorkArrangementId, (short)entity.DayOfWeek, entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeWorkPatternDay); entity.IsActive = request.DTO.IsActive; entity.UpdatedById = validation.LoggedInEmployeeId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); var stored = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken); return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(stored!), AppConstants.SuccessMessages.EmployeeWorkPatternStatusUpdated); }
+    { var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeWorkArrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken); if (request.DTO.IsActive) await EmployeeWorkPatternValidator.ValidateAsync(UnitOfWork, tenantId, new CreateEmployeeWorkPatternRequestDTO { EmployeeWorkArrangementId = entity.EmployeeWorkArrangementId, DayOfWeek = (WorkPatternDay)entity.DayOfWeek, WorkMode = (WorkMode)entity.WorkMode, TenantLocationId = entity.TenantLocationId, IsWorkingDay = entity.IsWorkingDay, IsActive = true }, entity.Id, cancellationToken); entity.IsActive = request.DTO.IsActive; entity.UpdatedById = validation.LoggedInEmployeeId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); var stored = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken); return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(stored!), AppConstants.SuccessMessages.EmployeeWorkPatternStatusUpdated); }
 }
 
 /// <summary>Handles employee work-pattern retrieval.</summary>

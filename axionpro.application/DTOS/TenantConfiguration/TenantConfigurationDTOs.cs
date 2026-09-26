@@ -523,6 +523,13 @@ public sealed class UpdateEmployeeWorkModeOverrideStatusRequestDTO : PermissionR
     public bool IsActive { get; set; }
 }
 
+/// <summary>Supplies an approval or rejection decision for a pending work-mode override.</summary>
+public sealed class EmployeeWorkModeOverrideDecisionRequestDTO : PermissionRequestDTO
+{
+    public long Id { get; set; }
+    public string? Remark { get; set; }
+}
+
 /// <summary>Defines database-side filters for employee work-mode overrides.</summary>
 public sealed class EmployeeWorkModeOverrideFilterRequestDTO : PermissionRequestDTO
 {
@@ -542,7 +549,7 @@ public sealed class EmployeeWorkModeOverrideFilterRequestDTO : PermissionRequest
 public sealed class EmployeeWorkModeOverrideResponseDTO
 {
     public long Id { get; set; }
-    public long EmployeeId { get; set; }
+    public string EmployeeId { get; set; } = string.Empty;
     public string EmployeeName { get; set; } = string.Empty;
     public long? EmployeeWorkArrangementId { get; set; }
     public WorkMode RequestedWorkMode { get; set; }

@@ -197,6 +197,40 @@ public sealed class EmployeeWorkLocationArrangementValidationTests
     }
 
     [Test]
+    public void Work_pattern_and_override_handlers_enforce_dependencies_approval_and_overlap_rules()
+    {
+        var root = FindRepositoryRoot();
+        var repository = File.ReadAllText(Path.Combine(root, "axionpro.persistance", "Repositories", "TenantConfigurationRepositories.cs"));
+        var patternHandler = File.ReadAllText(Path.Combine(root, "axionpro.application", "Features", "EmployeeCmd", "EmployeeWorkInfo", "Handlers", "EmployeeWorkPatternHandler.cs"));
+        var overrideHandler = File.ReadAllText(Path.Combine(root, "axionpro.application", "Features", "EmployeeCmd", "EmployeeWorkInfo", "Handlers", "EmployeeWorkModeOverrideHandler.cs"));
+        var controller = File.ReadAllText(Path.Combine(root, "axionpro.api", "Controllers", "TenantConfiguration", "TenantConfigurationControllers.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(patternHandler, Does.Contain("HasCoveringAttendanceLocationAssignmentAsync"));
+            Assert.That(patternHandler, Does.Contain("IsLocationTypeCompatible"));
+            Assert.That(patternHandler, Does.Contain("IsAllowedByAttendancePolicy"));
+            Assert.That(patternHandler, Does.Contain("PatternDayExistsAsync"));
+            Assert.That(overrideHandler, Does.Contain("GetOverlappingOverrideAsync"));
+            Assert.That(overrideHandler, Does.Contain("WorkModeOverrideDateOverlap"));
+            Assert.That(overrideHandler, Does.Contain("GetActiveOperationNameAsync"));
+            Assert.That(overrideHandler, Does.Contain("expectedOperation"));
+            Assert.That(repository, Does.Contain("WorkModeOverrideApprovalStatus.Pending"));
+            Assert.That(repository, Does.Contain("WorkModeOverrideApprovalStatus.Approved"));
+            Assert.That(controller, Does.Contain("HttpPost(\"approve\")"));
+            Assert.That(controller, Does.Contain("HttpPost(\"reject\")"));
+        });
+    }
+
+    [Test]
+    public void Work_mode_override_response_exposes_encoded_employee_identifier_only()
+    {
+        Assert.That(
+            typeof(EmployeeWorkModeOverrideResponseDTO).GetProperty("EmployeeId")!.PropertyType,
+            Is.EqualTo(typeof(string)));
+    }
+
+    [Test]
     public void Database_model_and_deployment_script_allow_non_overlapping_schedules()
     {
         var root = FindRepositoryRoot();

@@ -203,6 +203,8 @@ public sealed class RecentDeviceEmployeeApiContractTests
             yield return contract;
         foreach (var contract in Crud(typeof(EmployeeWorkModeOverrideController), "{id:long}"))
             yield return contract;
+        yield return Endpoint(typeof(EmployeeWorkModeOverrideController), "POST", "approve");
+        yield return Endpoint(typeof(EmployeeWorkModeOverrideController), "POST", "reject");
         foreach (var contract in Crud(typeof(TenantCardMasterController), "{id}"))
             yield return contract;
 

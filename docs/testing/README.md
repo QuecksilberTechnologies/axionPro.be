@@ -91,5 +91,8 @@ sanitized logs or reports. Redact secrets and sensitive personal data before
 saving evidence. Documentation-only work does not require repeating passed tests.
 ## Latest holiday report
 
+- [Employee work pattern validation — 2026-09-26](employee-work-pattern/validation/2026-09-26.md)
+- [Employee work mode override approval and overlap — 2026-09-26](employee-work-mode-override/approval-overlap/2026-09-26.md)
+
 - [Holiday rename and Icon field — 2026-09-23](holiday-calendar/rename-to-holiday/2026-09-23.md)
  - [Tenant email queue runtime resolution — 2026-09-24](tenant-email-template/queue-runtime-resolution/2026-09-24.md)

@@ -161,6 +161,8 @@ public interface IEmployeeWorkArrangementRepository
     Task<EmployeeWorkArrangement?> GetOverlappingArrangementAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the selected primary location has a primary, attendance-allowed assignment covering the full arrangement window.</summary>
     Task<bool> HasCoveringPrimaryLocationAssignmentAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly? effectiveTo, CancellationToken cancellationToken);
+    /// <summary>Determines whether an active, attendance-allowed employee location assignment covers the full requested window.</summary>
+    Task<bool> HasCoveringAttendanceLocationAssignmentAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly effectiveTo, CancellationToken cancellationToken);
     /// <summary>Gets non-deleted employee-location assignments used to explain a failed primary-location validation.</summary>
     Task<List<EmployeeLocationAssignment>> GetLocationAssignmentsForValidationAsync(long tenantId, long employeeId, long locationId, CancellationToken cancellationToken);
     /// <summary>Gets a non-deleted Tenant location for status and type validation.</summary>
@@ -219,6 +221,8 @@ public interface IEmployeeWorkModeOverrideRequestRepository
     Task<bool> IsEligibleArrangementAsync(long tenantId, long arrangementId, CancellationToken cancellationToken);
     /// <summary>Determines whether the optional location is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken);
+    /// <summary>Gets a competing active Pending or Approved override whose inclusive dates overlap the requested window.</summary>
+    Task<EmployeeWorkModeOverrideRequest?> GetOverlappingOverrideAsync(long tenantId, long employeeId, DateOnly fromDate, DateOnly toDate, long? excludeId, CancellationToken cancellationToken);
     /// <summary>Adds a prepared work-mode override request.</summary>
     Task AddAsync(EmployeeWorkModeOverrideRequest entity, CancellationToken cancellationToken);
 }

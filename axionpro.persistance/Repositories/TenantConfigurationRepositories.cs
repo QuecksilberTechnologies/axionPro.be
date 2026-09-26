@@ -595,6 +595,19 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
             cancellationToken);
 
     /// <inheritdoc />
+    public Task<bool> HasCoveringAttendanceLocationAssignmentAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly effectiveTo, CancellationToken cancellationToken) =>
+        Context.EmployeeLocationAssignments.AnyAsync(
+            x => x.TenantId == tenantId
+                && x.EmployeeId == employeeId
+                && x.TenantLocationId == locationId
+                && x.IsAttendanceAllowed
+                && x.IsActive
+                && !x.IsSoftDeleted
+                && x.EffectiveFrom <= effectiveFrom
+                && (!x.EffectiveTo.HasValue || x.EffectiveTo.Value >= effectiveTo),
+            cancellationToken);
+
+    /// <inheritdoc />
     public Task<List<EmployeeLocationAssignment>> GetLocationAssignmentsForValidationAsync(
         long tenantId,
         long employeeId,
@@ -733,6 +746,21 @@ public sealed class EmployeeWorkModeOverrideRequestRepository : TenantConfigurat
     public Task<bool> IsEligibleArrangementAsync(long tenantId, long arrangementId, CancellationToken cancellationToken) => Context.EmployeeWorkArrangements.AnyAsync(x => x.Id == arrangementId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
     public Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken) => Context.TenantLocations.AnyAsync(x => x.Id == locationId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
+    /// <inheritdoc />
+    public Task<EmployeeWorkModeOverrideRequest?> GetOverlappingOverrideAsync(long tenantId, long employeeId, DateOnly fromDate, DateOnly toDate, long? excludeId, CancellationToken cancellationToken) =>
+        Context.EmployeeWorkModeOverrideRequests.AsNoTracking()
+            .Where(x => x.TenantId == tenantId
+                && x.EmployeeId == employeeId
+                && x.IsActive
+                && !x.IsSoftDeleted
+                && (x.ApprovalStatus == (short)WorkModeOverrideApprovalStatus.Pending
+                    || x.ApprovalStatus == (short)WorkModeOverrideApprovalStatus.Approved)
+                && (!excludeId.HasValue || x.Id != excludeId.Value)
+                && x.FromDate <= toDate
+                && x.ToDate >= fromDate)
+            .OrderBy(x => x.FromDate)
+            .ThenBy(x => x.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
     #endregion
 
