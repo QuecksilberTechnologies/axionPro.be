@@ -217,6 +217,28 @@ The selected generic `PolicyVersion` currently has no typed `AttendanceLocationS
   exact three failed HTTP smoke tests passed 3/3.
 - Authenticated HTTP and deployed verification: not run; no live API response is claimed.
 
+## Employee Location Assignment update lifecycle correction — 2026-09-26
+
+The Employee Location Assignment read contract now returns `employeeId` as the same tenant-salted
+encoded string accepted by create and update. Previously, create worked because the employee dropdown
+supplied the encoded identifier, while list/get-by-id returned the database `long`; edit copied that
+number into the update body and ASP.NET rejected it before the handler with a JSON-to-string error.
+
+The following UI/API flows now use consistent contracts:
+
+- create and update send the encoded `employeeId` string unchanged;
+- get-all and get-by-id return the encoded `employeeId` string;
+- deactivate sends only assignment `id` and `isActive: false` to `update-status`;
+- delete sends the assignment ID in `DELETE /delete/{id}`;
+- update, deactivate, and delete reject a change that would invalidate an active, non-soft-deleted
+  Work Arrangement using the assignment as its primary location;
+- soft-deleted Work Arrangements are excluded from dependency checks.
+
+Verification: backend focused tests 30/30 passed, Angular focused tests 15/15 passed, Angular
+production build passed, and the backend full suite passed 545 with 0 failures and 95 explicit skips.
+Local unauthenticated smoke returned `401` for create, update, update-status, and delete, confirming
+all routes are active and protected. Authenticated mutation and deployed verification were not run.
+
 ## Location-type contract correction — 2026-09-26
 
 - Confirmed the Angular enum omitted `Office = 3`, shifting Plant through Remote Office down by one.

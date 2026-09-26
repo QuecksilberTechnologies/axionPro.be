@@ -408,6 +408,7 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.PolicyTypeName, o => o.MapFrom(s => s.PolicyType != null ? s.PolicyType.PolicyName : string.Empty))
                 .ForMember(d => d.AttendanceLocationScopeName, o => o.MapFrom(s => ((AttendanceLocationScope)s.AttendanceLocationScope).ToString()));
             CreateMap<EmployeeLocationAssignment, EmployeeLocationAssignmentResponseDTO>()
+                .ForMember(d => d.EmployeeId, o => o.Ignore())
                 .ForMember(d => d.EmployeeName, o => o.MapFrom(s => EmployeeName(s.Employee)))
                 .ForMember(d => d.EmployeeCode, o => o.MapFrom(s => s.Employee != null ? s.Employee.EmployementCode : null))
                 .ForMember(d => d.TenantLocationName, o => o.MapFrom(s => s.TenantLocation != null ? s.TenantLocation.LocationName : string.Empty))

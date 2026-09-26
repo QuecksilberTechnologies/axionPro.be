@@ -1,3 +1,4 @@
+using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo;
 using axionpro.domain.Entity;
 using NUnit.Framework;
@@ -57,6 +58,34 @@ public sealed class EmployeeWorkLocationArrangementValidationTests
                 new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), new DateOnly(2026, 2, 1), null), Is.False);
             Assert.That(EmployeeWorkConfigurationRules.AssignmentCoversArrangement(
                 new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), new DateOnly(2026, 2, 1), new DateOnly(2026, 11, 30)), Is.True);
+        });
+    }
+
+    [Test]
+    public void Location_assignment_response_exposes_only_the_encoded_employee_identifier()
+    {
+        var response = new EmployeeLocationAssignmentResponseDTO
+        {
+            EmployeeId = "encoded-42"
+        };
+        var root = FindRepositoryRoot();
+        var handler = File.ReadAllText(Path.Combine(
+            root,
+            "axionpro.application",
+            "Features",
+            "EmployeeCmd",
+            "EmployeeWorkInfo",
+            "Handlers",
+            "EmployeeLocationAssignmentHandler.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(response.EmployeeId, Is.EqualTo("encoded-42"));
+            Assert.That(typeof(EmployeeLocationAssignmentResponseDTO).GetProperty("EmployeeId")!.PropertyType, Is.EqualTo(typeof(string)));
+            Assert.That(handler, Does.Contain("response.EmployeeId = encodeEmployeeId(entity.EmployeeId)"));
+            Assert.That(handler, Does.Contain("UpdateEmployeeLocationAssignmentStatusCommandHandler"));
+            Assert.That(handler, Does.Contain("GetEmployeeLocationAssignmentByIdQueryHandler"));
+            Assert.That(handler, Does.Contain("GetEmployeeLocationAssignmentsQueryHandler"));
         });
     }
 

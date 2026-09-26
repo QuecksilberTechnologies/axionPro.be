@@ -117,6 +117,19 @@ public abstract class TenantConfigurationHandlerBase
         return (context.TenantId, context.ActorId, context.EmployeeId.Value);
     }
 
+    /// <summary>Encodes an employee identifier with the authenticated tenant salt for API responses.</summary>
+    protected string EncodeEmployeeId(long employeeId, CommonDecodedResult validation)
+    {
+        if (_idEncoderService is null || string.IsNullOrWhiteSpace(validation.Claims.TenantEncriptionKey))
+        {
+            throw new InvalidOperationException("The employee identifier encoder is not configured.");
+        }
+
+        return _idEncoderService.EncodeId_long(
+            employeeId,
+            validation.Claims.TenantEncriptionKey);
+    }
+
     /// <summary>
     /// Validates the tenant principal and decodes an optional employee filter when the client supplied one.
     /// </summary>

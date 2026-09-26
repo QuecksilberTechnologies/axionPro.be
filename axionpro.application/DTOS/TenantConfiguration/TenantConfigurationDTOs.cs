@@ -216,7 +216,7 @@ public sealed class EmployeeLocationAssignmentFilterRequestDTO : PermissionReque
 public sealed class EmployeeLocationAssignmentResponseDTO
 {
     public long Id { get; set; }
-    public long EmployeeId { get; set; }
+    public string EmployeeId { get; set; } = string.Empty;
     public string EmployeeName { get; set; } = string.Empty;
     public string? EmployeeCode { get; set; }
     public long TenantLocationId { get; set; }
