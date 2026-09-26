@@ -158,6 +158,7 @@ and date failures into one generic message. UI should display the server `messag
 | Assignment ends before the arrangement | The message includes both dates and tells the admin which end date to extend or shorten. |
 | Arrangement is open ended but assignment has an end date | Remove the assignment end date or give the arrangement a compatible end date. |
 | Location type conflicts with work mode | The message includes the actual location type and selected work mode. |
+| Active arrangement dates overlap another active arrangement for the employee | The message includes both requested and existing date ranges. End dates are inclusive; the next arrangement must start on the following day. |
 
 `IsSoftDeleted = true` employee, tenant-location, and employee-location-assignment rows are excluded
 from validation queries. They never satisfy an arrangement dependency and are reported as missing or
@@ -238,6 +239,29 @@ Verification: backend focused tests 30/30 passed, Angular focused tests 15/15 pa
 production build passed, and the backend full suite passed 545 with 0 failures and 95 explicit skips.
 Local unauthenticated smoke returned `401` for create, update, update-status, and delete, confirming
 all routes are active and protected. Authenticated mutation and deployed verification were not run.
+
+## Work Arrangement date-overlap contract — 2026-09-26
+
+An employee may keep multiple Work Arrangement rows as dated history, but no two active,
+non-soft-deleted rows may cover the same calendar date. A missing `effectiveTo` means the arrangement
+continues indefinitely. Because both endpoints are inclusive, an arrangement ending on 31/01/2026
+allows the next arrangement to start on 01/02/2026, not 31/01/2026.
+
+Create, update, and inactive-to-active status changes use one shared application validator. Update
+excludes the row being edited. The repository returns the conflicting row so the API can return an
+actionable message such as:
+
+```json
+{
+  "isSucceeded": false,
+  "message": "The requested work arrangement from 31/01/2026 to No end date overlaps an existing active work arrangement from 01/01/2026 to 31/01/2026. Change one period so they do not share any calendar date. Start and end dates are inclusive.",
+  "errorCode": "CONFLICT"
+}
+```
+
+Inactive rows do not block a new active schedule. Rows with `IsSoftDeleted = true` are excluded even
+if an inconsistent legacy row still has `IsActive = true`. The database exclusion constraint remains
+the final concurrency guard; the shared application validation supplies the readable error before save.
 
 ## Location-type contract correction — 2026-09-26
 

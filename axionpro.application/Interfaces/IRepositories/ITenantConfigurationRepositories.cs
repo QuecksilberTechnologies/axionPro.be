@@ -157,8 +157,8 @@ public interface IEmployeeWorkArrangementRepository
     Task<AttendancePolicyVersionConfiguration?> GetAttendanceConfigurationAsync(long tenantId, long policyVersionId, CancellationToken cancellationToken);
     /// <summary>Determines whether the location is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken);
-    /// <summary>Determines whether another live arrangement overlaps the proposed effective window.</summary>
-    Task<bool> CurrentArrangementExistsAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Gets another active, non-deleted arrangement that overlaps the proposed effective window.</summary>
+    Task<EmployeeWorkArrangement?> GetOverlappingArrangementAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the selected primary location has a primary, attendance-allowed assignment covering the full arrangement window.</summary>
     Task<bool> HasCoveringPrimaryLocationAssignmentAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly? effectiveTo, CancellationToken cancellationToken);
     /// <summary>Gets non-deleted employee-location assignments used to explain a failed primary-location validation.</summary>

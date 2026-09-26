@@ -96,6 +96,45 @@ internal static class EmployeeWorkArrangementReferenceValidator
         }
     }
 
+    public static async Task ValidateNoDateOverlapAsync(
+        IEmployeeWorkArrangementRepository repository,
+        long tenantId,
+        long employeeId,
+        DateOnly effectiveFrom,
+        DateOnly? effectiveTo,
+        long? excludeId,
+        CancellationToken cancellationToken)
+    {
+        var overlappingArrangement = await repository.GetOverlappingArrangementAsync(
+            tenantId,
+            employeeId,
+            effectiveFrom,
+            effectiveTo,
+            excludeId,
+            cancellationToken);
+        if (overlappingArrangement is null)
+        {
+            return;
+        }
+
+        var message = overlappingArrangement.EffectiveTo.HasValue
+            ? string.Format(
+                CultureInfo.InvariantCulture,
+                AppConstants.ErrorMessages.EmployeeWorkArrangementDateOverlap,
+                FormatDate(effectiveFrom),
+                FormatDate(effectiveTo),
+                FormatDate(overlappingArrangement.EffectiveFrom),
+                FormatDate(overlappingArrangement.EffectiveTo))
+            : string.Format(
+                CultureInfo.InvariantCulture,
+                AppConstants.ErrorMessages.EmployeeWorkArrangementOpenEndedDateOverlap,
+                FormatDate(effectiveFrom),
+                FormatDate(effectiveTo),
+                FormatDate(overlappingArrangement.EffectiveFrom));
+
+        throw new ConflictException(message);
+    }
+
     public static async Task ValidatePrimaryLocationAsync(
         IEmployeeWorkArrangementRepository repository,
         long tenantId,
@@ -222,6 +261,10 @@ internal static class EmployeeWorkArrangementReferenceValidator
     }
 
     private static string FormatDate(DateOnly date) => date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+
+    private static string FormatDate(DateOnly? date) => date.HasValue
+        ? FormatDate(date.Value)
+        : "No end date";
 }
 
 #region Handler
@@ -269,9 +312,16 @@ public sealed class CreateEmployeeWorkArrangementCommandHandler : TenantConfigur
 
         await ValidatePrimaryLocationAsync(tenantId, employeeId, dto, ct);
 
-        if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, dto.EffectiveFrom, dto.EffectiveTo, excludeId, ct))
+        if (dto.IsActive)
         {
-            throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
+            await EmployeeWorkArrangementReferenceValidator.ValidateNoDateOverlapAsync(
+                UnitOfWork.EmployeeWorkArrangementRepository,
+                tenantId,
+                employeeId,
+                dto.EffectiveFrom,
+                dto.EffectiveTo,
+                excludeId,
+                ct);
         }
     }
 
@@ -375,9 +425,16 @@ public sealed class UpdateEmployeeWorkArrangementCommandHandler : TenantConfigur
 
         await ValidatePrimaryLocationAsync(tenantId, employeeId, dto, ct);
 
-        if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, dto.EffectiveFrom, dto.EffectiveTo, excludeId, ct))
+        if (dto.IsActive)
         {
-            throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
+            await EmployeeWorkArrangementReferenceValidator.ValidateNoDateOverlapAsync(
+                UnitOfWork.EmployeeWorkArrangementRepository,
+                tenantId,
+                employeeId,
+                dto.EffectiveFrom,
+                dto.EffectiveTo,
+                excludeId,
+                ct);
         }
     }
 
@@ -476,10 +533,14 @@ public sealed class UpdateEmployeeWorkArrangementStatusCommandHandler : TenantCo
                 entity.EmployeeId,
                 ct);
 
-            if (await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, entity.EmployeeId, entity.EffectiveFrom, entity.EffectiveTo, entity.Id, ct))
-            {
-                throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
-            }
+            await EmployeeWorkArrangementReferenceValidator.ValidateNoDateOverlapAsync(
+                UnitOfWork.EmployeeWorkArrangementRepository,
+                tenantId,
+                entity.EmployeeId,
+                entity.EffectiveFrom,
+                entity.EffectiveTo,
+                entity.Id,
+                ct);
 
             if (!entity.PolicyVersionId.HasValue
                 || !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyVersionAsync(tenantId, entity.PolicyVersionId.Value, entity.EffectiveFrom, ct))

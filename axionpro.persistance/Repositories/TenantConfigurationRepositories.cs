@@ -565,16 +565,18 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
     /// <inheritdoc />
     public Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken) => Context.TenantLocations.AnyAsync(x => x.Id == locationId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
-    public Task<bool> CurrentArrangementExistsAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken) =>
-        Context.EmployeeWorkArrangements.AnyAsync(
-            x => x.TenantId == tenantId
+    public Task<EmployeeWorkArrangement?> GetOverlappingArrangementAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken) =>
+        Context.EmployeeWorkArrangements.AsNoTracking()
+            .Where(x => x.TenantId == tenantId
                 && x.EmployeeId == employeeId
                 && x.IsActive
                 && !x.IsSoftDeleted
                 && (!excludeId.HasValue || x.Id != excludeId.Value)
                 && (!effectiveTo.HasValue || x.EffectiveFrom <= effectiveTo.Value)
-                && (!x.EffectiveTo.HasValue || x.EffectiveTo.Value >= effectiveFrom),
-            cancellationToken);
+                && (!x.EffectiveTo.HasValue || x.EffectiveTo.Value >= effectiveFrom))
+            .OrderBy(x => x.EffectiveFrom)
+            .ThenBy(x => x.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
     /// <inheritdoc />
     public Task<bool> HasCoveringPrimaryLocationAssignmentAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly? effectiveTo, CancellationToken cancellationToken) =>

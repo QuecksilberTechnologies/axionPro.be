@@ -45,6 +45,27 @@ public sealed class EmployeeWorkLocationArrangementValidationTests
         });
     }
 
+    [TestCase("2026-01-01", "2026-01-31", "2025-12-01", "2025-12-31", false)]
+    [TestCase("2026-01-01", "2026-01-31", "2026-01-31", "2026-02-15", true)]
+    [TestCase("2026-01-01", "2026-01-31", "2026-02-01", null, false)]
+    [TestCase("2026-01-01", null, "2030-01-01", "2030-01-31", true)]
+    [TestCase("2026-01-10", "2026-01-20", "2026-01-01", null, true)]
+    public void Effective_window_overlap_covers_past_boundary_future_and_open_ended_cases(
+        string firstFrom,
+        string? firstTo,
+        string secondFrom,
+        string? secondTo,
+        bool expected)
+    {
+        Assert.That(
+            EmployeeWorkConfigurationRules.EffectiveWindowsOverlap(
+                DateOnly.Parse(firstFrom),
+                firstTo is null ? null : DateOnly.Parse(firstTo),
+                DateOnly.Parse(secondFrom),
+                secondTo is null ? null : DateOnly.Parse(secondTo)),
+            Is.EqualTo(expected));
+    }
+
     [Test]
     public void Assignment_must_cover_the_complete_arrangement_window()
     {
@@ -150,6 +171,8 @@ public sealed class EmployeeWorkLocationArrangementValidationTests
         Assert.Multiple(() =>
         {
             Assert.That(repository, Does.Contain("HasCoveringPrimaryLocationAssignmentAsync"));
+            Assert.That(repository, Does.Contain("GetOverlappingArrangementAsync"));
+            Assert.That(repository, Does.Contain("&& x.IsActive"));
             Assert.That(repository, Does.Contain("GetLocationAssignmentsForValidationAsync"));
             Assert.That(repository, Does.Contain("&& !x.IsSoftDeleted"));
             Assert.That(repository, Does.Contain("x.IsPrimary"));
@@ -162,7 +185,12 @@ public sealed class EmployeeWorkLocationArrangementValidationTests
             Assert.That(arrangementHandler, Does.Contain("WorkArrangementEmployeeLocationMustBeOpenEnded"));
             Assert.That(arrangementHandler, Does.Contain("WorkArrangementEmployeeLocationAttendanceDisabled"));
             Assert.That(arrangementHandler, Does.Contain("WorkArrangementEmployeeLocationNotPrimary"));
-            Assert.That(arrangementHandler, Does.Contain("dto.EffectiveFrom, dto.EffectiveTo, excludeId"));
+            Assert.That(arrangementHandler, Does.Contain("ValidateNoDateOverlapAsync"));
+            Assert.That(arrangementHandler, Does.Contain("EmployeeWorkArrangementDateOverlap"));
+            Assert.That(arrangementHandler, Does.Contain("EmployeeWorkArrangementOpenEndedDateOverlap"));
+            Assert.That(arrangementHandler, Does.Contain("dto.EffectiveFrom,"));
+            Assert.That(arrangementHandler, Does.Contain("dto.EffectiveTo,"));
+            Assert.That(arrangementHandler, Does.Contain("excludeId,"));
             Assert.That(assignmentHandler, Does.Contain("WouldInvalidatePrimaryWorkArrangementAsync"));
             Assert.That(assignmentHandler, Does.Contain("dto.EffectiveFrom, dto.EffectiveTo, excludeId"));
         });

@@ -136,7 +136,8 @@ namespace axionpro.application.Constants
             public const string EmployeeAlreadyHasPrimaryLocation = "The employee already has an active primary location assignment.";
             public const string EmployeeLocationAssignmentInUse = "This location assignment is the primary location of an active work arrangement. Update the work arrangement first.";
             public const string DuplicateDeviceEnrollId = "The selected device already has this live enrollment identifier.";
-            public const string EmployeeAlreadyHasCurrentWorkArrangement = "The employee already has a current active work arrangement.";
+            public const string EmployeeWorkArrangementDateOverlap = "The requested work arrangement from {0} to {1} overlaps an existing active work arrangement from {2} to {3}. Change one period so they do not share any calendar date. Start and end dates are inclusive.";
+            public const string EmployeeWorkArrangementOpenEndedDateOverlap = "The requested work arrangement from {0} to {1} overlaps an existing active work arrangement that starts on {2} and has no end date. End the existing arrangement before the requested start date, or move the requested arrangement after the new end date. Start and end dates are inclusive.";
             public const string WorkArrangementPrimaryLocationAssignmentRequired = "The selected primary location must have an active, primary, attendance-allowed employee location assignment covering the full arrangement period.";
             public const string WorkArrangementEmployeeNotFound = "The selected employee does not exist for this tenant or has been deleted.";
             public const string WorkArrangementEmployeeInactive = "The selected employee is inactive. Activate the employee before creating or activating a work arrangement.";
