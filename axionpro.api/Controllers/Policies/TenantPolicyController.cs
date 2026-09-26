@@ -21,7 +21,8 @@ public sealed class TenantPolicyController(IMediator mediator) : ControllerBase
     /// <summary>Gets the master lookup values required by the Tenant Policy screens.</summary>
     /// <remarks>
     /// Use this endpoint when opening the Policy Type or Policy Editor screen. It returns policy
-    /// categories, lifecycle statuses, rule types and document types for dropdowns. Send the
+    /// categories, lifecycle statuses, rule types, document types and enum-backed Attendance
+    /// location scopes for dropdowns. Send the
     /// dynamically resolved Policy Types module ID and View operation ID; do not hard-code the
     /// numeric examples from the UI handoff. This endpoint reads data only and creates no policy.
     /// </remarks>

@@ -7,6 +7,7 @@ using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
 
 namespace axionpro.application.Features.GenericPolicyCmd;
@@ -65,9 +66,32 @@ public sealed class GetPolicyLookupsQueryHandler(IGenericPolicyRepository reposi
     public async Task<ApiResponse<object>> Handle(GetPolicyLookupsQuery request, CancellationToken token)
     {
         await GetActorAsync();
-        var data = new { categories = await Repository.GetCategoriesAsync(token), statuses = await Repository.GetStatusesAsync(token), ruleTypes = await Repository.GetRuleTypesAsync(token), documentTypes = await Repository.GetDocumentTypesAsync(token) };
+        var data = new
+        {
+            categories = await Repository.GetCategoriesAsync(token),
+            statuses = await Repository.GetStatusesAsync(token),
+            ruleTypes = await Repository.GetRuleTypesAsync(token),
+            documentTypes = await Repository.GetDocumentTypesAsync(token),
+            // Attendance Policy forms consume these enum-derived values instead of duplicating
+            // numeric enum mappings in the UI. Adding a domain enum member automatically publishes it.
+            attendanceLocationScopes = Enum.GetValues<AttendanceLocationScope>()
+                .Select(value => new PolicyEnumLookupResponseDTO(
+                    (short)value,
+                    ToUpperSnakeCase(value.ToString()),
+                    ToDisplayName(value.ToString())))
+                .ToArray()
+        };
         return ApiResponse<object>.Success(data, "Policy lookups retrieved successfully.");
     }
+
+    private static string ToUpperSnakeCase(string value) =>
+        string.Concat(value.Select((character, index) =>
+            index > 0 && char.IsUpper(character) ? $"_{character}" : character.ToString()))
+            .ToUpperInvariant();
+
+    private static string ToDisplayName(string value) =>
+        string.Concat(value.Select((character, index) =>
+            index > 0 && char.IsUpper(character) ? $" {character}" : character.ToString()));
 }
 
 public sealed class GetPolicyTypesQueryHandler(IGenericPolicyRepository repository, ICommonRequestService commonRequestService) : GenericPolicyHandlerBase(repository, commonRequestService), IRequestHandler<GetPolicyTypesQuery, ApiResponse<IReadOnlyList<PolicyTypeResponseDTO>>>

@@ -220,6 +220,12 @@ public sealed class DeletePolicyApprovalStageRequestDTO : PermissionRequestDTO
 }
 
 public sealed record PolicyLookupResponseDTO(int Id, string Code, string Name, string? Description = null);
+
+/// <summary>
+/// Represents an enum-backed option published by the Policy lookup endpoint.
+/// The numeric value comes directly from the domain enum so UI clients never maintain a second mapping.
+/// </summary>
+public sealed record PolicyEnumLookupResponseDTO(short Id, string Code, string Name);
 public sealed record PolicyTypeResponseDTO(int Id, string Code, string Name, string? Description, int? CategoryId, string? CurrencyCode, bool IsActive);
 public sealed record PolicySummaryResponseDTO(long Id, string Code, string Name, int PolicyTypeId, bool IsActive, long? CurrentVersionId, int? VersionNumber, string? Status);
 public sealed record PolicyRuleResponseDTO(long Id, int RuleTypeId, string Name, int Order, string Configuration);

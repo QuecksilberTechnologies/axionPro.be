@@ -98,6 +98,27 @@ public sealed class GenericPolicyApiContractTests
     }
 
     [Test]
+    public void Policy_lookups_publish_every_attendance_location_scope_from_the_domain_enum()
+    {
+        var source = ReadRepositoryFile(
+            "axionpro.application",
+            "Features",
+            "GenericPolicyCmd",
+            "GenericPolicyHandlers.cs");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(source, Does.Contain("Enum.GetValues<AttendanceLocationScope>()"));
+            Assert.That(source, Does.Contain("attendanceLocationScopes"));
+            Assert.That(Enum.GetValues<AttendanceLocationScope>(), Has.Length.EqualTo(4));
+            Assert.That((short)AttendanceLocationScope.PrimaryLocationOnly, Is.EqualTo(1));
+            Assert.That((short)AttendanceLocationScope.AssignedLocations, Is.EqualTo(2));
+            Assert.That((short)AttendanceLocationScope.AnyTenantLocation, Is.EqualTo(3));
+            Assert.That((short)AttendanceLocationScope.RemoteAnywhere, Is.EqualTo(4));
+        });
+    }
+
+    [Test]
     public void Policy_bulk_targets_have_stable_master_values_and_exact_templates()
     {
         Assert.Multiple(() =>

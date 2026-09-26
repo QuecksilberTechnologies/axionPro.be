@@ -34,8 +34,36 @@ Input query:
 Output sample:
 
 ```json
-{ "isSucceeded": true, "message": "Policy lookups retrieved successfully.", "data": { "categories": [{ "id": 1, "code": "LEAVE", "name": "Leave" }], "statuses": [{ "id": 1, "code": "DRAFT", "name": "Draft" }], "ruleTypes": [{ "id": 2, "code": "ENTITLEMENT", "name": "Entitlement" }], "documentTypes": [{ "id": 1, "code": "POLICY", "name": "Policy Document" }] }, "errors": [] }
+{
+  "isSucceeded": true,
+  "message": "Policy lookups retrieved successfully.",
+  "data": {
+    "categories": [{ "id": 1, "code": "LEAVE", "name": "Leave" }],
+    "statuses": [{ "id": 1, "code": "DRAFT", "name": "Draft" }],
+    "ruleTypes": [{ "id": 2, "code": "ENTITLEMENT", "name": "Entitlement" }],
+    "documentTypes": [{ "id": 1, "code": "POLICY", "name": "Policy Document" }],
+    "attendanceLocationScopes": [
+      { "id": 1, "code": "PRIMARY_LOCATION_ONLY", "name": "Primary Location Only" },
+      { "id": 2, "code": "ASSIGNED_LOCATIONS", "name": "Assigned Locations" },
+      { "id": 3, "code": "ANY_TENANT_LOCATION", "name": "Any Tenant Location" },
+      { "id": 4, "code": "REMOTE_ANYWHERE", "name": "Remote Anywhere" }
+    ]
+  },
+  "errors": []
+}
 ```
+
+`attendanceLocationScopes` is generated from the backend
+`AttendanceLocationScope` domain enum. The Policy Definition UI must bind the
+select's value to `id`, display `name`, and use `code` only for stable client
+decisions such as choosing the recommended `ASSIGNED_LOCATIONS` default. It
+must not keep a second numeric mapping. This is an additive response change;
+existing lookup consumers can ignore the new array.
+
+The endpoint remains authenticated and continues through the existing dynamic
+Policy Definitions `View` permission pipeline. UI callers resolve
+`moduleId`/`operationId` through the authenticated menu; the numbers above are
+illustrative only.
 
 ### 2. GET `/types`
 
