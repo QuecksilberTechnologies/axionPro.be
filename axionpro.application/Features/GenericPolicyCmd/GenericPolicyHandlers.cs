@@ -1,10 +1,13 @@
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Policy;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -186,12 +189,47 @@ public sealed class TransitionPolicyCommandHandler(IGenericPolicyRepository repo
     }
 }
 
-public sealed class ResolveEmployeePoliciesQueryHandler(IGenericPolicyRepository repository, ICommonRequestService commonRequestService) : GenericPolicyHandlerBase(repository, commonRequestService), IRequestHandler<ResolveEmployeePoliciesQuery, ApiResponse<IReadOnlyList<ResolvedPolicyResponseDTO>>>
+public sealed class ResolveEmployeePoliciesQueryHandler(
+    IGenericPolicyRepository repository,
+    ICommonRequestService commonRequestService,
+    IIdEncoderService idEncoderService)
+    : GenericPolicyHandlerBase(repository, commonRequestService),
+      IRequestHandler<ResolveEmployeePoliciesQuery, ApiResponse<IReadOnlyList<ResolvedPolicyResponseDTO>>>
 {
     public async Task<ApiResponse<IReadOnlyList<ResolvedPolicyResponseDTO>>> Handle(ResolveEmployeePoliciesQuery request, CancellationToken token)
     {
-        var actor = await GetActorAsync();
-        return ApiResponse<IReadOnlyList<ResolvedPolicyResponseDTO>>.Success(await Repository.ResolveAsync(actor.TenantId, request.DTO, token), "Effective policies resolved successfully.");
+        var actor = await commonRequestService.ValidateTenantUserRequestAsync();
+        if (!actor.Success || actor.TenantId <= 0 || actor.LoggedInEmployeeId <= 0)
+        {
+            throw new UnauthorizedAccessException(actor.ErrorMessage ?? "Unauthorized request.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.DTO.EmployeeId))
+        {
+            throw new ValidationErrorException("EmployeeId is required.");
+        }
+
+        try
+        {
+            // Employee list/view IDs use IdEncoderService's global static salt. Decode through the
+            // same service; TenantEncriptionKey does not participate in the long-ID hash.
+            request.DTO.ResolvedEmployeeId = idEncoderService.DecodeId_long(
+                EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId),
+                string.Empty);
+        }
+        catch (Exception)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        if (request.DTO.ResolvedEmployeeId <= 0)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        return ApiResponse<IReadOnlyList<ResolvedPolicyResponseDTO>>.Success(
+            await Repository.ResolveAsync(actor.TenantId, request.DTO, token),
+            "Effective policies resolved successfully.");
     }
 }
 

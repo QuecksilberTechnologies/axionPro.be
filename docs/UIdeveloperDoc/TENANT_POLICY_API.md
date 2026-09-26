@@ -66,6 +66,25 @@ resolved for that exact leaf. `SUBMIT` uses Policy Definitions; `APPROVE`,
 | GET | `/api/TenantPolicy/bulk/{target}/template` | View | Download exact CSV headers |
 | GET | `/api/TenantPolicy/bulk/{target}/jobs/{jobId}/report` | View | Download final row report |
 
+### Resolve employee identifier contract
+
+`GET /api/TenantPolicy/resolve` accepts `employeeId` as the encoded string returned
+by the Employee list/view APIs (for example `78N5XZW2`). The UI must pass that
+value unchanged; it must not call `Number(employeeId)` or send the database
+`Employee.Id`. The API sanitizes and decodes the identifier through the existing
+`IIdEncoderService`, whose long-ID implementation uses the application's global
+static salt. `TenantEncriptionKey` is not part of this identifier contract.
+
+```http
+GET /api/TenantPolicy/resolve?employeeId=78N5XZW2&effectiveDate=2026-09-26&moduleId=<resolved-module-id>&operationId=<resolved-view-id>
+```
+
+The numeric permission IDs above must be discovered through the authenticated
+menu/permission pipeline. A blank or invalid encoded employee identifier returns
+the standard invalid-identifier validation error. A valid identifier belonging to
+another tenant is not resolved because the repository also filters by the signed-in
+tenant.
+
 ## Complete create example
 
 ```json

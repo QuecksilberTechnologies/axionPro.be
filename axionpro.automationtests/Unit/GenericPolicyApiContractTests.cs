@@ -5,6 +5,7 @@ using axionpro.application.Features.GenericPolicyCmd;
 using axionpro.application.Common.Enums;
 using axionpro.application.Constants;
 using axionpro.domain.Entity;
+using axionpro.infrastructure.EncryptionService;
 using axionpro.persistance.Data.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -17,6 +18,50 @@ namespace axionpro.automationtests.Unit;
 [Category("PolicyFramework")]
 public sealed class GenericPolicyApiContractTests
 {
+    [Test]
+    public void Employee_long_identifier_round_trips_with_the_global_salt_independent_of_tenant_key()
+    {
+        var encoder = new IdEncoderService();
+        const long employeeId = 12345;
+
+        var encodedWithFirstKey = encoder.EncodeId_long(employeeId, "tenant-key-one");
+        var encodedWithSecondKey = encoder.EncodeId_long(employeeId, "tenant-key-two");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(encodedWithFirstKey, Is.Not.Empty);
+            Assert.That(encodedWithSecondKey, Is.EqualTo(encodedWithFirstKey));
+            Assert.That(encoder.DecodeId_long(encodedWithFirstKey, string.Empty), Is.EqualTo(employeeId));
+        });
+    }
+
+    [Test]
+    public void Resolve_employee_identifier_uses_the_encoded_public_contract()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeof(ResolveEmployeePoliciesRequestDTO)
+                .GetProperty(nameof(ResolveEmployeePoliciesRequestDTO.EmployeeId))?.PropertyType,
+                Is.EqualTo(typeof(string)));
+            Assert.That(typeof(ResolveEmployeePoliciesRequestDTO)
+                .GetProperty(nameof(ResolveEmployeePoliciesRequestDTO.ResolvedEmployeeId))?
+                .GetCustomAttribute<System.Text.Json.Serialization.JsonIgnoreAttribute>(),
+                Is.Not.Null);
+        });
+
+        var handler = ReadRepositoryFile(
+            "axionpro.application",
+            "Features",
+            "GenericPolicyCmd",
+            "GenericPolicyHandlers.cs");
+        Assert.Multiple(() =>
+        {
+            Assert.That(handler, Does.Contain("idEncoderService.DecodeId_long("));
+            Assert.That(handler, Does.Contain("EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId)"));
+            Assert.That(handler, Does.Not.Contain("actor.Claims.TenantEncriptionKey,\n                idEncoderService"));
+        });
+    }
+
     [Test]
     public void Route_supplied_identifiers_skip_pre_action_model_validation()
     {
@@ -244,7 +289,7 @@ public sealed class GenericPolicyApiContractTests
         Assert.Multiple(() =>
         {
             Assert.That(source, Does.Contain("x.TenantId == tenantId && employeeIds.Contains(x.Id)"));
-            Assert.That(source, Does.Contain("x.Id == dto.EmployeeId && x.TenantId == tenantId"));
+            Assert.That(source, Does.Contain("x.Id == dto.ResolvedEmployeeId && x.TenantId == tenantId"));
             Assert.That(source, Does.Contain("x.Id == assignmentId && x.TenantId == tenantId"));
             Assert.That(source, Does.Contain("x.TenantId == tenantId && x.EmployeeId == employeeId"));
         });
