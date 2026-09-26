@@ -69,6 +69,21 @@ The API blocks shortening, moving, deactivating, or deleting that assignment whi
 
 ### Work mode and location type
 
+`TenantLocation.locationType` uses this backend numeric contract. UI enums and dropdown values must
+match it exactly; do not infer the numbers from display order.
+
+| ID | Location type |
+| --- | --- |
+| 1 | Head Office |
+| 2 | Branch |
+| 3 | Office |
+| 4 | Plant |
+| 5 | Warehouse |
+| 6 | Client Site |
+| 7 | Project Site |
+| 8 | Campus |
+| 9 | Remote Office |
+
 | Work mode | Primary-location rule |
 | --- | --- |
 | Office | Required; Head Office, Branch, Office, Plant, Warehouse, Campus, or Remote Office |
@@ -78,6 +93,8 @@ The API blocks shortening, moving, deactivating, or deleting that assignment whi
 | Work From Home | Physical primary location is not allowed |
 
 The location dropdown should show both name and type, for example `PANIPAT-REFIN (Client Site)`.
+The Work Arrangement UI filters this dropdown using the selected Work Mode and blocks submission
+when a stale selected location no longer matches that mode.
 
 ## UI submit order
 
@@ -168,3 +185,18 @@ The selected generic `PolicyVersion` currently has no typed `AttendanceLocationS
 - Focused automated tests: PASS, 27 passed, 0 failed, 0 skipped.
 - Migration execution against a database: not run.
 - Authenticated API and deployed verification: not run.
+
+## Location-type contract correction — 2026-09-26
+
+- Confirmed the Angular enum omitted `Office = 3`, shifting Plant through Remote Office down by one.
+  Consequently, the UI serialized Client Site as `5`, while the API correctly interprets `5` as
+  Warehouse and requires `6` for Client Site.
+- Angular enum/options now match all nine backend values. The Work Arrangement dropdown filters by
+  the API's work-mode compatibility matrix and Client Site requires a primary location client-side.
+- Focused Angular tests: 38 passed, 0 failed, 0 skipped. Production build passed with existing bundle
+  budget warnings.
+- Development database reconciliation corrected the two explicitly identified tenant-10 client-site
+  rows to `LocationType = 6`; Sumit Verma's Railway-Client assignment was also corrected to primary.
+- Authenticated HTTP create from the running browser was not captured. Direct database reconciliation
+  confirmed the published policy, typed configuration, location type, primary assignment, effective
+  coverage and absence of an existing active arrangement for the reported 2028-02-04 case.
