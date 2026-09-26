@@ -141,10 +141,32 @@ Illustrative Client Site arrangement:
 
 ## Representative validation errors
 
+The API now returns the first actionable reason instead of collapsing all reference, status, flag,
+and date failures into one generic message. UI should display the server `message` unchanged.
+
+| Condition | API message / correction |
+| --- | --- |
+| Employee is missing or soft deleted | Employee does not exist for this tenant or has been deleted. Select an existing employee. |
+| Employee is inactive | Activate the employee before creating or activating the arrangement. |
+| Location is missing or soft deleted | Primary location does not exist for this tenant or has been deleted. Select an existing location. |
+| Location is inactive | Activate the tenant location before using it. |
+| Location is not assigned to the employee | Add an Employee Location Assignment first. |
+| Assignment is inactive | Activate the Employee Location Assignment. |
+| Assignment is not primary | Mark that employee-location assignment as Primary. |
+| Attendance is disabled | Enable `Attendance allowed` on that assignment. |
+| Assignment starts after the arrangement | The message includes both dates and tells the admin which start date to move. |
+| Assignment ends before the arrangement | The message includes both dates and tells the admin which end date to extend or shorten. |
+| Arrangement is open ended but assignment has an end date | Remove the assignment end date or give the arrangement a compatible end date. |
+| Location type conflicts with work mode | The message includes the actual location type and selected work mode. |
+
+`IsSoftDeleted = true` employee, tenant-location, and employee-location-assignment rows are excluded
+from validation queries. They never satisfy an arrangement dependency and are reported as missing or
+deleted; their `IsActive` value does not make them eligible.
+
 ```json
 {
   "isSucceeded": false,
-  "message": "The selected primary location must have an active, primary, attendance-allowed employee location assignment covering the full arrangement period.",
+  "message": "The employee location assignment starts on 04/02/2027, but the work arrangement starts on 26/09/2026. Move the location assignment start date to 26/09/2026 or earlier, or start the work arrangement on 04/02/2027 or later.",
   "data": null,
   "errors": [],
   "errorCode": "VALIDATION_ERROR"
@@ -154,7 +176,7 @@ Illustrative Client Site arrangement:
 ```json
 {
   "isSucceeded": false,
-  "message": "The selected primary location type is not valid for the selected work mode.",
+  "message": "The selected primary location has type 'HeadOffice', which is not valid for work mode 'ClientSite'. Select a compatible location or change the work mode.",
   "data": null,
   "errors": [],
   "errorCode": "VALIDATION_ERROR"
@@ -185,6 +207,15 @@ The selected generic `PolicyVersion` currently has no typed `AttendanceLocationS
 - Focused automated tests: PASS, 27 passed, 0 failed, 0 skipped.
 - Migration execution against a database: not run.
 - Authenticated API and deployed verification: not run.
+
+## Clear validation diagnostics — 2026-09-26
+
+- Create, update, and activation of Work Arrangements use the same detailed validator.
+- Build: PASS with existing warnings and 0 errors.
+- Focused automated tests: PASS, 29 passed, 0 failed, 0 skipped.
+- Full suite: 541 passed, 3 host-down failures, 95 skipped; after starting the local API, the
+  exact three failed HTTP smoke tests passed 3/3.
+- Authenticated HTTP and deployed verification: not run; no live API response is claimed.
 
 ## Location-type contract correction — 2026-09-26
 

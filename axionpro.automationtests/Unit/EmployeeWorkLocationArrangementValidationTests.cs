@@ -121,11 +121,18 @@ public sealed class EmployeeWorkLocationArrangementValidationTests
         Assert.Multiple(() =>
         {
             Assert.That(repository, Does.Contain("HasCoveringPrimaryLocationAssignmentAsync"));
+            Assert.That(repository, Does.Contain("GetLocationAssignmentsForValidationAsync"));
+            Assert.That(repository, Does.Contain("&& !x.IsSoftDeleted"));
             Assert.That(repository, Does.Contain("x.IsPrimary"));
             Assert.That(repository, Does.Contain("x.IsAttendanceAllowed"));
             Assert.That(repository, Does.Contain("x.EffectiveFrom <= effectiveFrom"));
             Assert.That(repository, Does.Contain("x.EffectiveTo.Value >= effectiveTo.Value"));
             Assert.That(arrangementHandler, Does.Contain("EmployeeWorkConfigurationRules.IsLocationTypeCompatible"));
+            Assert.That(arrangementHandler, Does.Contain("WorkArrangementEmployeeLocationStartsLate"));
+            Assert.That(arrangementHandler, Does.Contain("WorkArrangementEmployeeLocationEndsEarly"));
+            Assert.That(arrangementHandler, Does.Contain("WorkArrangementEmployeeLocationMustBeOpenEnded"));
+            Assert.That(arrangementHandler, Does.Contain("WorkArrangementEmployeeLocationAttendanceDisabled"));
+            Assert.That(arrangementHandler, Does.Contain("WorkArrangementEmployeeLocationNotPrimary"));
             Assert.That(arrangementHandler, Does.Contain("dto.EffectiveFrom, dto.EffectiveTo, excludeId"));
             Assert.That(assignmentHandler, Does.Contain("WouldInvalidatePrimaryWorkArrangementAsync"));
             Assert.That(assignmentHandler, Does.Contain("dto.EffectiveFrom, dto.EffectiveTo, excludeId"));

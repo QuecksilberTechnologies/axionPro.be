@@ -149,6 +149,8 @@ public interface IEmployeeWorkArrangementRepository
         CancellationToken cancellationToken);
     /// <summary>Determines whether the Employee is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
+    /// <summary>Gets a non-deleted Employee for status-specific validation.</summary>
+    Task<Employee?> GetEmployeeForValidationAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the version is an active, Published Attendance policy effective on the requested date.</summary>
     Task<bool> IsEligibleAttendancePolicyVersionAsync(long tenantId, long policyVersionId, DateOnly effectiveOn, CancellationToken cancellationToken);
     /// <summary>Gets the typed execution settings for an Attendance policy version.</summary>
@@ -159,6 +161,10 @@ public interface IEmployeeWorkArrangementRepository
     Task<bool> CurrentArrangementExistsAsync(long tenantId, long employeeId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the selected primary location has a primary, attendance-allowed assignment covering the full arrangement window.</summary>
     Task<bool> HasCoveringPrimaryLocationAssignmentAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly? effectiveTo, CancellationToken cancellationToken);
+    /// <summary>Gets non-deleted employee-location assignments used to explain a failed primary-location validation.</summary>
+    Task<List<EmployeeLocationAssignment>> GetLocationAssignmentsForValidationAsync(long tenantId, long employeeId, long locationId, CancellationToken cancellationToken);
+    /// <summary>Gets a non-deleted Tenant location for status and type validation.</summary>
+    Task<TenantLocation?> GetLocationForValidationAsync(long tenantId, long locationId, CancellationToken cancellationToken);
     /// <summary>Gets the active Tenant location type used to validate the selected work mode.</summary>
     Task<TenantLocationType?> GetEligibleLocationTypeAsync(long tenantId, long locationId, CancellationToken cancellationToken);
     /// <summary>Determines whether active children block deactivation.</summary>

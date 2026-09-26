@@ -245,7 +245,6 @@ public sealed class EmployeeLocationAssignmentRepository : TenantConfigurationRe
 
     /// <inheritdoc />
     public Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken) => Context.Employees.AnyAsync(x => x.Id == employeeId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
-    /// <inheritdoc />
     public Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken) => Context.TenantLocations.AnyAsync(x => x.Id == locationId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
     public Task<bool> AssignmentExistsAsync(long tenantId, long employeeId, long locationId, DateOnly effectiveFrom, DateOnly? effectiveTo, long? excludeId, CancellationToken cancellationToken) =>
@@ -532,6 +531,11 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
     /// <inheritdoc />
     public Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken) => Context.Employees.AnyAsync(x => x.Id == employeeId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
+    public Task<Employee?> GetEmployeeForValidationAsync(long tenantId, long employeeId, CancellationToken cancellationToken) =>
+        Context.Employees.AsNoTracking().FirstOrDefaultAsync(
+            x => x.Id == employeeId && x.TenantId == tenantId && !x.IsSoftDeleted,
+            cancellationToken);
+    /// <inheritdoc />
     public Task<bool> IsEligibleAttendancePolicyVersionAsync(long tenantId, long policyVersionId, DateOnly effectiveOn, CancellationToken cancellationToken) =>
         (from version in Context.PolicyVersions
          join policy in Context.Policies on version.PolicyId equals policy.Id
@@ -586,6 +590,29 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
                 && (effectiveTo.HasValue
                     ? !x.EffectiveTo.HasValue || x.EffectiveTo.Value >= effectiveTo.Value
                     : !x.EffectiveTo.HasValue),
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<List<EmployeeLocationAssignment>> GetLocationAssignmentsForValidationAsync(
+        long tenantId,
+        long employeeId,
+        long locationId,
+        CancellationToken cancellationToken) =>
+        Context.EmployeeLocationAssignments.AsNoTracking()
+            .Where(x => x.TenantId == tenantId
+                && x.EmployeeId == employeeId
+                && x.TenantLocationId == locationId
+                && !x.IsSoftDeleted)
+            .OrderByDescending(x => x.IsActive)
+            .ThenByDescending(x => x.IsPrimary)
+            .ThenByDescending(x => x.IsAttendanceAllowed)
+            .ThenByDescending(x => x.EffectiveFrom)
+            .ToListAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public Task<TenantLocation?> GetLocationForValidationAsync(long tenantId, long locationId, CancellationToken cancellationToken) =>
+        Context.TenantLocations.AsNoTracking().FirstOrDefaultAsync(
+            x => x.Id == locationId && x.TenantId == tenantId && !x.IsSoftDeleted,
             cancellationToken);
 
     /// <inheritdoc />
