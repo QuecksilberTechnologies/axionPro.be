@@ -209,26 +209,27 @@ public sealed class ResolveEmployeePoliciesQueryHandler(
             throw new ValidationErrorException("EmployeeId is required.");
         }
 
+        long employeeId;
         try
         {
-            // Employee list/view IDs use IdEncoderService's global static salt. Decode through the
-            // same service; TenantEncriptionKey does not participate in the long-ID hash.
-            request.DTO.ResolvedEmployeeId = idEncoderService.DecodeId_long(
+            // Keep the Employee list/profile identifier flow consistent: sanitize the public
+            // string and decode it through the shared salted ID encoder.
+            employeeId = idEncoderService.DecodeId_long(
                 EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId),
-                string.Empty);
+                actor.Claims.TenantEncriptionKey);
         }
         catch (Exception)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
 
-        if (request.DTO.ResolvedEmployeeId <= 0)
+        if (employeeId <= 0)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
 
         return ApiResponse<IReadOnlyList<ResolvedPolicyResponseDTO>>.Success(
-            await Repository.ResolveAsync(actor.TenantId, request.DTO, token),
+            await Repository.ResolveAsync(actor.TenantId, employeeId, request.DTO, token),
             "Effective policies resolved successfully.");
     }
 }

@@ -43,10 +43,7 @@ public sealed class GenericPolicyApiContractTests
             Assert.That(typeof(ResolveEmployeePoliciesRequestDTO)
                 .GetProperty(nameof(ResolveEmployeePoliciesRequestDTO.EmployeeId))?.PropertyType,
                 Is.EqualTo(typeof(string)));
-            Assert.That(typeof(ResolveEmployeePoliciesRequestDTO)
-                .GetProperty(nameof(ResolveEmployeePoliciesRequestDTO.ResolvedEmployeeId))?
-                .GetCustomAttribute<System.Text.Json.Serialization.JsonIgnoreAttribute>(),
-                Is.Not.Null);
+            Assert.That(typeof(ResolveEmployeePoliciesRequestDTO).GetProperty("ResolvedEmployeeId"), Is.Null);
         });
 
         var handler = ReadRepositoryFile(
@@ -58,7 +55,7 @@ public sealed class GenericPolicyApiContractTests
         {
             Assert.That(handler, Does.Contain("idEncoderService.DecodeId_long("));
             Assert.That(handler, Does.Contain("EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId)"));
-            Assert.That(handler, Does.Not.Contain("actor.Claims.TenantEncriptionKey,\n                idEncoderService"));
+            Assert.That(handler, Does.Contain("actor.Claims.TenantEncriptionKey"));
         });
     }
 
@@ -289,7 +286,7 @@ public sealed class GenericPolicyApiContractTests
         Assert.Multiple(() =>
         {
             Assert.That(source, Does.Contain("x.TenantId == tenantId && employeeIds.Contains(x.Id)"));
-            Assert.That(source, Does.Contain("x.Id == dto.ResolvedEmployeeId && x.TenantId == tenantId"));
+            Assert.That(source, Does.Contain("x.Id == employeeId && x.TenantId == tenantId"));
             Assert.That(source, Does.Contain("x.Id == assignmentId && x.TenantId == tenantId"));
             Assert.That(source, Does.Contain("x.TenantId == tenantId && x.EmployeeId == employeeId"));
         });

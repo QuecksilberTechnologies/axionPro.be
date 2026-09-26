@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.domain.Entity;
 using Microsoft.AspNetCore.Http;
@@ -129,8 +128,6 @@ public sealed class ResolveEmployeePoliciesRequestDTO : PermissionRequestDTO
 {
     /// <summary>Globally salted encoded employee identifier returned by the Employee APIs.</summary>
     [Required] public string EmployeeId { get; set; } = string.Empty;
-    /// <summary>Internal decoded value populated by the handler; never accepted from the client.</summary>
-    [JsonIgnore] public long ResolvedEmployeeId { get; set; }
     public DateOnly? EffectiveDate { get; set; }
 }
 

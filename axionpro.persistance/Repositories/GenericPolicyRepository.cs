@@ -498,9 +498,9 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         await context.SaveChangesAsync(cancellationToken); return true;
     }
 
-    public async Task<IReadOnlyList<ResolvedPolicyResponseDTO>> ResolveAsync(long tenantId, ResolveEmployeePoliciesRequestDTO dto, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ResolvedPolicyResponseDTO>> ResolveAsync(long tenantId, long employeeId, ResolveEmployeePoliciesRequestDTO dto, CancellationToken cancellationToken)
     {
-        var employee = await context.Employees.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ResolvedEmployeeId && x.TenantId == tenantId, cancellationToken) ?? throw new NotFoundException("Employee was not found.");
+        var employee = await context.Employees.AsNoTracking().FirstOrDefaultAsync(x => x.Id == employeeId && x.TenantId == tenantId, cancellationToken) ?? throw new NotFoundException("Employee was not found.");
         var date = dto.EffectiveDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var versions = await (from v in context.PolicyVersions.AsNoTracking() join p in context.Policies.AsNoTracking() on v.PolicyId equals p.Id where v.TenantId == tenantId && v.PolicyStatusId == Published && v.IsCurrent && v.IsActive && p.IsActive && !p.IsSoftDeleted && v.EffectiveFrom <= date && (v.EffectiveTo == null || v.EffectiveTo >= date) select new { Version = v, Policy = p }).ToListAsync(cancellationToken);
         var ids = versions.Select(x => x.Version.Id).ToArray();

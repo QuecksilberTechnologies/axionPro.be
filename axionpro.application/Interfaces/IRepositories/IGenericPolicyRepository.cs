@@ -24,7 +24,7 @@ public interface IGenericPolicyRepository
     Task<long> CreateExceptionAsync(long tenantId, long actorId, CreatePolicyExceptionRequestDTO dto, CancellationToken cancellationToken);
     Task<bool> ApproveExceptionAsync(long tenantId, long actorId, ApprovePolicyExceptionRequestDTO dto, CancellationToken cancellationToken);
     Task<bool> AcknowledgeAsync(long tenantId, long employeeId, AcknowledgePolicyRequestDTO dto, CancellationToken cancellationToken);
-    Task<IReadOnlyList<ResolvedPolicyResponseDTO>> ResolveAsync(long tenantId, ResolveEmployeePoliciesRequestDTO dto, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ResolvedPolicyResponseDTO>> ResolveAsync(long tenantId, long employeeId, ResolveEmployeePoliciesRequestDTO dto, CancellationToken cancellationToken);
     Task<long> AddDocumentAsync(long tenantId, long actorId, UploadPolicyDocumentRequestDTO dto, string objectKey, string checksum, CancellationToken cancellationToken);
     Task<IReadOnlyList<PolicyDocument>> GetDocumentsAsync(long tenantId, long policyVersionId, CancellationToken cancellationToken);
     Task<string> DeleteDocumentAsync(long tenantId, long actorId, long documentId, CancellationToken cancellationToken);
