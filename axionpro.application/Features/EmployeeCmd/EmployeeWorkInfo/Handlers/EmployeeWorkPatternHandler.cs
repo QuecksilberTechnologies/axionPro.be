@@ -99,6 +99,18 @@ internal static class EmployeeWorkPatternValidator
         }
         else
         {
+            var arrangementWorkMode = (WorkMode)arrangement.WorkMode;
+            if (arrangementWorkMode == WorkMode.Hybrid
+                && arrangement.HybridType == (short)HybridType.Flexible)
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.FlexibleHybridPatternNotAllowed);
+            }
+
+            if (arrangementWorkMode != WorkMode.Hybrid && dto.WorkMode != arrangementWorkMode)
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.WorkPatternModeMustMatchArrangement);
+            }
+
             if (dto.WorkMode == WorkMode.WorkFromHome && dto.TenantLocationId.HasValue)
             {
                 throw new ValidationErrorException(AppConstants.ErrorMessages.WorkModeOverrideLocationNotAllowed);

@@ -34,6 +34,21 @@ The weekday is recurring and has no independent date fields. Its applicable peri
 work arrangement's `effectiveFrom` / `effectiveTo`. A working day also carries its concrete work
 mode and any required location; a weekly off sets `isWorkingDay` to `false` and sends no location.
 
+An employee may have multiple non-overlapping arrangements over time. Each arrangement owns its
+own set of up to seven weekday rows. The UI defaults to the active arrangement effective today and
+also lets an active future arrangement be selected for advance configuration. Inactive arrangements
+cannot receive new pattern rows.
+
+- Non-hybrid arrangements inherit their work mode on every working weekday; the mode is not freely selectable.
+- Fixed Hybrid arrangements allow a concrete Office, Work From Home, Field or Client Site mode per weekday.
+- Flexible Hybrid arrangements use their weekly/monthly quota fields and do not accept fixed weekday rows.
+- Physical-mode location options come only from active, attendance-allowed employee assignments
+  that cover the complete parent arrangement window and whose location type matches the mode.
+- Weekly-off rows show no work mode and no location in the grid.
+
+The API repeats the non-hybrid mode and Flexible-Hybrid checks during create, update and
+reactivation, so a client cannot bypass the UI rules.
+
 `EmployeeWorkModeOverride` is a temporary exception to the base arrangement/pattern. It may overlap
 the base arrangement by design. Two active Pending or Approved overrides for the same employee may
 not overlap, including a shared boundary date. Rejected, Cancelled, inactive and soft-deleted rows

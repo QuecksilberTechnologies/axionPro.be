@@ -211,6 +211,8 @@ public sealed class EmployeeWorkLocationArrangementValidationTests
             Assert.That(patternHandler, Does.Contain("IsLocationTypeCompatible"));
             Assert.That(patternHandler, Does.Contain("IsAllowedByAttendancePolicy"));
             Assert.That(patternHandler, Does.Contain("PatternDayExistsAsync"));
+            Assert.That(patternHandler, Does.Contain("FlexibleHybridPatternNotAllowed"));
+            Assert.That(patternHandler, Does.Contain("WorkPatternModeMustMatchArrangement"));
             Assert.That(overrideHandler, Does.Contain("GetOverlappingOverrideAsync"));
             Assert.That(overrideHandler, Does.Contain("WorkModeOverrideDateOverlap"));
             Assert.That(overrideHandler, Does.Contain("GetActiveOperationNameAsync"));

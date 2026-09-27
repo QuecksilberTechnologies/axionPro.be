@@ -133,6 +133,8 @@ namespace axionpro.application.Constants
             public const string WorkPatternDayOffLocationNotAllowed = "A non-working day cannot have a work location.";
             public const string WorkPatternLocationAssignmentRequired = "The pattern location must have an active, attendance-allowed employee location assignment covering the work arrangement period.";
             public const string WorkPatternPolicyMismatch = "The work pattern mode and location are not allowed by the work arrangement's Attendance policy.";
+            public const string WorkPatternModeMustMatchArrangement = "The weekday work mode must match the selected non-hybrid work arrangement.";
+            public const string FlexibleHybridPatternNotAllowed = "Flexible hybrid arrangements use day quotas and cannot have fixed weekday patterns.";
             public const string WorkModeOverrideArrangementEmployeeMismatch = "The selected work arrangement belongs to a different employee.";
             public const string WorkModeOverrideArrangementDateMismatch = "The override date range must be fully inside the selected work arrangement period.";
             public const string WorkModeOverrideLocationRequired = "Office, Field, and Client Site overrides require a compatible location.";
