@@ -74,6 +74,20 @@ public sealed class GetAttendancePolicyOptionsQuery(AttendancePolicyOptionReques
 }
 #endregion
 
+/// <summary>Maps a work arrangement while keeping the public employee identifier encoded.</summary>
+internal static class EmployeeWorkArrangementResponseMapper
+{
+    public static EmployeeWorkArrangementResponseDTO Map(
+        IMapper mapper,
+        EmployeeWorkArrangement entity,
+        Func<long, string> encodeEmployeeId)
+    {
+        var response = mapper.Map<EmployeeWorkArrangementResponseDTO>(entity);
+        response.EmployeeId = encodeEmployeeId(entity.EmployeeId);
+        return response;
+    }
+}
+
 /// <summary>Explains each employee, location, assignment-state, and date failure separately.</summary>
 internal static class EmployeeWorkArrangementReferenceValidator
 {
@@ -287,7 +301,15 @@ public sealed class CreateEmployeeWorkArrangementCommandHandler : TenantConfigur
         var (tenantId, actorId, employeeId) = await ValidateTenantAndDecodeEmployeeIdAsync(request.DTO.EmployeeId); Validate(request.DTO); await ValidateRefs(tenantId, employeeId, request.DTO, null, ct);
         var e = _mapper.Map<EmployeeWorkArrangement>(request.DTO); e.EmployeeId = employeeId; e.TenantId = tenantId; e.IsSoftDeleted = false; e.AddedById = actorId; e.AddedDateTime = DateTime.UtcNow; await UnitOfWork.EmployeeWorkArrangementRepository.AddAsync(e, ct); await UnitOfWork.SaveChangesAsync(ct);
         Logger.LogInformation("Work arrangement {WorkArrangementId} created for Employee {EmployeeId} and Tenant {TenantId}.", e.Id, e.EmployeeId, tenantId);
-        return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementCreated);
+        var stored = (await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!;
+        var validation = await ValidateTenantDataAccessContextAsync();
+        var response = EmployeeWorkArrangementResponseMapper.Map(
+            _mapper,
+            stored,
+            id => EncodeEmployeeId(id, validation));
+        return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(
+            response,
+            AppConstants.SuccessMessages.EmployeeWorkArrangementCreated);
     }
     #endregion
     private async Task ValidateRefs(long tenantId, long employeeId, CreateEmployeeWorkArrangementRequestDTO dto, long? excludeId, CancellationToken ct)
@@ -400,7 +422,15 @@ public sealed class UpdateEmployeeWorkArrangementCommandHandler : TenantConfigur
         if (!request.DTO.IsActive && e.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.HasLiveActiveDependenciesAsync(tenantId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeWorkArrangementInUse);
         await ValidateRefs(tenantId, employeeId, request.DTO, e.Id, ct);
         _mapper.Map(request.DTO, e); e.EmployeeId = employeeId; e.UpdatedById = actorId; e.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct);
-        return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementUpdated);
+        var stored = (await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!;
+        var validation = await ValidateTenantDataAccessContextAsync();
+        var response = EmployeeWorkArrangementResponseMapper.Map(
+            _mapper,
+            stored,
+            id => EncodeEmployeeId(id, validation));
+        return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(
+            response,
+            AppConstants.SuccessMessages.EmployeeWorkArrangementUpdated);
     }
     #endregion
     private async Task ValidateRefs(long tenantId, long employeeId, CreateEmployeeWorkArrangementRequestDTO dto, long? excludeId, CancellationToken ct)
@@ -506,7 +536,7 @@ public sealed class UpdateEmployeeWorkArrangementStatusCommandHandler : TenantCo
 {
     private readonly IMapper _mapper;
     /// <summary>Initializes handler.</summary>
-    public UpdateEmployeeWorkArrangementStatusCommandHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
+    public UpdateEmployeeWorkArrangementStatusCommandHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = mapper;
     /// <inheritdoc />
     public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(UpdateEmployeeWorkArrangementStatusCommand request, CancellationToken ct)
     {
@@ -576,8 +606,13 @@ public sealed class UpdateEmployeeWorkArrangementStatusCommandHandler : TenantCo
         entity.UpdatedById = validation.LoggedInEmployeeId;
         entity.UpdatedDateTime = DateTime.UtcNow;
         await UnitOfWork.SaveChangesAsync(ct);
+        var stored = (await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, entity.Id, ct))!;
+        var response = EmployeeWorkArrangementResponseMapper.Map(
+            _mapper,
+            stored,
+            id => EncodeEmployeeId(id, validation));
         return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(
-            _mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, entity.Id, ct))!),
+            response,
             AppConstants.SuccessMessages.EmployeeWorkArrangementStatusUpdated);
     }
 }
@@ -587,9 +622,9 @@ public sealed class GetEmployeeWorkArrangementByIdQueryHandler : TenantConfigura
 {
     private readonly IMapper _mapper;
     /// <summary>Initializes handler.</summary>
-    public GetEmployeeWorkArrangementByIdQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
+    public GetEmployeeWorkArrangementByIdQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(GetEmployeeWorkArrangementByIdQuery request, CancellationToken ct) { var validation = await ValidateTenantDataAccessContextAsync(); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(validation.TenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); await EnsureEmployeeDataAccessAsync(validation, e.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, ct); return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>(e)); }
+    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(GetEmployeeWorkArrangementByIdQuery request, CancellationToken ct) { var validation = await ValidateTenantDataAccessContextAsync(); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(validation.TenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); await EnsureEmployeeDataAccessAsync(validation, e.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, ct); return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(EmployeeWorkArrangementResponseMapper.Map(_mapper, e, id => EncodeEmployeeId(id, validation))); }
 }
 
 /// <summary>Handles filtered employee work arrangement retrieval.</summary>
@@ -599,7 +634,7 @@ public sealed class GetEmployeeWorkArrangementsQueryHandler : TenantConfiguratio
     /// <summary>Initializes handler.</summary>
     public GetEmployeeWorkArrangementsQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<List<EmployeeWorkArrangementResponseDTO>>> Handle(GetEmployeeWorkArrangementsQuery request, CancellationToken ct) { var filter = request.Filter ?? new EmployeeWorkArrangementFilterRequestDTO(); var validation = await ValidateTenantDataAccessContextAsync(); long? employeeId = null; if (!string.IsNullOrWhiteSpace(filter.EmployeeId)) { var context = await ValidateTenantAndDecodeOptionalEmployeeIdAsync(filter.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, ct); employeeId = context.EmployeeId; } filter.ResolvedEmployeeId = employeeId; var p = await UnitOfWork.EmployeeWorkArrangementRepository.GetPagedAsync(validation.TenantId, filter, validation.LoggedInEmployeeId, validation.RoleTypeId, ct); return Paged(p.Data.Select(entity => _mapper.Map<EmployeeWorkArrangementResponseDTO>(entity)).ToList(), p.PageNumber, p.PageSize, p.TotalCount, "Employee work arrangements retrieved successfully."); }
+    public async Task<ApiResponse<List<EmployeeWorkArrangementResponseDTO>>> Handle(GetEmployeeWorkArrangementsQuery request, CancellationToken ct) { var filter = request.Filter ?? new EmployeeWorkArrangementFilterRequestDTO(); var validation = await ValidateTenantDataAccessContextAsync(); long? employeeId = null; if (!string.IsNullOrWhiteSpace(filter.EmployeeId)) { var context = await ValidateTenantAndDecodeOptionalEmployeeIdAsync(filter.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, ct); employeeId = context.EmployeeId; } filter.ResolvedEmployeeId = employeeId; var p = await UnitOfWork.EmployeeWorkArrangementRepository.GetPagedAsync(validation.TenantId, filter, validation.LoggedInEmployeeId, validation.RoleTypeId, ct); return Paged(p.Data.Select(entity => EmployeeWorkArrangementResponseMapper.Map(_mapper, entity, id => EncodeEmployeeId(id, validation))).ToList(), p.PageNumber, p.PageSize, p.TotalCount, "Employee work arrangements retrieved successfully."); }
 }
 
 /// <summary>Handles the token-authenticated Attendance policy dropdown query.</summary>

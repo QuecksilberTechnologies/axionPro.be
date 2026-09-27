@@ -405,7 +405,7 @@ public sealed class EmployeeWorkArrangementFilterRequestDTO : PermissionRequestD
 public sealed class EmployeeWorkArrangementResponseDTO
 {
     public long Id { get; set; }
-    public long EmployeeId { get; set; }
+    public string EmployeeId { get; set; } = string.Empty;
     public string EmployeeName { get; set; } = string.Empty;
     public long PolicyVersionId { get; set; }
     public long PolicyId { get; set; }

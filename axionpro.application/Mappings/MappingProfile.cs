@@ -436,6 +436,7 @@ namespace axionpro.application.Mappings
             CreateMap<EmployeeDeviceAccessWindow, EmployeeDeviceAccessWindowResponseDTO>()
                 .ForMember(d => d.DayOfWeek, o => o.MapFrom(s => (WorkPatternDay)s.DayOfWeek));
             CreateMap<EmployeeWorkArrangement, EmployeeWorkArrangementResponseDTO>()
+                .ForMember(d => d.EmployeeId, o => o.Ignore())
                 .ForMember(d => d.WorkMode, o => o.MapFrom(s => (WorkMode)s.WorkMode))
                 .ForMember(d => d.HybridType, o => o.MapFrom(s => s.HybridType.HasValue ? (HybridType?)s.HybridType.Value : null))
                 .ForMember(d => d.EmployeeName, o => o.MapFrom(s => EmployeeName(s.Employee)))

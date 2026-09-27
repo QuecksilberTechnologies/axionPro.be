@@ -277,3 +277,28 @@ the final concurrency guard; the shared application validation supplies the read
 - Authenticated HTTP create from the running browser was not captured. Direct database reconciliation
   confirmed the published policy, typed configuration, location type, primary assignment, effective
   coverage and absence of an existing active arrangement for the reported 2028-02-04 case.
+
+## Encoded employee identifier contract — 2026-09-27
+
+Every Employee Work Arrangement response returns `employeeId` as the authenticated tenant's
+salt-encoded string. This applies to create, update, status change, get-by-id, and paged-list responses.
+The UI must preserve that string unchanged when it prepares an edit request:
+
+```json
+{
+  "id": 123,
+  "employeeId": "<tenant-salted-employee-id>",
+  "policyVersionId": 456,
+  "effectiveFrom": "2026-09-27",
+  "workMode": 3,
+  "isActive": true,
+  "moduleId": "<resolved-from-menu>",
+  "operationId": "<resolved-from-menu>"
+}
+```
+
+The database `bigint` employee key is internal and is never part of this public response contract.
+The API decodes the submitted string through the existing tenant-aware identifier pipeline and rejects
+an identifier that belongs to another tenant or is otherwise invalid.
+
+Scenario evidence: [encoded employee ID update — 2026-09-27](../testing/employee-work-arrangement/update-encoded-employee-id/2026-09-27.md).

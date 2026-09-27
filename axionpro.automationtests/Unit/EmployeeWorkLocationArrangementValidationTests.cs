@@ -281,6 +281,26 @@ public sealed class EmployeeWorkLocationArrangementValidationTests
     }
 
     [Test]
+    public void Work_arrangement_response_exposes_encoded_employee_identity()
+    {
+        var root = FindRepositoryRoot();
+        var handler = File.ReadAllText(Path.Combine(root, "axionpro.application", "Features", "EmployeeCmd", "EmployeeWorkInfo", "Handlers", "EmployeeWorkArrangementHandler.cs"));
+        var mappingProfile = File.ReadAllText(Path.Combine(root, "axionpro.application", "Mappings", "MappingProfile.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                typeof(EmployeeWorkArrangementResponseDTO).GetProperty("EmployeeId")!.PropertyType,
+                Is.EqualTo(typeof(string)));
+            Assert.That(handler, Does.Contain("internal static class EmployeeWorkArrangementResponseMapper"));
+            Assert.That(handler, Does.Contain("response.EmployeeId = encodeEmployeeId(entity.EmployeeId)"));
+            Assert.That(handler, Does.Contain("id => EncodeEmployeeId(id, validation)"));
+            Assert.That(mappingProfile, Does.Contain("CreateMap<EmployeeWorkArrangement, EmployeeWorkArrangementResponseDTO>()"));
+            Assert.That(mappingProfile, Does.Contain(".ForMember(d => d.EmployeeId, o => o.Ignore())"));
+        });
+    }
+
+    [Test]
     public void Database_model_and_deployment_script_allow_non_overlapping_schedules()
     {
         var root = FindRepositoryRoot();
