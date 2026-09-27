@@ -142,12 +142,13 @@ internal static class EmployeeWorkArrangementReferenceValidator
         CreateEmployeeWorkArrangementRequestDTO dto,
         CancellationToken cancellationToken)
     {
-        if (dto.WorkMode == WorkMode.WorkFromHome && dto.PrimaryTenantLocationId.HasValue)
+        if (EmployeeWorkConfigurationRules.DisallowsLocation(dto.WorkMode)
+            && dto.PrimaryTenantLocationId.HasValue)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.WorkFromHomePrimaryLocationNotAllowed);
         }
 
-        if (dto.WorkMode is WorkMode.Office or WorkMode.Hybrid or WorkMode.ClientSite
+        if (EmployeeWorkConfigurationRules.RequiresPrimaryLocation(dto.WorkMode)
             && !dto.PrimaryTenantLocationId.HasValue)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.WorkArrangementPrimaryLocationRequired);

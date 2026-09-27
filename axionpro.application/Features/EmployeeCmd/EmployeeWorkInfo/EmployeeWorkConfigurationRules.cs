@@ -12,6 +12,31 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo;
 /// <summary>Defines deterministic rules shared by work-location and work-arrangement validation.</summary>
 public static class EmployeeWorkConfigurationRules
 {
+    /// <summary>Returns whether an arrangement requires a primary tenant location.</summary>
+    public static bool RequiresPrimaryLocation(WorkMode workMode) =>
+        workMode is WorkMode.Office or WorkMode.Hybrid or WorkMode.ClientSite;
+
+    /// <summary>Returns whether a daily pattern or override requires an execution location.</summary>
+    public static bool RequiresExecutionLocation(WorkMode workMode) =>
+        workMode is WorkMode.Office or WorkMode.Field or WorkMode.ClientSite;
+
+    /// <summary>Returns whether the mode must not carry a tenant location.</summary>
+    public static bool DisallowsLocation(WorkMode workMode) => workMode == WorkMode.WorkFromHome;
+
+    /// <summary>Returns whether a work mode is concrete enough for a daily override.</summary>
+    public static bool IsConcreteWorkMode(WorkMode workMode) =>
+        workMode is WorkMode.Office or WorkMode.WorkFromHome or WorkMode.Field or WorkMode.ClientSite;
+
+    /// <summary>Returns whether an arrangement supports fixed weekday pattern rows.</summary>
+    public static bool SupportsWeekdayPattern(WorkMode workMode, short? hybridType) =>
+        workMode != WorkMode.Hybrid || hybridType != (short)HybridType.Flexible;
+
+    /// <summary>Returns whether a weekday mode is valid for its arrangement.</summary>
+    public static bool IsPatternModeAllowed(WorkMode arrangementWorkMode, WorkMode patternWorkMode) =>
+        arrangementWorkMode == WorkMode.Hybrid
+            ? IsConcreteWorkMode(patternWorkMode)
+            : arrangementWorkMode == patternWorkMode;
+
     /// <summary>Checks whether a work arrangement can execute under a typed Attendance policy configuration.</summary>
     public static bool IsAllowedByAttendancePolicy(
         WorkMode workMode,

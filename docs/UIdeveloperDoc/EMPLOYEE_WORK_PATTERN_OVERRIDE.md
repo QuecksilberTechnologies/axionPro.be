@@ -87,3 +87,7 @@ alter conflicting business data.
 
 Local API and Angular builds and focused automated tests are recorded in the linked scenario
 reports. Deployment and authenticated deployed-environment acceptance are separate and pending.
+
+## Shared validation maintenance
+
+The centralized work-mode, location, date-window and input-limit rules and their local regression evidence are recorded in [Employee work configuration centralized validation](../testing/employee-work-configuration/centralized-validation/2026-09-27.md).

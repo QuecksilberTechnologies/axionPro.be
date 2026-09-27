@@ -100,12 +100,13 @@ internal static class EmployeeWorkModeOverrideValidator
             }
         }
 
-        if (dto.RequestedWorkMode == WorkMode.WorkFromHome && dto.TenantLocationId.HasValue)
+        if (EmployeeWorkConfigurationRules.DisallowsLocation(dto.RequestedWorkMode)
+            && dto.TenantLocationId.HasValue)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.WorkModeOverrideLocationNotAllowed);
         }
 
-        if (dto.RequestedWorkMode is WorkMode.Office or WorkMode.Field or WorkMode.ClientSite
+        if (EmployeeWorkConfigurationRules.RequiresExecutionLocation(dto.RequestedWorkMode)
             && !dto.TenantLocationId.HasValue)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.WorkModeOverrideLocationRequired);
@@ -212,11 +213,12 @@ public sealed class CreateEmployeeWorkModeOverrideCommandHandler : TenantConfigu
     {
         if (string.IsNullOrWhiteSpace(dto.EmployeeId))
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
-        if (string.IsNullOrWhiteSpace(dto.Reason) || dto.Reason.Trim().Length > 500)
+        if (string.IsNullOrWhiteSpace(dto.Reason)
+            || dto.Reason.Trim().Length > AppConstants.ValidationLimits.WorkModeOverrideTextMaxLength)
             throw new ValidationErrorException(AppConstants.ErrorMessages.WorkModeOverrideReasonRequired);
         if (dto.FromDate == default || dto.ToDate < dto.FromDate)
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange);
-        if (dto.RequestedWorkMode is not (WorkMode.Office or WorkMode.WorkFromHome or WorkMode.Field or WorkMode.ClientSite))
+        if (!EmployeeWorkConfigurationRules.IsConcreteWorkMode(dto.RequestedWorkMode))
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidOverrideWorkMode);
     }
 }
@@ -242,11 +244,12 @@ public sealed class UpdateEmployeeWorkModeOverrideCommandHandler : TenantConfigu
     {
         if (string.IsNullOrWhiteSpace(dto.EmployeeId))
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
-        if (string.IsNullOrWhiteSpace(dto.Reason) || dto.Reason.Trim().Length > 500)
+        if (string.IsNullOrWhiteSpace(dto.Reason)
+            || dto.Reason.Trim().Length > AppConstants.ValidationLimits.WorkModeOverrideTextMaxLength)
             throw new ValidationErrorException(AppConstants.ErrorMessages.WorkModeOverrideReasonRequired);
         if (dto.FromDate == default || dto.ToDate < dto.FromDate)
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange);
-        if (dto.RequestedWorkMode is not (WorkMode.Office or WorkMode.WorkFromHome or WorkMode.Field or WorkMode.ClientSite))
+        if (!EmployeeWorkConfigurationRules.IsConcreteWorkMode(dto.RequestedWorkMode))
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidOverrideWorkMode);
     }
 }
@@ -287,7 +290,9 @@ public sealed class DecideEmployeeWorkModeOverrideCommandHandler : TenantConfigu
     public async Task<ApiResponse<EmployeeWorkModeOverrideResponseDTO>> Handle(DecideEmployeeWorkModeOverrideCommand request, CancellationToken cancellationToken)
     {
         if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
-        if (!request.Approve && (string.IsNullOrWhiteSpace(request.DTO.Remark) || request.DTO.Remark.Trim().Length > 500))
+        if (!request.Approve
+            && (string.IsNullOrWhiteSpace(request.DTO.Remark)
+                || request.DTO.Remark.Trim().Length > AppConstants.ValidationLimits.WorkModeOverrideTextMaxLength))
             throw new ValidationErrorException(AppConstants.ErrorMessages.WorkModeOverrideRejectedRemarkRequired);
         var expectedOperation = request.Approve ? "Approve" : "Reject";
         var operationName = await CommonRequestService.GetActiveOperationNameAsync(request.DTO.OperationId);

@@ -100,23 +100,25 @@ internal static class EmployeeWorkPatternValidator
         else
         {
             var arrangementWorkMode = (WorkMode)arrangement.WorkMode;
-            if (arrangementWorkMode == WorkMode.Hybrid
-                && arrangement.HybridType == (short)HybridType.Flexible)
+            if (!EmployeeWorkConfigurationRules.SupportsWeekdayPattern(
+                arrangementWorkMode,
+                arrangement.HybridType))
             {
                 throw new ValidationErrorException(AppConstants.ErrorMessages.FlexibleHybridPatternNotAllowed);
             }
 
-            if (arrangementWorkMode != WorkMode.Hybrid && dto.WorkMode != arrangementWorkMode)
+            if (!EmployeeWorkConfigurationRules.IsPatternModeAllowed(arrangementWorkMode, dto.WorkMode))
             {
                 throw new ValidationErrorException(AppConstants.ErrorMessages.WorkPatternModeMustMatchArrangement);
             }
 
-            if (dto.WorkMode == WorkMode.WorkFromHome && dto.TenantLocationId.HasValue)
+            if (EmployeeWorkConfigurationRules.DisallowsLocation(dto.WorkMode)
+                && dto.TenantLocationId.HasValue)
             {
                 throw new ValidationErrorException(AppConstants.ErrorMessages.WorkModeOverrideLocationNotAllowed);
             }
 
-            if (dto.WorkMode is WorkMode.Office or WorkMode.Field or WorkMode.ClientSite
+            if (EmployeeWorkConfigurationRules.RequiresExecutionLocation(dto.WorkMode)
                 && !dto.TenantLocationId.HasValue)
             {
                 throw new ValidationErrorException(AppConstants.ErrorMessages.WorkPatternLocationRequired);

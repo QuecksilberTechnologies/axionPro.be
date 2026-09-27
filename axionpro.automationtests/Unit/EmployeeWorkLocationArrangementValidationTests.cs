@@ -23,6 +23,33 @@ public sealed class EmployeeWorkLocationArrangementValidationTests
     }
 
     [Test]
+    public void Shared_work_mode_rules_keep_arrangement_pattern_and_override_requirements_consistent()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(EmployeeWorkConfigurationRules.RequiresPrimaryLocation(WorkMode.Hybrid), Is.True);
+            Assert.That(EmployeeWorkConfigurationRules.RequiresPrimaryLocation(WorkMode.Field), Is.False);
+            Assert.That(EmployeeWorkConfigurationRules.RequiresExecutionLocation(WorkMode.Field), Is.True);
+            Assert.That(EmployeeWorkConfigurationRules.RequiresExecutionLocation(WorkMode.Hybrid), Is.False);
+            Assert.That(EmployeeWorkConfigurationRules.DisallowsLocation(WorkMode.WorkFromHome), Is.True);
+            Assert.That(EmployeeWorkConfigurationRules.IsConcreteWorkMode(WorkMode.Hybrid), Is.False);
+            Assert.That(EmployeeWorkConfigurationRules.IsConcreteWorkMode(WorkMode.ClientSite), Is.True);
+            Assert.That(EmployeeWorkConfigurationRules.SupportsWeekdayPattern(
+                WorkMode.Hybrid,
+                (short)HybridType.Flexible), Is.False);
+            Assert.That(EmployeeWorkConfigurationRules.SupportsWeekdayPattern(
+                WorkMode.Hybrid,
+                (short)HybridType.Fixed), Is.True);
+            Assert.That(EmployeeWorkConfigurationRules.IsPatternModeAllowed(
+                WorkMode.ClientSite,
+                WorkMode.Office), Is.False);
+            Assert.That(EmployeeWorkConfigurationRules.IsPatternModeAllowed(
+                WorkMode.Hybrid,
+                WorkMode.Office), Is.True);
+        });
+    }
+
+    [Test]
     public void Inclusive_effective_windows_detect_overlap_and_allow_adjacent_history()
     {
         Assert.Multiple(() =>

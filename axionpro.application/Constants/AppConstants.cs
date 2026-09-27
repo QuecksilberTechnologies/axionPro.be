@@ -10,6 +10,12 @@ namespace axionpro.application.Constants
 {
     public static class AppConstants
     {
+        /// <summary>Shared input limits used by request validation.</summary>
+        public static class ValidationLimits
+        {
+            public const int WorkModeOverrideTextMaxLength = 500;
+        }
+
         #region Error Codes
 
         /// <summary>
