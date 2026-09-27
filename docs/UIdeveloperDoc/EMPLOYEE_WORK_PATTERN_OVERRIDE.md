@@ -8,6 +8,32 @@ Client Site. Hybrid is represented by different concrete modes across weekday ro
 duplicate weekdays in one arrangement, invalid location types, uncovered employee location
 assignments, inactive dependencies and attendance-policy mismatches.
 
+The employee is selected through the parent `EmployeeWorkArrangementId`; create/update requests do
+not repeat an employee ID. Every work-pattern read or mutation response includes `employeeId` as the
+existing tenant-salted string and `employeeName` for display. Never expose or derive the database
+employee `bigint` in the UI. A representative row is:
+
+```json
+{
+  "id": 17,
+  "employeeId": "XGQRD0Z8",
+  "employeeName": "Example Employee",
+  "employeeWorkArrangementId": 9,
+  "dayOfWeek": 0,
+  "dayOfWeekName": "Sunday",
+  "workMode": 4,
+  "workModeName": "ClientSite",
+  "tenantLocationId": 12,
+  "tenantLocationName": "Client Location",
+  "isWorkingDay": true,
+  "isActive": true
+}
+```
+
+The weekday is recurring and has no independent date fields. Its applicable period is the parent
+work arrangement's `effectiveFrom` / `effectiveTo`. A working day also carries its concrete work
+mode and any required location; a weekly off sets `isWorkingDay` to `false` and sends no location.
+
 `EmployeeWorkModeOverride` is a temporary exception to the base arrangement/pattern. It may overlap
 the base arrangement by design. Two active Pending or Approved overrides for the same employee may
 not overlap, including a shared boundary date. Rejected, Cancelled, inactive and soft-deleted rows

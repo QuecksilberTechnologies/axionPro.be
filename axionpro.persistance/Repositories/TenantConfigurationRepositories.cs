@@ -669,7 +669,11 @@ public sealed class EmployeeWorkPatternRepository : TenantConfigurationRepositor
 
     /// <inheritdoc />
     public Task<EmployeeWorkPattern?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken) =>
-        Context.EmployeeWorkPatterns.AsNoTracking().Include(x => x.EmployeeWorkArrangement).Include(x => x.TenantLocation).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
+        Context.EmployeeWorkPatterns.AsNoTracking()
+            .Include(x => x.EmployeeWorkArrangement)
+            .ThenInclude(x => x.Employee)
+            .Include(x => x.TenantLocation)
+            .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
     public Task<EmployeeWorkPattern?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken) =>
@@ -679,7 +683,11 @@ public sealed class EmployeeWorkPatternRepository : TenantConfigurationRepositor
     public async Task<PagedResponseDTO<EmployeeWorkPattern>> GetPagedAsync(long tenantId, EmployeeWorkPatternFilterRequestDTO filter, long requestingEmployeeId, int requestingRoleTypeId, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
-        var query = Context.EmployeeWorkPatterns.AsNoTracking().Include(x => x.EmployeeWorkArrangement).Include(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
+        var query = Context.EmployeeWorkPatterns.AsNoTracking()
+            .Include(x => x.EmployeeWorkArrangement)
+            .ThenInclude(x => x.Employee)
+            .Include(x => x.TenantLocation)
+            .Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
         if (requestingRoleTypeId != ConstantValues.RoleTypeAdmin) query = query.Where(x => x.EmployeeWorkArrangement.EmployeeId == requestingEmployeeId);
         if (filter.EmployeeWorkArrangementId.HasValue) query = query.Where(x => x.EmployeeWorkArrangementId == filter.EmployeeWorkArrangementId.Value);
         if (filter.DayOfWeek.HasValue) query = query.Where(x => x.DayOfWeek == (short)filter.DayOfWeek.Value);

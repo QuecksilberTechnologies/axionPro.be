@@ -486,6 +486,8 @@ public sealed class EmployeeWorkPatternFilterRequestDTO : PermissionRequestDTO
 public sealed class EmployeeWorkPatternResponseDTO
 {
     public long Id { get; set; }
+    public string EmployeeId { get; set; } = string.Empty;
+    public string EmployeeName { get; set; } = string.Empty;
     public long EmployeeWorkArrangementId { get; set; }
     public WorkPatternDay DayOfWeek { get; set; }
     public string DayOfWeekName { get; set; } = string.Empty;

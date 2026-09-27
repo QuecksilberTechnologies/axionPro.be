@@ -92,6 +92,7 @@ saving evidence. Documentation-only work does not require repeating passed tests
 ## Latest holiday report
 
 - [Employee work pattern validation — 2026-09-26](employee-work-pattern/validation/2026-09-26.md)
+- [Employee work pattern response identity — 2026-09-27](employee-work-pattern/response-employee-identity/2026-09-27.md)
 - [Employee work mode override approval and overlap — 2026-09-26](employee-work-mode-override/approval-overlap/2026-09-26.md)
 
 - [Holiday rename and Icon field — 2026-09-23](holiday-calendar/rename-to-holiday/2026-09-23.md)

@@ -446,6 +446,8 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.WorkModeName, o => o.MapFrom(s => ((WorkMode)s.WorkMode).ToString()))
                 .ForMember(d => d.HybridTypeName, o => o.MapFrom(s => s.HybridType.HasValue ? ((HybridType)s.HybridType.Value).ToString() : null));
             CreateMap<EmployeeWorkPattern, EmployeeWorkPatternResponseDTO>()
+                .ForMember(d => d.EmployeeId, o => o.Ignore())
+                .ForMember(d => d.EmployeeName, o => o.MapFrom(s => EmployeeName(s.EmployeeWorkArrangement.Employee)))
                 .ForMember(d => d.DayOfWeek, o => o.MapFrom(s => (WorkPatternDay)s.DayOfWeek))
                 .ForMember(d => d.WorkMode, o => o.MapFrom(s => (WorkMode)s.WorkMode))
                 .ForMember(d => d.DayOfWeekName, o => o.MapFrom(s => ((WorkPatternDay)s.DayOfWeek).ToString()))

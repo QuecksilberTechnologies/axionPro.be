@@ -13,6 +13,7 @@ using axionpro.application.Exceptions;
 using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -159,13 +160,27 @@ internal static class EmployeeWorkPatternValidator
     }
 }
 
+/// <summary>Maps a work pattern while preserving the public tenant-salted employee identifier.</summary>
+internal static class EmployeeWorkPatternResponseMapper
+{
+    public static EmployeeWorkPatternResponseDTO Map(
+        IMapper mapper,
+        EmployeeWorkPattern entity,
+        Func<long, string> encodeEmployeeId)
+    {
+        var response = mapper.Map<EmployeeWorkPatternResponseDTO>(entity);
+        response.EmployeeId = encodeEmployeeId(entity.EmployeeWorkArrangement.EmployeeId);
+        return response;
+    }
+}
+
 #region Handler
 
 /// <summary>Handles employee work-pattern creation.</summary>
 public sealed class CreateEmployeeWorkPatternCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<CreateEmployeeWorkPatternCommand, ApiResponse<EmployeeWorkPatternResponseDTO>>
 {
     private readonly IMapper _mapper;
-    public CreateEmployeeWorkPatternCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public CreateEmployeeWorkPatternCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger, IIdEncoderService idEncoderService) : base(unitOfWork, commonRequestService, logger, idEncoderService) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkPatternResponseDTO>> Handle(CreateEmployeeWorkPatternCommand request, CancellationToken cancellationToken)
     {
         var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; var actorId = validation.LoggedInEmployeeId; Validate(request.DTO); var arrangement = await EmployeeWorkPatternValidator.ValidateAsync(UnitOfWork, tenantId, request.DTO, null, cancellationToken);
@@ -173,7 +188,7 @@ public sealed class CreateEmployeeWorkPatternCommandHandler : TenantConfiguratio
         var entity = _mapper.Map<EmployeeWorkPattern>(request.DTO); entity.TenantId = tenantId; entity.IsSoftDeleted = false; entity.AddedById = actorId; entity.AddedDateTime = DateTime.UtcNow;
         await UnitOfWork.EmployeeWorkPatternRepository.AddAsync(entity, cancellationToken); await UnitOfWork.SaveChangesAsync(cancellationToken);
         var stored = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken);
-        return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(stored!), AppConstants.SuccessMessages.EmployeeWorkPatternCreated);
+        return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(EmployeeWorkPatternResponseMapper.Map(_mapper, stored!, id => EncodeEmployeeId(id, validation)), AppConstants.SuccessMessages.EmployeeWorkPatternCreated);
     }
     private static void Validate(CreateEmployeeWorkPatternRequestDTO dto)
     {
@@ -185,7 +200,7 @@ public sealed class CreateEmployeeWorkPatternCommandHandler : TenantConfiguratio
 public sealed class UpdateEmployeeWorkPatternCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<UpdateEmployeeWorkPatternCommand, ApiResponse<EmployeeWorkPatternResponseDTO>>
 {
     private readonly IMapper _mapper;
-    public UpdateEmployeeWorkPatternCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public UpdateEmployeeWorkPatternCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger, IIdEncoderService idEncoderService) : base(unitOfWork, commonRequestService, logger, idEncoderService) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkPatternResponseDTO>> Handle(UpdateEmployeeWorkPatternCommand request, CancellationToken cancellationToken)
     {
         var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; var actorId = validation.LoggedInEmployeeId; if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); Validate(request.DTO);
@@ -195,7 +210,7 @@ public sealed class UpdateEmployeeWorkPatternCommandHandler : TenantConfiguratio
         await EnsureEmployeeDataAccessAsync(validation, requestedArrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken);
         _mapper.Map(request.DTO, entity); entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken);
         var stored = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken);
-        return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(stored!), AppConstants.SuccessMessages.EmployeeWorkPatternUpdated);
+        return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(EmployeeWorkPatternResponseMapper.Map(_mapper, stored!, id => EncodeEmployeeId(id, validation)), AppConstants.SuccessMessages.EmployeeWorkPatternUpdated);
     }
     private static void Validate(CreateEmployeeWorkPatternRequestDTO dto)
     {
@@ -215,27 +230,27 @@ public sealed class DeleteEmployeeWorkPatternCommandHandler : TenantConfiguratio
 public sealed class UpdateEmployeeWorkPatternStatusCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<UpdateEmployeeWorkPatternStatusCommand, ApiResponse<EmployeeWorkPatternResponseDTO>>
 {
     private readonly IMapper _mapper;
-    public UpdateEmployeeWorkPatternStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public UpdateEmployeeWorkPatternStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger, IIdEncoderService idEncoderService) : base(unitOfWork, commonRequestService, logger, idEncoderService) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkPatternResponseDTO>> Handle(UpdateEmployeeWorkPatternStatusCommand request, CancellationToken cancellationToken)
-    { var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeWorkArrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken); if (request.DTO.IsActive) await EmployeeWorkPatternValidator.ValidateAsync(UnitOfWork, tenantId, new CreateEmployeeWorkPatternRequestDTO { EmployeeWorkArrangementId = entity.EmployeeWorkArrangementId, DayOfWeek = (WorkPatternDay)entity.DayOfWeek, WorkMode = (WorkMode)entity.WorkMode, TenantLocationId = entity.TenantLocationId, IsWorkingDay = entity.IsWorkingDay, IsActive = true }, entity.Id, cancellationToken); entity.IsActive = request.DTO.IsActive; entity.UpdatedById = validation.LoggedInEmployeeId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); var stored = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken); return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(stored!), AppConstants.SuccessMessages.EmployeeWorkPatternStatusUpdated); }
+    { var validation = await ValidateTenantDataAccessContextAsync(); var tenantId = validation.TenantId; if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeWorkArrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken); if (request.DTO.IsActive) await EmployeeWorkPatternValidator.ValidateAsync(UnitOfWork, tenantId, new CreateEmployeeWorkPatternRequestDTO { EmployeeWorkArrangementId = entity.EmployeeWorkArrangementId, DayOfWeek = (WorkPatternDay)entity.DayOfWeek, WorkMode = (WorkMode)entity.WorkMode, TenantLocationId = entity.TenantLocationId, IsWorkingDay = entity.IsWorkingDay, IsActive = true }, entity.Id, cancellationToken); entity.IsActive = request.DTO.IsActive; entity.UpdatedById = validation.LoggedInEmployeeId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); var stored = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken); return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(EmployeeWorkPatternResponseMapper.Map(_mapper, stored!, id => EncodeEmployeeId(id, validation)), AppConstants.SuccessMessages.EmployeeWorkPatternStatusUpdated); }
 }
 
 /// <summary>Handles employee work-pattern retrieval.</summary>
 public sealed class GetEmployeeWorkPatternByIdQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetEmployeeWorkPatternByIdQuery, ApiResponse<EmployeeWorkPatternResponseDTO>>
 {
     private readonly IMapper _mapper;
-    public GetEmployeeWorkPatternByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public GetEmployeeWorkPatternByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger, IIdEncoderService idEncoderService) : base(unitOfWork, commonRequestService, logger, idEncoderService) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkPatternResponseDTO>> Handle(GetEmployeeWorkPatternByIdQuery request, CancellationToken cancellationToken)
-    { var validation = await ValidateTenantDataAccessContextAsync(); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(validation.TenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeWorkArrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken); return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(entity)); }
+    { var validation = await ValidateTenantDataAccessContextAsync(); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(validation.TenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); await EnsureEmployeeDataAccessAsync(validation, entity.EmployeeWorkArrangement.EmployeeId, EmployeeDataAccessRequirement.PersonalDetails, cancellationToken); return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(EmployeeWorkPatternResponseMapper.Map(_mapper, entity, id => EncodeEmployeeId(id, validation))); }
 }
 
 /// <summary>Handles paged employee work-pattern retrieval.</summary>
 public sealed class GetEmployeeWorkPatternsQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetEmployeeWorkPatternsQuery, ApiResponse<List<EmployeeWorkPatternResponseDTO>>>
 {
     private readonly IMapper _mapper;
-    public GetEmployeeWorkPatternsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public GetEmployeeWorkPatternsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger, IIdEncoderService idEncoderService) : base(unitOfWork, commonRequestService, logger, idEncoderService) => _mapper = mapper;
     public async Task<ApiResponse<List<EmployeeWorkPatternResponseDTO>>> Handle(GetEmployeeWorkPatternsQuery request, CancellationToken cancellationToken)
-    { var validation = await ValidateTenantDataAccessContextAsync(); var page = await UnitOfWork.EmployeeWorkPatternRepository.GetPagedAsync(validation.TenantId, request.Filter ?? new EmployeeWorkPatternFilterRequestDTO(), validation.LoggedInEmployeeId, validation.RoleTypeId, cancellationToken); return Paged(page.Data.Select(entity => _mapper.Map<EmployeeWorkPatternResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, "Employee work patterns retrieved successfully."); }
+    { var validation = await ValidateTenantDataAccessContextAsync(); var page = await UnitOfWork.EmployeeWorkPatternRepository.GetPagedAsync(validation.TenantId, request.Filter ?? new EmployeeWorkPatternFilterRequestDTO(), validation.LoggedInEmployeeId, validation.RoleTypeId, cancellationToken); return Paged(page.Data.Select(entity => EmployeeWorkPatternResponseMapper.Map(_mapper, entity, id => EncodeEmployeeId(id, validation))).ToList(), page.PageNumber, page.PageSize, page.TotalCount, "Employee work patterns retrieved successfully."); }
 }
 
 #endregion
