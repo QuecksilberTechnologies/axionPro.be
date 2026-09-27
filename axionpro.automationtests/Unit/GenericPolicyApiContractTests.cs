@@ -60,6 +60,34 @@ public sealed class GenericPolicyApiContractTests
     }
 
     [Test]
+    public void Policy_audit_contract_includes_server_resolved_actor_name_and_version_number()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeof(PolicyAuditResponseDTO)
+                .GetProperty(nameof(PolicyAuditResponseDTO.ChangedByName))?.PropertyType,
+                Is.EqualTo(typeof(string)));
+            Assert.That(typeof(PolicyAuditResponseDTO)
+                .GetProperty(nameof(PolicyAuditResponseDTO.VersionNumber))?.PropertyType,
+                Is.EqualTo(typeof(int?)));
+        });
+
+        var repository = ReadRepositoryFile(
+            "axionpro.persistance",
+            "Repositories",
+            "GenericPolicyRepository.cs");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(repository,
+                Does.Contain("context.Employees.AsNoTracking().Where(x => x.TenantId == tenantId)"));
+            Assert.That(repository,
+                Does.Contain(".Where(x => x.TenantId == tenantId && x.PolicyId == policyId)"));
+            Assert.That(repository, Does.Contain("BuildEmployeeDisplayName("));
+        });
+    }
+
+    [Test]
     public void Route_supplied_identifiers_skip_pre_action_model_validation()
     {
         var routeProperties = new (Type Type, string Property)[]

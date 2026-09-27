@@ -733,10 +733,66 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<PolicyAuditResponseDTO>> GetAuditAsync(long tenantId, long policyId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PolicyAuditResponseDTO>> GetAuditAsync(
+        long tenantId,
+        long policyId,
+        CancellationToken cancellationToken)
     {
-        if (!await context.Policies.AnyAsync(x => x.Id == policyId && x.TenantId == tenantId, cancellationToken)) throw new NotFoundException("Policy was not found.");
-        return await context.PolicyChangeAudits.AsNoTracking().Where(x => x.TenantId == tenantId && x.PolicyId == policyId).OrderByDescending(x => x.ChangedDateTime).Select(x => new PolicyAuditResponseDTO(x.Id, x.PolicyId, x.PolicyVersionId, x.EntityName, x.EntityId, x.ActionName, x.BeforeData, x.AfterData, x.ChangedById, x.ChangedDateTime, x.CorrelationId)).ToListAsync(cancellationToken);
+        if (!await context.Policies.AnyAsync(
+                x => x.Id == policyId && x.TenantId == tenantId,
+                cancellationToken))
+        {
+            throw new NotFoundException("Policy was not found.");
+        }
+
+        var rows = await (
+            from audit in context.PolicyChangeAudits.AsNoTracking()
+            where audit.TenantId == tenantId && audit.PolicyId == policyId
+            join employee in context.Employees.AsNoTracking().Where(x => x.TenantId == tenantId)
+                on audit.ChangedById equals employee.Id into employees
+            from employee in employees.DefaultIfEmpty()
+            join version in context.PolicyVersions.AsNoTracking()
+                    .Where(x => x.TenantId == tenantId && x.PolicyId == policyId)
+                on audit.PolicyVersionId equals (long?)version.Id into versions
+            from version in versions.DefaultIfEmpty()
+            orderby audit.ChangedDateTime descending
+            select new
+            {
+                Audit = audit,
+                VersionNumber = version == null ? (int?)null : version.VersionNumber,
+                EmployeeFirstName = employee == null ? null : employee.FirstName,
+                EmployeeMiddleName = employee == null ? null : employee.MiddleName,
+                EmployeeLastName = employee == null ? null : employee.LastName
+            }).ToListAsync(cancellationToken);
+
+        return rows.Select(row => new PolicyAuditResponseDTO(
+            row.Audit.Id,
+            row.Audit.PolicyId,
+            row.Audit.PolicyVersionId,
+            row.VersionNumber,
+            row.Audit.EntityName,
+            row.Audit.EntityId,
+            row.Audit.ActionName,
+            row.Audit.BeforeData,
+            row.Audit.AfterData,
+            row.Audit.ChangedById,
+            BuildEmployeeDisplayName(
+                row.EmployeeFirstName,
+                row.EmployeeMiddleName,
+                row.EmployeeLastName),
+            row.Audit.ChangedDateTime,
+            row.Audit.CorrelationId)).ToList();
+    }
+
+    private static string? BuildEmployeeDisplayName(
+        string? firstName,
+        string? middleName,
+        string? lastName)
+    {
+        var name = string.Join(' ', new[] { firstName, middleName, lastName }
+            .Where(value => !string.IsNullOrWhiteSpace(value)));
+
+        return string.IsNullOrWhiteSpace(name) ? null : name;
     }
 
     private async Task<int?> GetPolicyCategoryIdAsync(long tenantId, long policyId, CancellationToken cancellationToken)

@@ -245,7 +245,20 @@ public sealed record PolicyDetailResponseDTO(long Id, string Code, string Name, 
 public sealed record PolicyAssignmentResultDTO(int Inserted, int Existing);
 public sealed record ResolvedPolicyResponseDTO(long PolicyId, long PolicyVersionId, string PolicyCode, string PolicyName, int Priority, string ResolutionSource);
 public sealed record PolicyDocumentResponseDTO(long Id, long PolicyVersionId, short DocumentTypeId, string Title, string OriginalFileName, string ContentType, long FileSizeBytes, string? LanguageCode, bool IsEmployeeVisible, string Url);
-public sealed record PolicyAuditResponseDTO(long Id, long PolicyId, long? PolicyVersionId, string EntityName, long? EntityId, string ActionName, string? BeforeData, string? AfterData, long ChangedById, DateTime ChangedDateTime, Guid? CorrelationId);
+public sealed record PolicyAuditResponseDTO(
+    long Id,
+    long PolicyId,
+    long? PolicyVersionId,
+    int? VersionNumber,
+    string EntityName,
+    long? EntityId,
+    string ActionName,
+    string? BeforeData,
+    string? AfterData,
+    long ChangedById,
+    string? ChangedByName,
+    DateTime ChangedDateTime,
+    Guid? CorrelationId);
 public sealed record PolicyApprovalStageResponseDTO(long Id, int? PolicyCategoryId, string StageName, int StageOrder, int? ApproverRoleId, int MinimumApprovals, bool IsMandatory, bool IsActive);
 public sealed record PolicyApprovalProgressResponseDTO(long StageId, string StageName, int StageOrder, int MinimumApprovals, int ApprovalCount, bool IsComplete);
 public sealed record PolicyAssignmentResponseDTO(long Id, long PolicyVersionId, long EmployeeId, short AssignmentSource, DateOnly EffectiveFrom, DateOnly? EffectiveTo, bool IsMandatory, bool IsActive);

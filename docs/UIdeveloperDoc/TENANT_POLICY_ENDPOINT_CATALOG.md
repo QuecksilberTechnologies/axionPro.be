@@ -309,7 +309,14 @@ Output `data` is an array of the document object from endpoint 21.
 ```
 
 ```json
-{ "isSucceeded": true, "message": "Policy audit retrieved successfully.", "data": [{ "id": 701, "policyId": 42, "policyVersionId": 73, "entityName": "Policy", "entityId": 42, "actionName": "CREATE", "beforeData": null, "afterData": "{}", "changedById": 1, "changedDateTime": "2027-01-01T10:00:00Z", "correlationId": null }], "errors": [] }
+{ "isSucceeded": true, "message": "Policy audit retrieved successfully.", "data": [{ "id": 701, "policyId": 42, "policyVersionId": 73, "versionNumber": 2, "entityName": "Policy", "entityId": 42, "actionName": "CREATE", "beforeData": null, "afterData": "{}", "changedById": 14, "changedByName": "Anil Gupta", "changedDateTime": "2027-01-01T10:00:00Z", "correlationId": null }], "errors": [] }
+
+`changedByName` is resolved by the API inside the authenticated tenant boundary. It is nullable so
+historical rows remain readable if their actor cannot be resolved. `versionNumber` is nullable for
+policy-level events that have no version. UI should show `changedByName` and retain
+`Employee {changedById}` only as a compatibility fallback for an older deployment or unresolved
+historical actor. Module and operation IDs must still be discovered through the authenticated
+menu/permission flow; numeric examples in this catalogue are illustrative.
 ```
 
 ## Approval stages and progress
