@@ -1,5 +1,7 @@
 # Employee Work Pattern and Work Mode Override UI handoff
 
+Test evidence: [missing covering location assignment](../testing/employee-work-mode-override/missing-location-assignment/2026-09-27.md).
+
 ## Behavior
 
 `EmployeeWorkPattern` defines one weekday row inside an existing work arrangement. Its effective

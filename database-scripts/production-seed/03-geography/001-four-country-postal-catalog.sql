@@ -227838,12 +227838,19 @@ JOIN district_map ON district_map."CountryCode"=seed."CountryCode"
 ON CONFLICT ("DistrictId","LocalityCode") DO UPDATE SET
     "LocalityName"=EXCLUDED."LocalityName", "PostalCode"=EXCLUDED."PostalCode", "IsActive"=TRUE;
 
-SELECT country."CountryCode", count(DISTINCT state."Id") AS "StateCount",
-       count(DISTINCT district."Id") AS "DistrictCount", count(locality."Id") AS "PostalLocalityCount"
-FROM axionpro."Country" country
-JOIN axionpro."State" state ON state."CountryId"=country."Id"
-JOIN axionpro."District" district ON district."StateId"=state."Id"
-JOIN axionpro."Locality" locality ON locality."DistrictId"=district."Id" AND locality."PostalCode" IS NOT NULL
-WHERE country."CountryCode" IN ('IN','CN','DE','US')
-GROUP BY country."CountryCode" ORDER BY country."CountryCode";
+DO $$
+DECLARE
+    country_count bigint;
+    state_count bigint;
+    district_count bigint;
+    locality_count bigint;
+BEGIN
+    SELECT count(*) INTO country_count FROM axionpro."Country" WHERE "CountryCode" IN ('IN','CN','DE','US');
+    SELECT count(*) INTO state_count FROM axionpro."State";
+    SELECT count(*) INTO district_count FROM axionpro."District";
+    SELECT count(*) INTO locality_count FROM axionpro."Locality" WHERE "PostalCode" IS NOT NULL;
+    IF country_count <> 4 OR state_count < 100 OR district_count < 4000 OR locality_count < 200000 THEN
+        RAISE EXCEPTION 'Geography seed verification failed: countries %, states %, districts %, postal localities %', country_count, state_count, district_count, locality_count;
+    END IF;
+END $$;
 COMMIT;

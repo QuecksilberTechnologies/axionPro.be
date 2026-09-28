@@ -20,7 +20,7 @@ The configured development connection is in `axionpro.api/appsettings.Developmen
 2. `AddEmployeeBulkImport.sql`
 3. `SeedTenantEmployeeTypeModule.sql`
 4. `SeedBulkImportModules.sql`
-5. `AxionPro_New_Production_Module_Operation_Seed.sql` only where its verification confirms an existing-safe/idempotent operation
+5. `production-seed/04-access-and-host/001-modules-operations-two-host-admins.sql` only as part of the documented canonical reset sequence
 
 The complete seed-data file is a reference/restore script, not an automatic replacement for the canonical production seed. Destructive scripts (`ClearTenantDependencies.sql`, reset/replace scripts, and full backup restore) are excluded from automatic execution.
 

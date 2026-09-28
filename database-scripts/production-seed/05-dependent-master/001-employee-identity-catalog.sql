@@ -1,12 +1,40 @@
--- Employee production seed/migration bundle.
--- Idempotent: safe to run more than once.
--- Scope: tenant operational edit defaults and country identity catalogue.
--- CountryId is Employee nationality/origin country. Identity mappings are catalogue
--- entries only and intentionally non-mandatory; statutory applicability is not inferred.
+-- CANONICAL EMPLOYEE RESET + MIGRATION + SEED BUNDLE
+-- Run this single file for Employee identity catalogue setup.
+-- It is idempotent and safe to rerun.
+-- Existing EmployeeIdentity records are never deleted.
 
 BEGIN;
 SELECT pg_advisory_xact_lock(7421061201);
 
+-- 1. Clear only previous catalogue rules/documents created by this seed.
+DELETE FROM axionpro."CountryIdentityRule" rule
+WHERE rule."IdentityCategoryDocumentId" IN (
+    SELECT document."Id"
+    FROM axionpro."IdentityCategoryDocument" document
+    WHERE upper(document."Code") IN (
+        'AADHAAR', 'PAN', 'CNIC', 'SSN', 'EMIRATES_ID', 'NATIONAL_ID_CN'
+    )
+);
+
+DELETE FROM axionpro."IdentityCategoryDocument" document
+WHERE upper(document."Code") IN (
+    'AADHAAR', 'PAN', 'CNIC', 'SSN', 'EMIRATES_ID', 'NATIONAL_ID_CN'
+)
+AND NOT EXISTS (
+    SELECT 1
+    FROM axionpro."EmployeeIdentity" identity_record
+    WHERE identity_record."IdentityCategoryDocumentId" = document."Id"
+);
+
+DELETE FROM axionpro."IdentityCategory" category
+WHERE upper(category."Code") = 'GOVT'
+AND NOT EXISTS (
+    SELECT 1
+    FROM axionpro."IdentityCategoryDocument" document
+    WHERE document."IdentityCategoryId" = category."Id"
+);
+
+-- 2. Employee operational-default migration.
 CREATE TABLE IF NOT EXISTS axionpro."TenantEmployeeSectionDefault" (
     "TenantId" bigint NOT NULL REFERENCES axionpro."Tenant"("Id"),
     "ModuleCode" varchar(64) NOT NULL,
@@ -18,6 +46,7 @@ CREATE TABLE IF NOT EXISTS axionpro."TenantEmployeeSectionDefault" (
         'EMP_WORK_ARRANGEMENT', 'EMP_WORK_PATTERN', 'EMP_OVERRIDES'))
 );
 
+-- 3. Identity category and document masters.
 INSERT INTO axionpro."IdentityCategory"
     ("Code", "Name", "Description", "IsActive", "AddedDateTime")
 SELECT 'GOVT', 'Government Issued Identity',
@@ -53,6 +82,7 @@ WHERE upper(category."Code") = 'GOVT'
       WHERE upper(existing."Code") = seed.code
   );
 
+-- 4. Country mappings: India, Pakistan, USA, UAE and China.
 INSERT INTO axionpro."CountryIdentityRule"
     ("CountryId", "IdentityCategoryDocumentId", "IsMandatory", "IsActive", "AddedDateTime")
 SELECT country."Id", document."Id", false, true, now()
@@ -76,5 +106,42 @@ WHERE country."IsActive" = true
       WHERE existing."CountryId" = country."Id"
         AND existing."IdentityCategoryDocumentId" = document."Id"
   );
+
+-- Final schema-wide identity synchronization. Earlier stages intentionally use
+-- established explicit IDs for canonical operations and master rows. Align each
+-- sequence after every seed stage so the next application insert cannot collide.
+DO
+$$
+DECLARE
+    identity_column record;
+    sequence_name text;
+    maximum_id bigint;
+BEGIN
+    FOR identity_column IN
+        SELECT table_name
+        FROM information_schema.columns
+        WHERE table_schema = 'axionpro'
+          AND column_name = 'Id'
+    LOOP
+        sequence_name := pg_get_serial_sequence(
+            format('axionpro.%I', identity_column.table_name),
+            'Id'
+        );
+
+        IF sequence_name IS NOT NULL THEN
+            EXECUTE format(
+                'SELECT COALESCE(MAX("Id"), 0) FROM axionpro.%I',
+                identity_column.table_name
+            ) INTO maximum_id;
+
+            IF maximum_id = 0 THEN
+                PERFORM setval(sequence_name::regclass, 1, FALSE);
+            ELSE
+                PERFORM setval(sequence_name::regclass, maximum_id, TRUE);
+            END IF;
+        END IF;
+    END LOOP;
+END;
+$$;
 
 COMMIT;

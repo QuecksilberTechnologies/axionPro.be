@@ -2314,6 +2314,9 @@ WHERE "IsDefault" = TRUE;
 -- ============================================================================
 --
 -- Latest complete active TenantEmailConfig configuration ko source banaya jayega.
+-- Fresh canonical reset me tenant data intentionally empty hota hai. Aise case
+-- me DefaultEmailConfig empty rahega; production SMTP secret invent nahi kiya
+-- jayega aur baaki host/access seed continue karega.
 --
 -- Isliye production SQL me:
 -- Password
@@ -2483,8 +2486,8 @@ BEGIN
 
     IF NOT FOUND THEN
 
-        RAISE EXCEPTION
-        'No complete active TenantEmailConfig found. DefaultEmailConfig could not be seeded.';
+        RAISE NOTICE
+        'No complete active TenantEmailConfig found. DefaultEmailConfig intentionally remains empty.';
 
     END IF;
 
@@ -4077,6 +4080,30 @@ WHERE mapping."ModuleId" = module."Id"
 -- ============================================================================
 -- Operation Id 21 is the established Reset Password operation. This production
 -- seed maps only the canonical EMP_LIST module and never creates a second module.
+INSERT INTO axionpro."Operation"
+(
+    "Id", "OperationName", "Remark", "OperationType", "IsActive",
+    "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "IconImage"
+)
+SELECT
+    21,
+    'Reset Password',
+    'Reset the login password of a selected tenant employee',
+    2,
+    TRUE,
+    1,
+    CURRENT_TIMESTAMP,
+    1,
+    CURRENT_TIMESTAMP,
+    'key-round'
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM axionpro."Operation" operation
+    WHERE operation."Id" = 21
+       OR LOWER(BTRIM(operation."OperationName")) = 'reset password'
+);
+
 UPDATE axionpro."Operation"
 SET "Remark"='Reset the login password of a selected tenant employee',
     "OperationType"=2,"IsActive"=true,"IconImage"='key-round',
@@ -4121,8 +4148,8 @@ BEGIN
       AND source."IsActive" = TRUE;
 
     IF employee_list_plan_count = 0 THEN
-        RAISE EXCEPTION
-            'No active EMP_LIST PlanModuleMapping exists. Tenant feature plan mappings cannot be seeded.';
+        RAISE NOTICE
+            'No active EMP_LIST PlanModuleMapping exists. Tenant feature plan inheritance is intentionally skipped.';
     END IF;
 
     SELECT COUNT(*)
@@ -6316,14 +6343,13 @@ SELECT NULL, 'TENANT_EMAIL_TEMPLATE', 'Tenant Email Templates', 'tenant-email-te
        '/app/tenant-email-templates', parent."Id", TRUE, TRUE, FALSE, TRUE, 'bi bi-envelope-paper', 'mail',
        420, 'Tenant-owned email template management.', 1, CURRENT_TIMESTAMP, 1
 FROM axionpro."Module" parent
-WHERE parent."Id" = 46
-  AND parent."ModuleCode" = 'TENANT_EMAIL_CONFIG'
+WHERE parent."ModuleCode" = 'TENANT_EMAIL_CONFIG'
   AND NOT EXISTS (SELECT 1 FROM axionpro."Module" existing WHERE existing."ModuleCode" = 'TENANT_EMAIL_TEMPLATE');
 
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "Id" = 46 AND "ModuleCode" = 'TENANT_EMAIL_CONFIG') THEN
-        RAISE EXCEPTION 'Parent TENANT_EMAIL_CONFIG Module Id 46 was not found.';
+    IF NOT EXISTS (SELECT 1 FROM axionpro."Module" WHERE "ModuleCode" = 'TENANT_EMAIL_CONFIG') THEN
+        RAISE EXCEPTION 'Parent TENANT_EMAIL_CONFIG module was not found.';
     END IF;
 END $$;
 
@@ -6339,7 +6365,9 @@ SELECT module."Id", operation."Id", '/app/tenant-email-templates',
        CASE operation."OperationName" WHEN 'View' THEN 1 WHEN 'Add' THEN 2 WHEN 'Update' THEN 3 ELSE 4 END,
        operation."OperationName" || ' Tenant email templates.', TRUE, 1, CURRENT_TIMESTAMP
 FROM axionpro."Module" module
-JOIN axionpro."Operation" operation ON operation."Id" IN (1, 2, 3, 4) AND operation."IsActive" = TRUE
+JOIN axionpro."Operation" operation
+  ON LOWER(BTRIM(operation."OperationName")) IN ('view', 'add', 'update', 'delete')
+ AND operation."IsActive" = TRUE
 WHERE module."ModuleCode" = 'TENANT_EMAIL_TEMPLATE'
   AND NOT EXISTS
   (
@@ -6353,7 +6381,8 @@ SELECT parentMapping."SubscriptionPlanId", child."Id", TRUE, 'Tenant Email Templ
        1, CURRENT_TIMESTAMP
 FROM axionpro."PlanModuleMapping" parentMapping
 JOIN axionpro."Module" child ON child."ModuleCode" = 'TENANT_EMAIL_TEMPLATE'
-WHERE parentMapping."ModuleId" = 46 AND parentMapping."IsActive" = TRUE
+JOIN axionpro."Module" parent ON parent."Id" = parentMapping."ModuleId"
+WHERE parent."ModuleCode" = 'TENANT_EMAIL_CONFIG' AND parentMapping."IsActive" = TRUE
   AND NOT EXISTS
   (
       SELECT 1 FROM axionpro."PlanModuleMapping" existing
@@ -6362,10 +6391,11 @@ WHERE parentMapping."ModuleId" = 46 AND parentMapping."IsActive" = TRUE
 
 INSERT INTO axionpro."TenantEnabledModule"
     ("TenantId", "ParentModuleId", "ModuleId", "IsLeafNode", "IsEnabled", "AddedById", "AddedDateTime")
-SELECT enabled."TenantId", 46, child."Id", TRUE, TRUE, enabled."AddedById", CURRENT_TIMESTAMP
+SELECT enabled."TenantId", parent."Id", child."Id", TRUE, TRUE, enabled."AddedById", CURRENT_TIMESTAMP
 FROM axionpro."TenantEnabledModule" enabled
 JOIN axionpro."Module" child ON child."ModuleCode" = 'TENANT_EMAIL_TEMPLATE'
-WHERE enabled."ModuleId" = 46 AND enabled."IsEnabled" = TRUE
+JOIN axionpro."Module" parent ON parent."Id" = enabled."ModuleId"
+WHERE parent."ModuleCode" = 'TENANT_EMAIL_CONFIG' AND enabled."IsEnabled" = TRUE
   AND NOT EXISTS
   (
       SELECT 1 FROM axionpro."TenantEnabledModule" existing

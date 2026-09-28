@@ -111,7 +111,7 @@ the selected Country.
   `1/City`, `2/Town`, `3/Village`, `4/Other / Unclassified`; the lookup returns matching active DB rows.
 - `axionpro.Locality`: renamed data-preserving City catalog; contains DistrictId
   and LocalityTypeId foreign keys plus LocalityCode and PostalCode.
-- `SeedFourCountryPostalLocalities.sql` adds GeoNames postal records without
+- `database-scripts/production-seed/03-geography/001-four-country-postal-catalog.sql` adds GeoNames postal records without
   deleting or renumbering existing rows. Target DB counts after execution:
   India 155,545; China 2,352; Germany 23,296; United States 41,490.
 - `postalCode` was previously null because the old 8,333-row city catalogue had

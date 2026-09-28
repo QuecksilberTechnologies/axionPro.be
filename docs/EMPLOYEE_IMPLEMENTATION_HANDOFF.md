@@ -72,7 +72,7 @@ Record every change and blocker below. Do not store credentials or employee iden
 
 ## Execution checkpoint: country validation and seed
 
-- Added `database-scripts/SeedEmployeeCountryIdentityCatalog.sql`; applied twice to
+- The historical `database-scripts/SeedEmployeeCountryIdentityCatalog.sql` was consolidated into `database-scripts/production-seed/05-dependent-master/001-employee-identity-catalog.sql`; the original run was applied twice to
   isolated PostgreSQL `127.0.0.1:55439/axionpro_bulk_test`. First run inserted one
   missing mapping; second inserted zero. Existing configured mandatory flags preserved.
 - Seed establishes India/Aadhaar and UAE/Emirates ID catalogue mappings only.
@@ -186,7 +186,7 @@ Record every change and blocker below. Do not store credentials or employee iden
   Country codes and remain non-mandatory catalogue entries; no statutory/legal
   requirement was invented. A fresh API Release publish was generated at
   `artifacts/employee-release/publish` on 2026-09-12.
-- Added consolidated deployment script `database-scripts/EmployeeProductionSeed.sql`.
+- The historical `database-scripts/EmployeeProductionSeed.sql` was consolidated into `database-scripts/production-seed/05-dependent-master/001-employee-identity-catalog.sql`.
   It creates the operational-default table and all identity catalogue/rule mappings
   in one advisory-locked transaction. The migration runner now executes this single
   bundle instead of separate Employee seed files.

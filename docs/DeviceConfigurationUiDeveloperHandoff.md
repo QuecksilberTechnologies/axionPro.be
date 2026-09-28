@@ -428,7 +428,7 @@ blocked so a browser cannot bypass Tenant Admin typed validation.
 Before enabling the screens, backend/DB deployment must have completed:
 
 1. Run `database-scripts/AddSecureInitialDeviceConfiguration.sql`.
-2. Run `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`.
+2. Run `database-scripts/production-seed/04-access-and-host/001-modules-operations-two-host-admins.sql`.
 3. Grant the Host module to approved provisioning users and the Tenant module
    only to Tenant Admin users.
 4. Deploy the API with `DeviceGateway:PublicBaseUrl` set to the public HTTPS
@@ -447,3 +447,4 @@ Before enabling the screens, backend/DB deployment must have completed:
 - Secure provisioning database and module seed SQL prepared.
 - Backend build: 0 errors.
 - Security token tests: 5 passed, 0 failed.
+

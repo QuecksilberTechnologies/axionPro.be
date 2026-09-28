@@ -63,7 +63,7 @@ names remain immutable. UI consumers must continue resolving IDs dynamically.
 
 ## Which seed to use?
 
-`database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`
+`database-scripts/production-seed/04-access-and-host/001-modules-operations-two-host-admins.sql`
 is now the only authoritative production module/operation seed. It includes the
 38 backup-recovered `Module` rows plus the consolidated Common, Host and Tenant
 catalogue. The former root-level duplicate was removed on 2026-09-14. IDs are
@@ -182,3 +182,4 @@ The consolidated seed reparents known legacy Host bulk children before deleting
 the obsolete `BULKUPLOAD` root. This prevents `FK_Module_ParentModule` failures on
 databases seeded by an earlier hierarchy. If an unknown legacy child remains, the
 root is hidden/deactivated and retained for review instead of aborting the seed.
+

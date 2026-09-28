@@ -188,7 +188,7 @@ application database a long-term store of a local-device management password.
 
 ## Authorization model
 
-The consolidated module seed is `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`. It contains:
+The consolidated module seed is `database-scripts/production-seed/04-access-and-host/001-modules-operations-two-host-admins.sql`. It contains:
 
 - `HOST_INITIAL_DEVICE_CONFIGURATION`: issue initial bootstrap URLs only.
 - `TENANT_DEVICE_CONFIGURATION`: read/create/update/delete Tenant device
@@ -261,7 +261,7 @@ Run these scripts once, in order, after taking a database backup and before
 deploying the matching API build:
 
 1. `database-scripts/AddSecureInitialDeviceConfiguration.sql`
-2. `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`
+2. `database-scripts/production-seed/04-access-and-host/001-modules-operations-two-host-admins.sql`
 
 The first script adds:
 
@@ -281,7 +281,7 @@ Run only the following two files for this device feature, in the stated order:
 | Order | SQL file | Database changes |
 |---:|---|---|
 | 1 | `database-scripts/AddSecureInitialDeviceConfiguration.sql` | Adds `DeviceCommand.IsSensitivePayload`; creates `DeviceInitialProvisioning` (hashed bootstrap secret, expiry, 20-second heartbeat, connection/audit timestamps); expands existing device-credential type validation for future local-WebServer password support. |
-| 2 | `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql` | Consolidated idempotent seed for email, device, employee-password, and dashboard modules. It includes `HOST_DEVICE_SETUP`, `TENANT_DEVICE_SETUP`, `HOST_INITIAL_DEVICE_CONFIGURATION`, and `TENANT_DEVICE_CONFIGURATION`, with active Add/View/Read/Update/Edit/Delete mappings. |
+| 2 | `database-scripts/production-seed/04-access-and-host/001-modules-operations-two-host-admins.sql` | Consolidated idempotent seed for email, device, employee-password, and dashboard modules. It includes `HOST_DEVICE_SETUP`, `TENANT_DEVICE_SETUP`, `HOST_INITIAL_DEVICE_CONFIGURATION`, and `TENANT_DEVICE_CONFIGURATION`, with active Add/View/Read/Update/Edit/Delete mappings. |
 
 The module rows and operation mappings are **prepared in SQL but not yet run
 against RenderDB**. The seed deliberately does **not** grant either module to a
@@ -352,3 +352,4 @@ nullable/XML documentation warnings) remain and are unrelated to this feature.
 5. Perform an end-to-end test: bootstrap -> assign TenantDevice -> create HTTPS
    configuration -> apply runtime settings -> observe normal gateway heartbeat
    -> confirm direct local WebServer is disabled.
+

@@ -1,5 +1,7 @@
 # Scenario test reports
 
+- [Tenant demo end-to-end readiness — 2026-09-28](tenant/demo-e2e/2026-09-28.md)
+- [Work-mode override missing location assignment — 2026-09-27](employee-work-mode-override/missing-location-assignment/2026-09-27.md)
 - [Attendance punch flow — 2026-09-24](attendance/punch-flow/2026-09-24.md)
 - [Subscription billing foundation — 2026-09-24](billing/foundation/2026-09-24.md)
 - [Employee bulk invitation email smoke — 2026-09-24](bulk/employee-invitation-email/2026-09-24.md)
@@ -31,6 +33,7 @@ for a later run. Keep earlier failures and link the run that supersedes them.
 | --- | --- | --- |
 | Database / guarded legacy cleanup | [2026-09-16](database/legacy-cleanup/2026-09-16.md) | Verified backup; 27 legacy tables removed across two guarded phases; location smoke checks pass; accommodation table safely renamed with a temporary compatibility view. |
 | Database / manual table removal reconciliation | [2026-09-16](database/manual-table-removal-reconciliation/2026-09-16.md) | Live inventory 128; 22 absent EF mappings quarantined; model mismatch zero, build and API startup pass. |
+| Database / canonical production reset and seed | [2026-09-28](database/canonical-production-seed/2026-09-28.md) | Target backup verified; 163 tables reset; ordered seed passed locally and on target; only Deepesh Gupta and Sujeet remain, with zero tenant/employee data and synchronized identities. |
 | Holiday calendar / tenant-location refactor | [2026-09-16](holiday-calendar/tenant-location-refactor/2026-09-16.md) | Local contract/build suite 3/3 passed; coordinated target migration and deployed API acceptance pending. |
 | Holiday calendar / target DB migration | [2026-09-22](holiday-calendar/tenant-location-refactor/2026-09-22.md) | Development-configured target table backed up and migrated; 15-column schema/FK verified, focused suite 3/3 passed; deployed API acceptance pending. |
 | Holiday calendar / Tenant Policies child module | [2026-09-22](holiday-calendar/policy-child-module/2026-09-22.md) | Child Id 118 under parent Id 108, View/Add/Update/Delete mappings and 10 plan entitlements verified; holiday write APIs remain pending. |
@@ -49,6 +52,7 @@ for a later run. Keep earlier failures and link the run that supersedes them.
 | Policy / Attendance location-scope lookup | [2026-09-26](policy/attendance-location-scope-lookup/2026-09-26.md) | Backend enum-derived Policy lookup and UI Policy Definition integration implemented; local verification is recorded in the report, authenticated/deployed acceptance pending. |
 | Policy / Resolve encoded employee ID | [2026-09-26](policy/resolve-encoded-employee-id/2026-09-26.md) | Resolve now accepts the globally salted encoded Employee API identifier; 17 backend and 4 Angular focused tests passed locally, authenticated HTTP pending. |
 | Policy / Audit actor display name | [2026-09-27](policy/audit-display-name/2026-09-27.md) | Audit API now returns tenant-scoped `changedByName` and nullable `versionNumber`; backend contract and UI fallback tests pass locally, authenticated/deployed acceptance pending. |
+| Dashboard / Super-Admin widgets | [2026-09-27](dashboard/super-admin-widgets/2026-09-27.md) | Fresh role-gated Dashboard controller exposes nine independent widget endpoints; local build/contract verification recorded, authenticated/deployed smoke pending. |
 | Employee / China and USA identity options | [2026-09-13](employee/country-identity/2026-09-13.md) | China created; identity GET failed with 500 before fix. USA creation blocked by missing country option. Local suite 18 passed, 5 skipped; post-fix live acceptance pending. |
 | Employee / get-all assigned roles | [2026-09-13](employee/get-all-assigned-roles/2026-09-13.md) | Response contract/build pass locally; isolated DB and deployed response verification pending. |
 | Employee / Reset Password module consolidation | [2026-09-23](employee/reset-password-module-consolidation/2026-09-23.md) | Module 38 and all checked dependencies removed from the Development DB; Operation 21, tenant entitlement and role grant moved to `EMP_LIST`; focused suite 3/3 passed. |

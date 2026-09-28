@@ -62,6 +62,7 @@ Claude or Codex can implement the frontend without guessing backend behavior.
   — read-only Angular/backend code audit, each existing page/button, request/response,
   database effect, worked example and missing/broken UI flows.
 - [Tenant Policy actual screenshots guide](TenantPolicyActualScreensGuide.docx)
+- [Super-Admin Dashboard API](SUPER_ADMIN_DASHBOARD_API.md)
   — Word guide with UI screenshots, click-to-API/table explanation and verified gaps in red.
 
 Latest Render API evidence: [2026-09-13 smoke test](../RENDER_SMOKE_TEST_2026-09-13.md).

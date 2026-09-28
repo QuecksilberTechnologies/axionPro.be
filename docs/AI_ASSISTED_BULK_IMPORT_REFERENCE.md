@@ -106,7 +106,7 @@ backend scope, not all future bulk modules or production deployment.
 ## 2026-09-14 module metadata and operation catalogue decision
 
 - The only authoritative broad module/operation seed is now
-  `database-scripts/complete seed data/AxionPro_New_Production_Module_Operation_Seed.sql`;
+  `database-scripts/production-seed/04-access-and-host/001-modules-operations-two-host-admins.sql`;
   the root-level duplicate was removed by explicit user request.
 - The complete seed keeps one canonical `TENANT_DASHBOARD` navigation-parent
   entry. It does not delete Dashboard rows from the database.
@@ -1916,3 +1916,4 @@ The earlier mapper-only status above is superseded by this section.
   -PolicyBulkOnly` discovers it; validate-only passed against Development config
   without changing the database.
 - Release publish passed and included both the policy migration and runner.
+
