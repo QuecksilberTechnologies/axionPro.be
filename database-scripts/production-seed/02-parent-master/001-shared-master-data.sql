@@ -47,45 +47,6 @@ INSERT INTO axionpro."ClientType" ("Id", "TypeName", "IsActive", "Remark", "Desc
 
 
 --
--- Data for Name: ComplianceTypeMaster; Type: TABLE DATA; Schema: axionpro; Owner: -
---
-
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (1, 'Provident Fund (PF)', 1, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (2, 'Employee State Insurance (ESI)', 1, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (3, 'Professional Tax (PT)', 1, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (4, 'Gratuity', 1, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (5, 'Labour Welfare Fund (LWF)', 1, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (6, 'Social Security', 2, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (7, 'Medicare', 2, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (8, '401K Retirement', 2, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (9, 'Federal Income Tax', 2, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (10, 'State Income Tax', 2, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (11, 'Canada Pension Plan (CPP)', 3, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (12, 'Employment Insurance (EI)', 3, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (13, 'Federal Tax', 3, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (14, 'Provincial Tax', 3, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (15, 'National Insurance', 4, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (16, 'PAYE Tax', 4, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (17, 'Superannuation', 5, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (18, 'PAYG Withholding', 5, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (19, 'Pension Insurance', 6, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (20, 'Health Insurance', 6, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (21, 'Unemployment Insurance', 6, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (22, 'Nursing Care Insurance', 6, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (23, 'Social Security Contribution', 7, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (24, 'Unemployment Contribution', 7, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (25, 'Retirement Contribution', 7, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (26, 'Pension Fund', 8, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (27, 'Medical Insurance', 8, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (28, 'Unemployment Insurance', 8, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (29, 'Housing Fund', 8, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (30, 'Health Insurance', 9, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (31, 'Pension Insurance', 9, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (32, 'Employment Insurance', 9, true);
-INSERT INTO axionpro."ComplianceTypeMaster" ("Id", "Name", "CountryId", "IsActive") VALUES (33, 'Gratuity UAE', 10, true);
-
-
---
 -- Data for Name: DataViewStructure; Type: TABLE DATA; Schema: axionpro; Owner: -
 --
 
@@ -140,7 +101,41 @@ INSERT INTO axionpro."EmployeeType"
 VALUES
     (1, NULL, 'Permanent', 'Permanent employee type used as the tenant onboarding template',
      'Canonical global onboarding template', true, 1, CURRENT_TIMESTAMP,
+     NULL, NULL, false, NULL, NULL),
+    (2, NULL, 'Contract', 'Employee engaged for a fixed contractual term',
+     'Canonical global employment type', true, 1, CURRENT_TIMESTAMP,
+     NULL, NULL, false, NULL, NULL),
+    (3, NULL, 'Intern', 'Student or trainee engaged for a defined internship period',
+     'Canonical global employment type', true, 1, CURRENT_TIMESTAMP,
+     NULL, NULL, false, NULL, NULL),
+    (4, NULL, 'Part-Time', 'Employee engaged for reduced or flexible working hours',
+     'Canonical global employment type', true, 1, CURRENT_TIMESTAMP,
+     NULL, NULL, false, NULL, NULL),
+    (5, NULL, 'Freelancer', 'Independent professional engaged for project-based work',
+     'Canonical global employment type', true, 1, CURRENT_TIMESTAMP,
+     NULL, NULL, false, NULL, NULL),
+    (6, NULL, 'Probationer', 'New employee serving a probation period before confirmation',
+     'Canonical global pre-confirmation employment type', true, 1, CURRENT_TIMESTAMP,
      NULL, NULL, false, NULL, NULL);
+
+
+--
+-- Data for Name: SubscriptionPlan; Type: TABLE DATA; Schema: axionpro; Owner: -
+-- Exactly three clean host-managed plans are retained after the canonical reset.
+--
+
+INSERT INTO axionpro."SubscriptionPlan"
+    ("Id", "PlanName", "MaxUsers", "PerDayPrice", "MonthlyPrice",
+     "YearlyPrice", "IsFree", "IsActive", "AddedDateTime", "AddedById",
+     "UpdatedById", "UpdatedDateTime", "CurrencyKey", "IsMostPopular",
+     "IsCustom", "IsSoftDeleted", "DeletedById", "DeletedDateTime")
+VALUES
+    (1, 'Starter', 25, 0.00, 499.00, 4999.00, false, true,
+     CURRENT_TIMESTAMP, 1, NULL, NULL, 'INR', false, false, false, NULL, NULL),
+    (2, 'Professional', 100, 0.00, 1499.00, 14999.00, false, true,
+     CURRENT_TIMESTAMP, 1, NULL, NULL, 'INR', true, false, false, NULL, NULL),
+    (3, 'Enterprise', 500, 0.00, 4999.00, 49999.00, false, true,
+     CURRENT_TIMESTAMP, 1, NULL, NULL, 'INR', false, true, false, NULL, NULL);
 
 
 --
@@ -373,12 +368,14 @@ BEGIN
         'ComplianceTypeMaster',
         'DataViewStructure',
         'EmailTemplate',
+        'EmployeeType',
         'Gender',
         'IdentityCategoryDocument',
         'IdentityCategory',
         'LocalityType',
         'PolicyCategory',
         'PolicyRuleType',
+        'SubscriptionPlan',
         'TenantIndustry',
         'TenderStatus'
     ]

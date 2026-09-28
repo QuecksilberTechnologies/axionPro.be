@@ -7,12 +7,14 @@ replacement. Run with `ON_ERROR_STOP` enabled. Stop immediately if any file fail
 
 ## One-command execution with logs
 
-Use the included runner instead of opening the six SQL files manually:
+Use the included runner instead of opening the SQL files manually. Supply the SMTP key through the
+process environment or the `-SmtpKey` parameter; the runner never writes it to a script or log:
 
 The runner supports the built-in Windows PowerShell 5.1 as well as PowerShell 7.
 
 ```powershell
 cd C:\AxionProCodeBase\QuecksilberTechnologies\database-scripts\production-seed
+$env:AXIONPRO_SEED_SMTP_KEY = '<runtime SMTP key>'
 .\Run-CanonicalProductionSeed.ps1 -Environment Development -PsqlPath 'C:\Program Files\PostgreSQL\18\bin\psql.exe'
 ```
 
@@ -32,7 +34,7 @@ Check the configuration, backup and script paths without connecting or changing 
 Every actual run creates `execution-logs/<yyyyMMdd-HHmmss>/` containing:
 
 - `canonical-seed-combined.log`: output of the complete run;
-- `01-clean.log` through `06-verification.log`: separate output for each stage;
+- `01-clean.log` through `08-verification.log`: separate output for each stage;
 - `canonical-seed-summary.csv`: status, exit code, start/end time and duration for every attempted
   stage.
 
@@ -46,8 +48,8 @@ Connection credentials are never written to the logs.
 | --- | --- | --- | --- |
 | 00 | `00-analysis` | Schema inventory and proof of seed coverage; never changes the database | 164-table coverage matrix, 278 foreign keys, identity inventory, pre/post row counts |
 | 01 | `01-clean` | Deletes the approved baseline data and resets identities | All audited `axionpro` tables through one guarded `TRUNCATE ... RESTART IDENTITY CASCADE` |
-| 02 | `02-parent-master` | Inserts independent shared lookup data needed by later scripts | device/client types, policy catalogues, UI catalogues, email templates, gender, industry, tender status |
-| 03 | `03-geography` | Inserts the location hierarchy | Country → State → District → Locality |
+| 02 | `02-parent-master` | Inserts independent shared lookup data needed by later scripts | employee/device/client types, three subscription plans, policy catalogues, UI catalogues, email templates, gender, industry, tender status |
+| 03 | `03-geography` | Inserts the complete country catalogue, detailed location hierarchy and regulatory masters | 249 ISO countries; detailed geography for IN/CN/DE/US; universal compliance domains and verified statutory types |
 | 04 | `04-access-and-host` | Inserts permissions/navigation and the two approved Host administrators | Module, Operation, ModuleOperationMapping, HostRole, HostRoleModuleAndPermission, HostUser |
 | 05 | `05-dependent-master` | Inserts employee identity catalogues after countries exist and synchronizes all identities | IdentityCategory, IdentityCategoryDocument, CountryIdentityRule |
 | 99 | `99-verification` | Read-only acceptance assertions | two expected hosts, zero tenant/employee rows, permission/geography counts |
@@ -60,10 +62,12 @@ the run.
 
 1. `01-clean/001-reset-all-data.sql`
 2. `02-parent-master/001-shared-master-data.sql`
-3. `03-geography/001-four-country-postal-catalog.sql`
-4. `04-access-and-host/001-modules-operations-two-host-admins.sql`
-5. `05-dependent-master/001-employee-identity-catalog.sql`
-6. `99-verification/001-verify-canonical-seed.sql`
+3. `03-geography/000-iso-country-catalog.sql`
+4. `03-geography/001-four-country-postal-catalog.sql`
+5. `03-geography/002-country-regulatory-master.sql`
+6. `04-access-and-host/001-modules-operations-two-host-admins.sql`
+7. `05-dependent-master/001-employee-identity-catalog.sql`
+8. `99-verification/001-verify-canonical-seed.sql`
 
 The reset explicitly truncates all 163 audited base tables with `RESTART IDENTITY CASCADE`.
 Consequently every identity sequence is reset before seed insertion. Seed scripts then synchronize
@@ -76,7 +80,8 @@ Final business-data baseline:
 - exactly two active Host users: Deepesh Gupta and Sujeet;
 - one active Host-Super-Admin role with persisted module-operation grants;
 - shared reference, module/operation, geography and identity catalogues;
-- subscription plans and tenant plan mappings remain empty until explicitly configured.
+- exactly three active subscription plans;
+- one active default Brevo SMTP configuration supplied at execution time.
 
 ## Current coverage boundary
 
@@ -91,13 +96,11 @@ because the requested baseline contains no tenant business data.
 The following pre-reset platform/configuration tables are **not yet canonical seed data** and need
 an explicit business decision before they can be added safely:
 
-- `SubscriptionPlan` and `PlanModuleMapping` — the backup contains active production-looking rows
-  mixed with soft-deleted/test plans.
 - `PaymentGateway` — stores environment-variable references and runtime gateway configuration.
 - `HostBillingConfiguration` and `BillingTaxRule` — contain seller/tax business configuration.
 - `DeviceMaster` — contains the supported physical-device catalogue.
-- `DefaultEmailConfig` — contains encrypted credentials/secrets and must not be copied into source
-  control.
+- `DefaultEmailConfig` is seeded from the runtime-only `AXIONPRO_SEED_SMTP_KEY`; the secret is not
+  copied into source control or execution logs.
 - `License` — requires a defined production licensing rule.
 
 Twenty additional empty master-like tables had no authoritative rows in the backup. They are marked

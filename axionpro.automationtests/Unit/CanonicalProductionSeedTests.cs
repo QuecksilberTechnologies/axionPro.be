@@ -5,6 +5,8 @@
 // Purpose : Guards runtime prerequisites required after the canonical production reset.
 // ================================================================
 
+using NUnit.Framework;
+
 namespace axionpro.automationtests.Unit;
 
 [TestFixture]
@@ -36,12 +38,63 @@ public sealed class CanonicalProductionSeedTests
         });
     }
 
+    [Test]
+    public void Canonical_seed_contains_requested_employment_regulatory_and_plan_masters()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var countrySeed = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "database-scripts",
+            "production-seed",
+            "03-geography",
+            "000-iso-country-catalog.sql"));
+        var parentSeed = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "database-scripts",
+            "production-seed",
+            "02-parent-master",
+            "001-shared-master-data.sql"));
+        var regulatorySeed = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "database-scripts",
+            "production-seed",
+            "03-geography",
+            "002-country-regulatory-master.sql"));
+        var constants = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "axionpro.application",
+            "Constants",
+            "AppConstants.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(countrySeed, Does.Contain("ISO country seed must contain exactly 249 rows."));
+            Assert.That(countrySeed, Does.Contain("('India', 'IN', '+91')"));
+            Assert.That(countrySeed, Does.Contain("('United States', 'US', '+1')"));
+            Assert.That(parentSeed, Does.Contain("'Probationer'"));
+            Assert.That(parentSeed, Does.Contain("'Intern'"));
+            Assert.That(parentSeed, Does.Contain("INSERT INTO axionpro.\"SubscriptionPlan\""));
+            Assert.That(regulatorySeed, Does.Contain("('IN', 'Provident Fund (PF)')"));
+            Assert.That(regulatorySeed, Does.Contain("('CN', 'Basic Pension Insurance')"));
+            Assert.That(regulatorySeed, Does.Contain("('DE', 'Statutory Pension Insurance')"));
+            Assert.That(regulatorySeed, Does.Contain("('US', 'Social Security')"));
+            Assert.That(regulatorySeed, Does.Contain("('Payroll and Tax Compliance')"));
+            Assert.That(regulatorySeed, Does.Contain("<> 1018"));
+            Assert.That(constants, Does.Contain("RoleTypeClient = 4"));
+        });
+    }
+
     private static string FindRepositoryRoot()
     {
         var current = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
         while (current is not null)
         {
-            if (Directory.Exists(Path.Combine(current.FullName, "database-scripts")))
+            if (File.Exists(Path.Combine(
+                current.FullName,
+                "database-scripts",
+                "production-seed",
+                "02-parent-master",
+                "001-shared-master-data.sql")))
             {
                 return current.FullName;
             }

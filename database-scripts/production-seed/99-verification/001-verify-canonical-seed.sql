@@ -79,9 +79,76 @@ BEGIN
         RAISE EXCEPTION 'Global Permanent employee onboarding template is missing.';
     END IF;
 
+    IF (SELECT count(*)
+        FROM axionpro."EmployeeType"
+        WHERE "TenantId" IS NULL
+          AND "TypeName" IN
+              ('Permanent', 'Contract', 'Intern', 'Part-Time', 'Freelancer', 'Probationer')
+          AND "IsActive"
+          AND NOT "IsSoftDeleted") <> 6 THEN
+        RAISE EXCEPTION 'Canonical global employee type catalogue is incomplete.';
+    END IF;
+
+    IF (SELECT count(*)
+        FROM axionpro."SubscriptionPlan"
+        WHERE "IsActive"
+          AND NOT "IsSoftDeleted") <> 3 THEN
+        RAISE EXCEPTION 'Exactly three active subscription plans are required.';
+    END IF;
+
+    IF (SELECT count(*) FROM axionpro."AttendanceDeviceType"
+        WHERE "DeviceTypeCode" IN ('BIOMETRIC', 'WEB', 'MOBILE', 'MANUAL')
+          AND "IsActive") <> 4 THEN
+        RAISE EXCEPTION 'Attendance device type seed is incomplete.';
+    END IF;
+
+    IF (SELECT count(*) FROM axionpro."DefaultEmailConfig"
+        WHERE "IsActive" AND "IsDefault") <> 1 THEN
+        RAISE EXCEPTION 'Exactly one active default email configuration is required.';
+    END IF;
+
+    IF (SELECT count(*) FROM axionpro."ComplianceTypeMaster") <> 1018
+       OR (SELECT count(*) FROM axionpro."StatutoryType") <> 22 THEN
+        RAISE EXCEPTION 'Compliance or statutory master seed is incomplete.';
+    END IF;
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM axionpro."Country" country
+        WHERE country."IsActive"
+          AND
+          (
+              (SELECT count(*)
+               FROM axionpro."ComplianceTypeMaster" compliance
+               WHERE compliance."CountryId" = country."Id"
+                 AND compliance."IsActive") < 4
+              OR
+              (country."CountryCode" IN ('IN', 'CN', 'DE', 'US') AND NOT EXISTS
+              (
+                  SELECT 1
+                  FROM axionpro."StatutoryType" statutory
+                  WHERE statutory."CountryId" = country."Id"
+                    AND statutory."IsActive"
+              ))
+          )
+    ) THEN
+        RAISE EXCEPTION 'A supported country is missing compliance or statutory data.';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM axionpro."IdentityCategory")
+       OR NOT EXISTS (SELECT 1 FROM axionpro."IdentityCategoryDocument")
+       OR NOT EXISTS (SELECT 1 FROM axionpro."CountryIdentityRule") THEN
+        RAISE EXCEPTION 'Employee identity master catalogue is incomplete.';
+    END IF;
+
+    IF (SELECT count(*) FROM axionpro."Country" WHERE "IsActive") <> 249 THEN
+        RAISE EXCEPTION 'ISO country catalogue is incomplete.';
+    END IF;
+
     IF (SELECT count(*) FROM axionpro."Country"
         WHERE "CountryCode" IN ('IN', 'CN', 'DE', 'US')) <> 4 THEN
-        RAISE EXCEPTION 'Four-country geography seed is incomplete.';
+        RAISE EXCEPTION 'Detailed four-country geography seed is incomplete.';
     END IF;
 END $$;
 
@@ -94,6 +161,10 @@ SELECT
     (SELECT count(*) FROM axionpro."Operation") AS "OperationCount",
     (SELECT count(*) FROM axionpro."ModuleOperationMapping") AS "ModuleOperationCount",
     (SELECT count(*) FROM axionpro."Country") AS "CountryCount",
+    (SELECT count(*) FROM axionpro."ComplianceTypeMaster") AS "ComplianceTypeCount",
+    (SELECT count(*) FROM axionpro."StatutoryType") AS "StatutoryTypeCount",
+    (SELECT count(*) FROM axionpro."SubscriptionPlan") AS "SubscriptionPlanCount",
+    (SELECT count(*) FROM axionpro."EmployeeType" WHERE "TenantId" IS NULL) AS "GlobalEmployeeTypeCount",
     (SELECT count(*) FROM axionpro."State") AS "StateCount",
     (SELECT count(*) FROM axionpro."District") AS "DistrictCount",
     (SELECT count(*) FROM axionpro."Locality") AS "LocalityCount";

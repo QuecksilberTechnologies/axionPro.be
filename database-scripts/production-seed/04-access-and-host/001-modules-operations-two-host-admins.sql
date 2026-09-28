@@ -2326,6 +2326,49 @@ WHERE "IsDefault" = TRUE;
 -- manually paste nahi karna padega.
 -- ============================================================================
 
+\if :{?canonical_smtp_key}
+INSERT INTO axionpro."DefaultEmailConfig"
+(
+    "ConfigName",
+    "SmtpHost",
+    "SmtpPort",
+    "SmtpUsername",
+    "SmtpPasswordEncrypted",
+    "FromEmail",
+    "FromName",
+    "IsActive",
+    "IsDefault",
+    "SecrateKey"
+)
+VALUES
+(
+    'DEFAULT_REGISTRATION_SMTP',
+    'smtp-relay.brevo.com',
+    587,
+    'a4e423001@smtp-brevo.com',
+    :'canonical_smtp_key',
+    'admin@quecksilber.in',
+    'Sales Team',
+    TRUE,
+    TRUE,
+    :'canonical_smtp_key'
+)
+ON CONFLICT ("ConfigName")
+DO UPDATE SET
+    "SmtpHost" = EXCLUDED."SmtpHost",
+    "SmtpPort" = EXCLUDED."SmtpPort",
+    "SmtpUsername" = EXCLUDED."SmtpUsername",
+    "SmtpPasswordEncrypted" = EXCLUDED."SmtpPasswordEncrypted",
+    "FromEmail" = EXCLUDED."FromEmail",
+    "FromName" = EXCLUDED."FromName",
+    "IsActive" = TRUE,
+    "IsDefault" = TRUE,
+    "SecrateKey" = EXCLUDED."SecrateKey",
+    "UpdatedDateTime" = CURRENT_TIMESTAMP;
+\else
+\echo 'canonical_smtp_key was not supplied; default SMTP seed will fail verification.'
+\endif
+
 DO
 $$
 BEGIN

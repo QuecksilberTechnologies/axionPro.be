@@ -22,6 +22,8 @@ param(
 
     [string] $PsqlPath = 'psql',
 
+    [string] $SmtpKey = $env:AXIONPRO_SEED_SMTP_KEY,
+
     [switch] $ValidateOnly
 )
 
@@ -35,10 +37,12 @@ $backupPath = Join-Path $repositoryRoot 'DBFullBACKUP/workforcedb_34hi_duis-befo
 $stages = @(
     [pscustomobject]@{ Order = 1; Name = 'clean'; Script = '01-clean/001-reset-all-data.sql' },
     [pscustomobject]@{ Order = 2; Name = 'parent-master'; Script = '02-parent-master/001-shared-master-data.sql' },
-    [pscustomobject]@{ Order = 3; Name = 'geography'; Script = '03-geography/001-four-country-postal-catalog.sql' },
-    [pscustomobject]@{ Order = 4; Name = 'access-and-host'; Script = '04-access-and-host/001-modules-operations-two-host-admins.sql' },
-    [pscustomobject]@{ Order = 5; Name = 'dependent-master'; Script = '05-dependent-master/001-employee-identity-catalog.sql' },
-    [pscustomobject]@{ Order = 6; Name = 'verification'; Script = '99-verification/001-verify-canonical-seed.sql' }
+    [pscustomobject]@{ Order = 3; Name = 'country-catalog'; Script = '03-geography/000-iso-country-catalog.sql' },
+    [pscustomobject]@{ Order = 4; Name = 'geography'; Script = '03-geography/001-four-country-postal-catalog.sql' },
+    [pscustomobject]@{ Order = 5; Name = 'country-regulatory-master'; Script = '03-geography/002-country-regulatory-master.sql' },
+    [pscustomobject]@{ Order = 6; Name = 'access-and-host'; Script = '04-access-and-host/001-modules-operations-two-host-admins.sql' },
+    [pscustomobject]@{ Order = 7; Name = 'dependent-master'; Script = '05-dependent-master/001-employee-identity-catalog.sql' },
+    [pscustomobject]@{ Order = 8; Name = 'verification'; Script = '99-verification/001-verify-canonical-seed.sql' }
 )
 
 function Read-ConnectionSetting([string] $path) {
@@ -171,6 +175,10 @@ if ($ValidateOnly) {
     return
 }
 
+if ([string]::IsNullOrWhiteSpace($SmtpKey)) {
+    throw 'SMTP key is required. Pass -SmtpKey or set AXIONPRO_SEED_SMTP_KEY. The key is never written to logs.'
+}
+
 if (-not (Get-Command $PsqlPath -ErrorAction SilentlyContinue)) {
     if ($PsqlPath -eq 'psql' -and $env:ProgramFiles) {
         $detectedPsql = Get-ChildItem `
@@ -249,6 +257,7 @@ try {
                 --no-psqlrc `
                 --no-password `
                 --set ON_ERROR_STOP=1 `
+                --set canonical_smtp_key=$SmtpKey `
                 --file $stagePath 2>&1 |
                 Tee-Object -FilePath $stageLog -Append |
                 Add-Content -LiteralPath $combinedLog -Encoding utf8
