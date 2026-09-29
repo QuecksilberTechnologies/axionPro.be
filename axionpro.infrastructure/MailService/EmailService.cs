@@ -169,6 +169,31 @@ public sealed class EmailService : IEmailService
 
             return true;
         }
+        catch (MailKit.Security.AuthenticationException ex)
+            when (ex.InnerException is SmtpCommandException smtpCommandException)
+        {
+            _logger.LogError(
+                ex,
+                "SMTP authentication rejected | Status={Status} | Template={TemplateCode} | TenantId={TenantId} | To={To}",
+                smtpCommandException.StatusCode,
+                templateCode,
+                tenantId,
+                toEmail);
+            throw CreateSmtpApiException(smtpCommandException);
+        }
+        catch (MailKit.Security.AuthenticationException ex)
+        {
+            _logger.LogError(
+                ex,
+                "SMTP authentication failed | Template={TemplateCode} | TenantId={TenantId} | To={To}",
+                templateCode,
+                tenantId,
+                toEmail);
+            throw new ApiException(
+                AppConstants.ErrorCodes.SmtpAuthenticationFailed,
+                AppConstants.ErrorMessages.SmtpAuthenticationFailed,
+                (int)HttpStatusCode.BadGateway);
+        }
         catch (SmtpCommandException ex)
         {
             _logger.LogError(
