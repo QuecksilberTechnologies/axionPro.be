@@ -198,6 +198,8 @@ public sealed class ResendTenantVerificationCommandHandler
             new Dictionary<string, string>
             {
                 ["UserName"] = tokenInfo.FullName,
+                ["TenantName"] = tenant.CompanyName ?? string.Empty,
+                ["SupportEmail"] = tenant.TenantEmail,
                 ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}",
                 ["LinkExpiryMinutes"] = "30"
             });

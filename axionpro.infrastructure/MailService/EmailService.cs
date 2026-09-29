@@ -306,13 +306,15 @@ public sealed class EmailService : IEmailService
         bool preferHostEmailConfiguration)
     {
         TenantEmailConfig? tenantConfiguration = null;
-        if (tenantId is > 0)
+        if (!preferHostEmailConfiguration && tenantId is > 0)
         {
             tenantConfiguration = await _tenantEmailConfigRepository.GetActiveEmailConfigAsync(tenantId);
         }
 
         var tenantContext = TenantEmailTemplateContext.From(tenantConfiguration);
-        var tenantSmtpPassword = await ResolveTenantSmtpPasswordAsync(tenantConfiguration);
+        var tenantSmtpPassword = preferHostEmailConfiguration
+            ? null
+            : await ResolveTenantSmtpPasswordAsync(tenantConfiguration);
 
         if (!preferHostEmailConfiguration)
         {

@@ -574,6 +574,8 @@ public sealed class HostApiRegressionTests
                 Assert.That(args[1], Is.EqualTo(tenant.TenantEmail));
                 Assert.That(args[2], Is.EqualTo(tenant.Id));
                 var placeholders = (Dictionary<string, string>)args[3]!;
+                Assert.That(placeholders["TenantName"], Is.EqualTo(tenant.CompanyName));
+                Assert.That(placeholders["SupportEmail"], Is.EqualTo(tenant.TenantEmail));
                 Assert.That(placeholders["VerificationUrl"],
                     Is.EqualTo("https://ui.example.test/auth/set-password?token=test-onboarding-token"));
                 Assert.That(placeholders["LinkExpiryMinutes"], Is.EqualTo("30"));
@@ -756,6 +758,55 @@ public sealed class HostApiRegressionTests
             Assert.That(resolution!.GetType().GetProperty("Subject")!.GetValue(resolution), Is.EqualTo(expectedSubject));
             Assert.That(tenantReads, Is.EqualTo(expectedTenantReads));
             Assert.That(hostReads, Is.EqualTo(expectedHostReads));
+        });
+    }
+
+    [Test]
+    public async Task Host_email_configuration_does_not_query_tenant_smtp()
+    {
+        var tenantReads = 0;
+        var service = new axionpro.infrastructure.MailService.EmailService(
+            CreateProxy<ITenantEmailConfigRepository>((_, _) =>
+            {
+                tenantReads++;
+                throw new AssertionException("Host delivery must not read Tenant SMTP configuration.");
+            }),
+            CreateProxy<IDefaultEmailConfigRepository>((_, _) => Task.FromResult<DefaultEmailConfig?>(new DefaultEmailConfig
+            {
+                SmtpHost = "smtp-relay.brevo.com",
+                SmtpPort = 587,
+                SmtpUsername = "database-user@example.test",
+                SmtpPasswordEncrypted = "database-secret",
+                FromName = "AxionPro",
+                FromEmail = "sender@example.test",
+                IsActive = true,
+                IsDefault = true
+            })),
+            CreateProxy<IEmailTemplateRepository>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
+            CreateProxy<ITenantEmailTemplateRepository>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
+            CreateProxy<IEmailQueueRepository>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
+            CreateProxy<ITenantKeyResolver>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
+            CreateProxy<IEncryptionService>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
+            NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance,
+            new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["EmailConfig:SMTPUserName"] = "deployment-user@example.test",
+                ["EmailConfig:Secret"] = "deployment-secret"
+            }).Build());
+
+        var resolver = typeof(axionpro.infrastructure.MailService.EmailService).GetMethod(
+            "ResolveSmtpConfigurationAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(resolver, Is.Not.Null);
+
+        var task = (Task)resolver!.Invoke(service, [71L, true])!;
+        await task;
+        var result = task.GetType().GetProperty("Result")!.GetValue(task);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.Not.Null);
+            Assert.That(tenantReads, Is.Zero);
         });
     }
 
