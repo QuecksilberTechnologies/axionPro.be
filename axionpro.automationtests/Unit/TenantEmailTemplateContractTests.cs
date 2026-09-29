@@ -118,7 +118,10 @@ public sealed class TenantEmailTemplateContractTests
         var sendIndex = service.IndexOf("await smtp.SendAsync(message);", StringComparison.Ordinal);
         var disconnectIndex = service.IndexOf("await smtp.DisconnectAsync(true);", StringComparison.Ordinal);
         var disconnectWarningIndex = service.IndexOf(
-            "SMTP disconnect failed after provider accepted email",
+            "SMTP disconnect failed during cleanup",
+            StringComparison.Ordinal);
+        var disposeWarningIndex = service.IndexOf(
+            "SMTP client disposal failed during cleanup",
             StringComparison.Ordinal);
         var acceptedLogIndex = service.IndexOf("SMTP accepted email", StringComparison.Ordinal);
 
@@ -127,12 +130,14 @@ public sealed class TenantEmailTemplateContractTests
             Assert.That(sendIndex, Is.GreaterThanOrEqualTo(0));
             Assert.That(disconnectIndex, Is.GreaterThan(sendIndex));
             Assert.That(disconnectWarningIndex, Is.GreaterThan(disconnectIndex));
-            Assert.That(acceptedLogIndex, Is.GreaterThan(disconnectWarningIndex));
+            Assert.That(disposeWarningIndex, Is.GreaterThan(disconnectWarningIndex));
+            Assert.That(acceptedLogIndex, Is.GreaterThan(disposeWarningIndex));
 
             var postSendSection = service.Substring(sendIndex, acceptedLogIndex - sendIndex);
             Assert.That(postSendSection, Does.Contain("try"));
             Assert.That(postSendSection, Does.Contain("catch (Exception ex)"));
             Assert.That(postSendSection, Does.Contain("LogWarning"));
+            Assert.That(postSendSection, Does.Contain("smtp.Dispose()"));
             Assert.That(postSendSection, Does.Not.Contain("EmailDeliveryFailed"));
         });
     }

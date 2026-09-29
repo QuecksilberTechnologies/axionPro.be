@@ -161,29 +161,51 @@ public sealed class EmailService : IEmailService
             message.Subject = subject;
             message.Body = new BodyBuilder { HtmlBody = body }.ToMessageBody();
 
-            using var smtp = new SmtpClient { Timeout = 20_000 };
-            await smtp.ConnectAsync(
-                emailConfiguration.SmtpHost,
-                emailConfiguration.SmtpPort,
-                SecureSocketOptions.StartTls);
-            await smtp.AuthenticateAsync(emailConfiguration.SmtpUsername, emailConfiguration.SmtpSecret);
-            await smtp.SendAsync(message);
-
-            // SendAsync returning successfully means the SMTP provider accepted
-            // the message. A connection-close failure after that point must not
-            // report the already accepted email as a delivery failure.
+            var smtp = new SmtpClient { Timeout = 20_000 };
             try
             {
-                await smtp.DisconnectAsync(true);
+                await smtp.ConnectAsync(
+                    emailConfiguration.SmtpHost,
+                    emailConfiguration.SmtpPort,
+                    SecureSocketOptions.StartTls);
+                await smtp.AuthenticateAsync(emailConfiguration.SmtpUsername, emailConfiguration.SmtpSecret);
+                await smtp.SendAsync(message);
             }
-            catch (Exception ex)
+            finally
             {
-                _logger.LogWarning(
-                    ex,
-                    "SMTP disconnect failed after provider accepted email | Template={TemplateCode} | TenantId={TenantId} | To={To}",
-                    templateCode,
-                    tenantId,
-                    recipientEmail);
+                // Connect/authenticate/send exceptions must still reach the
+                // mail-specific handlers. Cleanup failures must never replace
+                // that original result or turn an accepted email into failure.
+                if (smtp.IsConnected)
+                {
+                    try
+                    {
+                        await smtp.DisconnectAsync(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(
+                            ex,
+                            "SMTP disconnect failed during cleanup | Template={TemplateCode} | TenantId={TenantId} | To={To}",
+                            templateCode,
+                            tenantId,
+                            recipientEmail);
+                    }
+                }
+
+                try
+                {
+                    smtp.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "SMTP client disposal failed during cleanup | Template={TemplateCode} | TenantId={TenantId} | To={To}",
+                        templateCode,
+                        tenantId,
+                        recipientEmail);
+                }
             }
 
             _logger.LogInformation(
