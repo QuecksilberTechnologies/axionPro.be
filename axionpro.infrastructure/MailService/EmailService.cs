@@ -7,6 +7,7 @@ using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using System.Net.Sockets;
@@ -31,6 +32,7 @@ public sealed class EmailService : IEmailService
     private readonly ITenantKeyResolver _tenantKeyResolver;
     private readonly IEncryptionService _encryptionService;
     private readonly ILogger<EmailService> _logger;
+    private readonly IConfiguration _configuration;
     private readonly IEmailQueueRepository _emailQueueRepository;
 
     public EmailService(
@@ -41,7 +43,8 @@ public sealed class EmailService : IEmailService
         IEmailQueueRepository emailQueueRepository,
         ITenantKeyResolver tenantKeyResolver,
         IEncryptionService encryptionService,
-        ILogger<EmailService> logger)
+        ILogger<EmailService> logger,
+        IConfiguration configuration)
     {
         _tenantEmailConfigRepository = tenantEmailConfigRepository;
         _defaultEmailConfigRepository = defaultEmailConfigRepository;
@@ -51,6 +54,7 @@ public sealed class EmailService : IEmailService
         _tenantKeyResolver = tenantKeyResolver;
         _encryptionService = encryptionService;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public Task<bool> SendOtpEmailAsync(
@@ -333,11 +337,13 @@ public sealed class EmailService : IEmailService
         }
 
         var hostConfiguration = await GetActiveHostEmailConfigurationAsync();
+        var deploymentUsername = CleanDatabaseValue(_configuration["EmailConfig:SMTPUserName"]);
+        var deploymentSecret = CleanDatabaseValue(_configuration["EmailConfig:Secret"]);
         var resolvedHostConfiguration = CreateSmtpConfiguration(
             hostConfiguration?.SmtpHost,
             hostConfiguration?.SmtpPort,
-            hostConfiguration?.SmtpUsername,
-            hostConfiguration?.SmtpPasswordEncrypted,
+            deploymentUsername ?? hostConfiguration?.SmtpUsername,
+            deploymentSecret ?? hostConfiguration?.SmtpPasswordEncrypted,
             hostConfiguration?.FromName,
             hostConfiguration?.FromEmail,
             tenantContext,

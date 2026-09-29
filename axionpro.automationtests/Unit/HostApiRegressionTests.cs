@@ -675,7 +675,8 @@ public sealed class HostApiRegressionTests
             CreateProxy<IEmailQueueRepository>((method, _) => throw new AssertionException($"Unexpected queue call: {method.Name}.")),
             CreateProxy<ITenantKeyResolver>((_, _) => throw new InvalidOperationException("Unexpected key lookup.")),
             CreateProxy<IEncryptionService>((_, _) => throw new InvalidOperationException("Unexpected decryption.")),
-            NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance);
+            NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance,
+            new ConfigurationBuilder().Build());
 
         var exception = Assert.ThrowsAsync<ApiException>(() => service.SendTemplatedEmailAsync(
             ConstantValues.WelcomeEmail, "owner@example.test", 71,
@@ -735,7 +736,8 @@ public sealed class HostApiRegressionTests
             CreateProxy<IEmailQueueRepository>((method, _) => throw new AssertionException($"Unexpected queue call: {method.Name}.")),
             CreateProxy<ITenantKeyResolver>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
             CreateProxy<IEncryptionService>((method, _) => throw new AssertionException($"Unexpected call: {method.Name}.")),
-            NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance);
+            NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance,
+            new ConfigurationBuilder().Build());
 
         var resolver = typeof(axionpro.infrastructure.MailService.EmailService).GetMethod(
             "ResolveEmailTemplateAsync",
