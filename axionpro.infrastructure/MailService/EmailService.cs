@@ -125,7 +125,10 @@ public sealed class EmailService : IEmailService
                     templateCode,
                     tenantId,
                     recipientEmail is not null);
-                return false;
+                throw new ApiException(
+                    AppConstants.ErrorCodes.SmtpConfigurationUnavailable,
+                    AppConstants.ErrorMessages.SmtpConfigurationUnavailable,
+                    (int)HttpStatusCode.BadGateway);
             }
 
             var template = await ResolveEmailTemplateAsync(
@@ -138,7 +141,10 @@ public sealed class EmailService : IEmailService
                     "Email template missing or inactive in both Tenant and Host sources | Code={TemplateCode} | TenantId={TenantId}",
                     templateCode,
                     tenantId);
-                return false;
+                throw new ApiException(
+                    AppConstants.ErrorCodes.EmailTemplateUnavailable,
+                    AppConstants.ErrorMessages.EmailTemplateUnavailable,
+                    (int)HttpStatusCode.BadGateway);
             }
 
             var finalPlaceholders = BuildPlaceholders(emailConfiguration, placeholders);
@@ -213,7 +219,14 @@ public sealed class EmailService : IEmailService
                 templateCode,
                 tenantId,
                 toEmail);
-            return false;
+            throw new ApiException(
+                AppConstants.ErrorCodes.SmtpConnectionFailed,
+                AppConstants.ErrorMessages.SmtpConnectionFailed,
+                (int)HttpStatusCode.BadGateway);
+        }
+        catch (ApiException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -223,7 +236,10 @@ public sealed class EmailService : IEmailService
                 templateCode,
                 tenantId,
                 toEmail);
-            return false;
+            throw new ApiException(
+                AppConstants.ErrorCodes.EmailDeliveryFailed,
+                AppConstants.ErrorMessages.EmailDeliveryFailed,
+                (int)HttpStatusCode.BadGateway);
         }
     }
 

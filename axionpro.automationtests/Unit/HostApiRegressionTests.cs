@@ -677,13 +677,16 @@ public sealed class HostApiRegressionTests
             CreateProxy<IEncryptionService>((_, _) => throw new InvalidOperationException("Unexpected decryption.")),
             NullLogger<axionpro.infrastructure.MailService.EmailService>.Instance);
 
-        var sent = await service.SendTemplatedEmailAsync(
+        var exception = Assert.ThrowsAsync<ApiException>(() => service.SendTemplatedEmailAsync(
             ConstantValues.WelcomeEmail, "owner@example.test", 71,
-            new Dictionary<string, string>());
+            new Dictionary<string, string>()));
 
         Assert.Multiple(() =>
         {
-            Assert.That(sent, Is.False);
+            Assert.That(exception, Is.Not.Null);
+            Assert.That(exception!.StatusCode, Is.EqualTo(StatusCodes.Status502BadGateway));
+            Assert.That(exception.ErrorCode, Is.EqualTo(AppConstants.ErrorCodes.SmtpConfigurationUnavailable));
+            Assert.That(exception.Message, Is.EqualTo(AppConstants.ErrorMessages.SmtpConfigurationUnavailable));
             Assert.That(tenantReads, Is.EqualTo(1));
             Assert.That(hostReads, Is.EqualTo(1));
         });

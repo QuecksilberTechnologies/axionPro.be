@@ -36,6 +36,9 @@ namespace axionpro.application.Constants
             public const string SmtpIpNotAuthorized = "SMTP_IP_NOT_AUTHORIZED";
             public const string SmtpAuthenticationFailed = "SMTP_AUTHENTICATION_FAILED";
             public const string SmtpProviderRejected = "SMTP_PROVIDER_REJECTED";
+            public const string SmtpConfigurationUnavailable = "SMTP_CONFIGURATION_UNAVAILABLE";
+            public const string EmailTemplateUnavailable = "EMAIL_TEMPLATE_UNAVAILABLE";
+            public const string SmtpConnectionFailed = "SMTP_CONNECTION_FAILED";
         }
 
         #endregion
@@ -83,6 +86,10 @@ namespace axionpro.application.Constants
             public const string SmtpIpNotAuthorized = "The email provider rejected the API server IP address. Authorize the server IP in the email provider and try again.";
             public const string SmtpAuthenticationFailed = "The email provider rejected the SMTP credentials. Verify the configured SMTP username and key.";
             public const string SmtpProviderRejected = "The email provider rejected the delivery request. Verify the SMTP sender and provider configuration.";
+            public const string SmtpConfigurationUnavailable = "The active default SMTP configuration is incomplete or unavailable. Verify the Host email configuration.";
+            public const string EmailTemplateUnavailable = "The required verification email template is missing or inactive.";
+            public const string SmtpConnectionFailed = "The API server could not establish a valid connection with the SMTP provider. Verify the SMTP host, port, encryption, and network access.";
+            public const string EmailDeliveryFailed = "The email could not be delivered because of an unexpected mail-service error. Review the API mail-service log and try again.";
             public const string RequiredDataMissing = "Required data is missing.";
             public const string ValidationFailed = "The request failed validation.";
 
