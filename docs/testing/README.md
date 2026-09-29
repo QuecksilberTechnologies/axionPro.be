@@ -36,6 +36,7 @@ for a later run. Keep earlier failures and link the run that supersedes them.
 | Database / canonical production reset and seed | [2026-09-28](database/canonical-production-seed/2026-09-28.md) | Target backup verified; 163 tables reset; ordered seed passed locally and on target; only Deepesh Gupta and Sujeet remain, with zero tenant/employee data and synchronized identities. |
 | Database / canonical production master expansion | [2026-09-29](database/canonical-production-seed/2026-09-29.md) | Seven-stage target run passed: 6 employee types, 3 plans, four-country compliance/statutory coverage, one runtime-secret SMTP default, two Host admins, zero tenants/employees and zero invalid foreign keys. |
 | Database / worldwide country and compliance seed | [2026-09-29](database/worldwide-country-compliance/2026-09-29.md) | Eight-stage target run passed: 249 ISO countries, 1,018 compliance types, zero coverage gaps, 22 verified statutory types and zero invalid foreign keys. |
+| Tenant / create permission context diagnosis | [2026-09-29](tenant/create-permission-context/2026-09-29.md) | Failure traced to absent HOST_TENANT_CREATE operation mapping and generic missing permission-context validation; no product fix applied pending approval. |
 | Holiday calendar / tenant-location refactor | [2026-09-16](holiday-calendar/tenant-location-refactor/2026-09-16.md) | Local contract/build suite 3/3 passed; coordinated target migration and deployed API acceptance pending. |
 | Holiday calendar / target DB migration | [2026-09-22](holiday-calendar/tenant-location-refactor/2026-09-22.md) | Development-configured target table backed up and migrated; 15-column schema/FK verified, focused suite 3/3 passed; deployed API acceptance pending. |
 | Holiday calendar / Tenant Policies child module | [2026-09-22](holiday-calendar/policy-child-module/2026-09-22.md) | Child Id 118 under parent Id 108, View/Add/Update/Delete mappings and 10 plan entitlements verified; holiday write APIs remain pending. |
@@ -107,3 +108,6 @@ saving evidence. Documentation-only work does not require repeating passed tests
 
 - [Holiday rename and Icon field — 2026-09-23](holiday-calendar/rename-to-holiday/2026-09-23.md)
  - [Tenant email queue runtime resolution — 2026-09-24](tenant-email-template/queue-runtime-resolution/2026-09-24.md)
+# Tenant verification resend
+
+- [2026-09-29 SMTP rejection and actionable error](tenant/resend-verification/2026-09-29.md)

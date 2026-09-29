@@ -191,7 +191,7 @@ public sealed class ResendTenantVerificationCommandHandler
         }
 
         var baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
-        var emailSent = await _emailService.SendTemplatedEmailAsync(
+        var emailSent = await _emailService.SendTemplatedEmailUsingHostConfigAsync(
             ConstantValues.WelcomeEmail,
             tenant.TenantEmail,
             tenant.Id,

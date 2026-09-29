@@ -2313,10 +2313,9 @@ WHERE "IsDefault" = TRUE;
 -- SECTION 3 : SEED DEFAULT EMAIL CONFIGURATION
 -- ============================================================================
 --
--- Latest complete active TenantEmailConfig configuration ko source banaya jayega.
--- Fresh canonical reset me tenant data intentionally empty hota hai. Aise case
--- me DefaultEmailConfig empty rahega; production SMTP secret invent nahi kiya
--- jayega aur baaki host/access seed continue karega.
+-- Runner se supplied canonical_smtp_key ke saath platform default configuration
+-- seed hota hai. Agar reset se pehle koi complete active TenantEmailConfig source
+-- available ho, to neeche ka fallback us configuration ko reuse kar sakta hai.
 --
 -- Isliye production SQL me:
 -- Password
@@ -2327,32 +2326,7 @@ WHERE "IsDefault" = TRUE;
 -- ============================================================================
 
 \if :{?canonical_smtp_key}
-INSERT INTO axionpro."DefaultEmailConfig"
-(
-    "ConfigName",
-    "SmtpHost",
-    "SmtpPort",
-    "SmtpUsername",
-    "SmtpPasswordEncrypted",
-    "FromEmail",
-    "FromName",
-    "IsActive",
-    "IsDefault",
-    "SecrateKey"
-)
-VALUES
-(
-    'DEFAULT_REGISTRATION_SMTP',
-    'smtp-relay.brevo.com',
-    587,
-    'a4e423001@smtp-brevo.com',
-    :'canonical_smtp_key',
-    'admin@quecksilber.in',
-    'Sales Team',
-    TRUE,
-    TRUE,
-    :'canonical_smtp_key'
-)
+
 ON CONFLICT ("ConfigName")
 DO UPDATE SET
     "SmtpHost" = EXCLUDED."SmtpHost",
@@ -2530,7 +2504,7 @@ BEGIN
     IF NOT FOUND THEN
 
         RAISE NOTICE
-        'No complete active TenantEmailConfig found. DefaultEmailConfig intentionally remains empty.';
+        'No complete active TenantEmailConfig fallback found. Supplied canonical DefaultEmailConfig is retained.';
 
     END IF;
 
@@ -4266,15 +4240,18 @@ $$;
 
 -- ============================================================================
 -- SECTION 8C
--- HOST TENANT LIST ADD ACTION
+-- HOST TENANT PERMISSION ACTIONS
 -- ============================================================================
--- The Host Tenant List page owns its row actions. Keep Add attached to
--- this leaf module so Navigation/my-menu can render the action from the same
--- permission object.  This does not grant the permission to any Host role.
+-- Tenant creation is a dedicated Host permission. Keep Add attached only to
+-- HOST_TENANT_CREATE and remove the obsolete HOST_TENANT_LIST/Add mapping.
+-- HOST_TENANT_LIST retains its own list and row actions so the leaf remains in
+-- Navigation/my-menu and the Tenant Management parent remains visible.
+-- Host role grants are rebuilt from the canonical mappings in Section 9.
 
 DO
 $$
 DECLARE
+    host_tenant_create_module_id INTEGER;
     host_tenant_list_module_id INTEGER;
     add_operation_id INTEGER;
 BEGIN
@@ -4289,6 +4266,68 @@ BEGIN
       AND LOWER(BTRIM("OperationName")) = 'add'
       AND "IsActive" IS DISTINCT FROM TRUE;
 
+    INSERT INTO axionpro."Operation"
+    (
+        "OperationName", "Remark", "OperationType", "IsActive",
+        "AddedById", "AddedDateTime", "UpdatedById", "UpdatedDateTime", "IconImage"
+    )
+    SELECT
+        seed."OperationName",
+        seed."Remark",
+        seed."OperationType",
+        TRUE,
+        1,
+        CURRENT_TIMESTAMP,
+        1,
+        CURRENT_TIMESTAMP,
+        seed."IconImage"
+    FROM
+    (
+        VALUES
+            ('Active', 'Activate a Host-managed tenant.', 9, 'check-circle'),
+            ('Inactive', 'Deactivate a Host-managed tenant.', 10, 'slash-circle'),
+            ('Restore', 'Restore a previously deleted Host-managed tenant.', 26, 'arrow-counterclockwise')
+    ) AS seed("OperationName", "Remark", "OperationType", "IconImage")
+    WHERE NOT EXISTS
+    (
+        SELECT 1
+        FROM axionpro."Operation" existing
+        WHERE LOWER(BTRIM(existing."OperationName")) = LOWER(seed."OperationName")
+    );
+
+    UPDATE axionpro."Operation" operation
+    SET
+        "Remark" = seed."Remark",
+        "OperationType" = seed."OperationType",
+        "IsActive" = TRUE,
+        "IconImage" = seed."IconImage",
+        "AddedById" = COALESCE(operation."AddedById", 1),
+        "AddedDateTime" = COALESCE(operation."AddedDateTime", CURRENT_TIMESTAMP),
+        "UpdatedById" = 1,
+        "UpdatedDateTime" = CURRENT_TIMESTAMP
+    FROM
+    (
+        VALUES
+            ('Active', 'Activate a Host-managed tenant.', 9, 'check-circle'),
+            ('Inactive', 'Deactivate a Host-managed tenant.', 10, 'slash-circle'),
+            ('Restore', 'Restore a previously deleted Host-managed tenant.', 26, 'arrow-counterclockwise')
+    ) AS seed("OperationName", "Remark", "OperationType", "IconImage")
+    WHERE LOWER(BTRIM(operation."OperationName")) = LOWER(seed."OperationName");
+
+    SELECT "Id"
+    INTO host_tenant_create_module_id
+    FROM axionpro."Module"
+    WHERE "ModuleCode" = 'HOST_TENANT_CREATE'
+      AND "ModuleScope" = 2
+      AND "IsLeafNode" = TRUE
+    ORDER BY "Id"
+    LIMIT 1;
+
+    IF host_tenant_create_module_id IS NULL THEN
+        RAISE EXCEPTION
+            'HOST_TENANT_CREATE module was not found; Add mapping cannot be seeded.';
+    END IF;
+
     SELECT "Id"
     INTO host_tenant_list_module_id
     FROM axionpro."Module"
@@ -4300,7 +4339,7 @@ BEGIN
 
     IF host_tenant_list_module_id IS NULL THEN
         RAISE EXCEPTION
-            'HOST_TENANT_LIST module was not found; Add navigation mapping cannot be seeded.';
+            'HOST_TENANT_LIST module was not found; obsolete Add mapping cannot be removed.';
     END IF;
 
     SELECT "Id"
@@ -4314,8 +4353,62 @@ BEGIN
 
     IF add_operation_id IS NULL THEN
         RAISE EXCEPTION
-            'The canonical Add operation must be active before HOST_TENANT_LIST can be mapped.';
+            'The canonical Add operation must be active before HOST_TENANT_CREATE can be mapped.';
     END IF;
+
+    DELETE FROM axionpro."ModuleOperationMapping"
+    WHERE "ModuleId" = host_tenant_list_module_id
+      AND "OperationId" = add_operation_id;
+
+    INSERT INTO axionpro."ModuleOperationMapping"
+    (
+        "ModuleId", "OperationId", "PageURL", "IconURL", "IsCommonItem",
+        "IsOperational", "Priority", "Remark", "IsActive", "AddedById", "AddedDateTime"
+    )
+    SELECT
+        host_tenant_list_module_id,
+        operation."Id",
+        module."URLPath",
+        COALESCE(NULLIF(BTRIM(operation."IconImage"), ''), 'circle'),
+        FALSE,
+        TRUE,
+        operation."OperationType" * 10,
+        'Host Tenant List and tenant lifecycle action.',
+        TRUE,
+        1,
+        CURRENT_TIMESTAMP
+    FROM axionpro."Operation" operation
+    INNER JOIN axionpro."Module" module
+        ON module."Id" = host_tenant_list_module_id
+    WHERE LOWER(BTRIM(operation."OperationName")) IN
+          ('view', 'update', 'delete', 'active', 'inactive', 'restore')
+      AND operation."IsActive" = TRUE
+      AND NOT EXISTS
+      (
+          SELECT 1
+          FROM axionpro."ModuleOperationMapping" existing
+          WHERE existing."ModuleId" = host_tenant_list_module_id
+            AND existing."OperationId" = operation."Id"
+      );
+
+    UPDATE axionpro."ModuleOperationMapping" mapping
+    SET
+        "PageURL" = module."URLPath",
+        "IconURL" = COALESCE(NULLIF(BTRIM(operation."IconImage"), ''), 'circle'),
+        "IsCommonItem" = FALSE,
+        "IsOperational" = TRUE,
+        "Priority" = operation."OperationType" * 10,
+        "Remark" = 'Host Tenant List and tenant lifecycle action.',
+        "IsActive" = TRUE,
+        "UpdatedById" = 1,
+        "UpdatedDateTime" = CURRENT_TIMESTAMP
+    FROM axionpro."Module" module,
+         axionpro."Operation" operation
+    WHERE mapping."ModuleId" = host_tenant_list_module_id
+      AND module."Id" = host_tenant_list_module_id
+      AND operation."Id" = mapping."OperationId"
+      AND LOWER(BTRIM(operation."OperationName")) IN
+          ('view', 'update', 'delete', 'active', 'inactive', 'restore');
 
     INSERT INTO axionpro."ModuleOperationMapping"
     (
@@ -4330,14 +4423,14 @@ BEGIN
         FALSE,
         TRUE,
         20,
-        'Add a new tenant from the Host Tenant List.',
+        'Create a new tenant from the dedicated Host Tenant Create permission.',
         TRUE,
         1,
         CURRENT_TIMESTAMP
     FROM axionpro."Module" module
     INNER JOIN axionpro."Operation" operation
         ON operation."Id" = add_operation_id
-    WHERE module."Id" = host_tenant_list_module_id
+    WHERE module."Id" = host_tenant_create_module_id
       AND NOT EXISTS
       (
           SELECT 1
@@ -4353,7 +4446,7 @@ BEGIN
         "IsCommonItem" = FALSE,
         "IsOperational" = TRUE,
         "Priority" = 20,
-        "Remark" = 'Add a new tenant from the Host Tenant List.',
+        "Remark" = 'Create a new tenant from the dedicated Host Tenant Create permission.',
         "IsActive" = TRUE,
         "UpdatedById" = 1,
         "UpdatedDateTime" = CURRENT_TIMESTAMP
@@ -4362,7 +4455,7 @@ BEGIN
         ON operation."Id" = add_operation_id
     WHERE mapping."ModuleId" = module."Id"
       AND mapping."OperationId" = operation."Id"
-      AND module."Id" = host_tenant_list_module_id;
+      AND module."Id" = host_tenant_create_module_id;
 END;
 $$;
 

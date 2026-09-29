@@ -42,6 +42,7 @@ using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
+using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -568,7 +569,7 @@ public sealed class HostApiRegressionTests
             CreateProxy<IEmailService>((method, args) =>
             {
                 emailCalls++;
-                Assert.That(method.Name, Is.EqualTo(nameof(IEmailService.SendTemplatedEmailAsync)));
+                Assert.That(method.Name, Is.EqualTo(nameof(IEmailService.SendTemplatedEmailUsingHostConfigAsync)));
                 Assert.That(args![0], Is.EqualTo(ConstantValues.WelcomeEmail));
                 Assert.That(args[1], Is.EqualTo(tenant.TenantEmail));
                 Assert.That(args[2], Is.EqualTo(tenant.Id));
@@ -605,6 +606,43 @@ public sealed class HostApiRegressionTests
             Assert.That(issuedToken!.Email, Is.EqualTo(tenant.TenantEmail));
             Assert.That(issuedToken.Expiry - issuedToken.IssuedAt,
                 Is.EqualTo(TimeSpan.FromMinutes(30)).Within(TimeSpan.FromSeconds(1)));
+        });
+    }
+
+    [TestCase(
+        "5.7.1 Unauthorized IP address",
+        AppConstants.ErrorCodes.SmtpIpNotAuthorized,
+        AppConstants.ErrorMessages.SmtpIpNotAuthorized)]
+    [TestCase(
+        "Authentication credentials invalid",
+        AppConstants.ErrorCodes.SmtpAuthenticationFailed,
+        AppConstants.ErrorMessages.SmtpAuthenticationFailed)]
+    [TestCase(
+        "Sender address rejected",
+        AppConstants.ErrorCodes.SmtpProviderRejected,
+        AppConstants.ErrorMessages.SmtpProviderRejected)]
+    public void Smtp_provider_rejections_are_mapped_to_safe_actionable_api_errors(
+        string providerMessage,
+        string expectedErrorCode,
+        string expectedMessage)
+    {
+        var classifier = typeof(axionpro.infrastructure.MailService.EmailService).GetMethod(
+            "CreateSmtpApiException",
+            BindingFlags.Static | BindingFlags.NonPublic);
+        Assert.That(classifier, Is.Not.Null);
+
+        var providerException = new SmtpCommandException(
+            SmtpErrorCode.UnexpectedStatusCode,
+            SmtpStatusCode.AuthenticationRequired,
+            providerMessage);
+        var exception = (ApiException)classifier!.Invoke(null, [providerException])!;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(exception.StatusCode, Is.EqualTo(StatusCodes.Status502BadGateway));
+            Assert.That(exception.ErrorCode, Is.EqualTo(expectedErrorCode));
+            Assert.That(exception.Message, Is.EqualTo(expectedMessage));
+            Assert.That(exception.Message, Does.Not.Contain(providerMessage));
         });
     }
 

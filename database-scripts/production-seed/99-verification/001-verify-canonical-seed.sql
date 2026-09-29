@@ -69,6 +69,53 @@ BEGIN
     IF NOT EXISTS
     (
         SELECT 1
+        FROM axionpro."ModuleOperationMapping" mapping
+        INNER JOIN axionpro."Module" module
+            ON module."Id" = mapping."ModuleId"
+        INNER JOIN axionpro."Operation" operation
+            ON operation."Id" = mapping."OperationId"
+        WHERE module."ModuleCode" = 'HOST_TENANT_CREATE'
+          AND operation."OperationType" = 1
+          AND LOWER(BTRIM(operation."OperationName")) = 'add'
+          AND mapping."IsActive"
+    ) THEN
+        RAISE EXCEPTION 'HOST_TENANT_CREATE/Add mapping is missing.';
+    END IF;
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM axionpro."ModuleOperationMapping" mapping
+        INNER JOIN axionpro."Module" module
+            ON module."Id" = mapping."ModuleId"
+        INNER JOIN axionpro."Operation" operation
+            ON operation."Id" = mapping."OperationId"
+        WHERE module."ModuleCode" = 'HOST_TENANT_LIST'
+          AND operation."OperationType" = 1
+          AND LOWER(BTRIM(operation."OperationName")) = 'add'
+    ) THEN
+        RAISE EXCEPTION 'Obsolete HOST_TENANT_LIST/Add mapping still exists.';
+    END IF;
+
+    IF
+    (
+        SELECT COUNT(DISTINCT LOWER(BTRIM(operation."OperationName")))
+        FROM axionpro."ModuleOperationMapping" mapping
+        INNER JOIN axionpro."Module" module
+            ON module."Id" = mapping."ModuleId"
+        INNER JOIN axionpro."Operation" operation
+            ON operation."Id" = mapping."OperationId"
+        WHERE module."ModuleCode" = 'HOST_TENANT_LIST'
+          AND LOWER(BTRIM(operation."OperationName")) IN
+              ('view', 'update', 'delete', 'active', 'inactive', 'restore')
+          AND mapping."IsActive"
+    ) <> 6 THEN
+        RAISE EXCEPTION 'HOST_TENANT_LIST lifecycle mappings are incomplete.';
+    END IF;
+
+    IF NOT EXISTS
+    (
+        SELECT 1
         FROM axionpro."EmployeeType"
         WHERE "Id" = 1
           AND "TenantId" IS NULL
@@ -105,6 +152,24 @@ BEGIN
     IF (SELECT count(*) FROM axionpro."DefaultEmailConfig"
         WHERE "IsActive" AND "IsDefault") <> 1 THEN
         RAISE EXCEPTION 'Exactly one active default email configuration is required.';
+    END IF;
+
+    IF NOT EXISTS
+    (
+        SELECT 1
+        FROM axionpro."DefaultEmailConfig"
+        WHERE "ConfigName" = 'DEFAULT_REGISTRATION_SMTP'
+          AND "IsActive"
+          AND "IsDefault"
+          AND NULLIF(BTRIM("SmtpHost"), '') IS NOT NULL
+          AND "SmtpPort" BETWEEN 1 AND 65535
+          AND NULLIF(BTRIM("SmtpUsername"), '') IS NOT NULL
+          AND NULLIF(BTRIM("SmtpPasswordEncrypted"), '') IS NOT NULL
+          AND NULLIF(BTRIM("FromEmail"), '') IS NOT NULL
+          AND NULLIF(BTRIM("FromName"), '') IS NOT NULL
+          AND NULLIF(BTRIM("SecrateKey"), '') IS NOT NULL
+    ) THEN
+        RAISE EXCEPTION 'Canonical default email configuration is incomplete.';
     END IF;
 
     IF (SELECT count(*) FROM axionpro."ComplianceTypeMaster") <> 1018

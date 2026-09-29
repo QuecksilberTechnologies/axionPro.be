@@ -12,6 +12,8 @@
 - [Tenant and Employee Bulk API Scenarios](../bulk-upload/BULK_API_SCENARIOS.md)
 - [Tenant Device Permission Contract](TENANT_DEVICE_PERMISSION_CONTRACT.md) — exact
   menu-operation mapping and screen-load API sequence.
+- [Host Tenant Verification Resend](HOST_TENANT_VERIFICATION_RESEND.md) — Host SMTP
+  selection and actionable HTTP 502 provider-error contract.
 - [Employee Profile Verification API](EMPLOYEE_PROFILE_VERIFICATION_API.md) — supported
   section identifiers, read-only rows and the update-bulk payload contract.
 - [Employee list assigned roles](EMPLOYEE_GET_ALL_ASSIGNED_ROLES.md) — existing

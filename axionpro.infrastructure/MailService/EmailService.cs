@@ -1,4 +1,6 @@
 using axionpro.application.Common.Helpers;
+using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IRepositories;
@@ -8,6 +10,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using System.Net.Sockets;
+using System.Net;
 using System.Text.Json;
 
 namespace axionpro.infrastructure.MailService;
@@ -175,7 +178,7 @@ public sealed class EmailService : IEmailService
                 templateCode,
                 tenantId,
                 toEmail);
-            return false;
+            throw CreateSmtpApiException(ex);
         }
         catch (SmtpProtocolException ex)
         {
@@ -197,6 +200,33 @@ public sealed class EmailService : IEmailService
                 toEmail);
             return false;
         }
+    }
+
+    private static ApiException CreateSmtpApiException(SmtpCommandException exception)
+    {
+        var providerMessage = exception.Message ?? string.Empty;
+
+        if (providerMessage.Contains("Unauthorized IP address", StringComparison.OrdinalIgnoreCase))
+        {
+            return new ApiException(
+                AppConstants.ErrorCodes.SmtpIpNotAuthorized,
+                AppConstants.ErrorMessages.SmtpIpNotAuthorized,
+                (int)HttpStatusCode.BadGateway);
+        }
+
+        if (providerMessage.Contains("authentication", StringComparison.OrdinalIgnoreCase) ||
+            providerMessage.Contains("credentials", StringComparison.OrdinalIgnoreCase))
+        {
+            return new ApiException(
+                AppConstants.ErrorCodes.SmtpAuthenticationFailed,
+                AppConstants.ErrorMessages.SmtpAuthenticationFailed,
+                (int)HttpStatusCode.BadGateway);
+        }
+
+        return new ApiException(
+            AppConstants.ErrorCodes.SmtpProviderRejected,
+            AppConstants.ErrorMessages.SmtpProviderRejected,
+            (int)HttpStatusCode.BadGateway);
     }
 
     private async Task<ResolvedEmailTemplate?> ResolveEmailTemplateAsync(

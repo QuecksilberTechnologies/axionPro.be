@@ -33,6 +33,9 @@ namespace axionpro.application.Constants
             public const string DesignationHasEmployeeDependencies = "DESIGNATION_HAS_EMPLOYEE_DEPENDENCIES";
             public const string InternalServerError = "INTERNAL_SERVER_ERROR";
             public const string EmailDeliveryFailed = "EMAIL_DELIVERY_FAILED";
+            public const string SmtpIpNotAuthorized = "SMTP_IP_NOT_AUTHORIZED";
+            public const string SmtpAuthenticationFailed = "SMTP_AUTHENTICATION_FAILED";
+            public const string SmtpProviderRejected = "SMTP_PROVIDER_REJECTED";
         }
 
         #endregion
@@ -77,6 +80,9 @@ namespace axionpro.application.Constants
             public const string ResourceConflict = "The request conflicts with the current resource state.";
             public const string InternalServerError = "Something went wrong. Please try again.";
             public const string PasswordResetEmailNotSent = "The password reset email could not be sent. Please try again.";
+            public const string SmtpIpNotAuthorized = "The email provider rejected the API server IP address. Authorize the server IP in the email provider and try again.";
+            public const string SmtpAuthenticationFailed = "The email provider rejected the SMTP credentials. Verify the configured SMTP username and key.";
+            public const string SmtpProviderRejected = "The email provider rejected the delivery request. Verify the SMTP sender and provider configuration.";
             public const string RequiredDataMissing = "Required data is missing.";
             public const string ValidationFailed = "The request failed validation.";
 
