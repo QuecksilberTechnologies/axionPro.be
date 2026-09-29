@@ -360,8 +360,8 @@ public sealed class EmailService : IEmailService
         var resolvedHostConfiguration = CreateSmtpConfiguration(
             hostConfiguration?.SmtpHost,
             hostConfiguration?.SmtpPort,
-            deploymentUsername ?? hostConfiguration?.SmtpUsername,
-            deploymentSecret ?? hostConfiguration?.SmtpPasswordEncrypted,
+            CleanDatabaseValue(hostConfiguration?.SmtpUsername) ?? deploymentUsername,
+            CleanDatabaseValue(hostConfiguration?.SmtpPasswordEncrypted) ?? deploymentSecret,
             hostConfiguration?.FromName,
             hostConfiguration?.FromEmail,
             tenantContext,

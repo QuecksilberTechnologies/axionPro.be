@@ -802,11 +802,18 @@ public sealed class HostApiRegressionTests
         var task = (Task)resolver!.Invoke(service, [71L, true])!;
         await task;
         var result = task.GetType().GetProperty("Result")!.GetValue(task);
+        var resolvedType = result?.GetType();
 
         Assert.Multiple(() =>
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(tenantReads, Is.Zero);
+            Assert.That(
+                resolvedType!.GetProperty("SmtpUsername")!.GetValue(result),
+                Is.EqualTo("database-user@example.test"));
+            Assert.That(
+                resolvedType.GetProperty("SmtpSecret")!.GetValue(result),
+                Is.EqualTo("database-secret"));
         });
     }
 
