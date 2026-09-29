@@ -112,6 +112,32 @@ public sealed class TenantEmailTemplateContractTests
     }
 
     [Test]
+    public void Mail_delivery_does_not_turn_post_accept_disconnect_failure_into_delivery_failure()
+    {
+        var service = Read("axionpro.infrastructure", "MailService", "EmailService.cs");
+        var sendIndex = service.IndexOf("await smtp.SendAsync(message);", StringComparison.Ordinal);
+        var disconnectIndex = service.IndexOf("await smtp.DisconnectAsync(true);", StringComparison.Ordinal);
+        var disconnectWarningIndex = service.IndexOf(
+            "SMTP disconnect failed after provider accepted email",
+            StringComparison.Ordinal);
+        var acceptedLogIndex = service.IndexOf("SMTP accepted email", StringComparison.Ordinal);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sendIndex, Is.GreaterThanOrEqualTo(0));
+            Assert.That(disconnectIndex, Is.GreaterThan(sendIndex));
+            Assert.That(disconnectWarningIndex, Is.GreaterThan(disconnectIndex));
+            Assert.That(acceptedLogIndex, Is.GreaterThan(disconnectWarningIndex));
+
+            var postSendSection = service.Substring(sendIndex, acceptedLogIndex - sendIndex);
+            Assert.That(postSendSection, Does.Contain("try"));
+            Assert.That(postSendSection, Does.Contain("catch (Exception ex)"));
+            Assert.That(postSendSection, Does.Contain("LogWarning"));
+            Assert.That(postSendSection, Does.Not.Contain("EmailDeliveryFailed"));
+        });
+    }
+
+    [Test]
     public void Queue_worker_keeps_tenant_code_retry_and_atomic_claim_contract()
     {
         var worker = Read("axionpro.infrastructure", "BackgroundJob", "EmailQueueWorker.cs");

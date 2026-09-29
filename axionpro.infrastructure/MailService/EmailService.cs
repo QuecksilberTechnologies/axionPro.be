@@ -168,7 +168,23 @@ public sealed class EmailService : IEmailService
                 SecureSocketOptions.StartTls);
             await smtp.AuthenticateAsync(emailConfiguration.SmtpUsername, emailConfiguration.SmtpSecret);
             await smtp.SendAsync(message);
-            await smtp.DisconnectAsync(true);
+
+            // SendAsync returning successfully means the SMTP provider accepted
+            // the message. A connection-close failure after that point must not
+            // report the already accepted email as a delivery failure.
+            try
+            {
+                await smtp.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "SMTP disconnect failed after provider accepted email | Template={TemplateCode} | TenantId={TenantId} | To={To}",
+                    templateCode,
+                    tenantId,
+                    recipientEmail);
+            }
 
             _logger.LogInformation(
                 "SMTP accepted email | Template={TemplateCode} | TenantId={TenantId} | ConfigurationSource={ConfigurationSource} | To={To}",
