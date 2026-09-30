@@ -1,0 +1,630 @@
+{
+  "AssetAssignment_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "AssetCategory_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "AssetImage_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "AssetRequest_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "AssetStatus_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "AssetType_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "Asset_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "AssignmentStatus_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "AttendanceDeviceType_Id_seq": {
+    "last_value": 4,
+    "is_called": true
+  },
+  "AttendancePolicyVersionConfiguration_Id_seq": {
+    "last_value": 6,
+    "is_called": true
+  },
+  "AttendancePolicy_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "AttendanceRequest_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "Attendance_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "BillingAuditLog_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "BillingInvoiceLine_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "BillingInvoice_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "BillingSubscriptionChange_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "BillingTaxRule_Id_seq": {
+    "last_value": 1,
+    "is_called": true
+  },
+  "Category_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "City_Id_seq": {
+    "last_value": 231016,
+    "is_called": true
+  },
+  "ClientType_Id_seq": {
+    "last_value": 12,
+    "is_called": true
+  },
+  "Client_Id_seq": {
+    "last_value": 10,
+    "is_called": true
+  },
+  "ComplianceRule_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "ComplianceTypeMaster_Id_seq": {
+    "last_value": 1018,
+    "is_called": true
+  },
+  "CountryIdentityRule_Id_seq": {
+    "last_value": 260,
+    "is_called": true
+  },
+  "CountryStatutoryRule_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "Country_Id_seq": {
+    "last_value": 253,
+    "is_called": true
+  },
+  "DataViewStructure_Id_seq": {
+    "last_value": 2,
+    "is_called": true
+  },
+  "DayCombination_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "DefaultEmailConfig_Id_seq": {
+    "last_value": 2,
+    "is_called": true
+  },
+  "Department_Id_seq": {
+    "last_value": 24,
+    "is_called": true
+  },
+  "Designation_Id_seq": {
+    "last_value": 13,
+    "is_called": true
+  },
+  "DeviceCommandResponse_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "DeviceCommand_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "DeviceCredential_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "DeviceInitialProvisioning_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "DeviceMaster_Id_seq": {
+    "last_value": 3,
+    "is_called": true
+  },
+  "DeviceMessageLog_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "District_Id_seq": {
+    "last_value": 12458,
+    "is_called": true
+  },
+  "EmailQueue_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmailTemplate_Id_seq": {
+    "last_value": 5,
+    "is_called": true
+  },
+  "EmployeeAttendancePunch_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeBankDetail_Id_seq": {
+    "last_value": 1,
+    "is_called": true
+  },
+  "EmployeeCategorySkill_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeCodePattern_Id_seq": {
+    "last_value": 6,
+    "is_called": true
+  },
+  "EmployeeContact_Id_seq": {
+    "last_value": 7,
+    "is_called": true
+  },
+  "EmployeeDailyAttendance_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeDependent_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeDeviceEnrollment_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeEducation_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeExperienceDocument_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeExperience_Id_seq": {
+    "last_value": 1,
+    "is_called": true
+  },
+  "EmployeeIdentity_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeImage_Id_seq": {
+    "last_value": 18,
+    "is_called": true
+  },
+  "EmployeeLeaveBalance_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeLeavePolicyMapping_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeLocationAssignment_Id_seq": {
+    "last_value": 11,
+    "is_called": true
+  },
+  "EmployeeManagerMapping_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeePersonalDetail_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeePolicyDependentMapping_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeePolicyEnrollment_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeSalary_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeStatutoryAccount_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeTaxProfile_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeTypeBasicMenu_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeType_Id_seq": {
+    "last_value": 15,
+    "is_called": true
+  },
+  "EmployeeWorkArrangement_Id_seq": {
+    "last_value": 6,
+    "is_called": true
+  },
+  "EmployeeWorkDocument_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeWorkHistory_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "EmployeeWorkModeOverrideRequest_Id_seq": {
+    "last_value": 4,
+    "is_called": true
+  },
+  "EmployeeWorkPattern_Id_seq": {
+    "last_value": 17,
+    "is_called": true
+  },
+  "EmployeeWorkProfile_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "Employee_Id_seq": {
+    "last_value": 18,
+    "is_called": true
+  },
+  "EmployeesChangedTypeHistory_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "ForgotPasswordOTPDetail_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "Gender_Id_seq": {
+    "last_value": 3,
+    "is_called": true
+  },
+  "Holiday_Id_seq": {
+    "last_value": 58,
+    "is_called": true
+  },
+  "HostBillingConfiguration_Id_seq": {
+    "last_value": 1,
+    "is_called": true
+  },
+  "HostRoleModuleAndPermission_Id_seq": {
+    "last_value": 112,
+    "is_called": true
+  },
+  "HostRole_Id_seq": {
+    "last_value": 1,
+    "is_called": true
+  },
+  "HostUser_Id_seq": {
+    "last_value": 2,
+    "is_called": true
+  },
+  "IdentityCategoryDocument_Id_seq": {
+    "last_value": 16,
+    "is_called": true
+  },
+  "IdentityCategory_Id_seq": {
+    "last_value": 5,
+    "is_called": true
+  },
+  "LeaveRequest_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "LeaveType_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "License_Id_seq": {
+    "last_value": 1,
+    "is_called": true
+  },
+  "LocalityType_Id_seq": {
+    "last_value": 4,
+    "is_called": true
+  },
+  "LoginCredential_Id_seq": {
+    "last_value": 18,
+    "is_called": true
+  },
+  "ModuleOperationMapping_Id_seq": {
+    "last_value": 564,
+    "is_called": true
+  },
+  "Module_Id_seq": {
+    "last_value": 127,
+    "is_called": true
+  },
+  "Operation_Id_seq": {
+    "last_value": 34,
+    "is_called": true
+  },
+  "PaymentAttempt_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "PaymentGateway_Id_seq": {
+    "last_value": 1,
+    "is_called": true
+  },
+  "PaymentTransaction_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "PaymentWebhookEvent_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "PayrollEmployeeDetail_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "PayrollEmployee_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "PayrollRun_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "PlanModuleMapping_Id_seq": {
+    "last_value": 520,
+    "is_called": true
+  },
+  "PolicyAcknowledgement_Id_seq": {
+    "last_value": 3,
+    "is_called": true
+  },
+  "PolicyApplicability_Id_seq": {
+    "last_value": 13,
+    "is_called": true
+  },
+  "PolicyApprovalHistory_Id_seq": {
+    "last_value": 2,
+    "is_called": true
+  },
+  "PolicyApprovalStage_Id_seq": {
+    "last_value": 2,
+    "is_called": true
+  },
+  "PolicyAssignment_Id_seq": {
+    "last_value": 3,
+    "is_called": true
+  },
+  "PolicyCategory_Id_seq": {
+    "last_value": 12,
+    "is_called": true
+  },
+  "PolicyChangeAudit_Id_seq": {
+    "last_value": 52,
+    "is_called": true
+  },
+  "PolicyDocument_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "PolicyException_Id_seq": {
+    "last_value": 1,
+    "is_called": true
+  },
+  "PolicyRuleType_Id_seq": {
+    "last_value": 13,
+    "is_called": true
+  },
+  "PolicyRule_Id_seq": {
+    "last_value": 23,
+    "is_called": true
+  },
+  "PolicyType_Id_seq": {
+    "last_value": 13,
+    "is_called": true
+  },
+  "PolicyVersion_Id_seq": {
+    "last_value": 16,
+    "is_called": true
+  },
+  "Policy_Id_seq": {
+    "last_value": 13,
+    "is_called": true
+  },
+  "RefreshToken_Id_seq": {
+    "last_value": 773,
+    "is_called": true
+  },
+  "ReportingType_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "RequestType_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "RoleModuleAndPermission_Id_seq": {
+    "last_value": 3018,
+    "is_called": true
+  },
+  "Role_Id_seq": {
+    "last_value": 75,
+    "is_called": true
+  },
+  "SalaryComponentMaster_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "SalaryStructureDetail_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "SalaryStructure_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "State_Id_seq": {
+    "last_value": 295,
+    "is_called": true
+  },
+  "StatutoryType_Id_seq": {
+    "last_value": 22,
+    "is_called": true
+  },
+  "SubscriptionPlanPrice_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "SubscriptionPlan_Id_seq": {
+    "last_value": 20,
+    "is_called": true
+  },
+  "TaxRegimeMaster_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TaxRule_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TaxSlab_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TaxSystemMaster_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TenantBillingProfile_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TenantBillingSubscription_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TenantCardMaster_Id_seq": {
+    "last_value": 2,
+    "is_called": true
+  },
+  "TenantDeviceConfiguration_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TenantDevice_Id_seq": {
+    "last_value": 3,
+    "is_called": true
+  },
+  "TenantEmailConfig_Id_seq": {
+    "last_value": 1,
+    "is_called": true
+  },
+  "TenantEmailTemplate_Id_seq": {
+    "last_value": 10,
+    "is_called": true
+  },
+  "TenantEnabledModule_Id_seq": {
+    "last_value": 560,
+    "is_called": true
+  },
+  "TenantEnabledOperation_Id_seq": {
+    "last_value": 2208,
+    "is_called": true
+  },
+  "TenantEncryptionKeys_Id_seq": {
+    "last_value": 16,
+    "is_called": true
+  },
+  "TenantIndustry_Id_seq": {
+    "last_value": 13,
+    "is_called": true
+  },
+  "TenantLocation_Id_seq": {
+    "last_value": 10,
+    "is_called": true
+  },
+  "TenantProfile_Id_seq": {
+    "last_value": 6,
+    "is_called": true
+  },
+  "TenantSubscription_Id_seq": {
+    "last_value": 10,
+    "is_called": true
+  },
+  "Tenant_Id_seq": {
+    "last_value": 10,
+    "is_called": true
+  },
+  "TenderStatus_Id_seq": {
+    "last_value": 5,
+    "is_called": true
+  },
+  "Tender_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "ThreadMessage_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "Thread_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TicketAttachment_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TicketClassification_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TicketHeader_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TicketHistory_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "TicketType_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "Ticket_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "UserAttendanceSetting_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  },
+  "UserRole_Id_seq": {
+    "last_value": 20,
+    "is_called": true
+  },
+  "WorkDocumentType_Id_seq": {
+    "last_value": 1,
+    "is_called": false
+  }
+}
