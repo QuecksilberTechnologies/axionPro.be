@@ -1,0 +1,1321 @@
+;
+; Archive created at 2026-09-30 16:15:44
+;     dbname: workforcedb_local_20260928
+;     TOC Entries: 1310
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.3
+;     Dumped by pg_dump version: 18.3
+;
+;
+; Selected TOC Entries:
+;
+7; 2615 127760 SCHEMA - axionpro postgres
+2; 3079 127761 EXTENSION - btree_gist 
+7896; 0 0 COMMENT - EXTENSION btree_gist 
+642; 1255 128487 FUNCTION axionpro AllEmployeeCountData(bigint) postgres
+561; 1255 128488 FUNCTION axionpro CheckHostUserPermission(bigint, bigint, integer, integer) postgres
+566; 1255 128489 FUNCTION axionpro CheckPermission(character varying, integer, integer, boolean, boolean) postgres
+735; 1255 128490 FUNCTION axionpro CheckTenantEmployeePermission(bigint, bigint, integer, integer, integer) postgres
+568; 1255 128491 FUNCTION axionpro GetActiveRoleModuleOperations(bigint, text) postgres
+593; 1255 128492 FUNCTION axionpro GetCountryIdentityDocument(integer) postgres
+790; 1255 128493 FUNCTION axionpro GetDetailsForPermission(bigint) postgres
+696; 1255 128494 FUNCTION axionpro GetEmployeeCodePatternByTenant(bigint) postgres
+611; 1255 128495 FUNCTION axionpro GetEmployeeIdentityByCountryRule(bigint, integer, boolean) postgres
+729; 1255 128496 FUNCTION axionpro GetSubscribedModuleByTenantId(bigint) postgres
+772; 1255 128497 FUNCTION axionpro GetTenantModuleHierarchyWithOps_MinRoot(bigint) postgres
+738; 1255 128498 FUNCTION axionpro InsertOrUpdateRefreshToken(text, text, timestamp without time zone, text) postgres
+742; 1255 128499 FUNCTION axionpro PreventModulePageNameChange() postgres
+775; 1255 128500 FUNCTION axionpro SyncNewOperationsForExistingModules() postgres
+638; 1255 128501 FUNCTION axionpro SyncTenantModulesAndOperations() postgres
+777; 1255 128502 FUNCTION axionpro TenantModuleOperationConfigurationData(bigint) postgres
+683; 1255 128503 FUNCTION axionpro UpdateLoginCredential(text, text, text, integer, text, text, text) postgres
+643; 1255 128504 FUNCTION axionpro UpdateTenantEnabledOperationFromModuleOperation(bigint) postgres
+606; 1255 128505 FUNCTION axionpro ValidateActiveUserCrendentialOnly(text) postgres
+741; 1255 128506 FUNCTION axionpro ValidateActiveUserLoginOnly(text) postgres
+621; 1255 128507 FUNCTION axionpro prevent_employee_type_owner_change() postgres
+668; 1255 128508 FUNCTION axionpro validate_employee_type_tenant() postgres
+225; 1259 128509 TABLE axionpro Asset postgres
+226; 1259 128528 TABLE axionpro AssetAssignment postgres
+227; 1259 128541 SEQUENCE axionpro AssetAssignment_Id_seq postgres
+7897; 0 0 SEQUENCE OWNED BY axionpro AssetAssignment_Id_seq postgres
+228; 1259 128542 TABLE axionpro AssetCategory postgres
+229; 1259 128556 SEQUENCE axionpro AssetCategory_Id_seq postgres
+230; 1259 128557 TABLE axionpro AssetImage postgres
+231; 1259 128574 SEQUENCE axionpro AssetImage_Id_seq postgres
+232; 1259 128575 TABLE axionpro AssetRequest postgres
+233; 1259 128587 SEQUENCE axionpro AssetRequest_Id_seq postgres
+7898; 0 0 SEQUENCE OWNED BY axionpro AssetRequest_Id_seq postgres
+234; 1259 128588 TABLE axionpro AssetStatus postgres
+235; 1259 128601 SEQUENCE axionpro AssetStatus_Id_seq postgres
+236; 1259 128602 TABLE axionpro AssetType postgres
+237; 1259 128613 SEQUENCE axionpro AssetType_Id_seq postgres
+238; 1259 128614 SEQUENCE axionpro Asset_Id_seq postgres
+239; 1259 128615 TABLE axionpro AssignmentStatus postgres
+240; 1259 128625 SEQUENCE axionpro AssignmentStatus_Id_seq postgres
+241; 1259 128626 TABLE axionpro Attendance postgres
+242; 1259 128633 TABLE axionpro AttendanceDeviceType postgres
+243; 1259 128641 SEQUENCE axionpro AttendanceDeviceType_Id_seq postgres
+244; 1259 128642 TABLE axionpro AttendancePolicy postgres
+245; 1259 128676 TABLE axionpro AttendancePolicyVersionConfiguration postgres
+246; 1259 128695 SEQUENCE axionpro AttendancePolicyVersionConfiguration_Id_seq postgres
+247; 1259 128696 SEQUENCE axionpro AttendancePolicy_Id_seq postgres
+248; 1259 128697 TABLE axionpro AttendanceRequest postgres
+249; 1259 128707 SEQUENCE axionpro AttendanceRequest_Id_seq postgres
+250; 1259 128708 SEQUENCE axionpro Attendance_Id_seq postgres
+251; 1259 128709 TABLE axionpro BillingAuditLog postgres
+252; 1259 128722 SEQUENCE axionpro BillingAuditLog_Id_seq postgres
+253; 1259 128723 TABLE axionpro BillingInvoice postgres
+254; 1259 128743 TABLE axionpro BillingInvoiceLine postgres
+255; 1259 128759 SEQUENCE axionpro BillingInvoiceLine_Id_seq postgres
+256; 1259 128760 SEQUENCE axionpro BillingInvoice_Id_seq postgres
+257; 1259 128761 TABLE axionpro BillingOrder postgres
+258; 1259 128785 TABLE axionpro BillingRefund postgres
+259; 1259 128802 TABLE axionpro BillingSubscriptionChange postgres
+260; 1259 128819 SEQUENCE axionpro BillingSubscriptionChange_Id_seq postgres
+261; 1259 128820 TABLE axionpro BillingTaxRule postgres
+262; 1259 128837 SEQUENCE axionpro BillingTaxRule_Id_seq postgres
+263; 1259 128838 TABLE axionpro BulkImportJob postgres
+264; 1259 128860 TABLE axionpro Category postgres
+265; 1259 128869 SEQUENCE axionpro Category_Id_seq postgres
+266; 1259 128870 TABLE axionpro Locality postgres
+267; 1259 128881 VIEW axionpro City postgres
+268; 1259 128885 SEQUENCE axionpro City_Id_seq postgres
+269; 1259 128886 TABLE axionpro Client postgres
+270; 1259 128895 TABLE axionpro ClientType postgres
+271; 1259 128904 SEQUENCE axionpro ClientType_Id_seq postgres
+272; 1259 128905 SEQUENCE axionpro Client_Id_seq postgres
+273; 1259 128906 TABLE axionpro ComplianceRule postgres
+274; 1259 128922 SEQUENCE axionpro ComplianceRule_Id_seq postgres
+275; 1259 128923 TABLE axionpro ComplianceTypeMaster postgres
+276; 1259 128929 SEQUENCE axionpro ComplianceTypeMaster_Id_seq postgres
+7899; 0 0 SEQUENCE OWNED BY axionpro ComplianceTypeMaster_Id_seq postgres
+277; 1259 128930 TABLE axionpro Country postgres
+278; 1259 128937 TABLE axionpro CountryIdentityRule postgres
+279; 1259 128949 SEQUENCE axionpro CountryIdentityRule_Id_seq postgres
+280; 1259 128950 TABLE axionpro CountryStatutoryRule postgres
+281; 1259 128961 SEQUENCE axionpro CountryStatutoryRule_Id_seq postgres
+282; 1259 128962 SEQUENCE axionpro Country_Id_seq postgres
+283; 1259 128963 TABLE axionpro DataViewStructure postgres
+284; 1259 128969 SEQUENCE axionpro DataViewStructure_Id_seq postgres
+285; 1259 128970 TABLE axionpro DayCombination postgres
+286; 1259 128983 SEQUENCE axionpro DayCombination_Id_seq postgres
+287; 1259 128984 TABLE axionpro DefaultEmailConfig postgres
+288; 1259 129006 SEQUENCE axionpro DefaultEmailConfig_Id_seq postgres
+289; 1259 129007 TABLE axionpro Department postgres
+290; 1259 129014 SEQUENCE axionpro Department_Id_seq postgres
+291; 1259 129015 TABLE axionpro Designation postgres
+292; 1259 129024 SEQUENCE axionpro Designation_Id_seq postgres
+293; 1259 129025 TABLE axionpro DeviceCommand postgres
+294; 1259 129058 TABLE axionpro DeviceCommandResponse postgres
+295; 1259 129069 SEQUENCE axionpro DeviceCommandResponse_Id_seq postgres
+296; 1259 129070 SEQUENCE axionpro DeviceCommand_Id_seq postgres
+297; 1259 129071 TABLE axionpro DeviceCredential postgres
+298; 1259 129085 SEQUENCE axionpro DeviceCredential_Id_seq postgres
+299; 1259 129086 TABLE axionpro DeviceInitialProvisioning postgres
+300; 1259 129101 SEQUENCE axionpro DeviceInitialProvisioning_Id_seq postgres
+301; 1259 129102 TABLE axionpro DeviceMaster postgres
+302; 1259 129173 SEQUENCE axionpro DeviceMaster_Id_seq postgres
+303; 1259 129174 TABLE axionpro DeviceMessageLog postgres
+304; 1259 129196 SEQUENCE axionpro DeviceMessageLog_Id_seq postgres
+305; 1259 129197 TABLE axionpro District postgres
+306; 1259 129209 SEQUENCE axionpro District_Id_seq postgres
+307; 1259 129210 TABLE axionpro EmailQueue postgres
+308; 1259 129223 SEQUENCE axionpro EmailQueue_Id_seq postgres
+309; 1259 129224 TABLE axionpro EmailTemplate postgres
+310; 1259 129238 SEQUENCE axionpro EmailTemplate_Id_seq postgres
+311; 1259 129239 TABLE axionpro Employee postgres
+312; 1259 129255 TABLE axionpro EmployeeAttendancePunch postgres
+313; 1259 129273 SEQUENCE axionpro EmployeeAttendancePunch_Id_seq postgres
+314; 1259 129274 TABLE axionpro EmployeeBankDetail postgres
+315; 1259 129286 SEQUENCE axionpro EmployeeBankDetail_Id_seq postgres
+316; 1259 129287 TABLE axionpro EmployeeCategorySkill postgres
+317; 1259 129295 SEQUENCE axionpro EmployeeCategorySkill_Id_seq postgres
+318; 1259 129296 TABLE axionpro EmployeeCodePattern postgres
+319; 1259 129318 SEQUENCE axionpro EmployeeCodePattern_Id_seq postgres
+320; 1259 129319 TABLE axionpro EmployeeContact postgres
+321; 1259 129334 SEQUENCE axionpro EmployeeContact_Id_seq postgres
+322; 1259 129335 TABLE axionpro EmployeeDailyAttendance postgres
+323; 1259 129350 SEQUENCE axionpro EmployeeDailyAttendance_Id_seq postgres
+324; 1259 129351 TABLE axionpro EmployeeDependent postgres
+325; 1259 129359 SEQUENCE axionpro EmployeeDependent_Id_seq postgres
+326; 1259 129360 TABLE axionpro EmployeeDeviceEnrollment postgres
+327; 1259 129381 SEQUENCE axionpro EmployeeDeviceEnrollment_Id_seq postgres
+328; 1259 129382 TABLE axionpro EmployeeEducation postgres
+329; 1259 129392 SEQUENCE axionpro EmployeeEducation_Id_seq postgres
+330; 1259 129393 TABLE axionpro EmployeeExperience postgres
+331; 1259 129407 TABLE axionpro EmployeeExperienceDocument postgres
+332; 1259 129420 SEQUENCE axionpro EmployeeExperienceDocument_Id_seq postgres
+333; 1259 129421 SEQUENCE axionpro EmployeeExperience_Id_seq postgres
+334; 1259 129422 TABLE axionpro EmployeeIdentity postgres
+335; 1259 129445 SEQUENCE axionpro EmployeeIdentity_Id_seq postgres
+336; 1259 129446 TABLE axionpro EmployeeImage postgres
+337; 1259 129457 SEQUENCE axionpro EmployeeImage_Id_seq postgres
+338; 1259 129458 TABLE axionpro EmployeeLeaveBalance postgres
+339; 1259 129469 SEQUENCE axionpro EmployeeLeaveBalance_Id_seq postgres
+340; 1259 129470 TABLE axionpro EmployeeLeavePolicyMapping postgres
+341; 1259 129483 SEQUENCE axionpro EmployeeLeavePolicyMapping_Id_seq postgres
+342; 1259 129484 TABLE axionpro EmployeeLocationAssignment postgres
+343; 1259 129504 SEQUENCE axionpro EmployeeLocationAssignment_Id_seq postgres
+344; 1259 129505 TABLE axionpro EmployeeManagerMapping postgres
+345; 1259 129519 SEQUENCE axionpro EmployeeManagerMapping_Id_seq postgres
+346; 1259 129520 TABLE axionpro EmployeePersonalDetail postgres
+347; 1259 129529 SEQUENCE axionpro EmployeePersonalDetail_Id_seq postgres
+348; 1259 129530 TABLE axionpro EmployeePolicyDependentMapping postgres
+349; 1259 129545 SEQUENCE axionpro EmployeePolicyDependentMapping_Id_seq postgres
+350; 1259 129546 TABLE axionpro EmployeePolicyEnrollment postgres
+351; 1259 129562 SEQUENCE axionpro EmployeePolicyEnrollment_Id_seq postgres
+352; 1259 129563 TABLE axionpro EmployeeSalary postgres
+353; 1259 129576 SEQUENCE axionpro EmployeeSalary_Id_seq postgres
+354; 1259 129577 TABLE axionpro EmployeeStatutoryAccount postgres
+355; 1259 129589 SEQUENCE axionpro EmployeeStatutoryAccount_Id_seq postgres
+356; 1259 129590 TABLE axionpro EmployeeTaxProfile postgres
+357; 1259 129603 SEQUENCE axionpro EmployeeTaxProfile_Id_seq postgres
+358; 1259 129604 TABLE axionpro EmployeeType postgres
+359; 1259 129610 TABLE axionpro EmployeeTypeBasicMenu postgres
+360; 1259 129624 SEQUENCE axionpro EmployeeTypeBasicMenu_Id_seq postgres
+361; 1259 129625 SEQUENCE axionpro EmployeeType_Id_seq postgres
+362; 1259 129626 TABLE axionpro EmployeeWorkArrangement postgres
+363; 1259 129647 SEQUENCE axionpro EmployeeWorkArrangement_Id_seq postgres
+364; 1259 129648 TABLE axionpro EmployeeWorkDocument postgres
+365; 1259 129664 SEQUENCE axionpro EmployeeWorkDocument_Id_seq postgres
+366; 1259 129665 TABLE axionpro EmployeeWorkHistory postgres
+367; 1259 129687 SEQUENCE axionpro EmployeeWorkHistory_Id_seq postgres
+368; 1259 129688 TABLE axionpro EmployeeWorkModeOverrideRequest postgres
+369; 1259 129712 SEQUENCE axionpro EmployeeWorkModeOverrideRequest_Id_seq postgres
+370; 1259 129713 TABLE axionpro EmployeeWorkPattern postgres
+371; 1259 129732 SEQUENCE axionpro EmployeeWorkPattern_Id_seq postgres
+372; 1259 129733 TABLE axionpro EmployeeWorkProfile postgres
+373; 1259 129748 SEQUENCE axionpro EmployeeWorkProfile_Id_seq postgres
+374; 1259 129749 SEQUENCE axionpro Employee_Id_seq postgres
+375; 1259 129750 TABLE axionpro EmployeesChangedTypeHistory postgres
+376; 1259 129763 SEQUENCE axionpro EmployeesChangedTypeHistory_Id_seq postgres
+377; 1259 129764 TABLE axionpro ForgotPasswordOTPDetail postgres
+378; 1259 129777 SEQUENCE axionpro ForgotPasswordOTPDetail_Id_seq postgres
+379; 1259 129778 TABLE axionpro Gender postgres
+380; 1259 129783 SEQUENCE axionpro Gender_Id_seq postgres
+381; 1259 129784 TABLE axionpro Holiday postgres
+382; 1259 129796 SEQUENCE axionpro Holiday_Id_seq postgres
+383; 1259 129797 TABLE axionpro HostBillingConfiguration postgres
+384; 1259 129826 SEQUENCE axionpro HostBillingConfiguration_Id_seq postgres
+385; 1259 129827 TABLE axionpro HostRole postgres
+386; 1259 129838 TABLE axionpro HostRoleModuleAndPermission postgres
+387; 1259 129851 SEQUENCE axionpro HostRoleModuleAndPermission_Id_seq postgres
+7900; 0 0 SEQUENCE OWNED BY axionpro HostRoleModuleAndPermission_Id_seq postgres
+388; 1259 129852 SEQUENCE axionpro HostRole_Id_seq postgres
+7901; 0 0 SEQUENCE OWNED BY axionpro HostRole_Id_seq postgres
+389; 1259 129853 TABLE axionpro HostUser postgres
+390; 1259 129869 SEQUENCE axionpro HostUser_Id_seq postgres
+7902; 0 0 SEQUENCE OWNED BY axionpro HostUser_Id_seq postgres
+391; 1259 129870 TABLE axionpro IdentityCategory postgres
+392; 1259 129880 TABLE axionpro IdentityCategoryDocument postgres
+393; 1259 129893 SEQUENCE axionpro IdentityCategoryDocument_Id_seq postgres
+394; 1259 129894 SEQUENCE axionpro IdentityCategory_Id_seq postgres
+395; 1259 129895 TABLE axionpro LeaveRequest postgres
+396; 1259 129914 SEQUENCE axionpro LeaveRequest_Id_seq postgres
+397; 1259 129915 TABLE axionpro LeaveType postgres
+398; 1259 129923 SEQUENCE axionpro LeaveType_Id_seq postgres
+399; 1259 129924 TABLE axionpro License postgres
+400; 1259 129929 SEQUENCE axionpro License_Id_seq postgres
+401; 1259 129930 TABLE axionpro LocalityType postgres
+402; 1259 129937 SEQUENCE axionpro LocalityType_Id_seq postgres
+403; 1259 129938 TABLE axionpro LoginCredential postgres
+404; 1259 129959 SEQUENCE axionpro LoginCredential_Id_seq postgres
+405; 1259 129960 TABLE axionpro Module postgres
+406; 1259 129978 TABLE axionpro ModuleOperationMapping postgres
+407; 1259 129992 SEQUENCE axionpro ModuleOperationMapping_Id_seq postgres
+408; 1259 129993 SEQUENCE axionpro Module_Id_seq postgres
+409; 1259 129994 TABLE axionpro Operation postgres
+410; 1259 130005 SEQUENCE axionpro Operation_Id_seq postgres
+411; 1259 130006 TABLE axionpro PageTypeEnum postgres
+412; 1259 130010 TABLE axionpro PaymentAttempt postgres
+413; 1259 130022 SEQUENCE axionpro PaymentAttempt_Id_seq postgres
+414; 1259 130023 TABLE axionpro PaymentGateway postgres
+415; 1259 130042 SEQUENCE axionpro PaymentGateway_Id_seq postgres
+416; 1259 130043 TABLE axionpro PaymentTransaction postgres
+417; 1259 130057 SEQUENCE axionpro PaymentTransaction_Id_seq postgres
+418; 1259 130058 TABLE axionpro PaymentWebhookEvent postgres
+419; 1259 130077 SEQUENCE axionpro PaymentWebhookEvent_Id_seq postgres
+420; 1259 130078 TABLE axionpro PayrollEmployee postgres
+421; 1259 130088 TABLE axionpro PayrollEmployeeDetail postgres
+422; 1259 130099 SEQUENCE axionpro PayrollEmployeeDetail_Id_seq postgres
+423; 1259 130100 SEQUENCE axionpro PayrollEmployee_Id_seq postgres
+424; 1259 130101 TABLE axionpro PayrollRun postgres
+425; 1259 130114 SEQUENCE axionpro PayrollRun_Id_seq postgres
+426; 1259 130115 TABLE axionpro PlanModuleMapping postgres
+427; 1259 130124 SEQUENCE axionpro PlanModuleMapping_Id_seq postgres
+428; 1259 130125 TABLE axionpro Policy postgres
+429; 1259 130142 TABLE axionpro PolicyAcknowledgement postgres
+430; 1259 130156 SEQUENCE axionpro PolicyAcknowledgement_Id_seq postgres
+431; 1259 130157 TABLE axionpro PolicyApplicability postgres
+432; 1259 130176 SEQUENCE axionpro PolicyApplicability_Id_seq postgres
+433; 1259 130177 TABLE axionpro PolicyApprovalHistory postgres
+434; 1259 130191 SEQUENCE axionpro PolicyApprovalHistory_Id_seq postgres
+435; 1259 130192 TABLE axionpro PolicyApprovalStage postgres
+436; 1259 130209 SEQUENCE axionpro PolicyApprovalStage_Id_seq postgres
+437; 1259 130210 TABLE axionpro PolicyAssignment postgres
+438; 1259 130228 SEQUENCE axionpro PolicyAssignment_Id_seq postgres
+439; 1259 130229 TABLE axionpro PolicyCategory postgres
+440; 1259 130241 SEQUENCE axionpro PolicyCategory_Id_seq postgres
+441; 1259 130242 TABLE axionpro PolicyChangeAudit postgres
+442; 1259 130257 SEQUENCE axionpro PolicyChangeAudit_Id_seq postgres
+443; 1259 130258 TABLE axionpro PolicyDocument postgres
+444; 1259 130284 TABLE axionpro PolicyDocumentType postgres
+445; 1259 130292 SEQUENCE axionpro PolicyDocument_Id_seq postgres
+446; 1259 130293 TABLE axionpro PolicyException postgres
+447; 1259 130317 SEQUENCE axionpro PolicyException_Id_seq postgres
+448; 1259 130318 TABLE axionpro PolicyRule postgres
+449; 1259 130337 TABLE axionpro PolicyRuleType postgres
+450; 1259 130349 SEQUENCE axionpro PolicyRuleType_Id_seq postgres
+451; 1259 130350 SEQUENCE axionpro PolicyRule_Id_seq postgres
+452; 1259 130351 TABLE axionpro PolicyStatus postgres
+453; 1259 130361 TABLE axionpro PolicyType postgres
+454; 1259 130377 SEQUENCE axionpro PolicyType_Id_seq postgres
+455; 1259 130378 TABLE axionpro PolicyVersion postgres
+456; 1259 130399 SEQUENCE axionpro PolicyVersion_Id_seq postgres
+457; 1259 130400 SEQUENCE axionpro Policy_Id_seq postgres
+458; 1259 130401 TABLE axionpro RefreshToken postgres
+459; 1259 130416 SEQUENCE axionpro RefreshToken_Id_seq postgres
+460; 1259 130417 TABLE axionpro ReportingType postgres
+461; 1259 130427 SEQUENCE axionpro ReportingType_Id_seq postgres
+462; 1259 130428 TABLE axionpro RequestType postgres
+463; 1259 130437 SEQUENCE axionpro RequestType_Id_seq postgres
+464; 1259 130438 TABLE axionpro Role postgres
+465; 1259 130449 TABLE axionpro RoleModuleAndPermission postgres
+466; 1259 130455 SEQUENCE axionpro RoleModuleAndPermission_Id_seq postgres
+467; 1259 130456 SEQUENCE axionpro Role_Id_seq postgres
+468; 1259 130457 TABLE axionpro SalaryComponentMaster postgres
+469; 1259 130481 SEQUENCE axionpro SalaryComponentMaster_Id_seq postgres
+470; 1259 130482 TABLE axionpro SalaryStructure postgres
+471; 1259 130497 TABLE axionpro SalaryStructureDetail postgres
+472; 1259 130512 SEQUENCE axionpro SalaryStructureDetail_Id_seq postgres
+473; 1259 130513 SEQUENCE axionpro SalaryStructure_Id_seq postgres
+474; 1259 130514 TABLE axionpro State postgres
+475; 1259 130522 SEQUENCE axionpro State_Id_seq postgres
+476; 1259 130523 TABLE axionpro StatutoryType postgres
+477; 1259 130536 SEQUENCE axionpro StatutoryType_Id_seq postgres
+478; 1259 130537 TABLE axionpro SubscriptionPlan postgres
+479; 1259 130548 TABLE axionpro SubscriptionPlanPrice postgres
+480; 1259 130565 SEQUENCE axionpro SubscriptionPlanPrice_Id_seq postgres
+481; 1259 130566 SEQUENCE axionpro SubscriptionPlan_Id_seq postgres
+482; 1259 130567 TABLE axionpro TaxRegimeMaster postgres
+483; 1259 130579 SEQUENCE axionpro TaxRegimeMaster_Id_seq postgres
+484; 1259 130580 TABLE axionpro TaxRule postgres
+485; 1259 130598 SEQUENCE axionpro TaxRule_Id_seq postgres
+486; 1259 130599 TABLE axionpro TaxSlab postgres
+487; 1259 130614 SEQUENCE axionpro TaxSlab_Id_seq postgres
+488; 1259 130615 TABLE axionpro TaxSystemMaster postgres
+489; 1259 130625 SEQUENCE axionpro TaxSystemMaster_Id_seq postgres
+490; 1259 130626 TABLE axionpro Tenant postgres
+491; 1259 130641 TABLE axionpro TenantBillingProfile postgres
+492; 1259 130657 SEQUENCE axionpro TenantBillingProfile_Id_seq postgres
+493; 1259 130658 TABLE axionpro TenantBillingSubscription postgres
+494; 1259 130675 SEQUENCE axionpro TenantBillingSubscription_Id_seq postgres
+495; 1259 130676 TABLE axionpro TenantCardMaster postgres
+496; 1259 130723 SEQUENCE axionpro TenantCardMaster_Id_seq postgres
+7903; 0 0 SEQUENCE OWNED BY axionpro TenantCardMaster_Id_seq postgres
+497; 1259 130724 TABLE axionpro TenantDevice postgres
+498; 1259 130743 TABLE axionpro TenantDeviceConfiguration postgres
+499; 1259 130763 SEQUENCE axionpro TenantDeviceConfiguration_Id_seq postgres
+7904; 0 0 SEQUENCE OWNED BY axionpro TenantDeviceConfiguration_Id_seq postgres
+500; 1259 130764 SEQUENCE axionpro TenantDevice_Id_seq postgres
+501; 1259 130765 TABLE axionpro TenantEmailConfig postgres
+502; 1259 130775 SEQUENCE axionpro TenantEmailConfig_Id_seq postgres
+503; 1259 130776 TABLE axionpro TenantEmailTemplate postgres
+504; 1259 130791 SEQUENCE axionpro TenantEmailTemplate_Id_seq postgres
+546; 1259 133054 TABLE axionpro TenantEmployeeSectionDefault postgres
+505; 1259 130792 TABLE axionpro TenantEnabledModule postgres
+506; 1259 130801 SEQUENCE axionpro TenantEnabledModule_Id_seq postgres
+507; 1259 130802 TABLE axionpro TenantEnabledOperation postgres
+508; 1259 130812 SEQUENCE axionpro TenantEnabledOperation_Id_seq postgres
+509; 1259 130813 TABLE axionpro TenantEncryptionKeys postgres
+510; 1259 130823 SEQUENCE axionpro TenantEncryptionKeys_Id_seq postgres
+511; 1259 130824 TABLE axionpro TenantIndustry postgres
+512; 1259 130833 SEQUENCE axionpro TenantIndustry_Id_seq postgres
+513; 1259 130834 TABLE axionpro TenantLocation postgres
+514; 1259 130864 SEQUENCE axionpro TenantLocation_Id_seq postgres
+515; 1259 130865 TABLE axionpro TenantProfile postgres
+516; 1259 130872 SEQUENCE axionpro TenantProfile_Id_seq postgres
+517; 1259 130873 TABLE axionpro TenantSubscription postgres
+518; 1259 130886 SEQUENCE axionpro TenantSubscription_Id_seq postgres
+519; 1259 130887 SEQUENCE axionpro Tenant_Id_seq postgres
+520; 1259 130888 TABLE axionpro Tender postgres
+521; 1259 130900 TABLE axionpro TenderStatus postgres
+522; 1259 130908 SEQUENCE axionpro TenderStatus_Id_seq postgres
+523; 1259 130909 SEQUENCE axionpro Tender_Id_seq postgres
+524; 1259 130910 TABLE axionpro ThreadMessage postgres
+525; 1259 130922 SEQUENCE axionpro ThreadMessage_Id_seq postgres
+7905; 0 0 SEQUENCE OWNED BY axionpro ThreadMessage_Id_seq postgres
+526; 1259 130923 TABLE axionpro TicketThread postgres
+527; 1259 130932 SEQUENCE axionpro Thread_Id_seq postgres
+7906; 0 0 SEQUENCE OWNED BY axionpro Thread_Id_seq postgres
+528; 1259 130933 TABLE axionpro Ticket postgres
+529; 1259 130948 TABLE axionpro TicketAttachment postgres
+530; 1259 130958 SEQUENCE axionpro TicketAttachment_Id_seq postgres
+7907; 0 0 SEQUENCE OWNED BY axionpro TicketAttachment_Id_seq postgres
+531; 1259 130959 TABLE axionpro TicketClassification postgres
+532; 1259 130968 SEQUENCE axionpro TicketClassification_Id_seq postgres
+533; 1259 130969 TABLE axionpro TicketHeader postgres
+534; 1259 130982 SEQUENCE axionpro TicketHeader_Id_seq postgres
+535; 1259 130983 TABLE axionpro TicketHistory postgres
+536; 1259 130998 SEQUENCE axionpro TicketHistory_Id_seq postgres
+7908; 0 0 SEQUENCE OWNED BY axionpro TicketHistory_Id_seq postgres
+537; 1259 130999 TABLE axionpro TicketType postgres
+538; 1259 131017 SEQUENCE axionpro TicketType_Id_seq postgres
+539; 1259 131018 SEQUENCE axionpro Ticket_Id_seq postgres
+7909; 0 0 SEQUENCE OWNED BY axionpro Ticket_Id_seq postgres
+540; 1259 131019 TABLE axionpro UserAttendanceSetting postgres
+541; 1259 131035 SEQUENCE axionpro UserAttendanceSetting_Id_seq postgres
+542; 1259 131036 TABLE axionpro UserRole postgres
+543; 1259 131043 SEQUENCE axionpro UserRole_Id_seq postgres
+544; 1259 131044 TABLE axionpro WorkDocumentType postgres
+545; 1259 131051 SEQUENCE axionpro WorkDocumentType_Id_seq postgres
+5990; 2604 131052 DEFAULT axionpro AssetAssignment Id postgres
+6001; 2604 131053 DEFAULT axionpro AssetRequest Id postgres
+6050; 2604 131054 DEFAULT axionpro ComplianceTypeMaster Id postgres
+6240; 2604 131055 DEFAULT axionpro HostRole Id postgres
+6244; 2604 131056 DEFAULT axionpro HostRoleModuleAndPermission Id postgres
+6248; 2604 131057 DEFAULT axionpro HostUser Id postgres
+6415; 2604 131058 DEFAULT axionpro TenantCardMaster Id postgres
+6439; 2604 131059 DEFAULT axionpro TenantDeviceConfiguration Id postgres
+6465; 2604 131060 DEFAULT axionpro ThreadMessage Id postgres
+6474; 2604 131061 DEFAULT axionpro Ticket Id postgres
+6475; 2604 131062 DEFAULT axionpro TicketAttachment Id postgres
+6484; 2604 131063 DEFAULT axionpro TicketHistory Id postgres
+6470; 2604 131064 DEFAULT axionpro TicketThread Id postgres
+7569; 0 128509 TABLE DATA axionpro Asset postgres
+7570; 0 128528 TABLE DATA axionpro AssetAssignment postgres
+7572; 0 128542 TABLE DATA axionpro AssetCategory postgres
+7574; 0 128557 TABLE DATA axionpro AssetImage postgres
+7576; 0 128575 TABLE DATA axionpro AssetRequest postgres
+7578; 0 128588 TABLE DATA axionpro AssetStatus postgres
+7580; 0 128602 TABLE DATA axionpro AssetType postgres
+7583; 0 128615 TABLE DATA axionpro AssignmentStatus postgres
+7585; 0 128626 TABLE DATA axionpro Attendance postgres
+7586; 0 128633 TABLE DATA axionpro AttendanceDeviceType postgres
+7588; 0 128642 TABLE DATA axionpro AttendancePolicy postgres
+7589; 0 128676 TABLE DATA axionpro AttendancePolicyVersionConfiguration postgres
+7592; 0 128697 TABLE DATA axionpro AttendanceRequest postgres
+7595; 0 128709 TABLE DATA axionpro BillingAuditLog postgres
+7597; 0 128723 TABLE DATA axionpro BillingInvoice postgres
+7598; 0 128743 TABLE DATA axionpro BillingInvoiceLine postgres
+7601; 0 128761 TABLE DATA axionpro BillingOrder postgres
+7602; 0 128785 TABLE DATA axionpro BillingRefund postgres
+7603; 0 128802 TABLE DATA axionpro BillingSubscriptionChange postgres
+7605; 0 128820 TABLE DATA axionpro BillingTaxRule postgres
+7607; 0 128838 TABLE DATA axionpro BulkImportJob postgres
+7608; 0 128860 TABLE DATA axionpro Category postgres
+7612; 0 128886 TABLE DATA axionpro Client postgres
+7613; 0 128895 TABLE DATA axionpro ClientType postgres
+7616; 0 128906 TABLE DATA axionpro ComplianceRule postgres
+7618; 0 128923 TABLE DATA axionpro ComplianceTypeMaster postgres
+7620; 0 128930 TABLE DATA axionpro Country postgres
+7621; 0 128937 TABLE DATA axionpro CountryIdentityRule postgres
+7623; 0 128950 TABLE DATA axionpro CountryStatutoryRule postgres
+7626; 0 128963 TABLE DATA axionpro DataViewStructure postgres
+7628; 0 128970 TABLE DATA axionpro DayCombination postgres
+7630; 0 128984 TABLE DATA axionpro DefaultEmailConfig postgres
+7632; 0 129007 TABLE DATA axionpro Department postgres
+7634; 0 129015 TABLE DATA axionpro Designation postgres
+7636; 0 129025 TABLE DATA axionpro DeviceCommand postgres
+7637; 0 129058 TABLE DATA axionpro DeviceCommandResponse postgres
+7640; 0 129071 TABLE DATA axionpro DeviceCredential postgres
+7642; 0 129086 TABLE DATA axionpro DeviceInitialProvisioning postgres
+7644; 0 129102 TABLE DATA axionpro DeviceMaster postgres
+7646; 0 129174 TABLE DATA axionpro DeviceMessageLog postgres
+7648; 0 129197 TABLE DATA axionpro District postgres
+7650; 0 129210 TABLE DATA axionpro EmailQueue postgres
+7652; 0 129224 TABLE DATA axionpro EmailTemplate postgres
+7654; 0 129239 TABLE DATA axionpro Employee postgres
+7655; 0 129255 TABLE DATA axionpro EmployeeAttendancePunch postgres
+7657; 0 129274 TABLE DATA axionpro EmployeeBankDetail postgres
+7659; 0 129287 TABLE DATA axionpro EmployeeCategorySkill postgres
+7661; 0 129296 TABLE DATA axionpro EmployeeCodePattern postgres
+7663; 0 129319 TABLE DATA axionpro EmployeeContact postgres
+7665; 0 129335 TABLE DATA axionpro EmployeeDailyAttendance postgres
+7667; 0 129351 TABLE DATA axionpro EmployeeDependent postgres
+7669; 0 129360 TABLE DATA axionpro EmployeeDeviceEnrollment postgres
+7671; 0 129382 TABLE DATA axionpro EmployeeEducation postgres
+7673; 0 129393 TABLE DATA axionpro EmployeeExperience postgres
+7674; 0 129407 TABLE DATA axionpro EmployeeExperienceDocument postgres
+7677; 0 129422 TABLE DATA axionpro EmployeeIdentity postgres
+7679; 0 129446 TABLE DATA axionpro EmployeeImage postgres
+7681; 0 129458 TABLE DATA axionpro EmployeeLeaveBalance postgres
+7683; 0 129470 TABLE DATA axionpro EmployeeLeavePolicyMapping postgres
+7685; 0 129484 TABLE DATA axionpro EmployeeLocationAssignment postgres
+7687; 0 129505 TABLE DATA axionpro EmployeeManagerMapping postgres
+7689; 0 129520 TABLE DATA axionpro EmployeePersonalDetail postgres
+7691; 0 129530 TABLE DATA axionpro EmployeePolicyDependentMapping postgres
+7693; 0 129546 TABLE DATA axionpro EmployeePolicyEnrollment postgres
+7695; 0 129563 TABLE DATA axionpro EmployeeSalary postgres
+7697; 0 129577 TABLE DATA axionpro EmployeeStatutoryAccount postgres
+7699; 0 129590 TABLE DATA axionpro EmployeeTaxProfile postgres
+7701; 0 129604 TABLE DATA axionpro EmployeeType postgres
+7702; 0 129610 TABLE DATA axionpro EmployeeTypeBasicMenu postgres
+7705; 0 129626 TABLE DATA axionpro EmployeeWorkArrangement postgres
+7707; 0 129648 TABLE DATA axionpro EmployeeWorkDocument postgres
+7709; 0 129665 TABLE DATA axionpro EmployeeWorkHistory postgres
+7711; 0 129688 TABLE DATA axionpro EmployeeWorkModeOverrideRequest postgres
+7713; 0 129713 TABLE DATA axionpro EmployeeWorkPattern postgres
+7715; 0 129733 TABLE DATA axionpro EmployeeWorkProfile postgres
+7718; 0 129750 TABLE DATA axionpro EmployeesChangedTypeHistory postgres
+7720; 0 129764 TABLE DATA axionpro ForgotPasswordOTPDetail postgres
+7722; 0 129778 TABLE DATA axionpro Gender postgres
+7724; 0 129784 TABLE DATA axionpro Holiday postgres
+7726; 0 129797 TABLE DATA axionpro HostBillingConfiguration postgres
+7728; 0 129827 TABLE DATA axionpro HostRole postgres
+7729; 0 129838 TABLE DATA axionpro HostRoleModuleAndPermission postgres
+7732; 0 129853 TABLE DATA axionpro HostUser postgres
+7734; 0 129870 TABLE DATA axionpro IdentityCategory postgres
+7735; 0 129880 TABLE DATA axionpro IdentityCategoryDocument postgres
+7738; 0 129895 TABLE DATA axionpro LeaveRequest postgres
+7740; 0 129915 TABLE DATA axionpro LeaveType postgres
+7742; 0 129924 TABLE DATA axionpro License postgres
+7610; 0 128870 TABLE DATA axionpro Locality postgres
+7744; 0 129930 TABLE DATA axionpro LocalityType postgres
+7746; 0 129938 TABLE DATA axionpro LoginCredential postgres
+7748; 0 129960 TABLE DATA axionpro Module postgres
+7749; 0 129978 TABLE DATA axionpro ModuleOperationMapping postgres
+7752; 0 129994 TABLE DATA axionpro Operation postgres
+7754; 0 130006 TABLE DATA axionpro PageTypeEnum postgres
+7755; 0 130010 TABLE DATA axionpro PaymentAttempt postgres
+7757; 0 130023 TABLE DATA axionpro PaymentGateway postgres
+7759; 0 130043 TABLE DATA axionpro PaymentTransaction postgres
+7761; 0 130058 TABLE DATA axionpro PaymentWebhookEvent postgres
+7763; 0 130078 TABLE DATA axionpro PayrollEmployee postgres
+7764; 0 130088 TABLE DATA axionpro PayrollEmployeeDetail postgres
+7767; 0 130101 TABLE DATA axionpro PayrollRun postgres
+7769; 0 130115 TABLE DATA axionpro PlanModuleMapping postgres
+7771; 0 130125 TABLE DATA axionpro Policy postgres
+7772; 0 130142 TABLE DATA axionpro PolicyAcknowledgement postgres
+7774; 0 130157 TABLE DATA axionpro PolicyApplicability postgres
+7776; 0 130177 TABLE DATA axionpro PolicyApprovalHistory postgres
+7778; 0 130192 TABLE DATA axionpro PolicyApprovalStage postgres
+7780; 0 130210 TABLE DATA axionpro PolicyAssignment postgres
+7782; 0 130229 TABLE DATA axionpro PolicyCategory postgres
+7784; 0 130242 TABLE DATA axionpro PolicyChangeAudit postgres
+7786; 0 130258 TABLE DATA axionpro PolicyDocument postgres
+7787; 0 130284 TABLE DATA axionpro PolicyDocumentType postgres
+7789; 0 130293 TABLE DATA axionpro PolicyException postgres
+7791; 0 130318 TABLE DATA axionpro PolicyRule postgres
+7792; 0 130337 TABLE DATA axionpro PolicyRuleType postgres
+7795; 0 130351 TABLE DATA axionpro PolicyStatus postgres
+7796; 0 130361 TABLE DATA axionpro PolicyType postgres
+7798; 0 130378 TABLE DATA axionpro PolicyVersion postgres
+7801; 0 130401 TABLE DATA axionpro RefreshToken postgres
+7803; 0 130417 TABLE DATA axionpro ReportingType postgres
+7805; 0 130428 TABLE DATA axionpro RequestType postgres
+7807; 0 130438 TABLE DATA axionpro Role postgres
+7808; 0 130449 TABLE DATA axionpro RoleModuleAndPermission postgres
+7811; 0 130457 TABLE DATA axionpro SalaryComponentMaster postgres
+7813; 0 130482 TABLE DATA axionpro SalaryStructure postgres
+7814; 0 130497 TABLE DATA axionpro SalaryStructureDetail postgres
+7817; 0 130514 TABLE DATA axionpro State postgres
+7819; 0 130523 TABLE DATA axionpro StatutoryType postgres
+7821; 0 130537 TABLE DATA axionpro SubscriptionPlan postgres
+7822; 0 130548 TABLE DATA axionpro SubscriptionPlanPrice postgres
+7825; 0 130567 TABLE DATA axionpro TaxRegimeMaster postgres
+7827; 0 130580 TABLE DATA axionpro TaxRule postgres
+7829; 0 130599 TABLE DATA axionpro TaxSlab postgres
+7831; 0 130615 TABLE DATA axionpro TaxSystemMaster postgres
+7833; 0 130626 TABLE DATA axionpro Tenant postgres
+7834; 0 130641 TABLE DATA axionpro TenantBillingProfile postgres
+7836; 0 130658 TABLE DATA axionpro TenantBillingSubscription postgres
+7838; 0 130676 TABLE DATA axionpro TenantCardMaster postgres
+7840; 0 130724 TABLE DATA axionpro TenantDevice postgres
+7841; 0 130743 TABLE DATA axionpro TenantDeviceConfiguration postgres
+7844; 0 130765 TABLE DATA axionpro TenantEmailConfig postgres
+7846; 0 130776 TABLE DATA axionpro TenantEmailTemplate postgres
+7889; 0 133054 TABLE DATA axionpro TenantEmployeeSectionDefault postgres
+7848; 0 130792 TABLE DATA axionpro TenantEnabledModule postgres
+7850; 0 130802 TABLE DATA axionpro TenantEnabledOperation postgres
+7852; 0 130813 TABLE DATA axionpro TenantEncryptionKeys postgres
+7854; 0 130824 TABLE DATA axionpro TenantIndustry postgres
+7856; 0 130834 TABLE DATA axionpro TenantLocation postgres
+7858; 0 130865 TABLE DATA axionpro TenantProfile postgres
+7860; 0 130873 TABLE DATA axionpro TenantSubscription postgres
+7863; 0 130888 TABLE DATA axionpro Tender postgres
+7864; 0 130900 TABLE DATA axionpro TenderStatus postgres
+7867; 0 130910 TABLE DATA axionpro ThreadMessage postgres
+7871; 0 130933 TABLE DATA axionpro Ticket postgres
+7872; 0 130948 TABLE DATA axionpro TicketAttachment postgres
+7874; 0 130959 TABLE DATA axionpro TicketClassification postgres
+7876; 0 130969 TABLE DATA axionpro TicketHeader postgres
+7878; 0 130983 TABLE DATA axionpro TicketHistory postgres
+7869; 0 130923 TABLE DATA axionpro TicketThread postgres
+7880; 0 130999 TABLE DATA axionpro TicketType postgres
+7883; 0 131019 TABLE DATA axionpro UserAttendanceSetting postgres
+7885; 0 131036 TABLE DATA axionpro UserRole postgres
+7887; 0 131044 TABLE DATA axionpro WorkDocumentType postgres
+7910; 0 0 SEQUENCE SET axionpro AssetAssignment_Id_seq postgres
+7911; 0 0 SEQUENCE SET axionpro AssetCategory_Id_seq postgres
+7912; 0 0 SEQUENCE SET axionpro AssetImage_Id_seq postgres
+7913; 0 0 SEQUENCE SET axionpro AssetRequest_Id_seq postgres
+7914; 0 0 SEQUENCE SET axionpro AssetStatus_Id_seq postgres
+7915; 0 0 SEQUENCE SET axionpro AssetType_Id_seq postgres
+7916; 0 0 SEQUENCE SET axionpro Asset_Id_seq postgres
+7917; 0 0 SEQUENCE SET axionpro AssignmentStatus_Id_seq postgres
+7918; 0 0 SEQUENCE SET axionpro AttendanceDeviceType_Id_seq postgres
+7919; 0 0 SEQUENCE SET axionpro AttendancePolicyVersionConfiguration_Id_seq postgres
+7920; 0 0 SEQUENCE SET axionpro AttendancePolicy_Id_seq postgres
+7921; 0 0 SEQUENCE SET axionpro AttendanceRequest_Id_seq postgres
+7922; 0 0 SEQUENCE SET axionpro Attendance_Id_seq postgres
+7923; 0 0 SEQUENCE SET axionpro BillingAuditLog_Id_seq postgres
+7924; 0 0 SEQUENCE SET axionpro BillingInvoiceLine_Id_seq postgres
+7925; 0 0 SEQUENCE SET axionpro BillingInvoice_Id_seq postgres
+7926; 0 0 SEQUENCE SET axionpro BillingSubscriptionChange_Id_seq postgres
+7927; 0 0 SEQUENCE SET axionpro BillingTaxRule_Id_seq postgres
+7928; 0 0 SEQUENCE SET axionpro Category_Id_seq postgres
+7929; 0 0 SEQUENCE SET axionpro City_Id_seq postgres
+7930; 0 0 SEQUENCE SET axionpro ClientType_Id_seq postgres
+7931; 0 0 SEQUENCE SET axionpro Client_Id_seq postgres
+7932; 0 0 SEQUENCE SET axionpro ComplianceRule_Id_seq postgres
+7933; 0 0 SEQUENCE SET axionpro ComplianceTypeMaster_Id_seq postgres
+7934; 0 0 SEQUENCE SET axionpro CountryIdentityRule_Id_seq postgres
+7935; 0 0 SEQUENCE SET axionpro CountryStatutoryRule_Id_seq postgres
+7936; 0 0 SEQUENCE SET axionpro Country_Id_seq postgres
+7937; 0 0 SEQUENCE SET axionpro DataViewStructure_Id_seq postgres
+7938; 0 0 SEQUENCE SET axionpro DayCombination_Id_seq postgres
+7939; 0 0 SEQUENCE SET axionpro DefaultEmailConfig_Id_seq postgres
+7940; 0 0 SEQUENCE SET axionpro Department_Id_seq postgres
+7941; 0 0 SEQUENCE SET axionpro Designation_Id_seq postgres
+7942; 0 0 SEQUENCE SET axionpro DeviceCommandResponse_Id_seq postgres
+7943; 0 0 SEQUENCE SET axionpro DeviceCommand_Id_seq postgres
+7944; 0 0 SEQUENCE SET axionpro DeviceCredential_Id_seq postgres
+7945; 0 0 SEQUENCE SET axionpro DeviceInitialProvisioning_Id_seq postgres
+7946; 0 0 SEQUENCE SET axionpro DeviceMaster_Id_seq postgres
+7947; 0 0 SEQUENCE SET axionpro DeviceMessageLog_Id_seq postgres
+7948; 0 0 SEQUENCE SET axionpro District_Id_seq postgres
+7949; 0 0 SEQUENCE SET axionpro EmailQueue_Id_seq postgres
+7950; 0 0 SEQUENCE SET axionpro EmailTemplate_Id_seq postgres
+7951; 0 0 SEQUENCE SET axionpro EmployeeAttendancePunch_Id_seq postgres
+7952; 0 0 SEQUENCE SET axionpro EmployeeBankDetail_Id_seq postgres
+7953; 0 0 SEQUENCE SET axionpro EmployeeCategorySkill_Id_seq postgres
+7954; 0 0 SEQUENCE SET axionpro EmployeeCodePattern_Id_seq postgres
+7955; 0 0 SEQUENCE SET axionpro EmployeeContact_Id_seq postgres
+7956; 0 0 SEQUENCE SET axionpro EmployeeDailyAttendance_Id_seq postgres
+7957; 0 0 SEQUENCE SET axionpro EmployeeDependent_Id_seq postgres
+7958; 0 0 SEQUENCE SET axionpro EmployeeDeviceEnrollment_Id_seq postgres
+7959; 0 0 SEQUENCE SET axionpro EmployeeEducation_Id_seq postgres
+7960; 0 0 SEQUENCE SET axionpro EmployeeExperienceDocument_Id_seq postgres
+7961; 0 0 SEQUENCE SET axionpro EmployeeExperience_Id_seq postgres
+7962; 0 0 SEQUENCE SET axionpro EmployeeIdentity_Id_seq postgres
+7963; 0 0 SEQUENCE SET axionpro EmployeeImage_Id_seq postgres
+7964; 0 0 SEQUENCE SET axionpro EmployeeLeaveBalance_Id_seq postgres
+7965; 0 0 SEQUENCE SET axionpro EmployeeLeavePolicyMapping_Id_seq postgres
+7966; 0 0 SEQUENCE SET axionpro EmployeeLocationAssignment_Id_seq postgres
+7967; 0 0 SEQUENCE SET axionpro EmployeeManagerMapping_Id_seq postgres
+7968; 0 0 SEQUENCE SET axionpro EmployeePersonalDetail_Id_seq postgres
+7969; 0 0 SEQUENCE SET axionpro EmployeePolicyDependentMapping_Id_seq postgres
+7970; 0 0 SEQUENCE SET axionpro EmployeePolicyEnrollment_Id_seq postgres
+7971; 0 0 SEQUENCE SET axionpro EmployeeSalary_Id_seq postgres
+7972; 0 0 SEQUENCE SET axionpro EmployeeStatutoryAccount_Id_seq postgres
+7973; 0 0 SEQUENCE SET axionpro EmployeeTaxProfile_Id_seq postgres
+7974; 0 0 SEQUENCE SET axionpro EmployeeTypeBasicMenu_Id_seq postgres
+7975; 0 0 SEQUENCE SET axionpro EmployeeType_Id_seq postgres
+7976; 0 0 SEQUENCE SET axionpro EmployeeWorkArrangement_Id_seq postgres
+7977; 0 0 SEQUENCE SET axionpro EmployeeWorkDocument_Id_seq postgres
+7978; 0 0 SEQUENCE SET axionpro EmployeeWorkHistory_Id_seq postgres
+7979; 0 0 SEQUENCE SET axionpro EmployeeWorkModeOverrideRequest_Id_seq postgres
+7980; 0 0 SEQUENCE SET axionpro EmployeeWorkPattern_Id_seq postgres
+7981; 0 0 SEQUENCE SET axionpro EmployeeWorkProfile_Id_seq postgres
+7982; 0 0 SEQUENCE SET axionpro Employee_Id_seq postgres
+7983; 0 0 SEQUENCE SET axionpro EmployeesChangedTypeHistory_Id_seq postgres
+7984; 0 0 SEQUENCE SET axionpro ForgotPasswordOTPDetail_Id_seq postgres
+7985; 0 0 SEQUENCE SET axionpro Gender_Id_seq postgres
+7986; 0 0 SEQUENCE SET axionpro Holiday_Id_seq postgres
+7987; 0 0 SEQUENCE SET axionpro HostBillingConfiguration_Id_seq postgres
+7988; 0 0 SEQUENCE SET axionpro HostRoleModuleAndPermission_Id_seq postgres
+7989; 0 0 SEQUENCE SET axionpro HostRole_Id_seq postgres
+7990; 0 0 SEQUENCE SET axionpro HostUser_Id_seq postgres
+7991; 0 0 SEQUENCE SET axionpro IdentityCategoryDocument_Id_seq postgres
+7992; 0 0 SEQUENCE SET axionpro IdentityCategory_Id_seq postgres
+7993; 0 0 SEQUENCE SET axionpro LeaveRequest_Id_seq postgres
+7994; 0 0 SEQUENCE SET axionpro LeaveType_Id_seq postgres
+7995; 0 0 SEQUENCE SET axionpro License_Id_seq postgres
+7996; 0 0 SEQUENCE SET axionpro LocalityType_Id_seq postgres
+7997; 0 0 SEQUENCE SET axionpro LoginCredential_Id_seq postgres
+7998; 0 0 SEQUENCE SET axionpro ModuleOperationMapping_Id_seq postgres
+7999; 0 0 SEQUENCE SET axionpro Module_Id_seq postgres
+8000; 0 0 SEQUENCE SET axionpro Operation_Id_seq postgres
+8001; 0 0 SEQUENCE SET axionpro PaymentAttempt_Id_seq postgres
+8002; 0 0 SEQUENCE SET axionpro PaymentGateway_Id_seq postgres
+8003; 0 0 SEQUENCE SET axionpro PaymentTransaction_Id_seq postgres
+8004; 0 0 SEQUENCE SET axionpro PaymentWebhookEvent_Id_seq postgres
+8005; 0 0 SEQUENCE SET axionpro PayrollEmployeeDetail_Id_seq postgres
+8006; 0 0 SEQUENCE SET axionpro PayrollEmployee_Id_seq postgres
+8007; 0 0 SEQUENCE SET axionpro PayrollRun_Id_seq postgres
+8008; 0 0 SEQUENCE SET axionpro PlanModuleMapping_Id_seq postgres
+8009; 0 0 SEQUENCE SET axionpro PolicyAcknowledgement_Id_seq postgres
+8010; 0 0 SEQUENCE SET axionpro PolicyApplicability_Id_seq postgres
+8011; 0 0 SEQUENCE SET axionpro PolicyApprovalHistory_Id_seq postgres
+8012; 0 0 SEQUENCE SET axionpro PolicyApprovalStage_Id_seq postgres
+8013; 0 0 SEQUENCE SET axionpro PolicyAssignment_Id_seq postgres
+8014; 0 0 SEQUENCE SET axionpro PolicyCategory_Id_seq postgres
+8015; 0 0 SEQUENCE SET axionpro PolicyChangeAudit_Id_seq postgres
+8016; 0 0 SEQUENCE SET axionpro PolicyDocument_Id_seq postgres
+8017; 0 0 SEQUENCE SET axionpro PolicyException_Id_seq postgres
+8018; 0 0 SEQUENCE SET axionpro PolicyRuleType_Id_seq postgres
+8019; 0 0 SEQUENCE SET axionpro PolicyRule_Id_seq postgres
+8020; 0 0 SEQUENCE SET axionpro PolicyType_Id_seq postgres
+8021; 0 0 SEQUENCE SET axionpro PolicyVersion_Id_seq postgres
+8022; 0 0 SEQUENCE SET axionpro Policy_Id_seq postgres
+8023; 0 0 SEQUENCE SET axionpro RefreshToken_Id_seq postgres
+8024; 0 0 SEQUENCE SET axionpro ReportingType_Id_seq postgres
+8025; 0 0 SEQUENCE SET axionpro RequestType_Id_seq postgres
+8026; 0 0 SEQUENCE SET axionpro RoleModuleAndPermission_Id_seq postgres
+8027; 0 0 SEQUENCE SET axionpro Role_Id_seq postgres
+8028; 0 0 SEQUENCE SET axionpro SalaryComponentMaster_Id_seq postgres
+8029; 0 0 SEQUENCE SET axionpro SalaryStructureDetail_Id_seq postgres
+8030; 0 0 SEQUENCE SET axionpro SalaryStructure_Id_seq postgres
+8031; 0 0 SEQUENCE SET axionpro State_Id_seq postgres
+8032; 0 0 SEQUENCE SET axionpro StatutoryType_Id_seq postgres
+8033; 0 0 SEQUENCE SET axionpro SubscriptionPlanPrice_Id_seq postgres
+8034; 0 0 SEQUENCE SET axionpro SubscriptionPlan_Id_seq postgres
+8035; 0 0 SEQUENCE SET axionpro TaxRegimeMaster_Id_seq postgres
+8036; 0 0 SEQUENCE SET axionpro TaxRule_Id_seq postgres
+8037; 0 0 SEQUENCE SET axionpro TaxSlab_Id_seq postgres
+8038; 0 0 SEQUENCE SET axionpro TaxSystemMaster_Id_seq postgres
+8039; 0 0 SEQUENCE SET axionpro TenantBillingProfile_Id_seq postgres
+8040; 0 0 SEQUENCE SET axionpro TenantBillingSubscription_Id_seq postgres
+8041; 0 0 SEQUENCE SET axionpro TenantCardMaster_Id_seq postgres
+8042; 0 0 SEQUENCE SET axionpro TenantDeviceConfiguration_Id_seq postgres
+8043; 0 0 SEQUENCE SET axionpro TenantDevice_Id_seq postgres
+8044; 0 0 SEQUENCE SET axionpro TenantEmailConfig_Id_seq postgres
+8045; 0 0 SEQUENCE SET axionpro TenantEmailTemplate_Id_seq postgres
+8046; 0 0 SEQUENCE SET axionpro TenantEnabledModule_Id_seq postgres
+8047; 0 0 SEQUENCE SET axionpro TenantEnabledOperation_Id_seq postgres
+8048; 0 0 SEQUENCE SET axionpro TenantEncryptionKeys_Id_seq postgres
+8049; 0 0 SEQUENCE SET axionpro TenantIndustry_Id_seq postgres
+8050; 0 0 SEQUENCE SET axionpro TenantLocation_Id_seq postgres
+8051; 0 0 SEQUENCE SET axionpro TenantProfile_Id_seq postgres
+8052; 0 0 SEQUENCE SET axionpro TenantSubscription_Id_seq postgres
+8053; 0 0 SEQUENCE SET axionpro Tenant_Id_seq postgres
+8054; 0 0 SEQUENCE SET axionpro TenderStatus_Id_seq postgres
+8055; 0 0 SEQUENCE SET axionpro Tender_Id_seq postgres
+8056; 0 0 SEQUENCE SET axionpro ThreadMessage_Id_seq postgres
+8057; 0 0 SEQUENCE SET axionpro Thread_Id_seq postgres
+8058; 0 0 SEQUENCE SET axionpro TicketAttachment_Id_seq postgres
+8059; 0 0 SEQUENCE SET axionpro TicketClassification_Id_seq postgres
+8060; 0 0 SEQUENCE SET axionpro TicketHeader_Id_seq postgres
+8061; 0 0 SEQUENCE SET axionpro TicketHistory_Id_seq postgres
+8062; 0 0 SEQUENCE SET axionpro TicketType_Id_seq postgres
+8063; 0 0 SEQUENCE SET axionpro Ticket_Id_seq postgres
+8064; 0 0 SEQUENCE SET axionpro UserAttendanceSetting_Id_seq postgres
+8065; 0 0 SEQUENCE SET axionpro UserRole_Id_seq postgres
+8066; 0 0 SEQUENCE SET axionpro WorkDocumentType_Id_seq postgres
+6605; 2606 131066 CONSTRAINT axionpro AssetAssignment AssetAssignment_pkey postgres
+6611; 2606 131068 CONSTRAINT axionpro AssetRequest AssetRequest_pkey postgres
+6634; 2606 131070 CONSTRAINT axionpro AttendancePolicyVersionConfiguration AttendancePolicyVersionConfiguration_pkey postgres
+6640; 2606 131072 CONSTRAINT axionpro BillingAuditLog BillingAuditLog_pkey postgres
+6648; 2606 131074 CONSTRAINT axionpro BillingInvoiceLine BillingInvoiceLine_pkey postgres
+6642; 2606 131076 CONSTRAINT axionpro BillingInvoice BillingInvoice_pkey postgres
+6650; 2606 131078 CONSTRAINT axionpro BillingOrder BillingOrder_pkey postgres
+6655; 2606 131080 CONSTRAINT axionpro BillingRefund BillingRefund_pkey postgres
+6660; 2606 131082 CONSTRAINT axionpro BillingSubscriptionChange BillingSubscriptionChange_pkey postgres
+6662; 2606 131084 CONSTRAINT axionpro BillingTaxRule BillingTaxRule_pkey postgres
+6665; 2606 131086 CONSTRAINT axionpro BulkImportJob BulkImportJob_pkey postgres
+6682; 2606 131088 CONSTRAINT axionpro ComplianceTypeMaster ComplianceTypeMaster_pkey postgres
+6696; 2606 131090 CONSTRAINT axionpro DefaultEmailConfig DefaultEmailConfig_pkey postgres
+6716; 2606 131092 CONSTRAINT axionpro DeviceCommandResponse DeviceCommandResponse_pkey postgres
+6707; 2606 131094 CONSTRAINT axionpro DeviceCommand DeviceCommand_pkey postgres
+6720; 2606 131096 CONSTRAINT axionpro DeviceCredential DeviceCredential_pkey postgres
+6723; 2606 131098 CONSTRAINT axionpro DeviceInitialProvisioning DeviceInitialProvisioning_pkey postgres
+6737; 2606 131100 CONSTRAINT axionpro DeviceMessageLog DeviceMessageLog_pkey postgres
+6793; 2606 131102 CONSTRAINT axionpro EmployeeLocationAssignment EX_EmployeeLocationAssignment_Employee_Location_Window postgres
+6795; 2606 131104 CONSTRAINT axionpro EmployeeLocationAssignment EX_EmployeeLocationAssignment_Primary_Window postgres
+6823; 2606 131106 CONSTRAINT axionpro EmployeeWorkArrangement EX_EmployeeWorkArrangement_Employee_Window postgres
+6757; 2606 131108 CONSTRAINT axionpro EmployeeAttendancePunch EmployeeAttendancePunch_pkey postgres
+6808; 2606 131110 CONSTRAINT axionpro EmployeePolicyDependentMapping EmployeePolicyDependentMapping_pkey postgres
+6810; 2606 131112 CONSTRAINT axionpro EmployeePolicyEnrollment EmployeePolicyEnrollment_pkey postgres
+6862; 2606 131114 CONSTRAINT axionpro HostBillingConfiguration HostBillingConfiguration_pkey postgres
+6869; 2606 131116 CONSTRAINT axionpro HostRoleModuleAndPermission HostRoleModuleAndPermission_pkey postgres
+6865; 2606 131118 CONSTRAINT axionpro HostRole HostRole_pkey postgres
+6876; 2606 131120 CONSTRAINT axionpro HostUser HostUser_pkey postgres
+6893; 2606 131122 CONSTRAINT axionpro LocalityType LocalityType_pkey postgres
+6625; 2606 131124 CONSTRAINT axionpro AttendanceDeviceType PK_AttendanceDeviceType postgres
+6631; 2606 131126 CONSTRAINT axionpro AttendancePolicy PK_AttendancePolicy postgres
+6680; 2606 131128 CONSTRAINT axionpro ComplianceRule PK_ComplianceRule postgres
+6692; 2606 131130 CONSTRAINT axionpro DataViewStructure PK_DataViewStructure postgres
+6733; 2606 131132 CONSTRAINT axionpro DeviceMaster PK_DeviceMaster postgres
+6776; 2606 131134 CONSTRAINT axionpro EmployeeDeviceEnrollment PK_EmployeeDeviceEnrollment postgres
+6779; 2606 131136 CONSTRAINT axionpro EmployeeEducation PK_EmployeeEducation postgres
+6781; 2606 131138 CONSTRAINT axionpro EmployeeExperience PK_EmployeeExperience postgres
+6783; 2606 131140 CONSTRAINT axionpro EmployeeExperienceDocument PK_EmployeeExperienceDocument postgres
+6802; 2606 131142 CONSTRAINT axionpro EmployeeLocationAssignment PK_EmployeeLocationAssignment postgres
+6812; 2606 131144 CONSTRAINT axionpro EmployeeSalary PK_EmployeeSalary postgres
+6816; 2606 131146 CONSTRAINT axionpro EmployeeTaxProfile PK_EmployeeTaxProfile postgres
+6831; 2606 131148 CONSTRAINT axionpro EmployeeWorkArrangement PK_EmployeeWorkArrangement postgres
+6841; 2606 131150 CONSTRAINT axionpro EmployeeWorkModeOverrideRequest PK_EmployeeWorkModeOverrideRequest postgres
+6845; 2606 131152 CONSTRAINT axionpro EmployeeWorkPattern PK_EmployeeWorkPattern postgres
+6859; 2606 131154 CONSTRAINT axionpro Holiday PK_Holiday postgres
+6926; 2606 131156 CONSTRAINT axionpro PayrollEmployee PK_PayrollEmployee postgres
+6930; 2606 131158 CONSTRAINT axionpro PayrollEmployeeDetail PK_PayrollEmployeeDetail postgres
+6932; 2606 131160 CONSTRAINT axionpro PayrollRun PK_PayrollRun postgres
+7017; 2606 131162 CONSTRAINT axionpro RoleModuleAndPermission PK_RoleModuleAndPermission_Id postgres
+7019; 2606 131164 CONSTRAINT axionpro SalaryComponentMaster PK_SalaryComponentMaster postgres
+7023; 2606 131166 CONSTRAINT axionpro SalaryStructure PK_SalaryStructure postgres
+7025; 2606 131168 CONSTRAINT axionpro SalaryStructureDetail PK_SalaryStructureDetail postgres
+7041; 2606 131170 CONSTRAINT axionpro TaxRegimeMaster PK_TaxRegimeMaster postgres
+7043; 2606 131172 CONSTRAINT axionpro TaxRule PK_TaxRule postgres
+7045; 2606 131174 CONSTRAINT axionpro TaxSlab PK_TaxSlab postgres
+7047; 2606 131176 CONSTRAINT axionpro TaxSystemMaster PK_TaxSystemMaster postgres
+7071; 2606 131178 CONSTRAINT axionpro TenantDevice PK_TenantDevice postgres
+7105; 2606 131180 CONSTRAINT axionpro TenantLocation PK_TenantLocation postgres
+6676; 2606 131182 CONSTRAINT axionpro Client PK_TenderClient postgres
+7116; 2606 131184 CONSTRAINT axionpro TenderStatus PK_TenderStatus postgres
+6607; 2606 131186 CONSTRAINT axionpro AssetCategory PK__AssetCat__3214EC07E9FE2792 postgres
+6609; 2606 131188 CONSTRAINT axionpro AssetImage PK__AssetIma__3214EC0752335BEC postgres
+6613; 2606 131190 CONSTRAINT axionpro AssetStatus PK__AssetSta__3214EC0722A59445 postgres
+6617; 2606 131192 CONSTRAINT axionpro AssetType PK__AssetTyp__3214EC077375A9AA postgres
+6603; 2606 131194 CONSTRAINT axionpro Asset PK__Asset__3214EC076178ABAE postgres
+6621; 2606 131196 CONSTRAINT axionpro AssignmentStatus PK__Assignme__3214EC07BCFD76FA postgres
+6623; 2606 131198 CONSTRAINT axionpro Attendance PK__Attendan__3214EC079EEE2ABB postgres
+6638; 2606 131200 CONSTRAINT axionpro AttendanceRequest PK__Attendan__3214EC07DA4D2CA6 postgres
+6669; 2606 131202 CONSTRAINT axionpro Category PK__Category__3214EC070D4D0C80 postgres
+6673; 2606 131204 CONSTRAINT axionpro Locality PK__City__3214EC07DC3B7144 postgres
+6678; 2606 131206 CONSTRAINT axionpro ClientType PK__ClientTy__3214EC078D984A16 postgres
+6688; 2606 131208 CONSTRAINT axionpro CountryIdentityRule PK__CountryI__3214EC0748E4A649 postgres
+6690; 2606 131210 CONSTRAINT axionpro CountryStatutoryRule PK__CountryS__3214EC07068D8E4F postgres
+6686; 2606 131212 CONSTRAINT axionpro Country PK__Country__3214EC070584DCC0 postgres
+6694; 2606 131214 CONSTRAINT axionpro DayCombination PK__DayCombi__3214EC070D2CF976 postgres
+6701; 2606 131216 CONSTRAINT axionpro Department PK__Departme__3214EC071E7B0B0B postgres
+6704; 2606 131218 CONSTRAINT axionpro Designation PK__Designat__3214EC07F9FF4C75 postgres
+6743; 2606 131220 CONSTRAINT axionpro District PK__District__3214EC07CB6A47D0 postgres
+6747; 2606 131222 CONSTRAINT axionpro EmailQueue PK__EmailQue__3214EC0705218438 postgres
+6749; 2606 131224 CONSTRAINT axionpro EmailTemplate PK__EmailTem__3214EC072FE49A64 postgres
+6765; 2606 131226 CONSTRAINT axionpro EmployeeCodePattern PK__Employee__3214EC070ECDA69B postgres
+6761; 2606 131228 CONSTRAINT axionpro EmployeeBankDetail PK__Employee__3214EC072E9F930F postgres
+6791; 2606 131230 CONSTRAINT axionpro EmployeeLeavePolicyMapping PK__Employee__3214EC07305828A7 postgres
+6767; 2606 131232 CONSTRAINT axionpro EmployeeContact PK__Employee__3214EC07371CFD87 postgres
+6806; 2606 131234 CONSTRAINT axionpro EmployeePersonalDetail PK__Employee__3214EC074796302D postgres
+6771; 2606 131236 CONSTRAINT axionpro EmployeeDependent PK__Employee__3214EC074B6A13E2 postgres
+6785; 2606 131238 CONSTRAINT axionpro EmployeeIdentity PK__Employee__3214EC074FF9BCC1 postgres
+6804; 2606 131240 CONSTRAINT axionpro EmployeeManagerMapping PK__Employee__3214EC075BB6D3FC postgres
+6848; 2606 131242 CONSTRAINT axionpro EmployeeWorkProfile PK__Employee__3214EC07605A7EB3 postgres
+6818; 2606 131244 CONSTRAINT axionpro EmployeeType PK__Employee__3214EC0760C5ED38 postgres
+6850; 2606 131246 CONSTRAINT axionpro EmployeesChangedTypeHistory PK__Employee__3214EC0779153EAD postgres
+6769; 2606 131248 CONSTRAINT axionpro EmployeeDailyAttendance PK__Employee__3214EC078C36F2DB postgres
+6835; 2606 131250 CONSTRAINT axionpro EmployeeWorkHistory PK__Employee__3214EC07994D46FA postgres
+6821; 2606 131252 CONSTRAINT axionpro EmployeeTypeBasicMenu PK__Employee__3214EC07A773CB3F postgres
+6814; 2606 131254 CONSTRAINT axionpro EmployeeStatutoryAccount PK__Employee__3214EC07ACDD4E51 postgres
+6789; 2606 131256 CONSTRAINT axionpro EmployeeLeaveBalance PK__Employee__3214EC07B6CC8062 postgres
+6763; 2606 131258 CONSTRAINT axionpro EmployeeCategorySkill PK__Employee__3214EC07BB3C49C9 postgres
+6833; 2606 131260 CONSTRAINT axionpro EmployeeWorkDocument PK__Employee__3214EC07BDFE60B6 postgres
+6787; 2606 131262 CONSTRAINT axionpro EmployeeImage PK__Employee__3214EC07C583D80F postgres
+6751; 2606 131264 CONSTRAINT axionpro Employee PK__Employee__3214EC07E3264254 postgres
+6852; 2606 131266 CONSTRAINT axionpro ForgotPasswordOTPDetail PK__ForgotPa__3214EC071E853072 postgres
+6854; 2606 131268 CONSTRAINT axionpro Gender PK__Gender__3214EC07EF3CD03D postgres
+6881; 2606 131270 CONSTRAINT axionpro IdentityCategory PK__Identity__3214EC07393AF557 postgres
+6885; 2606 131272 CONSTRAINT axionpro IdentityCategoryDocument PK__Identity__3214EC07AA61914F postgres
+6887; 2606 131274 CONSTRAINT axionpro LeaveRequest PK__LeaveReq__3214EC07D95D9BAD postgres
+6889; 2606 131276 CONSTRAINT axionpro LeaveType PK__LeaveTyp__3214EC0788A5EF9C postgres
+6891; 2606 131278 CONSTRAINT axionpro License PK__License__3214EC07FF575687 postgres
+6897; 2606 131280 CONSTRAINT axionpro LoginCredential PK__LoginCre__3214EC0750429DFA postgres
+6905; 2606 131282 CONSTRAINT axionpro ModuleOperationMapping PK__ModuleOp__3214EC07BF86A196 postgres
+6902; 2606 131284 CONSTRAINT axionpro Module PK__Module__3214EC078891AB2D postgres
+6907; 2606 131286 CONSTRAINT axionpro Operation PK__Operatio__3214EC079C437610 postgres
+6909; 2606 131288 CONSTRAINT axionpro PageTypeEnum PK__PageType__3214EC07D71C5D81 postgres
+6936; 2606 131290 CONSTRAINT axionpro PlanModuleMapping PK__PlanModu__3214EC0729948732 postgres
+7004; 2606 131292 CONSTRAINT axionpro RefreshToken PK__RefreshT__3214EC0731D02168 postgres
+7006; 2606 131294 CONSTRAINT axionpro ReportingType PK__Reportin__3214EC0773736C22 postgres
+7008; 2606 131296 CONSTRAINT axionpro RequestType PK__RequestT__3214EC07E53AD996 postgres
+7012; 2606 131298 CONSTRAINT axionpro Role PK__Role__3214EC0723371271 postgres
+7028; 2606 131300 CONSTRAINT axionpro State PK__State__3214EC0705AF0D74 postgres
+7033; 2606 131302 CONSTRAINT axionpro StatutoryType PK__Statutor__3214EC078EED6601 postgres
+7036; 2606 131304 CONSTRAINT axionpro SubscriptionPlan PK__Subscrip__3214EC07BED0F0D0 postgres
+7082; 2606 131306 CONSTRAINT axionpro TenantEmailConfig PK__TenantEm__3214EC077A90B3A3 postgres
+7089; 2606 131308 CONSTRAINT axionpro TenantEnabledOperation PK__TenantEn__3214EC07047C5B46 postgres
+7092; 2606 131310 CONSTRAINT axionpro TenantEncryptionKeys PK__TenantEn__3214EC070E3540EE postgres
+7087; 2606 131312 CONSTRAINT axionpro TenantEnabledModule PK__TenantEn__3214EC07AC610092 postgres
+7096; 2606 131314 CONSTRAINT axionpro TenantIndustry PK__TenantIn__3214EC0765258C5E postgres
+7110; 2606 131316 CONSTRAINT axionpro TenantProfile PK__TenantPr__3214EC0796A1B93D postgres
+7112; 2606 131318 CONSTRAINT axionpro TenantSubscription PK__TenantSu__3214EC07CF143048 postgres
+7049; 2606 131320 CONSTRAINT axionpro Tenant PK__Tenant__3214EC0728DD7C6E postgres
+7114; 2606 131322 CONSTRAINT axionpro Tender PK__Tender__3214EC076E847502 postgres
+7126; 2606 131324 CONSTRAINT axionpro TicketClassification PK__TicketCl__3214EC07BA509F8F postgres
+7128; 2606 131326 CONSTRAINT axionpro TicketHeader PK__TicketHe__3214EC07EADE3F1B postgres
+7132; 2606 131328 CONSTRAINT axionpro TicketType PK__TicketTy__3214EC07554DC568 postgres
+7134; 2606 131330 CONSTRAINT axionpro UserAttendanceSetting PK__UserAtte__3214EC0750CE7646 postgres
+7136; 2606 131332 CONSTRAINT axionpro UserRole PK__UserRole__3214EC07C9E25EB9 postgres
+7138; 2606 131334 CONSTRAINT axionpro WorkDocumentType PK__WorkDocu__3214EC0710449AA0 postgres
+6911; 2606 131336 CONSTRAINT axionpro PaymentAttempt PaymentAttempt_pkey postgres
+6915; 2606 131338 CONSTRAINT axionpro PaymentGateway PaymentGateway_pkey postgres
+6919; 2606 131340 CONSTRAINT axionpro PaymentTransaction PaymentTransaction_pkey postgres
+6922; 2606 131342 CONSTRAINT axionpro PaymentWebhookEvent PaymentWebhookEvent_pkey postgres
+6943; 2606 131344 CONSTRAINT axionpro PolicyAcknowledgement PolicyAcknowledgement_pkey postgres
+6948; 2606 131346 CONSTRAINT axionpro PolicyApplicability PolicyApplicability_pkey postgres
+6950; 2606 131348 CONSTRAINT axionpro PolicyApprovalHistory PolicyApprovalHistory_pkey postgres
+6954; 2606 131350 CONSTRAINT axionpro PolicyApprovalStage PolicyApprovalStage_pkey postgres
+6959; 2606 131352 CONSTRAINT axionpro PolicyAssignment PolicyAssignment_pkey postgres
+6963; 2606 131354 CONSTRAINT axionpro PolicyCategory PolicyCategory_pkey postgres
+6968; 2606 131356 CONSTRAINT axionpro PolicyChangeAudit PolicyChangeAudit_pkey postgres
+6974; 2606 131358 CONSTRAINT axionpro PolicyDocumentType PolicyDocumentType_pkey postgres
+6970; 2606 131360 CONSTRAINT axionpro PolicyDocument PolicyDocument_pkey postgres
+6979; 2606 131362 CONSTRAINT axionpro PolicyException PolicyException_pkey postgres
+6985; 2606 131364 CONSTRAINT axionpro PolicyRuleType PolicyRuleType_pkey postgres
+6981; 2606 131366 CONSTRAINT axionpro PolicyRule PolicyRule_pkey postgres
+6989; 2606 131368 CONSTRAINT axionpro PolicyStatus PolicyStatus_pkey postgres
+6993; 2606 131370 CONSTRAINT axionpro PolicyType PolicyType_pkey postgres
+6996; 2606 131372 CONSTRAINT axionpro PolicyVersion PolicyVersion_pkey postgres
+6938; 2606 131374 CONSTRAINT axionpro Policy Policy_pkey postgres
+7038; 2606 131376 CONSTRAINT axionpro SubscriptionPlanPrice SubscriptionPlanPrice_pkey postgres
+7053; 2606 131378 CONSTRAINT axionpro TenantBillingProfile TenantBillingProfile_pkey postgres
+7056; 2606 131380 CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_pkey postgres
+7061; 2606 131382 CONSTRAINT axionpro TenantCardMaster TenantCardMaster_pkey postgres
+7076; 2606 131384 CONSTRAINT axionpro TenantDeviceConfiguration TenantDeviceConfiguration_pkey postgres
+7084; 2606 131386 CONSTRAINT axionpro TenantEmailTemplate TenantEmailTemplate_pkey postgres
+7140; 2606 133066 CONSTRAINT axionpro TenantEmployeeSectionDefault TenantEmployeeSectionDefault_pkey postgres
+7118; 2606 131388 CONSTRAINT axionpro ThreadMessage ThreadMessage_pkey postgres
+7120; 2606 131390 CONSTRAINT axionpro TicketThread Thread_pkey postgres
+7124; 2606 131392 CONSTRAINT axionpro TicketAttachment TicketAttachment_pkey postgres
+7130; 2606 131394 CONSTRAINT axionpro TicketHistory TicketHistory_pkey postgres
+7122; 2606 131396 CONSTRAINT axionpro Ticket Ticket_pkey postgres
+6644; 2606 131398 CONSTRAINT axionpro BillingInvoice UQ_BillingInvoice_Number postgres
+6646; 2606 131400 CONSTRAINT axionpro BillingInvoice UQ_BillingInvoice_Order postgres
+6652; 2606 131402 CONSTRAINT axionpro BillingOrder UQ_BillingOrder_Idempotency postgres
+6657; 2606 131404 CONSTRAINT axionpro BillingRefund UQ_BillingRefund_Idempotency postgres
+6684; 2606 131406 CONSTRAINT axionpro ComplianceTypeMaster UQ_ComplianceType_Country_Name postgres
+6874; 2606 131408 CONSTRAINT axionpro HostRoleModuleAndPermission UQ_HostRole_Module_Operation postgres
+6867; 2606 131410 CONSTRAINT axionpro HostRole UQ_HostRole_Name postgres
+6879; 2606 131412 CONSTRAINT axionpro HostUser UQ_HostUser_LoginId postgres
+6895; 2606 131414 CONSTRAINT axionpro LocalityType UQ_LocalityType_TypeName postgres
+6899; 2606 131416 CONSTRAINT axionpro LoginCredential UQ_LoginId postgres
+6913; 2606 131418 CONSTRAINT axionpro PaymentAttempt UQ_PaymentAttempt_Number postgres
+6917; 2606 131420 CONSTRAINT axionpro PaymentGateway UQ_PaymentGateway_Code postgres
+6924; 2606 131422 CONSTRAINT axionpro PaymentWebhookEvent UQ_PaymentWebhookEvent_GatewayEvent postgres
+6928; 2606 131424 CONSTRAINT axionpro PayrollEmployee UQ_PayrollEmployee postgres
+6934; 2606 131426 CONSTRAINT axionpro PayrollRun UQ_Payroll_Month postgres
+6945; 2606 131428 CONSTRAINT axionpro PolicyAcknowledgement UQ_PolicyAcknowledgement_Version_Employee postgres
+6952; 2606 131430 CONSTRAINT axionpro PolicyApprovalHistory UQ_PolicyApprovalHistory_Version_Sequence postgres
+6956; 2606 131432 CONSTRAINT axionpro PolicyApprovalStage UQ_PolicyApprovalStage_Tenant_Category_Order postgres
+6961; 2606 131434 CONSTRAINT axionpro PolicyAssignment UQ_PolicyAssignment_Version_Employee_From postgres
+6965; 2606 131436 CONSTRAINT axionpro PolicyCategory UQ_PolicyCategory_Code postgres
+6976; 2606 131438 CONSTRAINT axionpro PolicyDocumentType UQ_PolicyDocumentType_Code postgres
+6972; 2606 131440 CONSTRAINT axionpro PolicyDocument UQ_PolicyDocument_Version_Object postgres
+6987; 2606 131442 CONSTRAINT axionpro PolicyRuleType UQ_PolicyRuleType_Code postgres
+6983; 2606 131444 CONSTRAINT axionpro PolicyRule UQ_PolicyRule_Version_Order postgres
+6991; 2606 131446 CONSTRAINT axionpro PolicyStatus UQ_PolicyStatus_Code postgres
+6998; 2606 131448 CONSTRAINT axionpro PolicyVersion UQ_PolicyVersion_Policy_Version postgres
+6940; 2606 131450 CONSTRAINT axionpro Policy UQ_Policy_Tenant_Code postgres
+7010; 2606 131452 CONSTRAINT axionpro RequestType UQ_RequestType_Tenant postgres
+7021; 2606 131454 CONSTRAINT axionpro SalaryComponentMaster UQ_SalaryComponent_Tenant_ComponentName_Effective postgres
+7030; 2606 131456 CONSTRAINT axionpro State UQ_State_Country_Name postgres
+7078; 2606 131458 CONSTRAINT axionpro TenantDeviceConfiguration UQ_TenantDeviceConfiguration_TenantDeviceId postgres
+7094; 2606 131460 CONSTRAINT axionpro TenantEncryptionKeys UQ_TenantKey_TenantId postgres
+7107; 2606 131462 CONSTRAINT axionpro TenantLocation UQ_TenantLocation_Id_TenantId postgres
+6615; 2606 131464 CONSTRAINT axionpro AssetStatus UQ__AssetSta__05E7698A7AA7A28E postgres
+6619; 2606 131466 CONSTRAINT axionpro AssetType UQ__AssetTyp__D4E7DFA8692FD5DF postgres
+6856; 2606 131468 CONSTRAINT axionpro Gender UQ__Gender__F7C177153AF55502 postgres
+6883; 2606 131470 CONSTRAINT axionpro IdentityCategory UQ__Identity__A25C5AA7EC142E9A postgres
+7051; 2606 131472 CONSTRAINT axionpro Tenant UQ__Tenant__F7C944DD7E3D53D9 postgres
+6698; 2606 131474 CONSTRAINT axionpro DefaultEmailConfig UX_DefaultEmailConfig_ConfigName postgres
+6713; 2606 131476 CONSTRAINT axionpro DeviceCommand UX_DeviceCommand_InternalTrackingId postgres
+7014; 1259 131477 INDEX axionpro IDX_RolesPermission_OperationId postgres
+7015; 1259 131478 INDEX axionpro IDX_RolesPermission_RoleId postgres
+6627; 1259 131479 INDEX axionpro IX_AttendancePolicy_PolicyTypeId postgres
+6628; 1259 131480 INDEX axionpro IX_AttendancePolicy_TenantId postgres
+6629; 1259 131481 INDEX axionpro IX_AttendancePolicy_TenantId_IsActive_IsSoftDeleted postgres
+6666; 1259 131482 INDEX axionpro IX_BulkImportJob_Due postgres
+6667; 1259 131483 INDEX axionpro IX_BulkImportJob_Owner postgres
+6717; 1259 131484 INDEX axionpro IX_DeviceCommandResponse_TenantDevice_Received postgres
+6708; 1259 131485 INDEX axionpro IX_DeviceCommand_DeviceSerial_Order postgres
+6709; 1259 131486 INDEX axionpro IX_DeviceCommand_Dispatch postgres
+6710; 1259 131487 INDEX axionpro IX_DeviceCommand_TenantId postgres
+6711; 1259 131488 INDEX axionpro IX_DeviceCommand_TenantLocationId postgres
+6724; 1259 131489 INDEX axionpro IX_DeviceInitialProvisioning_DeviceMaster_Active postgres
+6726; 1259 131490 INDEX axionpro IX_DeviceMaster_CompanyName postgres
+6727; 1259 131491 INDEX axionpro IX_DeviceMaster_DeviceType postgres
+6728; 1259 131492 INDEX axionpro IX_DeviceMaster_IsActive_IsSoftDeleted postgres
+6729; 1259 131493 INDEX axionpro IX_DeviceMaster_IsAttendanceDevice postgres
+6730; 1259 131494 INDEX axionpro IX_DeviceMaster_IsIntegrationSupported postgres
+6731; 1259 131495 INDEX axionpro IX_DeviceMaster_ModelNo postgres
+6738; 1259 131496 INDEX axionpro IX_DeviceMessageLog_TenantDevice_Occurred postgres
+6739; 1259 131497 INDEX axionpro IX_DeviceMessageLog_Topic_PayloadHash postgres
+6740; 1259 131498 INDEX axionpro IX_District_DistrictName postgres
+6741; 1259 131499 INDEX axionpro IX_District_StateId postgres
+6745; 1259 131500 INDEX axionpro IX_EmailQueue_Pending postgres
+6758; 1259 131501 INDEX axionpro IX_EmployeeAttendancePunch_DayTimeline postgres
+6772; 1259 131502 INDEX axionpro IX_EmployeeDeviceEnrollment_EmployeeId postgres
+6773; 1259 131503 INDEX axionpro IX_EmployeeDeviceEnrollment_TenantDeviceId postgres
+6774; 1259 131504 INDEX axionpro IX_EmployeeDeviceEnrollment_TenantId postgres
+6796; 1259 131505 INDEX axionpro IX_EmployeeLocationAssignment_EmployeeId postgres
+6797; 1259 131506 INDEX axionpro IX_EmployeeLocationAssignment_Employee_Location_EffectiveFrom postgres
+6798; 1259 131507 INDEX axionpro IX_EmployeeLocationAssignment_Primary_EffectiveFrom postgres
+6799; 1259 131508 INDEX axionpro IX_EmployeeLocationAssignment_TenantId postgres
+6800; 1259 131509 INDEX axionpro IX_EmployeeLocationAssignment_TenantLocationId postgres
+6824; 1259 131510 INDEX axionpro IX_EmployeeWorkArrangement_AttendancePolicyId postgres
+6825; 1259 131511 INDEX axionpro IX_EmployeeWorkArrangement_EmployeeId postgres
+6826; 1259 131512 INDEX axionpro IX_EmployeeWorkArrangement_Employee_EffectiveFrom postgres
+6827; 1259 131513 INDEX axionpro IX_EmployeeWorkArrangement_PolicyVersionId postgres
+6828; 1259 131514 INDEX axionpro IX_EmployeeWorkArrangement_PrimaryLocationId postgres
+6829; 1259 131515 INDEX axionpro IX_EmployeeWorkArrangement_TenantId postgres
+6842; 1259 131516 INDEX axionpro IX_EmployeeWorkPattern_TenantLocationId postgres
+6843; 1259 131517 INDEX axionpro IX_EmployeeWorkPattern_WorkArrangementId postgres
+6870; 1259 131518 INDEX axionpro IX_HRMP_HostRoleId postgres
+6871; 1259 131519 INDEX axionpro IX_HRMP_ModuleId postgres
+6872; 1259 131520 INDEX axionpro IX_HRMP_OperationId postgres
+6857; 1259 131521 INDEX axionpro IX_Holiday_Location_Date postgres
+6877; 1259 131522 INDEX axionpro IX_HostUser_LoginId postgres
+6670; 1259 131523 INDEX axionpro IX_Locality_DistrictId postgres
+6671; 1259 131524 INDEX axionpro IX_Locality_LocalityTypeId postgres
+6941; 1259 131525 INDEX axionpro IX_PolicyAcknowledgement_Employee postgres
+6946; 1259 131526 INDEX axionpro IX_PolicyApplicability_Resolution postgres
+6957; 1259 131527 INDEX axionpro IX_PolicyAssignment_Employee postgres
+6966; 1259 131528 INDEX axionpro IX_PolicyChangeAudit_Policy postgres
+6977; 1259 131529 INDEX axionpro IX_PolicyException_Employee postgres
+7000; 1259 131530 INDEX axionpro IX_RefreshToken_HostUserId postgres
+7001; 1259 131531 INDEX axionpro IX_RefreshToken_LoginCredentialId postgres
+7002; 1259 131532 INDEX axionpro IX_RefreshToken_LoginId_UserType postgres
+7034; 1259 131533 INDEX axionpro IX_SubscriptionPlan_IsSoftDeleted postgres
+7059; 1259 131534 INDEX axionpro IX_TenantCardMaster_TenantId postgres
+7074; 1259 131535 INDEX axionpro IX_TenantDeviceConfiguration_TenantDeviceId postgres
+7063; 1259 131536 INDEX axionpro IX_TenantDevice_DeviceMasterId postgres
+7064; 1259 131537 INDEX axionpro IX_TenantDevice_DeviceMasterId_IsActive postgres
+7065; 1259 131538 INDEX axionpro IX_TenantDevice_TenantId postgres
+7066; 1259 131539 INDEX axionpro IX_TenantDevice_TenantId_IsActive_IsSoftDeleted postgres
+7067; 1259 131540 INDEX axionpro IX_TenantDevice_TenantId_TenantLocationId postgres
+7068; 1259 131541 INDEX axionpro IX_TenantDevice_TenantLocationId postgres
+7069; 1259 131542 INDEX axionpro IX_TenantDevice_TenantLocationId_IsActive postgres
+7097; 1259 131543 INDEX axionpro IX_TenantLocation_CityId postgres
+7098; 1259 131544 INDEX axionpro IX_TenantLocation_CountryId postgres
+7099; 1259 131545 INDEX axionpro IX_TenantLocation_DistrictId postgres
+7100; 1259 131546 INDEX axionpro IX_TenantLocation_StateId postgres
+7101; 1259 131547 INDEX axionpro IX_TenantLocation_TenantId postgres
+7102; 1259 131548 INDEX axionpro IX_TenantLocation_TenantId_IsActive postgres
+7103; 1259 131549 INDEX axionpro IX_TenantLocation_TenantId_IsSoftDeleted postgres
+6836; 1259 131550 INDEX axionpro IX_WorkModeOverride_ApprovalStatus postgres
+6837; 1259 131551 INDEX axionpro IX_WorkModeOverride_EmployeeId postgres
+6838; 1259 131552 INDEX axionpro IX_WorkModeOverride_Employee_Date postgres
+6839; 1259 131553 INDEX axionpro IX_WorkModeOverride_TenantId postgres
+7026; 1259 131554 INDEX axionpro UQ_Structure_Order postgres
+7090; 1259 131555 INDEX axionpro UQ_Tenant_Module_Operation postgres
+6626; 1259 131556 INDEX axionpro UX_AttendanceDeviceType_DeviceTypeCode postgres
+6635; 1259 131557 INDEX axionpro UX_AttendancePolicyVersionConfiguration_PolicyVersion postgres
+6636; 1259 131558 INDEX axionpro UX_AttendancePolicyVersionConfiguration_TenantVersion postgres
+6632; 1259 131559 INDEX axionpro UX_AttendancePolicy_TenantId_PolicyName postgres
+6653; 1259 131560 INDEX axionpro UX_BillingOrder_GatewayOrder postgres
+6658; 1259 131561 INDEX axionpro UX_BillingRefund_GatewayRefund postgres
+6663; 1259 131562 INDEX axionpro UX_BillingTaxRule_Live postgres
+6699; 1259 131563 INDEX axionpro UX_DefaultEmailConfig_OneDefault postgres
+6702; 1259 131564 INDEX axionpro UX_Department_Tenant_Name_Live postgres
+6705; 1259 131565 INDEX axionpro UX_Designation_Tenant_Department_Name_Live postgres
+6718; 1259 131566 INDEX axionpro UX_DeviceCommandResponse_DeviceCommand postgres
+6714; 1259 131567 INDEX axionpro UX_DeviceCommand_OneOutstandingSerial postgres
+6721; 1259 131568 INDEX axionpro UX_DeviceCredential_ActiveType postgres
+6725; 1259 131569 INDEX axionpro UX_DeviceInitialProvisioning_IngressTokenHash postgres
+6734; 1259 131570 INDEX axionpro UX_DeviceMaster_CompanyName_ModelNo postgres
+6735; 1259 131571 INDEX axionpro UX_DeviceMaster_DeviceCode postgres
+6744; 1259 131572 INDEX axionpro UX_District_StateId_DistrictCode postgres
+6759; 1259 131573 INDEX axionpro UX_EmployeeAttendancePunch_Idempotency postgres
+6777; 1259 131574 INDEX axionpro UX_EmployeeDeviceEnrollment_Device_EnrollId postgres
+6819; 1259 131575 INDEX axionpro UX_EmployeeType_Tenant_Name_Live postgres
+6846; 1259 131576 INDEX axionpro UX_EmployeeWorkPattern_Arrangement_Day postgres
+6752; 1259 131577 INDEX axionpro UX_Employee_SystemUser_OnlyOnce postgres
+6753; 1259 131578 INDEX axionpro UX_Employee_TenantIdNullOnce postgres
+6754; 1259 131579 INDEX axionpro UX_Employee_TenantId_Null_OnlyOnce postgres
+6755; 1259 131580 INDEX axionpro UX_Employee_Tenant_Code postgres
+6860; 1259 131581 INDEX axionpro UX_Holiday_Tenant_Location_Date_NotDeleted postgres
+6863; 1259 131582 INDEX axionpro UX_HostBillingConfiguration_Active postgres
+6674; 1259 131583 INDEX axionpro UX_Locality_DistrictId_LocalityCode postgres
+6900; 1259 131584 INDEX axionpro UX_LoginCredential_NormalizedLogin postgres
+6903; 1259 131585 INDEX axionpro UX_Module_PageName_CaseInsensitive postgres
+6920; 1259 131586 INDEX axionpro UX_PaymentTransaction_GatewayPayment postgres
+6994; 1259 131587 INDEX axionpro UX_PolicyType_Tenant_Code postgres
+6999; 1259 131588 INDEX axionpro UX_PolicyVersion_Current postgres
+7013; 1259 131589 INDEX axionpro UX_Role_Tenant_Name_Live postgres
+7031; 1259 131590 INDEX axionpro UX_State_CountryId_StateCode postgres
+7039; 1259 131591 INDEX axionpro UX_SubscriptionPlanPrice_Live postgres
+7054; 1259 131592 INDEX axionpro UX_TenantBillingProfile_Active postgres
+7057; 1259 131593 INDEX axionpro UX_TenantBillingSubscription_Current postgres
+7058; 1259 131594 INDEX axionpro UX_TenantBillingSubscription_Gateway postgres
+7062; 1259 131595 INDEX axionpro UX_TenantCardMaster_Tenant_CardHash_Live postgres
+7079; 1259 131596 INDEX axionpro UX_TenantDeviceConfiguration_HttpsIngressTokenHash postgres
+7080; 1259 131597 INDEX axionpro UX_TenantDeviceConfiguration_PendingHttpsIngressTokenHash postgres
+7072; 1259 131598 INDEX axionpro UX_TenantDevice_DeviceMasterId_Active postgres
+7073; 1259 131599 INDEX axionpro UX_TenantDevice_TenantId_DeviceCode postgres
+7085; 1259 131600 INDEX axionpro UX_TenantEmailTemplate_Tenant_TemplateCode postgres
+7108; 1259 131601 INDEX axionpro UX_TenantLocation_TenantId_LocationCode postgres
+7418; 2620 131602 TRIGGER axionpro EmployeeType TR_EmployeeType_OwnerImmutable postgres
+7417; 2620 131603 TRIGGER axionpro Employee TR_EmployeeType_Tenant postgres
+7419; 2620 131604 TRIGGER axionpro EmployeesChangedTypeHistory TR_EmployeeType_Tenant postgres
+7420; 2620 131605 TRIGGER axionpro Module TR_Module_PageNameImmutable postgres
+7153; 2606 131606 FK CONSTRAINT axionpro BillingInvoiceLine BillingInvoiceLine_BillingInvoiceId_fkey postgres
+7151; 2606 131611 FK CONSTRAINT axionpro BillingInvoice BillingInvoice_BillingOrderId_fkey postgres
+7152; 2606 131616 FK CONSTRAINT axionpro BillingInvoice BillingInvoice_TenantId_fkey postgres
+7154; 2606 131621 FK CONSTRAINT axionpro BillingOrder BillingOrder_PaymentGatewayId_fkey postgres
+7155; 2606 131626 FK CONSTRAINT axionpro BillingOrder BillingOrder_SubscriptionPlanPriceId_fkey postgres
+7156; 2606 131631 FK CONSTRAINT axionpro BillingOrder BillingOrder_TenantBillingSubscriptionId_fkey postgres
+7157; 2606 131636 FK CONSTRAINT axionpro BillingOrder BillingOrder_TenantId_fkey postgres
+7158; 2606 131641 FK CONSTRAINT axionpro BillingRefund BillingRefund_PaymentTransactionId_fkey postgres
+7159; 2606 131646 FK CONSTRAINT axionpro BillingSubscriptionChange BillingSubscriptionChange_FromSubscriptionPlanPriceId_fkey postgres
+7160; 2606 131651 FK CONSTRAINT axionpro BillingSubscriptionChange BillingSubscriptionChange_TenantBillingSubscriptionId_fkey postgres
+7161; 2606 131656 FK CONSTRAINT axionpro BillingSubscriptionChange BillingSubscriptionChange_ToSubscriptionPlanPriceId_fkey postgres
+7241; 2606 131661 FK CONSTRAINT axionpro EmployeeType EmployeeType_TenantId_fkey postgres
+7143; 2606 131666 FK CONSTRAINT axionpro AssetAssignment FK_AssetAssignment_Asset postgres
+7144; 2606 131671 FK CONSTRAINT axionpro AssetAssignment FK_AssetAssignment_Request postgres
+7145; 2606 131676 FK CONSTRAINT axionpro AssetCategory FK_AssetCategory_Tenant postgres
+7146; 2606 131681 FK CONSTRAINT axionpro AssetImage FK_AssetImage_Asset postgres
+7147; 2606 131686 FK CONSTRAINT axionpro AssetType FK_AssetType_AssetCategory postgres
+7141; 2606 131691 FK CONSTRAINT axionpro Asset FK_Asset_AssetStatus postgres
+7142; 2606 131696 FK CONSTRAINT axionpro Asset FK_Asset_AssetType postgres
+7207; 2606 131701 FK CONSTRAINT axionpro EmployeeDailyAttendance FK_AttendanceDeviceType postgres
+7149; 2606 131706 FK CONSTRAINT axionpro AttendancePolicyVersionConfiguration FK_AttendancePolicyVersionConfiguration_PolicyVersion postgres
+7150; 2606 131711 FK CONSTRAINT axionpro AttendancePolicyVersionConfiguration FK_AttendancePolicyVersionConfiguration_Tenant postgres
+7148; 2606 131716 FK CONSTRAINT axionpro AttendancePolicy FK_AttendancePolicy_Tenant postgres
+7162; 2606 131721 FK CONSTRAINT axionpro Category FK_Category_Parent postgres
+7166; 2606 131726 FK CONSTRAINT axionpro Client FK_Client_ClientType postgres
+7167; 2606 131731 FK CONSTRAINT axionpro ComplianceRule FK_ComplianceRule_ComplianceType postgres
+7168; 2606 131736 FK CONSTRAINT axionpro ComplianceRule FK_ComplianceRule_Country postgres
+7169; 2606 131741 FK CONSTRAINT axionpro ComplianceRule FK_ComplianceRule_State postgres
+7170; 2606 131746 FK CONSTRAINT axionpro ComplianceRule FK_ComplianceRule_Tenant postgres
+7171; 2606 131751 FK CONSTRAINT axionpro CountryIdentityRule FK_Country postgres
+7173; 2606 131756 FK CONSTRAINT axionpro CountryStatutoryRule FK_CountryStatutoryRule_Country postgres
+7174; 2606 131761 FK CONSTRAINT axionpro CountryStatutoryRule FK_CountryStatutoryRule_Statutory postgres
+7172; 2606 131766 FK CONSTRAINT axionpro CountryIdentityRule FK_Country_Document postgres
+7175; 2606 131771 FK CONSTRAINT axionpro DayCombination FK_DayCombination_Tenant postgres
+7176; 2606 131776 FK CONSTRAINT axionpro Department FK_Department_Tenant postgres
+7177; 2606 131781 FK CONSTRAINT axionpro Designation FK_Designation_Department postgres
+7178; 2606 131786 FK CONSTRAINT axionpro Designation FK_Designation_Tenant postgres
+7182; 2606 131791 FK CONSTRAINT axionpro DeviceCommandResponse FK_DeviceCommandResponse_DeviceCommand postgres
+7183; 2606 131796 FK CONSTRAINT axionpro DeviceCommandResponse FK_DeviceCommandResponse_Tenant postgres
+7184; 2606 131801 FK CONSTRAINT axionpro DeviceCommandResponse FK_DeviceCommandResponse_TenantDevice postgres
+7179; 2606 131806 FK CONSTRAINT axionpro DeviceCommand FK_DeviceCommand_Tenant postgres
+7180; 2606 131811 FK CONSTRAINT axionpro DeviceCommand FK_DeviceCommand_TenantDevice postgres
+7181; 2606 131816 FK CONSTRAINT axionpro DeviceCommand FK_DeviceCommand_TenantLocation postgres
+7185; 2606 131821 FK CONSTRAINT axionpro DeviceCredential FK_DeviceCredential_TenantDevice postgres
+7186; 2606 131826 FK CONSTRAINT axionpro DeviceInitialProvisioning FK_DeviceInitialProvisioning_DeviceMaster postgres
+7187; 2606 131831 FK CONSTRAINT axionpro DeviceMessageLog FK_DeviceMessageLog_Tenant postgres
+7188; 2606 131836 FK CONSTRAINT axionpro DeviceMessageLog FK_DeviceMessageLog_TenantDevice postgres
+7189; 2606 131841 FK CONSTRAINT axionpro District FK_District_State postgres
+7231; 2606 131846 FK CONSTRAINT axionpro EmployeePolicyDependentMapping FK_EPD_Dependent postgres
+7232; 2606 131851 FK CONSTRAINT axionpro EmployeePolicyDependentMapping FK_EPD_Enrollment postgres
+7208; 2606 131856 FK CONSTRAINT axionpro EmployeeDailyAttendance FK_Employee postgres
+7196; 2606 131861 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_Arrangement postgres
+7197; 2606 131866 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_AttendanceDeviceType postgres
+7198; 2606 131871 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_Employee postgres
+7199; 2606 131876 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_Location postgres
+7200; 2606 131881 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_PolicyVersion postgres
+7201; 2606 131886 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_Tenant postgres
+7202; 2606 131891 FK CONSTRAINT axionpro EmployeeBankDetail FK_EmployeeBank_Employee postgres
+7203; 2606 131896 FK CONSTRAINT axionpro EmployeeCategorySkill FK_EmployeeCategorySkill_Category postgres
+7204; 2606 131901 FK CONSTRAINT axionpro EmployeeCategorySkill FK_EmployeeCategorySkill_Employee postgres
+7205; 2606 131906 FK CONSTRAINT axionpro EmployeeCodePattern FK_EmployeeCodePattern_Tenant postgres
+7206; 2606 131911 FK CONSTRAINT axionpro EmployeeContact FK_EmployeeContact_Employee postgres
+7209; 2606 131916 FK CONSTRAINT axionpro EmployeeDependent FK_EmployeeDependents_Employee postgres
+7210; 2606 131921 FK CONSTRAINT axionpro EmployeeDeviceEnrollment FK_EmployeeDeviceEnrollment_Employee postgres
+7211; 2606 131926 FK CONSTRAINT axionpro EmployeeDeviceEnrollment FK_EmployeeDeviceEnrollment_Tenant postgres
+7213; 2606 131931 FK CONSTRAINT axionpro EmployeeExperienceDocument FK_EmployeeExperienceDocument_Experience postgres
+7212; 2606 131936 FK CONSTRAINT axionpro EmployeeExperience FK_EmployeeExperience_Employee postgres
+7214; 2606 131941 FK CONSTRAINT axionpro EmployeeIdentity FK_EmployeeIdentity_Document postgres
+7215; 2606 131946 FK CONSTRAINT axionpro EmployeeIdentity FK_EmployeeIdentity_Employee postgres
+7216; 2606 131951 FK CONSTRAINT axionpro EmployeeImage FK_EmployeeImages_Employee postgres
+7217; 2606 131956 FK CONSTRAINT axionpro EmployeeLeaveBalance FK_EmployeeLeaveBalance_EmployeeLeavePolicyMapping postgres
+7218; 2606 131961 FK CONSTRAINT axionpro EmployeeLeaveBalance FK_EmployeeLeaveBalance_Tenant postgres
+7221; 2606 131966 FK CONSTRAINT axionpro EmployeeLocationAssignment FK_EmployeeLocationAssignment_Employee postgres
+7222; 2606 131971 FK CONSTRAINT axionpro EmployeeLocationAssignment FK_EmployeeLocationAssignment_Tenant postgres
+7223; 2606 131976 FK CONSTRAINT axionpro EmployeeLocationAssignment FK_EmployeeLocationAssignment_TenantLocation postgres
+7224; 2606 131981 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Department postgres
+7225; 2606 131986 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Designation postgres
+7226; 2606 131991 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Employee postgres
+7227; 2606 131996 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Manager postgres
+7228; 2606 132001 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_ReportingType postgres
+7229; 2606 132006 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Tenant postgres
+7230; 2606 132011 FK CONSTRAINT axionpro EmployeePersonalDetail FK_EmployeePersonalDetail_Employee postgres
+7233; 2606 132016 FK CONSTRAINT axionpro EmployeePolicyEnrollment FK_EmployeePolicyEnrollment_Employee postgres
+7234; 2606 132021 FK CONSTRAINT axionpro EmployeeSalary FK_EmployeeSalary_Employee postgres
+7235; 2606 132026 FK CONSTRAINT axionpro EmployeeSalary FK_EmployeeSalary_Structure postgres
+7258; 2606 132031 FK CONSTRAINT axionpro EmployeesChangedTypeHistory FK_EmployeeStatusHistory_Employee postgres
+7259; 2606 132036 FK CONSTRAINT axionpro EmployeesChangedTypeHistory FK_EmployeeStatusHistory_NewEmployeeType postgres
+7260; 2606 132041 FK CONSTRAINT axionpro EmployeesChangedTypeHistory FK_EmployeeStatusHistory_OldEmployeeType postgres
+7236; 2606 132046 FK CONSTRAINT axionpro EmployeeStatutoryAccount FK_EmployeeStatutoryAccount_Statutory postgres
+7237; 2606 132051 FK CONSTRAINT axionpro EmployeeTaxProfile FK_EmployeeTaxProfile_Country postgres
+7238; 2606 132056 FK CONSTRAINT axionpro EmployeeTaxProfile FK_EmployeeTaxProfile_Employee postgres
+7239; 2606 132061 FK CONSTRAINT axionpro EmployeeTaxProfile FK_EmployeeTaxProfile_Regime postgres
+7240; 2606 132066 FK CONSTRAINT axionpro EmployeeTaxProfile FK_EmployeeTaxProfile_State postgres
+7242; 2606 132071 FK CONSTRAINT axionpro EmployeeTypeBasicMenu FK_EmployeeTypeBasicMenu_EmployeeType postgres
+7243; 2606 132076 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_AttendancePolicy postgres
+7244; 2606 132081 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_Employee postgres
+7245; 2606 132086 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_PolicyVersion postgres
+7246; 2606 132091 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_PrimaryLocation postgres
+7247; 2606 132096 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_Tenant postgres
+7248; 2606 132101 FK CONSTRAINT axionpro EmployeeWorkDocument FK_EmployeeWorkDocument_DocumentType postgres
+7249; 2606 132106 FK CONSTRAINT axionpro EmployeeWorkDocument FK_EmployeeWorkDocument_WorkHistory postgres
+7250; 2606 132111 FK CONSTRAINT axionpro EmployeeWorkHistory FK_EmployeeWorkHistory_Profile postgres
+7255; 2606 132116 FK CONSTRAINT axionpro EmployeeWorkPattern FK_EmployeeWorkPattern_Tenant postgres
+7256; 2606 132121 FK CONSTRAINT axionpro EmployeeWorkPattern FK_EmployeeWorkPattern_TenantLocation postgres
+7257; 2606 132126 FK CONSTRAINT axionpro EmployeeWorkPattern FK_EmployeeWorkPattern_WorkArrangement postgres
+7191; 2606 132131 FK CONSTRAINT axionpro Employee FK_Employee_Country postgres
+7192; 2606 132136 FK CONSTRAINT axionpro Employee FK_Employee_Designation postgres
+7193; 2606 132141 FK CONSTRAINT axionpro Employee FK_Employee_EmployeeType postgres
+7194; 2606 132146 FK CONSTRAINT axionpro Employee FK_Employee_Gender postgres
+7195; 2606 132151 FK CONSTRAINT axionpro Employee FK_Employee_Tenant postgres
+7362; 2606 132156 FK CONSTRAINT axionpro Tenant FK_Gender_Tenant postgres
+7264; 2606 132161 FK CONSTRAINT axionpro HostRoleModuleAndPermission FK_HRMP_HostRole postgres
+7265; 2606 132166 FK CONSTRAINT axionpro HostRoleModuleAndPermission FK_HRMP_Module postgres
+7266; 2606 132171 FK CONSTRAINT axionpro HostRoleModuleAndPermission FK_HRMP_Operation postgres
+7261; 2606 132176 FK CONSTRAINT axionpro Holiday FK_Holiday_Tenant postgres
+7262; 2606 132181 FK CONSTRAINT axionpro Holiday FK_Holiday_TenantLocation postgres
+7267; 2606 132186 FK CONSTRAINT axionpro HostUser FK_HostUser_HostRole postgres
+7268; 2606 132191 FK CONSTRAINT axionpro IdentityCategoryDocument FK_IdentityDocument_Category postgres
+7272; 2606 132196 FK CONSTRAINT axionpro LeaveType FK_LeaveType_TenantId postgres
+7163; 2606 132201 FK CONSTRAINT axionpro Locality FK_Locality_District postgres
+7164; 2606 132206 FK CONSTRAINT axionpro Locality FK_Locality_LocalityType postgres
+7273; 2606 132211 FK CONSTRAINT axionpro LoginCredential FK_LoginCredential_Employee postgres
+7275; 2606 132216 FK CONSTRAINT axionpro ModuleOperationMapping FK_ModuleOperationMapping_DataViewStructure postgres
+7276; 2606 132221 FK CONSTRAINT axionpro ModuleOperationMapping FK_ModuleOperationMapping_Module postgres
+7277; 2606 132226 FK CONSTRAINT axionpro ModuleOperationMapping FK_ModuleOperationMapping_PageTypeEnum postgres
+7278; 2606 132231 FK CONSTRAINT axionpro ModuleOperationMapping FK_ModuleOperation_Operation postgres
+7274; 2606 132236 FK CONSTRAINT axionpro Module FK_Module_ParentModule postgres
+7287; 2606 132241 FK CONSTRAINT axionpro PlanModuleMapping FK_PMM_SubscriptionPlan postgres
+7284; 2606 132246 FK CONSTRAINT axionpro PayrollEmployeeDetail FK_PayrollDetail_Component postgres
+7285; 2606 132251 FK CONSTRAINT axionpro PayrollEmployeeDetail FK_PayrollDetail_Employee postgres
+7282; 2606 132256 FK CONSTRAINT axionpro PayrollEmployee FK_PayrollEmployee_Employee postgres
+7283; 2606 132261 FK CONSTRAINT axionpro PayrollEmployee FK_PayrollEmployee_Run postgres
+7286; 2606 132266 FK CONSTRAINT axionpro PayrollRun FK_PayrollRun_Tenant postgres
+7288; 2606 132271 FK CONSTRAINT axionpro PlanModuleMapping FK_PlanModuleMapping_Module postgres
+7292; 2606 132276 FK CONSTRAINT axionpro PolicyAcknowledgement FK_PolicyAcknowledgement_Employee postgres
+7293; 2606 132281 FK CONSTRAINT axionpro PolicyAcknowledgement FK_PolicyAcknowledgement_Tenant postgres
+7294; 2606 132286 FK CONSTRAINT axionpro PolicyAcknowledgement FK_PolicyAcknowledgement_Version postgres
+7295; 2606 132291 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Country postgres
+7296; 2606 132296 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Department postgres
+7297; 2606 132301 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Designation postgres
+7298; 2606 132306 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_District postgres
+7299; 2606 132311 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Employee postgres
+7300; 2606 132316 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_EmployeeType postgres
+7301; 2606 132321 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Gender postgres
+7302; 2606 132326 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Locality postgres
+7303; 2606 132331 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_State postgres
+7304; 2606 132336 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Tenant postgres
+7305; 2606 132341 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_TenantLocation postgres
+7306; 2606 132346 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Version postgres
+7307; 2606 132351 FK CONSTRAINT axionpro PolicyApprovalHistory FK_PolicyApprovalHistory_Stage postgres
+7308; 2606 132356 FK CONSTRAINT axionpro PolicyApprovalHistory FK_PolicyApprovalHistory_Tenant postgres
+7309; 2606 132361 FK CONSTRAINT axionpro PolicyApprovalHistory FK_PolicyApprovalHistory_Version postgres
+7310; 2606 132366 FK CONSTRAINT axionpro PolicyApprovalStage FK_PolicyApprovalStage_Category postgres
+7311; 2606 132371 FK CONSTRAINT axionpro PolicyApprovalStage FK_PolicyApprovalStage_Role postgres
+7312; 2606 132376 FK CONSTRAINT axionpro PolicyApprovalStage FK_PolicyApprovalStage_Tenant postgres
+7313; 2606 132381 FK CONSTRAINT axionpro PolicyAssignment FK_PolicyAssignment_Applicability postgres
+7314; 2606 132386 FK CONSTRAINT axionpro PolicyAssignment FK_PolicyAssignment_Employee postgres
+7315; 2606 132391 FK CONSTRAINT axionpro PolicyAssignment FK_PolicyAssignment_Tenant postgres
+7316; 2606 132396 FK CONSTRAINT axionpro PolicyAssignment FK_PolicyAssignment_Version postgres
+7317; 2606 132401 FK CONSTRAINT axionpro PolicyChangeAudit FK_PolicyChangeAudit_Policy postgres
+7318; 2606 132406 FK CONSTRAINT axionpro PolicyChangeAudit FK_PolicyChangeAudit_Tenant postgres
+7319; 2606 132411 FK CONSTRAINT axionpro PolicyChangeAudit FK_PolicyChangeAudit_Version postgres
+7320; 2606 132416 FK CONSTRAINT axionpro PolicyDocument FK_PolicyDocument_Tenant postgres
+7321; 2606 132421 FK CONSTRAINT axionpro PolicyDocument FK_PolicyDocument_Type postgres
+7322; 2606 132426 FK CONSTRAINT axionpro PolicyDocument FK_PolicyDocument_Version postgres
+7323; 2606 132431 FK CONSTRAINT axionpro PolicyException FK_PolicyException_Employee postgres
+7324; 2606 132436 FK CONSTRAINT axionpro PolicyException FK_PolicyException_Status postgres
+7325; 2606 132441 FK CONSTRAINT axionpro PolicyException FK_PolicyException_Tenant postgres
+7326; 2606 132446 FK CONSTRAINT axionpro PolicyException FK_PolicyException_Version postgres
+7327; 2606 132451 FK CONSTRAINT axionpro PolicyRule FK_PolicyRule_Tenant postgres
+7328; 2606 132456 FK CONSTRAINT axionpro PolicyRule FK_PolicyRule_Type postgres
+7329; 2606 132461 FK CONSTRAINT axionpro PolicyRule FK_PolicyRule_Version postgres
+7330; 2606 132466 FK CONSTRAINT axionpro PolicyType FK_PolicyType_Category postgres
+7331; 2606 132471 FK CONSTRAINT axionpro PolicyType FK_PolicyType_Tenant postgres
+7332; 2606 132476 FK CONSTRAINT axionpro PolicyVersion FK_PolicyVersion_Policy postgres
+7333; 2606 132481 FK CONSTRAINT axionpro PolicyVersion FK_PolicyVersion_Status postgres
+7334; 2606 132486 FK CONSTRAINT axionpro PolicyVersion FK_PolicyVersion_Tenant postgres
+7289; 2606 132491 FK CONSTRAINT axionpro Policy FK_Policy_OwnerDepartment postgres
+7290; 2606 132496 FK CONSTRAINT axionpro Policy FK_Policy_Tenant postgres
+7291; 2606 132501 FK CONSTRAINT axionpro Policy FK_Policy_Type postgres
+7335; 2606 132506 FK CONSTRAINT axionpro RefreshToken FK_RefreshToken_HostUser postgres
+7336; 2606 132511 FK CONSTRAINT axionpro RefreshToken FK_RefreshToken_LoginCredential postgres
+7337; 2606 132516 FK CONSTRAINT axionpro RequestType FK_RequestType_Tenant postgres
+7338; 2606 132521 FK CONSTRAINT axionpro RoleModuleAndPermission FK_RoleModulePermission_Module postgres
+7339; 2606 132526 FK CONSTRAINT axionpro RoleModuleAndPermission FK_RoleModulePermission_Operation postgres
+7340; 2606 132531 FK CONSTRAINT axionpro RoleModuleAndPermission FK_RoleModulePermission_Role postgres
+7414; 2606 132536 FK CONSTRAINT axionpro UserRole FK_Role_Employee postgres
+7341; 2606 132541 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_Compliance postgres
+7342; 2606 132546 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_Country postgres
+7343; 2606 132551 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_Dependency postgres
+7344; 2606 132556 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_State postgres
+7345; 2606 132561 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_Tenant postgres
+7346; 2606 132566 FK CONSTRAINT axionpro SalaryStructure FK_SalaryStructure_Tenant postgres
+7351; 2606 132571 FK CONSTRAINT axionpro StatutoryType FK_StatutoryType_Country postgres
+7347; 2606 132576 FK CONSTRAINT axionpro SalaryStructureDetail FK_StructureDetail_Component postgres
+7348; 2606 132581 FK CONSTRAINT axionpro SalaryStructureDetail FK_StructureDetail_Dependency postgres
+7349; 2606 132586 FK CONSTRAINT axionpro SalaryStructureDetail FK_StructureDetail_Structure postgres
+7353; 2606 132591 FK CONSTRAINT axionpro TaxRegimeMaster FK_TaxRegime_Country postgres
+7354; 2606 132596 FK CONSTRAINT axionpro TaxRegimeMaster FK_TaxRegime_TaxSystem postgres
+7355; 2606 132601 FK CONSTRAINT axionpro TaxRule FK_TaxRule_Country postgres
+7356; 2606 132606 FK CONSTRAINT axionpro TaxRule FK_TaxRule_Tenant postgres
+7357; 2606 132611 FK CONSTRAINT axionpro TaxSlab FK_TaxSlab_Country postgres
+7358; 2606 132616 FK CONSTRAINT axionpro TaxSlab FK_TaxSlab_Regime postgres
+7359; 2606 132621 FK CONSTRAINT axionpro TaxSlab FK_TaxSlab_State postgres
+7360; 2606 132626 FK CONSTRAINT axionpro TaxSlab FK_TaxSlab_Tenant postgres
+7361; 2606 132631 FK CONSTRAINT axionpro TaxSystemMaster FK_TaxSystem_Country postgres
+7369; 2606 132636 FK CONSTRAINT axionpro TenantCardMaster FK_TenantCardMaster_Tenant postgres
+7373; 2606 132641 FK CONSTRAINT axionpro TenantDeviceConfiguration FK_TenantDeviceConfiguration_TenantDevice postgres
+7370; 2606 132646 FK CONSTRAINT axionpro TenantDevice FK_TenantDevice_DeviceMaster postgres
+7371; 2606 132651 FK CONSTRAINT axionpro TenantDevice FK_TenantDevice_Tenant postgres
+7372; 2606 132656 FK CONSTRAINT axionpro TenantDevice FK_TenantDevice_TenantLocation postgres
+7374; 2606 132661 FK CONSTRAINT axionpro TenantEmailConfig FK_TenantEmailConfig_Tenant postgres
+7375; 2606 132666 FK CONSTRAINT axionpro TenantEmailTemplate FK_TenantEmailTemplate_Tenant postgres
+7376; 2606 132671 FK CONSTRAINT axionpro TenantEnabledModule FK_TenantEnabledModules_Module postgres
+7377; 2606 132676 FK CONSTRAINT axionpro TenantEnabledModule FK_TenantEnabledModules_Tenant postgres
+7378; 2606 132681 FK CONSTRAINT axionpro TenantEnabledOperation FK_TenantEnabledOperations_Module postgres
+7379; 2606 132686 FK CONSTRAINT axionpro TenantEnabledOperation FK_TenantEnabledOperations_Operation postgres
+7380; 2606 132691 FK CONSTRAINT axionpro TenantEnabledOperation FK_TenantEnabledOperations_Tenant postgres
+7381; 2606 132696 FK CONSTRAINT axionpro TenantLocation FK_TenantLocation_City postgres
+7382; 2606 132701 FK CONSTRAINT axionpro TenantLocation FK_TenantLocation_Country postgres
+7383; 2606 132706 FK CONSTRAINT axionpro TenantLocation FK_TenantLocation_District postgres
+7384; 2606 132711 FK CONSTRAINT axionpro TenantLocation FK_TenantLocation_Tenant postgres
+7385; 2606 132716 FK CONSTRAINT axionpro TenantProfile FK_TenantProfile_Tenant postgres
+7386; 2606 132721 FK CONSTRAINT axionpro TenantSubscription FK_TenantSubscription_Plan postgres
+7387; 2606 132726 FK CONSTRAINT axionpro TenantSubscription FK_TenantSubscription_Tenant postgres
+7363; 2606 132731 FK CONSTRAINT axionpro Tenant FK_Tenant_TenantIndustry postgres
+7388; 2606 132736 FK CONSTRAINT axionpro Tender FK_Tender_ClientId postgres
+7390; 2606 132741 FK CONSTRAINT axionpro ThreadMessage FK_ThreadMessage_Employee postgres
+7391; 2606 132746 FK CONSTRAINT axionpro ThreadMessage FK_ThreadMessage_Thread postgres
+7402; 2606 132751 FK CONSTRAINT axionpro TicketAttachment FK_TicketAttachment_User postgres
+7403; 2606 132756 FK CONSTRAINT axionpro TicketClassification FK_TicketClassification_Tenant postgres
+7404; 2606 132761 FK CONSTRAINT axionpro TicketHeader FK_TicketHeaderType_TicketClassification postgres
+7405; 2606 132766 FK CONSTRAINT axionpro TicketHeader FK_TicketHeader_TenantId postgres
+7406; 2606 132771 FK CONSTRAINT axionpro TicketHistory FK_TicketHistory_Ticket postgres
+7407; 2606 132776 FK CONSTRAINT axionpro TicketHistory FK_TicketHistory_User postgres
+7408; 2606 132781 FK CONSTRAINT axionpro TicketType FK_TicketType_ApprovalRole postgres
+7409; 2606 132786 FK CONSTRAINT axionpro TicketType FK_TicketType_Header postgres
+7410; 2606 132791 FK CONSTRAINT axionpro TicketType FK_TicketType_ResponsibleRole postgres
+7411; 2606 132796 FK CONSTRAINT axionpro TicketType FK_TicketType_Tenant postgres
+7392; 2606 132801 FK CONSTRAINT axionpro Ticket FK_Ticket_ApprovedBy postgres
+7393; 2606 132806 FK CONSTRAINT axionpro Ticket FK_Ticket_AssignedRole postgres
+7394; 2606 132811 FK CONSTRAINT axionpro Ticket FK_Ticket_AssignedUser postgres
+7395; 2606 132816 FK CONSTRAINT axionpro Ticket FK_Ticket_Classification postgres
+7396; 2606 132821 FK CONSTRAINT axionpro Ticket FK_Ticket_Header postgres
+7397; 2606 132826 FK CONSTRAINT axionpro Ticket FK_Ticket_RecommendedBy postgres
+7398; 2606 132831 FK CONSTRAINT axionpro Ticket FK_Ticket_RequestedBy postgres
+7399; 2606 132836 FK CONSTRAINT axionpro Ticket FK_Ticket_RequestedFor postgres
+7400; 2606 132841 FK CONSTRAINT axionpro Ticket FK_Ticket_Tenant postgres
+7401; 2606 132846 FK CONSTRAINT axionpro Ticket FK_Ticket_TicketType postgres
+7412; 2606 132851 FK CONSTRAINT axionpro UserAttendanceSetting FK_UserAttendanceSetting_AttendanceDeviceType postgres
+7413; 2606 132856 FK CONSTRAINT axionpro UserAttendanceSetting FK_UserAttendanceSetting_Employee postgres
+7415; 2606 132861 FK CONSTRAINT axionpro UserRole FK_UserRole_Role postgres
+7251; 2606 132866 FK CONSTRAINT axionpro EmployeeWorkModeOverrideRequest FK_WorkModeOverride_Employee postgres
+7252; 2606 132871 FK CONSTRAINT axionpro EmployeeWorkModeOverrideRequest FK_WorkModeOverride_Tenant postgres
+7253; 2606 132876 FK CONSTRAINT axionpro EmployeeWorkModeOverrideRequest FK_WorkModeOverride_TenantLocation postgres
+7254; 2606 132881 FK CONSTRAINT axionpro EmployeeWorkModeOverrideRequest FK_WorkModeOverride_WorkArrangement postgres
+7165; 2606 132886 FK CONSTRAINT axionpro Locality FK__City__StateId__6EE06CCD postgres
+7190; 2606 132891 FK CONSTRAINT axionpro EmailQueue FK__EmailQueu__Templ__44B528D7 postgres
+7219; 2606 132896 FK CONSTRAINT axionpro EmployeeLeavePolicyMapping FK__EmployeeL__Emplo__73D00A73 postgres
+7220; 2606 132901 FK CONSTRAINT axionpro EmployeeLeavePolicyMapping FK__EmployeeL__Tenan__72DBE63A postgres
+7269; 2606 132906 FK CONSTRAINT axionpro LeaveRequest FK__LeaveRequ__Emplo__05EEBAAE postgres
+7270; 2606 132911 FK CONSTRAINT axionpro LeaveRequest FK__LeaveRequ__Leave__06E2DEE7 postgres
+7271; 2606 132916 FK CONSTRAINT axionpro LeaveRequest FK__LeaveRequ__Tenan__04FA9675 postgres
+7350; 2606 132921 FK CONSTRAINT axionpro State FK__State__CountryId__6B0FDBE9 postgres
+7389; 2606 132926 FK CONSTRAINT axionpro Tender FK__Tender__TenderSt__3EDC53F0 postgres
+7263; 2606 132931 FK CONSTRAINT axionpro HostBillingConfiguration HostBillingConfiguration_PaymentGatewayId_fkey postgres
+7279; 2606 132936 FK CONSTRAINT axionpro PaymentAttempt PaymentAttempt_BillingOrderId_fkey postgres
+7280; 2606 132941 FK CONSTRAINT axionpro PaymentTransaction PaymentTransaction_BillingOrderId_fkey postgres
+7281; 2606 132946 FK CONSTRAINT axionpro PaymentWebhookEvent PaymentWebhookEvent_PaymentGatewayId_fkey postgres
+7352; 2606 132951 FK CONSTRAINT axionpro SubscriptionPlanPrice SubscriptionPlanPrice_SubscriptionPlanId_fkey postgres
+7364; 2606 132956 FK CONSTRAINT axionpro TenantBillingProfile TenantBillingProfile_TenantId_fkey postgres
+7365; 2606 132961 FK CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_PaymentGatewayId_fkey postgres
+7366; 2606 132966 FK CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_SubscriptionPlanPriceId_fkey postgres
+7367; 2606 132971 FK CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_TenantId_fkey postgres
+7368; 2606 132976 FK CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_TenantSubscriptionId_fkey postgres
+7416; 2606 133067 FK CONSTRAINT axionpro TenantEmployeeSectionDefault TenantEmployeeSectionDefault_TenantId_fkey postgres

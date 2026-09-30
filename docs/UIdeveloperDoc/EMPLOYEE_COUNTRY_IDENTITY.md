@@ -6,10 +6,11 @@
 - Catalogue model: data-driven; the UI must not hard-code Aadhaar, PAN, NINO,
   Passport or any other country document.
 - Runtime read implementation: Entity Framework queries.
-- Production cleanup: **WAITING FOR USER**. Render PostgreSQL was suspended on
-  2026-09-30 and closed the SSL connection, so no database object was changed.
-- Legacy source/database cleanup: **NOT APPLIED**. Run only after the user asks
-  to continue and the Render database is reachable.
+- Local cleanup: **COMPLETE**. Both obsolete functions were removed from
+  `workforcedb_local_20260928`, and their definitions were removed from the
+  project source on 2026-09-30.
+- Render cleanup: **PENDING**. Render PostgreSQL remained suspended and closed
+  the SSL connection, so its database was not changed.
 
 ## Business flow
 
@@ -128,16 +129,18 @@ The following PostgreSQL functions were superseded by the current EF read path:
 - `axionpro."GetCountryIdentityDocument"(integer)`
 - `axionpro."GetEmployeeIdentityByCountryRule"(bigint, integer, boolean)`
 
-Their definitions remain in `axionpro.application/DTOS/SPFunctions.txt`, and the
-database was previously observed to contain both functions. Current runtime
-source does not call them. They must not be removed while Render is suspended.
+Their definitions have been removed from
+`axionpro.application/DTOS/SPFunctions.txt`. Both exact signatures were dropped
+from the active local database after confirming zero external dependencies.
+Current runtime source does not call them. The suspended Render database has not
+been changed.
 
-When the user asks to continue, perform this controlled sequence:
+If Render is resumed later, perform this controlled sequence there:
 
 1. Confirm Render API and PostgreSQL service are active.
 2. Re-run repository references and `pg_proc` signature/dependency checks.
 3. Preserve the four identity tables and all foreign keys listed above.
-4. Remove only the two legacy function definitions from `SPFunctions.txt`.
+4. Confirm the project still contains no legacy function definitions.
 5. Execute guarded `DROP FUNCTION IF EXISTS` statements for the exact signatures.
 6. Verify both functions are absent and all six required tables still exist.
 7. Run backend identity tests/build and Angular identity unit/Playwright tests.
@@ -164,4 +167,3 @@ The latest completed feature evidence is recorded in
 [`docs/testing/employee/country-identity/2026-09-30.md`](../testing/employee/country-identity/2026-09-30.md).
 The table audit and deferred-cleanup status are recorded in
 [`docs/testing/employee/identity-table-usage/2026-09-30.md`](../testing/employee/identity-table-usage/2026-09-30.md).
-

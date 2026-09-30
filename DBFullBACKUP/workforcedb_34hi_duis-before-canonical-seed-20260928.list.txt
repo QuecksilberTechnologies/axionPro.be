@@ -1,0 +1,1318 @@
+;
+; Archive created at 2026-09-28 09:26:03
+;     dbname: workforcedb_34hi_duis
+;     TOC Entries: 1308
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.6 (Debian 18.6-1.pgdg12+2)
+;     Dumped by pg_dump version: 18.3
+;
+;
+; Selected TOC Entries:
+;
+7; 2615 31067 SCHEMA - axionpro workforcedb_user
+6; 2615 2200 SCHEMA - public workforcedb_user
+2; 3079 94465 EXTENSION - btree_gist 
+6359; 0 0 COMMENT - EXTENSION btree_gist 
+744; 1255 35550 FUNCTION axionpro AllEmployeeCountData(bigint) workforcedb_user
+699; 1255 35313 FUNCTION axionpro CheckHostUserPermission(bigint, bigint, integer, integer) workforcedb_user
+849; 1255 31069 FUNCTION axionpro CheckPermission(character varying, integer, integer, boolean, boolean) workforcedb_user
+672; 1255 35551 FUNCTION axionpro CheckTenantEmployeePermission(bigint, bigint, integer, integer, integer) workforcedb_user
+764; 1255 31070 FUNCTION axionpro GetActiveRoleModuleOperations(bigint, text) workforcedb_user
+868; 1255 35552 FUNCTION axionpro GetCountryIdentityDocument(integer) workforcedb_user
+852; 1255 35553 FUNCTION axionpro GetDetailsForPermission(bigint) workforcedb_user
+674; 1255 35304 FUNCTION axionpro GetEmployeeCodePatternByTenant(bigint) workforcedb_user
+844; 1255 31074 FUNCTION axionpro GetEmployeeIdentityByCountryRule(bigint, integer, boolean) workforcedb_user
+871; 1255 31075 FUNCTION axionpro GetSubscribedModuleByTenantId(bigint) workforcedb_user
+834; 1255 35554 FUNCTION axionpro GetTenantModuleHierarchyWithOps_MinRoot(bigint) workforcedb_user
+802; 1255 35555 FUNCTION axionpro InsertOrUpdateRefreshToken(text, text, timestamp without time zone, text) workforcedb_user
+763; 1255 36885 FUNCTION axionpro PreventModulePageNameChange() workforcedb_user
+685; 1255 35556 FUNCTION axionpro SyncNewOperationsForExistingModules() workforcedb_user
+667; 1255 35557 FUNCTION axionpro SyncTenantModulesAndOperations() workforcedb_user
+762; 1255 35558 FUNCTION axionpro TenantModuleOperationConfigurationData(bigint) workforcedb_user
+829; 1255 31081 FUNCTION axionpro UpdateLoginCredential(text, text, text, integer, text, text, text) workforcedb_user
+812; 1255 31082 FUNCTION axionpro UpdateTenantEnabledOperationFromModuleOperation(bigint) workforcedb_user
+669; 1255 31083 FUNCTION axionpro ValidateActiveUserCrendentialOnly(text) workforcedb_user
+653; 1255 31084 FUNCTION axionpro ValidateActiveUserLoginOnly(text) workforcedb_user
+723; 1255 38630 FUNCTION axionpro prevent_employee_type_owner_change() workforcedb_user
+811; 1255 38632 FUNCTION axionpro validate_employee_type_tenant() workforcedb_user
+325; 1259 31118 TABLE axionpro Asset workforcedb_user
+326; 1259 31137 TABLE axionpro AssetAssignment workforcedb_user
+327; 1259 31150 SEQUENCE axionpro AssetAssignment_Id_seq workforcedb_user
+6360; 0 0 SEQUENCE OWNED BY axionpro AssetAssignment_Id_seq workforcedb_user
+328; 1259 31151 TABLE axionpro AssetCategory workforcedb_user
+329; 1259 31165 SEQUENCE axionpro AssetCategory_Id_seq workforcedb_user
+330; 1259 31183 TABLE axionpro AssetImage workforcedb_user
+331; 1259 31200 SEQUENCE axionpro AssetImage_Id_seq workforcedb_user
+332; 1259 31201 TABLE axionpro AssetRequest workforcedb_user
+333; 1259 31213 SEQUENCE axionpro AssetRequest_Id_seq workforcedb_user
+6361; 0 0 SEQUENCE OWNED BY axionpro AssetRequest_Id_seq workforcedb_user
+334; 1259 31214 TABLE axionpro AssetStatus workforcedb_user
+335; 1259 31227 SEQUENCE axionpro AssetStatus_Id_seq workforcedb_user
+336; 1259 31242 TABLE axionpro AssetType workforcedb_user
+337; 1259 31253 SEQUENCE axionpro AssetType_Id_seq workforcedb_user
+338; 1259 31254 SEQUENCE axionpro Asset_Id_seq workforcedb_user
+339; 1259 31255 TABLE axionpro AssignmentStatus workforcedb_user
+340; 1259 31265 SEQUENCE axionpro AssignmentStatus_Id_seq workforcedb_user
+341; 1259 31266 TABLE axionpro Attendance workforcedb_user
+342; 1259 31273 TABLE axionpro AttendanceDeviceType workforcedb_user
+343; 1259 31280 SEQUENCE axionpro AttendanceDeviceType_Id_seq workforcedb_user
+547; 1259 34883 TABLE axionpro AttendancePolicy workforcedb_user
+643; 1259 95201 TABLE axionpro AttendancePolicyVersionConfiguration workforcedb_user
+642; 1259 95200 SEQUENCE axionpro AttendancePolicyVersionConfiguration_Id_seq workforcedb_user
+546; 1259 34882 SEQUENCE axionpro AttendancePolicy_Id_seq workforcedb_user
+344; 1259 31302 TABLE axionpro AttendanceRequest workforcedb_user
+345; 1259 31312 SEQUENCE axionpro AttendanceRequest_Id_seq workforcedb_user
+346; 1259 31313 SEQUENCE axionpro Attendance_Id_seq workforcedb_user
+641; 1259 94413 TABLE axionpro BillingAuditLog workforcedb_user
+640; 1259 94412 SEQUENCE axionpro BillingAuditLog_Id_seq workforcedb_user
+634; 1259 94290 TABLE axionpro BillingInvoice workforcedb_user
+636; 1259 94327 TABLE axionpro BillingInvoiceLine workforcedb_user
+635; 1259 94326 SEQUENCE axionpro BillingInvoiceLine_Id_seq workforcedb_user
+633; 1259 94289 SEQUENCE axionpro BillingInvoice_Id_seq workforcedb_user
+626; 1259 94166 TABLE axionpro BillingOrder workforcedb_user
+637; 1259 94350 TABLE axionpro BillingRefund workforcedb_user
+639; 1259 94378 TABLE axionpro BillingSubscriptionChange workforcedb_user
+638; 1259 94377 SEQUENCE axionpro BillingSubscriptionChange_Id_seq workforcedb_user
+621; 1259 94079 TABLE axionpro BillingTaxRule workforcedb_user
+620; 1259 94078 SEQUENCE axionpro BillingTaxRule_Id_seq workforcedb_user
+578; 1259 38587 TABLE axionpro BulkImportJob workforcedb_user
+347; 1259 31371 TABLE axionpro Category workforcedb_user
+348; 1259 31380 SEQUENCE axionpro Category_Id_seq workforcedb_user
+349; 1259 31381 TABLE axionpro Locality workforcedb_user
+581; 1259 92989 VIEW axionpro City workforcedb_user
+350; 1259 31388 SEQUENCE axionpro City_Id_seq workforcedb_user
+351; 1259 31389 TABLE axionpro Client workforcedb_user
+352; 1259 31398 TABLE axionpro ClientType workforcedb_user
+353; 1259 31407 SEQUENCE axionpro ClientType_Id_seq workforcedb_user
+354; 1259 31408 SEQUENCE axionpro Client_Id_seq workforcedb_user
+355; 1259 31427 TABLE axionpro ComplianceRule workforcedb_user
+356; 1259 31443 SEQUENCE axionpro ComplianceRule_Id_seq workforcedb_user
+357; 1259 31444 TABLE axionpro ComplianceTypeMaster workforcedb_user
+358; 1259 31450 SEQUENCE axionpro ComplianceTypeMaster_Id_seq workforcedb_user
+6362; 0 0 SEQUENCE OWNED BY axionpro ComplianceTypeMaster_Id_seq workforcedb_user
+359; 1259 31451 TABLE axionpro Country workforcedb_user
+360; 1259 31458 TABLE axionpro CountryIdentityRule workforcedb_user
+361; 1259 31470 SEQUENCE axionpro CountryIdentityRule_Id_seq workforcedb_user
+362; 1259 31471 TABLE axionpro CountryStatutoryRule workforcedb_user
+363; 1259 31482 SEQUENCE axionpro CountryStatutoryRule_Id_seq workforcedb_user
+364; 1259 31483 SEQUENCE axionpro Country_Id_seq workforcedb_user
+365; 1259 31484 TABLE axionpro DataViewStructure workforcedb_user
+366; 1259 31490 SEQUENCE axionpro DataViewStructure_Id_seq workforcedb_user
+367; 1259 31491 TABLE axionpro DayCombination workforcedb_user
+368; 1259 31504 SEQUENCE axionpro DayCombination_Id_seq workforcedb_user
+565; 1259 35870 TABLE axionpro DefaultEmailConfig workforcedb_user
+564; 1259 35869 SEQUENCE axionpro DefaultEmailConfig_Id_seq workforcedb_user
+369; 1259 31529 TABLE axionpro Department workforcedb_user
+370; 1259 31536 SEQUENCE axionpro Department_Id_seq workforcedb_user
+371; 1259 31537 TABLE axionpro Designation workforcedb_user
+372; 1259 31545 SEQUENCE axionpro Designation_Id_seq workforcedb_user
+567; 1259 36530 TABLE axionpro DeviceCommand workforcedb_user
+569; 1259 36586 TABLE axionpro DeviceCommandResponse workforcedb_user
+568; 1259 36585 SEQUENCE axionpro DeviceCommandResponse_Id_seq workforcedb_user
+566; 1259 36529 SEQUENCE axionpro DeviceCommand_Id_seq workforcedb_user
+573; 1259 36654 TABLE axionpro DeviceCredential workforcedb_user
+572; 1259 36653 SEQUENCE axionpro DeviceCredential_Id_seq workforcedb_user
+575; 1259 36689 TABLE axionpro DeviceInitialProvisioning workforcedb_user
+574; 1259 36688 SEQUENCE axionpro DeviceInitialProvisioning_Id_seq workforcedb_user
+559; 1259 35163 TABLE axionpro DeviceMaster workforcedb_user
+558; 1259 35162 SEQUENCE axionpro DeviceMaster_Id_seq workforcedb_user
+571; 1259 36617 TABLE axionpro DeviceMessageLog workforcedb_user
+570; 1259 36616 SEQUENCE axionpro DeviceMessageLog_Id_seq workforcedb_user
+373; 1259 31589 TABLE axionpro District workforcedb_user
+374; 1259 31612 SEQUENCE axionpro District_Id_seq workforcedb_user
+375; 1259 31613 TABLE axionpro EmailQueue workforcedb_user
+376; 1259 31624 SEQUENCE axionpro EmailQueue_Id_seq workforcedb_user
+377; 1259 31625 TABLE axionpro EmailTemplate workforcedb_user
+378; 1259 31639 SEQUENCE axionpro EmailTemplate_Id_seq workforcedb_user
+379; 1259 31658 TABLE axionpro Employee workforcedb_user
+645; 1259 95235 TABLE axionpro EmployeeAttendancePunch workforcedb_user
+644; 1259 95234 SEQUENCE axionpro EmployeeAttendancePunch_Id_seq workforcedb_user
+380; 1259 31674 TABLE axionpro EmployeeBankDetail workforcedb_user
+381; 1259 31686 SEQUENCE axionpro EmployeeBankDetail_Id_seq workforcedb_user
+382; 1259 31687 TABLE axionpro EmployeeCategorySkill workforcedb_user
+383; 1259 31695 SEQUENCE axionpro EmployeeCategorySkill_Id_seq workforcedb_user
+384; 1259 31696 TABLE axionpro EmployeeCodePattern workforcedb_user
+385; 1259 31718 SEQUENCE axionpro EmployeeCodePattern_Id_seq workforcedb_user
+386; 1259 31719 TABLE axionpro EmployeeContact workforcedb_user
+387; 1259 31734 SEQUENCE axionpro EmployeeContact_Id_seq workforcedb_user
+388; 1259 31735 TABLE axionpro EmployeeDailyAttendance workforcedb_user
+389; 1259 31750 SEQUENCE axionpro EmployeeDailyAttendance_Id_seq workforcedb_user
+390; 1259 31751 TABLE axionpro EmployeeDependent workforcedb_user
+391; 1259 31759 SEQUENCE axionpro EmployeeDependent_Id_seq workforcedb_user
+549; 1259 34934 TABLE axionpro EmployeeDeviceEnrollment workforcedb_user
+548; 1259 34933 SEQUENCE axionpro EmployeeDeviceEnrollment_Id_seq workforcedb_user
+392; 1259 31760 TABLE axionpro EmployeeEducation workforcedb_user
+393; 1259 31770 SEQUENCE axionpro EmployeeEducation_Id_seq workforcedb_user
+394; 1259 31771 TABLE axionpro EmployeeExperience workforcedb_user
+395; 1259 31785 TABLE axionpro EmployeeExperienceDocument workforcedb_user
+396; 1259 31798 SEQUENCE axionpro EmployeeExperienceDocument_Id_seq workforcedb_user
+397; 1259 31799 SEQUENCE axionpro EmployeeExperience_Id_seq workforcedb_user
+398; 1259 31800 TABLE axionpro EmployeeIdentity workforcedb_user
+399; 1259 31823 SEQUENCE axionpro EmployeeIdentity_Id_seq workforcedb_user
+400; 1259 31824 TABLE axionpro EmployeeImage workforcedb_user
+401; 1259 31835 SEQUENCE axionpro EmployeeImage_Id_seq workforcedb_user
+402; 1259 31836 TABLE axionpro EmployeeLeaveBalance workforcedb_user
+403; 1259 31847 SEQUENCE axionpro EmployeeLeaveBalance_Id_seq workforcedb_user
+404; 1259 31848 TABLE axionpro EmployeeLeavePolicyMapping workforcedb_user
+405; 1259 31861 SEQUENCE axionpro EmployeeLeavePolicyMapping_Id_seq workforcedb_user
+551; 1259 34977 TABLE axionpro EmployeeLocationAssignment workforcedb_user
+550; 1259 34976 SEQUENCE axionpro EmployeeLocationAssignment_Id_seq workforcedb_user
+406; 1259 31862 TABLE axionpro EmployeeManagerMapping workforcedb_user
+407; 1259 31876 SEQUENCE axionpro EmployeeManagerMapping_Id_seq workforcedb_user
+408; 1259 31877 TABLE axionpro EmployeePersonalDetail workforcedb_user
+409; 1259 31886 SEQUENCE axionpro EmployeePersonalDetail_Id_seq workforcedb_user
+410; 1259 31887 TABLE axionpro EmployeePolicyDependentMapping workforcedb_user
+411; 1259 31902 SEQUENCE axionpro EmployeePolicyDependentMapping_Id_seq workforcedb_user
+412; 1259 31903 TABLE axionpro EmployeePolicyEnrollment workforcedb_user
+413; 1259 31919 SEQUENCE axionpro EmployeePolicyEnrollment_Id_seq workforcedb_user
+414; 1259 31920 TABLE axionpro EmployeeSalary workforcedb_user
+415; 1259 31933 SEQUENCE axionpro EmployeeSalary_Id_seq workforcedb_user
+416; 1259 31934 TABLE axionpro EmployeeStatutoryAccount workforcedb_user
+417; 1259 31946 SEQUENCE axionpro EmployeeStatutoryAccount_Id_seq workforcedb_user
+418; 1259 31947 TABLE axionpro EmployeeTaxProfile workforcedb_user
+419; 1259 31960 SEQUENCE axionpro EmployeeTaxProfile_Id_seq workforcedb_user
+420; 1259 31961 TABLE axionpro EmployeeType workforcedb_user
+421; 1259 31967 TABLE axionpro EmployeeTypeBasicMenu workforcedb_user
+422; 1259 31981 SEQUENCE axionpro EmployeeTypeBasicMenu_Id_seq workforcedb_user
+423; 1259 31982 SEQUENCE axionpro EmployeeType_Id_seq workforcedb_user
+553; 1259 35020 TABLE axionpro EmployeeWorkArrangement workforcedb_user
+552; 1259 35019 SEQUENCE axionpro EmployeeWorkArrangement_Id_seq workforcedb_user
+424; 1259 31983 TABLE axionpro EmployeeWorkDocument workforcedb_user
+425; 1259 31999 SEQUENCE axionpro EmployeeWorkDocument_Id_seq workforcedb_user
+426; 1259 32000 TABLE axionpro EmployeeWorkHistory workforcedb_user
+427; 1259 32022 SEQUENCE axionpro EmployeeWorkHistory_Id_seq workforcedb_user
+557; 1259 35110 TABLE axionpro EmployeeWorkModeOverrideRequest workforcedb_user
+556; 1259 35109 SEQUENCE axionpro EmployeeWorkModeOverrideRequest_Id_seq workforcedb_user
+555; 1259 35070 TABLE axionpro EmployeeWorkPattern workforcedb_user
+554; 1259 35069 SEQUENCE axionpro EmployeeWorkPattern_Id_seq workforcedb_user
+428; 1259 32023 TABLE axionpro EmployeeWorkProfile workforcedb_user
+429; 1259 32038 SEQUENCE axionpro EmployeeWorkProfile_Id_seq workforcedb_user
+430; 1259 32039 SEQUENCE axionpro Employee_Id_seq workforcedb_user
+431; 1259 32040 TABLE axionpro EmployeesChangedTypeHistory workforcedb_user
+432; 1259 32053 SEQUENCE axionpro EmployeesChangedTypeHistory_Id_seq workforcedb_user
+433; 1259 32054 TABLE axionpro ForgotPasswordOTPDetail workforcedb_user
+434; 1259 32067 SEQUENCE axionpro ForgotPasswordOTPDetail_Id_seq workforcedb_user
+435; 1259 32068 TABLE axionpro Gender workforcedb_user
+436; 1259 32073 SEQUENCE axionpro Gender_Id_seq workforcedb_user
+461; 1259 32455 TABLE axionpro Holiday workforcedb_user
+462; 1259 32470 SEQUENCE axionpro Holiday_Id_seq workforcedb_user
+617; 1259 94015 TABLE axionpro HostBillingConfiguration workforcedb_user
+616; 1259 94014 SEQUENCE axionpro HostBillingConfiguration_Id_seq workforcedb_user
+437; 1259 32094 TABLE axionpro HostRole workforcedb_user
+438; 1259 32105 TABLE axionpro HostRoleModuleAndPermission workforcedb_user
+439; 1259 32118 SEQUENCE axionpro HostRoleModuleAndPermission_Id_seq workforcedb_user
+6363; 0 0 SEQUENCE OWNED BY axionpro HostRoleModuleAndPermission_Id_seq workforcedb_user
+440; 1259 32119 SEQUENCE axionpro HostRole_Id_seq workforcedb_user
+6364; 0 0 SEQUENCE OWNED BY axionpro HostRole_Id_seq workforcedb_user
+441; 1259 32120 TABLE axionpro HostUser workforcedb_user
+442; 1259 32136 SEQUENCE axionpro HostUser_Id_seq workforcedb_user
+6365; 0 0 SEQUENCE OWNED BY axionpro HostUser_Id_seq workforcedb_user
+443; 1259 32137 TABLE axionpro IdentityCategory workforcedb_user
+444; 1259 32147 TABLE axionpro IdentityCategoryDocument workforcedb_user
+445; 1259 32160 SEQUENCE axionpro IdentityCategoryDocument_Id_seq workforcedb_user
+446; 1259 32161 SEQUENCE axionpro IdentityCategory_Id_seq workforcedb_user
+447; 1259 32265 TABLE axionpro LeaveRequest workforcedb_user
+448; 1259 32284 SEQUENCE axionpro LeaveRequest_Id_seq workforcedb_user
+449; 1259 32339 TABLE axionpro LeaveType workforcedb_user
+450; 1259 32347 SEQUENCE axionpro LeaveType_Id_seq workforcedb_user
+451; 1259 32348 TABLE axionpro License workforcedb_user
+452; 1259 32353 SEQUENCE axionpro License_Id_seq workforcedb_user
+580; 1259 92957 TABLE axionpro LocalityType workforcedb_user
+579; 1259 92956 SEQUENCE axionpro LocalityType_Id_seq workforcedb_user
+453; 1259 32354 TABLE axionpro LoginCredential workforcedb_user
+454; 1259 32375 SEQUENCE axionpro LoginCredential_Id_seq workforcedb_user
+455; 1259 32397 TABLE axionpro Module workforcedb_user
+456; 1259 32414 TABLE axionpro ModuleOperationMapping workforcedb_user
+457; 1259 32429 SEQUENCE axionpro ModuleOperationMapping_Id_seq workforcedb_user
+458; 1259 32430 SEQUENCE axionpro Module_Id_seq workforcedb_user
+459; 1259 32443 TABLE axionpro Operation workforcedb_user
+460; 1259 32454 SEQUENCE axionpro Operation_Id_seq workforcedb_user
+463; 1259 32471 TABLE axionpro PageTypeEnum workforcedb_user
+630; 1259 94239 TABLE axionpro PaymentAttempt workforcedb_user
+629; 1259 94238 SEQUENCE axionpro PaymentAttempt_Id_seq workforcedb_user
+615; 1259 93991 TABLE axionpro PaymentGateway workforcedb_user
+614; 1259 93990 SEQUENCE axionpro PaymentGateway_Id_seq workforcedb_user
+628; 1259 94216 TABLE axionpro PaymentTransaction workforcedb_user
+627; 1259 94215 SEQUENCE axionpro PaymentTransaction_Id_seq workforcedb_user
+632; 1259 94261 TABLE axionpro PaymentWebhookEvent workforcedb_user
+631; 1259 94260 SEQUENCE axionpro PaymentWebhookEvent_Id_seq workforcedb_user
+464; 1259 32475 TABLE axionpro PayrollEmployee workforcedb_user
+465; 1259 32485 TABLE axionpro PayrollEmployeeDetail workforcedb_user
+466; 1259 32496 SEQUENCE axionpro PayrollEmployeeDetail_Id_seq workforcedb_user
+467; 1259 32497 SEQUENCE axionpro PayrollEmployee_Id_seq workforcedb_user
+468; 1259 32498 TABLE axionpro PayrollRun workforcedb_user
+469; 1259 32511 SEQUENCE axionpro PayrollRun_Id_seq workforcedb_user
+470; 1259 32512 TABLE axionpro PlanModuleMapping workforcedb_user
+471; 1259 32521 SEQUENCE axionpro PlanModuleMapping_Id_seq workforcedb_user
+591; 1259 93140 TABLE axionpro Policy workforcedb_user
+609; 1259 93356 TABLE axionpro PolicyAcknowledgement workforcedb_user
+608; 1259 93355 SEQUENCE axionpro PolicyAcknowledgement_Id_seq workforcedb_user
+597; 1259 93212 TABLE axionpro PolicyApplicability workforcedb_user
+596; 1259 93211 SEQUENCE axionpro PolicyApplicability_Id_seq workforcedb_user
+607; 1259 93337 TABLE axionpro PolicyApprovalHistory workforcedb_user
+606; 1259 93336 SEQUENCE axionpro PolicyApprovalHistory_Id_seq workforcedb_user
+605; 1259 93315 TABLE axionpro PolicyApprovalStage workforcedb_user
+604; 1259 93314 SEQUENCE axionpro PolicyApprovalStage_Id_seq workforcedb_user
+599; 1259 93234 TABLE axionpro PolicyAssignment workforcedb_user
+598; 1259 93233 SEQUENCE axionpro PolicyAssignment_Id_seq workforcedb_user
+583; 1259 93061 TABLE axionpro PolicyCategory workforcedb_user
+582; 1259 93060 SEQUENCE axionpro PolicyCategory_Id_seq workforcedb_user
+611; 1259 93375 TABLE axionpro PolicyChangeAudit workforcedb_user
+610; 1259 93374 SEQUENCE axionpro PolicyChangeAudit_Id_seq workforcedb_user
+603; 1259 93284 TABLE axionpro PolicyDocument workforcedb_user
+587; 1259 93108 TABLE axionpro PolicyDocumentType workforcedb_user
+602; 1259 93283 SEQUENCE axionpro PolicyDocument_Id_seq workforcedb_user
+601; 1259 93257 TABLE axionpro PolicyException workforcedb_user
+600; 1259 93256 SEQUENCE axionpro PolicyException_Id_seq workforcedb_user
+595; 1259 93188 TABLE axionpro PolicyRule workforcedb_user
+586; 1259 93092 TABLE axionpro PolicyRuleType workforcedb_user
+585; 1259 93091 SEQUENCE axionpro PolicyRuleType_Id_seq workforcedb_user
+594; 1259 93187 SEQUENCE axionpro PolicyRule_Id_seq workforcedb_user
+584; 1259 93077 TABLE axionpro PolicyStatus workforcedb_user
+589; 1259 93121 TABLE axionpro PolicyType workforcedb_user
+588; 1259 93120 SEQUENCE axionpro PolicyType_Id_seq workforcedb_user
+593; 1259 93162 TABLE axionpro PolicyVersion workforcedb_user
+592; 1259 93161 SEQUENCE axionpro PolicyVersion_Id_seq workforcedb_user
+590; 1259 93139 SEQUENCE axionpro Policy_Id_seq workforcedb_user
+472; 1259 32566 TABLE axionpro RefreshToken workforcedb_user
+473; 1259 32578 SEQUENCE axionpro RefreshToken_Id_seq workforcedb_user
+474; 1259 32579 TABLE axionpro ReportingType workforcedb_user
+475; 1259 32589 SEQUENCE axionpro ReportingType_Id_seq workforcedb_user
+476; 1259 32590 TABLE axionpro RequestType workforcedb_user
+477; 1259 32599 SEQUENCE axionpro RequestType_Id_seq workforcedb_user
+478; 1259 32600 TABLE axionpro Role workforcedb_user
+479; 1259 32611 TABLE axionpro RoleModuleAndPermission workforcedb_user
+480; 1259 32617 SEQUENCE axionpro RoleModuleAndPermission_Id_seq workforcedb_user
+481; 1259 32618 SEQUENCE axionpro Role_Id_seq workforcedb_user
+482; 1259 32619 TABLE axionpro SalaryComponentMaster workforcedb_user
+483; 1259 32643 SEQUENCE axionpro SalaryComponentMaster_Id_seq workforcedb_user
+484; 1259 32644 TABLE axionpro SalaryStructure workforcedb_user
+485; 1259 32659 TABLE axionpro SalaryStructureDetail workforcedb_user
+486; 1259 32674 SEQUENCE axionpro SalaryStructureDetail_Id_seq workforcedb_user
+487; 1259 32675 SEQUENCE axionpro SalaryStructure_Id_seq workforcedb_user
+488; 1259 32691 TABLE axionpro State workforcedb_user
+489; 1259 32698 SEQUENCE axionpro State_Id_seq workforcedb_user
+490; 1259 32699 TABLE axionpro StatutoryType workforcedb_user
+491; 1259 32712 SEQUENCE axionpro StatutoryType_Id_seq workforcedb_user
+492; 1259 32713 TABLE axionpro SubscriptionPlan workforcedb_user
+619; 1259 94053 TABLE axionpro SubscriptionPlanPrice workforcedb_user
+618; 1259 94052 SEQUENCE axionpro SubscriptionPlanPrice_Id_seq workforcedb_user
+493; 1259 32722 SEQUENCE axionpro SubscriptionPlan_Id_seq workforcedb_user
+494; 1259 32723 TABLE axionpro TaxRegimeMaster workforcedb_user
+495; 1259 32735 SEQUENCE axionpro TaxRegimeMaster_Id_seq workforcedb_user
+496; 1259 32736 TABLE axionpro TaxRule workforcedb_user
+497; 1259 32754 SEQUENCE axionpro TaxRule_Id_seq workforcedb_user
+498; 1259 32755 TABLE axionpro TaxSlab workforcedb_user
+499; 1259 32770 SEQUENCE axionpro TaxSlab_Id_seq workforcedb_user
+500; 1259 32771 TABLE axionpro TaxSystemMaster workforcedb_user
+501; 1259 32781 SEQUENCE axionpro TaxSystemMaster_Id_seq workforcedb_user
+502; 1259 32782 TABLE axionpro Tenant workforcedb_user
+623; 1259 94100 TABLE axionpro TenantBillingProfile workforcedb_user
+622; 1259 94099 SEQUENCE axionpro TenantBillingProfile_Id_seq workforcedb_user
+625; 1259 94125 TABLE axionpro TenantBillingSubscription workforcedb_user
+624; 1259 94124 SEQUENCE axionpro TenantBillingSubscription_Id_seq workforcedb_user
+577; 1259 37139 TABLE axionpro TenantCardMaster workforcedb_user
+576; 1259 37138 SEQUENCE axionpro TenantCardMaster_Id_seq workforcedb_user
+6366; 0 0 SEQUENCE OWNED BY axionpro TenantCardMaster_Id_seq workforcedb_user
+561; 1259 35238 TABLE axionpro TenantDevice workforcedb_user
+563; 1259 35319 TABLE axionpro TenantDeviceConfiguration workforcedb_user
+562; 1259 35318 SEQUENCE axionpro TenantDeviceConfiguration_Id_seq workforcedb_user
+6367; 0 0 SEQUENCE OWNED BY axionpro TenantDeviceConfiguration_Id_seq workforcedb_user
+560; 1259 35237 SEQUENCE axionpro TenantDevice_Id_seq workforcedb_user
+503; 1259 32797 TABLE axionpro TenantEmailConfig workforcedb_user
+504; 1259 32807 SEQUENCE axionpro TenantEmailConfig_Id_seq workforcedb_user
+613; 1259 93964 TABLE axionpro TenantEmailTemplate workforcedb_user
+612; 1259 93963 SEQUENCE axionpro TenantEmailTemplate_Id_seq workforcedb_user
+505; 1259 32808 TABLE axionpro TenantEnabledModule workforcedb_user
+506; 1259 32817 SEQUENCE axionpro TenantEnabledModule_Id_seq workforcedb_user
+507; 1259 32818 TABLE axionpro TenantEnabledOperation workforcedb_user
+508; 1259 32828 SEQUENCE axionpro TenantEnabledOperation_Id_seq workforcedb_user
+509; 1259 32829 TABLE axionpro TenantEncryptionKeys workforcedb_user
+510; 1259 32839 SEQUENCE axionpro TenantEncryptionKeys_Id_seq workforcedb_user
+511; 1259 32840 TABLE axionpro TenantIndustry workforcedb_user
+512; 1259 32849 SEQUENCE axionpro TenantIndustry_Id_seq workforcedb_user
+545; 1259 34776 TABLE axionpro TenantLocation workforcedb_user
+544; 1259 34775 SEQUENCE axionpro TenantLocation_Id_seq workforcedb_user
+513; 1259 32850 TABLE axionpro TenantProfile workforcedb_user
+514; 1259 32857 SEQUENCE axionpro TenantProfile_Id_seq workforcedb_user
+515; 1259 32858 TABLE axionpro TenantSubscription workforcedb_user
+516; 1259 32871 SEQUENCE axionpro TenantSubscription_Id_seq workforcedb_user
+517; 1259 32872 SEQUENCE axionpro Tenant_Id_seq workforcedb_user
+518; 1259 32873 TABLE axionpro Tender workforcedb_user
+519; 1259 32949 TABLE axionpro TenderStatus workforcedb_user
+520; 1259 32957 SEQUENCE axionpro TenderStatus_Id_seq workforcedb_user
+521; 1259 32958 SEQUENCE axionpro Tender_Id_seq workforcedb_user
+522; 1259 32959 TABLE axionpro ThreadMessage workforcedb_user
+523; 1259 32971 SEQUENCE axionpro ThreadMessage_Id_seq workforcedb_user
+6368; 0 0 SEQUENCE OWNED BY axionpro ThreadMessage_Id_seq workforcedb_user
+524; 1259 32972 TABLE axionpro TicketThread workforcedb_user
+525; 1259 32981 SEQUENCE axionpro Thread_Id_seq workforcedb_user
+6369; 0 0 SEQUENCE OWNED BY axionpro Thread_Id_seq workforcedb_user
+526; 1259 32982 TABLE axionpro Ticket workforcedb_user
+527; 1259 32997 TABLE axionpro TicketAttachment workforcedb_user
+528; 1259 33007 SEQUENCE axionpro TicketAttachment_Id_seq workforcedb_user
+6370; 0 0 SEQUENCE OWNED BY axionpro TicketAttachment_Id_seq workforcedb_user
+529; 1259 33008 TABLE axionpro TicketClassification workforcedb_user
+530; 1259 33017 SEQUENCE axionpro TicketClassification_Id_seq workforcedb_user
+531; 1259 33018 TABLE axionpro TicketHeader workforcedb_user
+532; 1259 33031 SEQUENCE axionpro TicketHeader_Id_seq workforcedb_user
+533; 1259 33032 TABLE axionpro TicketHistory workforcedb_user
+534; 1259 33047 SEQUENCE axionpro TicketHistory_Id_seq workforcedb_user
+6371; 0 0 SEQUENCE OWNED BY axionpro TicketHistory_Id_seq workforcedb_user
+535; 1259 33048 TABLE axionpro TicketType workforcedb_user
+536; 1259 33066 SEQUENCE axionpro TicketType_Id_seq workforcedb_user
+537; 1259 33067 SEQUENCE axionpro Ticket_Id_seq workforcedb_user
+6372; 0 0 SEQUENCE OWNED BY axionpro Ticket_Id_seq workforcedb_user
+538; 1259 33110 TABLE axionpro UserAttendanceSetting workforcedb_user
+539; 1259 33126 SEQUENCE axionpro UserAttendanceSetting_Id_seq workforcedb_user
+540; 1259 33127 TABLE axionpro UserRole workforcedb_user
+541; 1259 33134 SEQUENCE axionpro UserRole_Id_seq workforcedb_user
+542; 1259 33135 TABLE axionpro WorkDocumentType workforcedb_user
+543; 1259 33142 SEQUENCE axionpro WorkDocumentType_Id_seq workforcedb_user
+4459; 2604 35559 DEFAULT axionpro AssetAssignment Id workforcedb_user
+4470; 2604 35560 DEFAULT axionpro AssetRequest Id workforcedb_user
+4495; 2604 35562 DEFAULT axionpro ComplianceTypeMaster Id workforcedb_user
+4604; 2604 35566 DEFAULT axionpro HostRole Id workforcedb_user
+4608; 2604 35567 DEFAULT axionpro HostRoleModuleAndPermission Id workforcedb_user
+4612; 2604 35568 DEFAULT axionpro HostUser Id workforcedb_user
+4861; 2604 37142 DEFAULT axionpro TenantCardMaster Id workforcedb_user
+4835; 2604 35569 DEFAULT axionpro TenantDeviceConfiguration Id workforcedb_user
+4731; 2604 35570 DEFAULT axionpro ThreadMessage Id workforcedb_user
+4740; 2604 35571 DEFAULT axionpro Ticket Id workforcedb_user
+4741; 2604 35572 DEFAULT axionpro TicketAttachment Id workforcedb_user
+4750; 2604 35573 DEFAULT axionpro TicketHistory Id workforcedb_user
+4736; 2604 35574 DEFAULT axionpro TicketThread Id workforcedb_user
+6032; 0 31118 TABLE DATA axionpro Asset workforcedb_user
+6033; 0 31137 TABLE DATA axionpro AssetAssignment workforcedb_user
+6035; 0 31151 TABLE DATA axionpro AssetCategory workforcedb_user
+6037; 0 31183 TABLE DATA axionpro AssetImage workforcedb_user
+6039; 0 31201 TABLE DATA axionpro AssetRequest workforcedb_user
+6041; 0 31214 TABLE DATA axionpro AssetStatus workforcedb_user
+6043; 0 31242 TABLE DATA axionpro AssetType workforcedb_user
+6046; 0 31255 TABLE DATA axionpro AssignmentStatus workforcedb_user
+6048; 0 31266 TABLE DATA axionpro Attendance workforcedb_user
+6049; 0 31273 TABLE DATA axionpro AttendanceDeviceType workforcedb_user
+6254; 0 34883 TABLE DATA axionpro AttendancePolicy workforcedb_user
+6349; 0 95201 TABLE DATA axionpro AttendancePolicyVersionConfiguration workforcedb_user
+6051; 0 31302 TABLE DATA axionpro AttendanceRequest workforcedb_user
+6347; 0 94413 TABLE DATA axionpro BillingAuditLog workforcedb_user
+6340; 0 94290 TABLE DATA axionpro BillingInvoice workforcedb_user
+6342; 0 94327 TABLE DATA axionpro BillingInvoiceLine workforcedb_user
+6332; 0 94166 TABLE DATA axionpro BillingOrder workforcedb_user
+6343; 0 94350 TABLE DATA axionpro BillingRefund workforcedb_user
+6345; 0 94378 TABLE DATA axionpro BillingSubscriptionChange workforcedb_user
+6327; 0 94079 TABLE DATA axionpro BillingTaxRule workforcedb_user
+6285; 0 38587 TABLE DATA axionpro BulkImportJob workforcedb_user
+6054; 0 31371 TABLE DATA axionpro Category workforcedb_user
+6058; 0 31389 TABLE DATA axionpro Client workforcedb_user
+6059; 0 31398 TABLE DATA axionpro ClientType workforcedb_user
+6062; 0 31427 TABLE DATA axionpro ComplianceRule workforcedb_user
+6064; 0 31444 TABLE DATA axionpro ComplianceTypeMaster workforcedb_user
+6066; 0 31451 TABLE DATA axionpro Country workforcedb_user
+6067; 0 31458 TABLE DATA axionpro CountryIdentityRule workforcedb_user
+6069; 0 31471 TABLE DATA axionpro CountryStatutoryRule workforcedb_user
+6072; 0 31484 TABLE DATA axionpro DataViewStructure workforcedb_user
+6074; 0 31491 TABLE DATA axionpro DayCombination workforcedb_user
+6272; 0 35870 TABLE DATA axionpro DefaultEmailConfig workforcedb_user
+6076; 0 31529 TABLE DATA axionpro Department workforcedb_user
+6078; 0 31537 TABLE DATA axionpro Designation workforcedb_user
+6274; 0 36530 TABLE DATA axionpro DeviceCommand workforcedb_user
+6276; 0 36586 TABLE DATA axionpro DeviceCommandResponse workforcedb_user
+6280; 0 36654 TABLE DATA axionpro DeviceCredential workforcedb_user
+6282; 0 36689 TABLE DATA axionpro DeviceInitialProvisioning workforcedb_user
+6266; 0 35163 TABLE DATA axionpro DeviceMaster workforcedb_user
+6278; 0 36617 TABLE DATA axionpro DeviceMessageLog workforcedb_user
+6080; 0 31589 TABLE DATA axionpro District workforcedb_user
+6082; 0 31613 TABLE DATA axionpro EmailQueue workforcedb_user
+6084; 0 31625 TABLE DATA axionpro EmailTemplate workforcedb_user
+6086; 0 31658 TABLE DATA axionpro Employee workforcedb_user
+6351; 0 95235 TABLE DATA axionpro EmployeeAttendancePunch workforcedb_user
+6087; 0 31674 TABLE DATA axionpro EmployeeBankDetail workforcedb_user
+6089; 0 31687 TABLE DATA axionpro EmployeeCategorySkill workforcedb_user
+6091; 0 31696 TABLE DATA axionpro EmployeeCodePattern workforcedb_user
+6093; 0 31719 TABLE DATA axionpro EmployeeContact workforcedb_user
+6095; 0 31735 TABLE DATA axionpro EmployeeDailyAttendance workforcedb_user
+6097; 0 31751 TABLE DATA axionpro EmployeeDependent workforcedb_user
+6256; 0 34934 TABLE DATA axionpro EmployeeDeviceEnrollment workforcedb_user
+6099; 0 31760 TABLE DATA axionpro EmployeeEducation workforcedb_user
+6101; 0 31771 TABLE DATA axionpro EmployeeExperience workforcedb_user
+6102; 0 31785 TABLE DATA axionpro EmployeeExperienceDocument workforcedb_user
+6105; 0 31800 TABLE DATA axionpro EmployeeIdentity workforcedb_user
+6107; 0 31824 TABLE DATA axionpro EmployeeImage workforcedb_user
+6109; 0 31836 TABLE DATA axionpro EmployeeLeaveBalance workforcedb_user
+6111; 0 31848 TABLE DATA axionpro EmployeeLeavePolicyMapping workforcedb_user
+6258; 0 34977 TABLE DATA axionpro EmployeeLocationAssignment workforcedb_user
+6113; 0 31862 TABLE DATA axionpro EmployeeManagerMapping workforcedb_user
+6115; 0 31877 TABLE DATA axionpro EmployeePersonalDetail workforcedb_user
+6117; 0 31887 TABLE DATA axionpro EmployeePolicyDependentMapping workforcedb_user
+6119; 0 31903 TABLE DATA axionpro EmployeePolicyEnrollment workforcedb_user
+6121; 0 31920 TABLE DATA axionpro EmployeeSalary workforcedb_user
+6123; 0 31934 TABLE DATA axionpro EmployeeStatutoryAccount workforcedb_user
+6125; 0 31947 TABLE DATA axionpro EmployeeTaxProfile workforcedb_user
+6127; 0 31961 TABLE DATA axionpro EmployeeType workforcedb_user
+6128; 0 31967 TABLE DATA axionpro EmployeeTypeBasicMenu workforcedb_user
+6260; 0 35020 TABLE DATA axionpro EmployeeWorkArrangement workforcedb_user
+6131; 0 31983 TABLE DATA axionpro EmployeeWorkDocument workforcedb_user
+6133; 0 32000 TABLE DATA axionpro EmployeeWorkHistory workforcedb_user
+6264; 0 35110 TABLE DATA axionpro EmployeeWorkModeOverrideRequest workforcedb_user
+6262; 0 35070 TABLE DATA axionpro EmployeeWorkPattern workforcedb_user
+6135; 0 32023 TABLE DATA axionpro EmployeeWorkProfile workforcedb_user
+6138; 0 32040 TABLE DATA axionpro EmployeesChangedTypeHistory workforcedb_user
+6140; 0 32054 TABLE DATA axionpro ForgotPasswordOTPDetail workforcedb_user
+6142; 0 32068 TABLE DATA axionpro Gender workforcedb_user
+6168; 0 32455 TABLE DATA axionpro Holiday workforcedb_user
+6323; 0 94015 TABLE DATA axionpro HostBillingConfiguration workforcedb_user
+6144; 0 32094 TABLE DATA axionpro HostRole workforcedb_user
+6145; 0 32105 TABLE DATA axionpro HostRoleModuleAndPermission workforcedb_user
+6148; 0 32120 TABLE DATA axionpro HostUser workforcedb_user
+6150; 0 32137 TABLE DATA axionpro IdentityCategory workforcedb_user
+6151; 0 32147 TABLE DATA axionpro IdentityCategoryDocument workforcedb_user
+6154; 0 32265 TABLE DATA axionpro LeaveRequest workforcedb_user
+6156; 0 32339 TABLE DATA axionpro LeaveType workforcedb_user
+6158; 0 32348 TABLE DATA axionpro License workforcedb_user
+6056; 0 31381 TABLE DATA axionpro Locality workforcedb_user
+6287; 0 92957 TABLE DATA axionpro LocalityType workforcedb_user
+6160; 0 32354 TABLE DATA axionpro LoginCredential workforcedb_user
+6162; 0 32397 TABLE DATA axionpro Module workforcedb_user
+6163; 0 32414 TABLE DATA axionpro ModuleOperationMapping workforcedb_user
+6166; 0 32443 TABLE DATA axionpro Operation workforcedb_user
+6170; 0 32471 TABLE DATA axionpro PageTypeEnum workforcedb_user
+6336; 0 94239 TABLE DATA axionpro PaymentAttempt workforcedb_user
+6321; 0 93991 TABLE DATA axionpro PaymentGateway workforcedb_user
+6334; 0 94216 TABLE DATA axionpro PaymentTransaction workforcedb_user
+6338; 0 94261 TABLE DATA axionpro PaymentWebhookEvent workforcedb_user
+6171; 0 32475 TABLE DATA axionpro PayrollEmployee workforcedb_user
+6172; 0 32485 TABLE DATA axionpro PayrollEmployeeDetail workforcedb_user
+6175; 0 32498 TABLE DATA axionpro PayrollRun workforcedb_user
+6177; 0 32512 TABLE DATA axionpro PlanModuleMapping workforcedb_user
+6297; 0 93140 TABLE DATA axionpro Policy workforcedb_user
+6315; 0 93356 TABLE DATA axionpro PolicyAcknowledgement workforcedb_user
+6303; 0 93212 TABLE DATA axionpro PolicyApplicability workforcedb_user
+6313; 0 93337 TABLE DATA axionpro PolicyApprovalHistory workforcedb_user
+6311; 0 93315 TABLE DATA axionpro PolicyApprovalStage workforcedb_user
+6305; 0 93234 TABLE DATA axionpro PolicyAssignment workforcedb_user
+6289; 0 93061 TABLE DATA axionpro PolicyCategory workforcedb_user
+6317; 0 93375 TABLE DATA axionpro PolicyChangeAudit workforcedb_user
+6309; 0 93284 TABLE DATA axionpro PolicyDocument workforcedb_user
+6293; 0 93108 TABLE DATA axionpro PolicyDocumentType workforcedb_user
+6307; 0 93257 TABLE DATA axionpro PolicyException workforcedb_user
+6301; 0 93188 TABLE DATA axionpro PolicyRule workforcedb_user
+6292; 0 93092 TABLE DATA axionpro PolicyRuleType workforcedb_user
+6290; 0 93077 TABLE DATA axionpro PolicyStatus workforcedb_user
+6295; 0 93121 TABLE DATA axionpro PolicyType workforcedb_user
+6299; 0 93162 TABLE DATA axionpro PolicyVersion workforcedb_user
+6179; 0 32566 TABLE DATA axionpro RefreshToken workforcedb_user
+6181; 0 32579 TABLE DATA axionpro ReportingType workforcedb_user
+6183; 0 32590 TABLE DATA axionpro RequestType workforcedb_user
+6185; 0 32600 TABLE DATA axionpro Role workforcedb_user
+6186; 0 32611 TABLE DATA axionpro RoleModuleAndPermission workforcedb_user
+6189; 0 32619 TABLE DATA axionpro SalaryComponentMaster workforcedb_user
+6191; 0 32644 TABLE DATA axionpro SalaryStructure workforcedb_user
+6192; 0 32659 TABLE DATA axionpro SalaryStructureDetail workforcedb_user
+6195; 0 32691 TABLE DATA axionpro State workforcedb_user
+6197; 0 32699 TABLE DATA axionpro StatutoryType workforcedb_user
+6199; 0 32713 TABLE DATA axionpro SubscriptionPlan workforcedb_user
+6325; 0 94053 TABLE DATA axionpro SubscriptionPlanPrice workforcedb_user
+6201; 0 32723 TABLE DATA axionpro TaxRegimeMaster workforcedb_user
+6203; 0 32736 TABLE DATA axionpro TaxRule workforcedb_user
+6205; 0 32755 TABLE DATA axionpro TaxSlab workforcedb_user
+6207; 0 32771 TABLE DATA axionpro TaxSystemMaster workforcedb_user
+6209; 0 32782 TABLE DATA axionpro Tenant workforcedb_user
+6329; 0 94100 TABLE DATA axionpro TenantBillingProfile workforcedb_user
+6331; 0 94125 TABLE DATA axionpro TenantBillingSubscription workforcedb_user
+6284; 0 37139 TABLE DATA axionpro TenantCardMaster workforcedb_user
+6268; 0 35238 TABLE DATA axionpro TenantDevice workforcedb_user
+6270; 0 35319 TABLE DATA axionpro TenantDeviceConfiguration workforcedb_user
+6210; 0 32797 TABLE DATA axionpro TenantEmailConfig workforcedb_user
+6319; 0 93964 TABLE DATA axionpro TenantEmailTemplate workforcedb_user
+6212; 0 32808 TABLE DATA axionpro TenantEnabledModule workforcedb_user
+6214; 0 32818 TABLE DATA axionpro TenantEnabledOperation workforcedb_user
+6216; 0 32829 TABLE DATA axionpro TenantEncryptionKeys workforcedb_user
+6218; 0 32840 TABLE DATA axionpro TenantIndustry workforcedb_user
+6252; 0 34776 TABLE DATA axionpro TenantLocation workforcedb_user
+6220; 0 32850 TABLE DATA axionpro TenantProfile workforcedb_user
+6222; 0 32858 TABLE DATA axionpro TenantSubscription workforcedb_user
+6225; 0 32873 TABLE DATA axionpro Tender workforcedb_user
+6226; 0 32949 TABLE DATA axionpro TenderStatus workforcedb_user
+6229; 0 32959 TABLE DATA axionpro ThreadMessage workforcedb_user
+6233; 0 32982 TABLE DATA axionpro Ticket workforcedb_user
+6234; 0 32997 TABLE DATA axionpro TicketAttachment workforcedb_user
+6236; 0 33008 TABLE DATA axionpro TicketClassification workforcedb_user
+6238; 0 33018 TABLE DATA axionpro TicketHeader workforcedb_user
+6240; 0 33032 TABLE DATA axionpro TicketHistory workforcedb_user
+6231; 0 32972 TABLE DATA axionpro TicketThread workforcedb_user
+6242; 0 33048 TABLE DATA axionpro TicketType workforcedb_user
+6245; 0 33110 TABLE DATA axionpro UserAttendanceSetting workforcedb_user
+6247; 0 33127 TABLE DATA axionpro UserRole workforcedb_user
+6249; 0 33135 TABLE DATA axionpro WorkDocumentType workforcedb_user
+6373; 0 0 SEQUENCE SET axionpro AssetAssignment_Id_seq workforcedb_user
+6374; 0 0 SEQUENCE SET axionpro AssetCategory_Id_seq workforcedb_user
+6375; 0 0 SEQUENCE SET axionpro AssetImage_Id_seq workforcedb_user
+6376; 0 0 SEQUENCE SET axionpro AssetRequest_Id_seq workforcedb_user
+6377; 0 0 SEQUENCE SET axionpro AssetStatus_Id_seq workforcedb_user
+6378; 0 0 SEQUENCE SET axionpro AssetType_Id_seq workforcedb_user
+6379; 0 0 SEQUENCE SET axionpro Asset_Id_seq workforcedb_user
+6380; 0 0 SEQUENCE SET axionpro AssignmentStatus_Id_seq workforcedb_user
+6381; 0 0 SEQUENCE SET axionpro AttendanceDeviceType_Id_seq workforcedb_user
+6382; 0 0 SEQUENCE SET axionpro AttendancePolicyVersionConfiguration_Id_seq workforcedb_user
+6383; 0 0 SEQUENCE SET axionpro AttendancePolicy_Id_seq workforcedb_user
+6384; 0 0 SEQUENCE SET axionpro AttendanceRequest_Id_seq workforcedb_user
+6385; 0 0 SEQUENCE SET axionpro Attendance_Id_seq workforcedb_user
+6386; 0 0 SEQUENCE SET axionpro BillingAuditLog_Id_seq workforcedb_user
+6387; 0 0 SEQUENCE SET axionpro BillingInvoiceLine_Id_seq workforcedb_user
+6388; 0 0 SEQUENCE SET axionpro BillingInvoice_Id_seq workforcedb_user
+6389; 0 0 SEQUENCE SET axionpro BillingSubscriptionChange_Id_seq workforcedb_user
+6390; 0 0 SEQUENCE SET axionpro BillingTaxRule_Id_seq workforcedb_user
+6391; 0 0 SEQUENCE SET axionpro Category_Id_seq workforcedb_user
+6392; 0 0 SEQUENCE SET axionpro City_Id_seq workforcedb_user
+6393; 0 0 SEQUENCE SET axionpro ClientType_Id_seq workforcedb_user
+6394; 0 0 SEQUENCE SET axionpro Client_Id_seq workforcedb_user
+6395; 0 0 SEQUENCE SET axionpro ComplianceRule_Id_seq workforcedb_user
+6396; 0 0 SEQUENCE SET axionpro ComplianceTypeMaster_Id_seq workforcedb_user
+6397; 0 0 SEQUENCE SET axionpro CountryIdentityRule_Id_seq workforcedb_user
+6398; 0 0 SEQUENCE SET axionpro CountryStatutoryRule_Id_seq workforcedb_user
+6399; 0 0 SEQUENCE SET axionpro Country_Id_seq workforcedb_user
+6400; 0 0 SEQUENCE SET axionpro DataViewStructure_Id_seq workforcedb_user
+6401; 0 0 SEQUENCE SET axionpro DayCombination_Id_seq workforcedb_user
+6402; 0 0 SEQUENCE SET axionpro DefaultEmailConfig_Id_seq workforcedb_user
+6403; 0 0 SEQUENCE SET axionpro Department_Id_seq workforcedb_user
+6404; 0 0 SEQUENCE SET axionpro Designation_Id_seq workforcedb_user
+6405; 0 0 SEQUENCE SET axionpro DeviceCommandResponse_Id_seq workforcedb_user
+6406; 0 0 SEQUENCE SET axionpro DeviceCommand_Id_seq workforcedb_user
+6407; 0 0 SEQUENCE SET axionpro DeviceCredential_Id_seq workforcedb_user
+6408; 0 0 SEQUENCE SET axionpro DeviceInitialProvisioning_Id_seq workforcedb_user
+6409; 0 0 SEQUENCE SET axionpro DeviceMaster_Id_seq workforcedb_user
+6410; 0 0 SEQUENCE SET axionpro DeviceMessageLog_Id_seq workforcedb_user
+6411; 0 0 SEQUENCE SET axionpro District_Id_seq workforcedb_user
+6412; 0 0 SEQUENCE SET axionpro EmailQueue_Id_seq workforcedb_user
+6413; 0 0 SEQUENCE SET axionpro EmailTemplate_Id_seq workforcedb_user
+6414; 0 0 SEQUENCE SET axionpro EmployeeAttendancePunch_Id_seq workforcedb_user
+6415; 0 0 SEQUENCE SET axionpro EmployeeBankDetail_Id_seq workforcedb_user
+6416; 0 0 SEQUENCE SET axionpro EmployeeCategorySkill_Id_seq workforcedb_user
+6417; 0 0 SEQUENCE SET axionpro EmployeeCodePattern_Id_seq workforcedb_user
+6418; 0 0 SEQUENCE SET axionpro EmployeeContact_Id_seq workforcedb_user
+6419; 0 0 SEQUENCE SET axionpro EmployeeDailyAttendance_Id_seq workforcedb_user
+6420; 0 0 SEQUENCE SET axionpro EmployeeDependent_Id_seq workforcedb_user
+6421; 0 0 SEQUENCE SET axionpro EmployeeDeviceEnrollment_Id_seq workforcedb_user
+6422; 0 0 SEQUENCE SET axionpro EmployeeEducation_Id_seq workforcedb_user
+6423; 0 0 SEQUENCE SET axionpro EmployeeExperienceDocument_Id_seq workforcedb_user
+6424; 0 0 SEQUENCE SET axionpro EmployeeExperience_Id_seq workforcedb_user
+6425; 0 0 SEQUENCE SET axionpro EmployeeIdentity_Id_seq workforcedb_user
+6426; 0 0 SEQUENCE SET axionpro EmployeeImage_Id_seq workforcedb_user
+6427; 0 0 SEQUENCE SET axionpro EmployeeLeaveBalance_Id_seq workforcedb_user
+6428; 0 0 SEQUENCE SET axionpro EmployeeLeavePolicyMapping_Id_seq workforcedb_user
+6429; 0 0 SEQUENCE SET axionpro EmployeeLocationAssignment_Id_seq workforcedb_user
+6430; 0 0 SEQUENCE SET axionpro EmployeeManagerMapping_Id_seq workforcedb_user
+6431; 0 0 SEQUENCE SET axionpro EmployeePersonalDetail_Id_seq workforcedb_user
+6432; 0 0 SEQUENCE SET axionpro EmployeePolicyDependentMapping_Id_seq workforcedb_user
+6433; 0 0 SEQUENCE SET axionpro EmployeePolicyEnrollment_Id_seq workforcedb_user
+6434; 0 0 SEQUENCE SET axionpro EmployeeSalary_Id_seq workforcedb_user
+6435; 0 0 SEQUENCE SET axionpro EmployeeStatutoryAccount_Id_seq workforcedb_user
+6436; 0 0 SEQUENCE SET axionpro EmployeeTaxProfile_Id_seq workforcedb_user
+6437; 0 0 SEQUENCE SET axionpro EmployeeTypeBasicMenu_Id_seq workforcedb_user
+6438; 0 0 SEQUENCE SET axionpro EmployeeType_Id_seq workforcedb_user
+6439; 0 0 SEQUENCE SET axionpro EmployeeWorkArrangement_Id_seq workforcedb_user
+6440; 0 0 SEQUENCE SET axionpro EmployeeWorkDocument_Id_seq workforcedb_user
+6441; 0 0 SEQUENCE SET axionpro EmployeeWorkHistory_Id_seq workforcedb_user
+6442; 0 0 SEQUENCE SET axionpro EmployeeWorkModeOverrideRequest_Id_seq workforcedb_user
+6443; 0 0 SEQUENCE SET axionpro EmployeeWorkPattern_Id_seq workforcedb_user
+6444; 0 0 SEQUENCE SET axionpro EmployeeWorkProfile_Id_seq workforcedb_user
+6445; 0 0 SEQUENCE SET axionpro Employee_Id_seq workforcedb_user
+6446; 0 0 SEQUENCE SET axionpro EmployeesChangedTypeHistory_Id_seq workforcedb_user
+6447; 0 0 SEQUENCE SET axionpro ForgotPasswordOTPDetail_Id_seq workforcedb_user
+6448; 0 0 SEQUENCE SET axionpro Gender_Id_seq workforcedb_user
+6449; 0 0 SEQUENCE SET axionpro Holiday_Id_seq workforcedb_user
+6450; 0 0 SEQUENCE SET axionpro HostBillingConfiguration_Id_seq workforcedb_user
+6451; 0 0 SEQUENCE SET axionpro HostRoleModuleAndPermission_Id_seq workforcedb_user
+6452; 0 0 SEQUENCE SET axionpro HostRole_Id_seq workforcedb_user
+6453; 0 0 SEQUENCE SET axionpro HostUser_Id_seq workforcedb_user
+6454; 0 0 SEQUENCE SET axionpro IdentityCategoryDocument_Id_seq workforcedb_user
+6455; 0 0 SEQUENCE SET axionpro IdentityCategory_Id_seq workforcedb_user
+6456; 0 0 SEQUENCE SET axionpro LeaveRequest_Id_seq workforcedb_user
+6457; 0 0 SEQUENCE SET axionpro LeaveType_Id_seq workforcedb_user
+6458; 0 0 SEQUENCE SET axionpro License_Id_seq workforcedb_user
+6459; 0 0 SEQUENCE SET axionpro LocalityType_Id_seq workforcedb_user
+6460; 0 0 SEQUENCE SET axionpro LoginCredential_Id_seq workforcedb_user
+6461; 0 0 SEQUENCE SET axionpro ModuleOperationMapping_Id_seq workforcedb_user
+6462; 0 0 SEQUENCE SET axionpro Module_Id_seq workforcedb_user
+6463; 0 0 SEQUENCE SET axionpro Operation_Id_seq workforcedb_user
+6464; 0 0 SEQUENCE SET axionpro PaymentAttempt_Id_seq workforcedb_user
+6465; 0 0 SEQUENCE SET axionpro PaymentGateway_Id_seq workforcedb_user
+6466; 0 0 SEQUENCE SET axionpro PaymentTransaction_Id_seq workforcedb_user
+6467; 0 0 SEQUENCE SET axionpro PaymentWebhookEvent_Id_seq workforcedb_user
+6468; 0 0 SEQUENCE SET axionpro PayrollEmployeeDetail_Id_seq workforcedb_user
+6469; 0 0 SEQUENCE SET axionpro PayrollEmployee_Id_seq workforcedb_user
+6470; 0 0 SEQUENCE SET axionpro PayrollRun_Id_seq workforcedb_user
+6471; 0 0 SEQUENCE SET axionpro PlanModuleMapping_Id_seq workforcedb_user
+6472; 0 0 SEQUENCE SET axionpro PolicyAcknowledgement_Id_seq workforcedb_user
+6473; 0 0 SEQUENCE SET axionpro PolicyApplicability_Id_seq workforcedb_user
+6474; 0 0 SEQUENCE SET axionpro PolicyApprovalHistory_Id_seq workforcedb_user
+6475; 0 0 SEQUENCE SET axionpro PolicyApprovalStage_Id_seq workforcedb_user
+6476; 0 0 SEQUENCE SET axionpro PolicyAssignment_Id_seq workforcedb_user
+6477; 0 0 SEQUENCE SET axionpro PolicyCategory_Id_seq workforcedb_user
+6478; 0 0 SEQUENCE SET axionpro PolicyChangeAudit_Id_seq workforcedb_user
+6479; 0 0 SEQUENCE SET axionpro PolicyDocument_Id_seq workforcedb_user
+6480; 0 0 SEQUENCE SET axionpro PolicyException_Id_seq workforcedb_user
+6481; 0 0 SEQUENCE SET axionpro PolicyRuleType_Id_seq workforcedb_user
+6482; 0 0 SEQUENCE SET axionpro PolicyRule_Id_seq workforcedb_user
+6483; 0 0 SEQUENCE SET axionpro PolicyType_Id_seq workforcedb_user
+6484; 0 0 SEQUENCE SET axionpro PolicyVersion_Id_seq workforcedb_user
+6485; 0 0 SEQUENCE SET axionpro Policy_Id_seq workforcedb_user
+6486; 0 0 SEQUENCE SET axionpro RefreshToken_Id_seq workforcedb_user
+6487; 0 0 SEQUENCE SET axionpro ReportingType_Id_seq workforcedb_user
+6488; 0 0 SEQUENCE SET axionpro RequestType_Id_seq workforcedb_user
+6489; 0 0 SEQUENCE SET axionpro RoleModuleAndPermission_Id_seq workforcedb_user
+6490; 0 0 SEQUENCE SET axionpro Role_Id_seq workforcedb_user
+6491; 0 0 SEQUENCE SET axionpro SalaryComponentMaster_Id_seq workforcedb_user
+6492; 0 0 SEQUENCE SET axionpro SalaryStructureDetail_Id_seq workforcedb_user
+6493; 0 0 SEQUENCE SET axionpro SalaryStructure_Id_seq workforcedb_user
+6494; 0 0 SEQUENCE SET axionpro State_Id_seq workforcedb_user
+6495; 0 0 SEQUENCE SET axionpro StatutoryType_Id_seq workforcedb_user
+6496; 0 0 SEQUENCE SET axionpro SubscriptionPlanPrice_Id_seq workforcedb_user
+6497; 0 0 SEQUENCE SET axionpro SubscriptionPlan_Id_seq workforcedb_user
+6498; 0 0 SEQUENCE SET axionpro TaxRegimeMaster_Id_seq workforcedb_user
+6499; 0 0 SEQUENCE SET axionpro TaxRule_Id_seq workforcedb_user
+6500; 0 0 SEQUENCE SET axionpro TaxSlab_Id_seq workforcedb_user
+6501; 0 0 SEQUENCE SET axionpro TaxSystemMaster_Id_seq workforcedb_user
+6502; 0 0 SEQUENCE SET axionpro TenantBillingProfile_Id_seq workforcedb_user
+6503; 0 0 SEQUENCE SET axionpro TenantBillingSubscription_Id_seq workforcedb_user
+6504; 0 0 SEQUENCE SET axionpro TenantCardMaster_Id_seq workforcedb_user
+6505; 0 0 SEQUENCE SET axionpro TenantDeviceConfiguration_Id_seq workforcedb_user
+6506; 0 0 SEQUENCE SET axionpro TenantDevice_Id_seq workforcedb_user
+6507; 0 0 SEQUENCE SET axionpro TenantEmailConfig_Id_seq workforcedb_user
+6508; 0 0 SEQUENCE SET axionpro TenantEmailTemplate_Id_seq workforcedb_user
+6509; 0 0 SEQUENCE SET axionpro TenantEnabledModule_Id_seq workforcedb_user
+6510; 0 0 SEQUENCE SET axionpro TenantEnabledOperation_Id_seq workforcedb_user
+6511; 0 0 SEQUENCE SET axionpro TenantEncryptionKeys_Id_seq workforcedb_user
+6512; 0 0 SEQUENCE SET axionpro TenantIndustry_Id_seq workforcedb_user
+6513; 0 0 SEQUENCE SET axionpro TenantLocation_Id_seq workforcedb_user
+6514; 0 0 SEQUENCE SET axionpro TenantProfile_Id_seq workforcedb_user
+6515; 0 0 SEQUENCE SET axionpro TenantSubscription_Id_seq workforcedb_user
+6516; 0 0 SEQUENCE SET axionpro Tenant_Id_seq workforcedb_user
+6517; 0 0 SEQUENCE SET axionpro TenderStatus_Id_seq workforcedb_user
+6518; 0 0 SEQUENCE SET axionpro Tender_Id_seq workforcedb_user
+6519; 0 0 SEQUENCE SET axionpro ThreadMessage_Id_seq workforcedb_user
+6520; 0 0 SEQUENCE SET axionpro Thread_Id_seq workforcedb_user
+6521; 0 0 SEQUENCE SET axionpro TicketAttachment_Id_seq workforcedb_user
+6522; 0 0 SEQUENCE SET axionpro TicketClassification_Id_seq workforcedb_user
+6523; 0 0 SEQUENCE SET axionpro TicketHeader_Id_seq workforcedb_user
+6524; 0 0 SEQUENCE SET axionpro TicketHistory_Id_seq workforcedb_user
+6525; 0 0 SEQUENCE SET axionpro TicketType_Id_seq workforcedb_user
+6526; 0 0 SEQUENCE SET axionpro Ticket_Id_seq workforcedb_user
+6527; 0 0 SEQUENCE SET axionpro UserAttendanceSetting_Id_seq workforcedb_user
+6528; 0 0 SEQUENCE SET axionpro UserRole_Id_seq workforcedb_user
+6529; 0 0 SEQUENCE SET axionpro WorkDocumentType_Id_seq workforcedb_user
+5071; 2606 33204 CONSTRAINT axionpro AssetAssignment AssetAssignment_pkey workforcedb_user
+5077; 2606 33206 CONSTRAINT axionpro AssetRequest AssetRequest_pkey workforcedb_user
+5598; 2606 95221 CONSTRAINT axionpro AttendancePolicyVersionConfiguration AttendancePolicyVersionConfiguration_pkey workforcedb_user
+5596; 2606 94427 CONSTRAINT axionpro BillingAuditLog BillingAuditLog_pkey workforcedb_user
+5587; 2606 94344 CONSTRAINT axionpro BillingInvoiceLine BillingInvoiceLine_pkey workforcedb_user
+5581; 2606 94311 CONSTRAINT axionpro BillingInvoice BillingInvoice_pkey workforcedb_user
+5565; 2606 94191 CONSTRAINT axionpro BillingOrder BillingOrder_pkey workforcedb_user
+5589; 2606 94368 CONSTRAINT axionpro BillingRefund BillingRefund_pkey workforcedb_user
+5594; 2606 94396 CONSTRAINT axionpro BillingSubscriptionChange BillingSubscriptionChange_pkey workforcedb_user
+5555; 2606 94097 CONSTRAINT axionpro BillingTaxRule BillingTaxRule_pkey workforcedb_user
+5471; 2606 38610 CONSTRAINT axionpro BulkImportJob BulkImportJob_pkey workforcedb_user
+5109; 2606 33210 CONSTRAINT axionpro ComplianceTypeMaster ComplianceTypeMaster_pkey workforcedb_user
+5438; 2606 35892 CONSTRAINT axionpro DefaultEmailConfig DefaultEmailConfig_pkey workforcedb_user
+5452; 2606 36598 CONSTRAINT axionpro DeviceCommandResponse DeviceCommandResponse_pkey workforcedb_user
+5443; 2606 36562 CONSTRAINT axionpro DeviceCommand DeviceCommand_pkey workforcedb_user
+5460; 2606 36669 CONSTRAINT axionpro DeviceCredential DeviceCredential_pkey workforcedb_user
+5463; 2606 36705 CONSTRAINT axionpro DeviceInitialProvisioning DeviceInitialProvisioning_pkey workforcedb_user
+5456; 2606 36640 CONSTRAINT axionpro DeviceMessageLog DeviceMessageLog_pkey workforcedb_user
+5378; 2606 95195 CONSTRAINT axionpro EmployeeLocationAssignment EX_EmployeeLocationAssignment_Employee_Location_Window workforcedb_user
+5380; 2606 95197 CONSTRAINT axionpro EmployeeLocationAssignment EX_EmployeeLocationAssignment_Primary_Window workforcedb_user
+5389; 2606 95199 CONSTRAINT axionpro EmployeeWorkArrangement EX_EmployeeWorkArrangement_Employee_Window workforcedb_user
+5602; 2606 95255 CONSTRAINT axionpro EmployeeAttendancePunch EmployeeAttendancePunch_pkey workforcedb_user
+5175; 2606 33220 CONSTRAINT axionpro EmployeePolicyDependentMapping EmployeePolicyDependentMapping_pkey workforcedb_user
+5177; 2606 33222 CONSTRAINT axionpro EmployeePolicyEnrollment EmployeePolicyEnrollment_pkey workforcedb_user
+5549; 2606 94045 CONSTRAINT axionpro HostBillingConfiguration HostBillingConfiguration_pkey workforcedb_user
+5208; 2606 33224 CONSTRAINT axionpro HostRoleModuleAndPermission HostRoleModuleAndPermission_pkey workforcedb_user
+5204; 2606 33226 CONSTRAINT axionpro HostRole HostRole_pkey workforcedb_user
+5215; 2606 33228 CONSTRAINT axionpro HostUser HostUser_pkey workforcedb_user
+5475; 2606 92965 CONSTRAINT axionpro LocalityType LocalityType_pkey workforcedb_user
+5091; 2606 33230 CONSTRAINT axionpro AttendanceDeviceType PK_AttendanceDeviceType workforcedb_user
+5369; 2606 34918 CONSTRAINT axionpro AttendancePolicy PK_AttendancePolicy workforcedb_user
+5107; 2606 33234 CONSTRAINT axionpro ComplianceRule PK_ComplianceRule workforcedb_user
+5119; 2606 33236 CONSTRAINT axionpro DataViewStructure PK_DataViewStructure workforcedb_user
+5416; 2606 35228 CONSTRAINT axionpro DeviceMaster PK_DeviceMaster workforcedb_user
+5375; 2606 34956 CONSTRAINT axionpro EmployeeDeviceEnrollment PK_EmployeeDeviceEnrollment workforcedb_user
+5157; 2606 33238 CONSTRAINT axionpro EmployeeEducation PK_EmployeeEducation workforcedb_user
+5159; 2606 33240 CONSTRAINT axionpro EmployeeExperience PK_EmployeeExperience workforcedb_user
+5161; 2606 33242 CONSTRAINT axionpro EmployeeExperienceDocument PK_EmployeeExperienceDocument workforcedb_user
+5387; 2606 34998 CONSTRAINT axionpro EmployeeLocationAssignment PK_EmployeeLocationAssignment workforcedb_user
+5179; 2606 33244 CONSTRAINT axionpro EmployeeSalary PK_EmployeeSalary workforcedb_user
+5183; 2606 33246 CONSTRAINT axionpro EmployeeTaxProfile PK_EmployeeTaxProfile workforcedb_user
+5397; 2606 35043 CONSTRAINT axionpro EmployeeWorkArrangement PK_EmployeeWorkArrangement workforcedb_user
+5408; 2606 35135 CONSTRAINT axionpro EmployeeWorkModeOverrideRequest PK_EmployeeWorkModeOverrideRequest workforcedb_user
+5401; 2606 35090 CONSTRAINT axionpro EmployeeWorkPattern PK_EmployeeWorkPattern workforcedb_user
+5245; 2606 33434 CONSTRAINT axionpro Holiday PK_Holiday workforcedb_user
+5250; 2606 33248 CONSTRAINT axionpro PayrollEmployee PK_PayrollEmployee workforcedb_user
+5254; 2606 33250 CONSTRAINT axionpro PayrollEmployeeDetail PK_PayrollEmployeeDetail workforcedb_user
+5256; 2606 33252 CONSTRAINT axionpro PayrollRun PK_PayrollRun workforcedb_user
+5278; 2606 33254 CONSTRAINT axionpro RoleModuleAndPermission PK_RoleModuleAndPermission_Id workforcedb_user
+5280; 2606 33256 CONSTRAINT axionpro SalaryComponentMaster PK_SalaryComponentMaster workforcedb_user
+5284; 2606 33258 CONSTRAINT axionpro SalaryStructure PK_SalaryStructure workforcedb_user
+5286; 2606 33260 CONSTRAINT axionpro SalaryStructureDetail PK_SalaryStructureDetail workforcedb_user
+5299; 2606 33262 CONSTRAINT axionpro TaxRegimeMaster PK_TaxRegimeMaster workforcedb_user
+5301; 2606 33264 CONSTRAINT axionpro TaxRule PK_TaxRule workforcedb_user
+5303; 2606 33266 CONSTRAINT axionpro TaxSlab PK_TaxSlab workforcedb_user
+5305; 2606 33268 CONSTRAINT axionpro TaxSystemMaster PK_TaxSystemMaster workforcedb_user
+5427; 2606 35271 CONSTRAINT axionpro TenantDevice PK_TenantDevice workforcedb_user
+5361; 2606 34807 CONSTRAINT axionpro TenantLocation PK_TenantLocation workforcedb_user
+5103; 2606 33270 CONSTRAINT axionpro Client PK_TenderClient workforcedb_user
+5330; 2606 33272 CONSTRAINT axionpro TenderStatus PK_TenderStatus workforcedb_user
+5073; 2606 33282 CONSTRAINT axionpro AssetCategory PK__AssetCat__3214EC07E9FE2792 workforcedb_user
+5075; 2606 33286 CONSTRAINT axionpro AssetImage PK__AssetIma__3214EC0752335BEC workforcedb_user
+5079; 2606 33288 CONSTRAINT axionpro AssetStatus PK__AssetSta__3214EC0722A59445 workforcedb_user
+5083; 2606 33292 CONSTRAINT axionpro AssetType PK__AssetTyp__3214EC077375A9AA workforcedb_user
+5069; 2606 33294 CONSTRAINT axionpro Asset PK__Asset__3214EC076178ABAE workforcedb_user
+5087; 2606 33296 CONSTRAINT axionpro AssignmentStatus PK__Assignme__3214EC07BCFD76FA workforcedb_user
+5089; 2606 33298 CONSTRAINT axionpro Attendance PK__Attendan__3214EC079EEE2ABB workforcedb_user
+5094; 2606 33302 CONSTRAINT axionpro AttendanceRequest PK__Attendan__3214EC07DA4D2CA6 workforcedb_user
+5096; 2606 33310 CONSTRAINT axionpro Category PK__Category__3214EC070D4D0C80 workforcedb_user
+5100; 2606 33312 CONSTRAINT axionpro Locality PK__City__3214EC07DC3B7144 workforcedb_user
+5105; 2606 33314 CONSTRAINT axionpro ClientType PK__ClientTy__3214EC078D984A16 workforcedb_user
+5115; 2606 33318 CONSTRAINT axionpro CountryIdentityRule PK__CountryI__3214EC0748E4A649 workforcedb_user
+5117; 2606 33320 CONSTRAINT axionpro CountryStatutoryRule PK__CountryS__3214EC07068D8E4F workforcedb_user
+5113; 2606 33322 CONSTRAINT axionpro Country PK__Country__3214EC070584DCC0 workforcedb_user
+5121; 2606 33324 CONSTRAINT axionpro DayCombination PK__DayCombi__3214EC070D2CF976 workforcedb_user
+5123; 2606 33330 CONSTRAINT axionpro Department PK__Departme__3214EC071E7B0B0B workforcedb_user
+5126; 2606 33332 CONSTRAINT axionpro Designation PK__Designat__3214EC07F9FF4C75 workforcedb_user
+5131; 2606 33334 CONSTRAINT axionpro District PK__District__3214EC07CB6A47D0 workforcedb_user
+5135; 2606 33338 CONSTRAINT axionpro EmailQueue PK__EmailQue__3214EC0705218438 workforcedb_user
+5137; 2606 33340 CONSTRAINT axionpro EmailTemplate PK__EmailTem__3214EC072FE49A64 workforcedb_user
+5149; 2606 33344 CONSTRAINT axionpro EmployeeCodePattern PK__Employee__3214EC070ECDA69B workforcedb_user
+5145; 2606 33346 CONSTRAINT axionpro EmployeeBankDetail PK__Employee__3214EC072E9F930F workforcedb_user
+5169; 2606 33348 CONSTRAINT axionpro EmployeeLeavePolicyMapping PK__Employee__3214EC07305828A7 workforcedb_user
+5151; 2606 33350 CONSTRAINT axionpro EmployeeContact PK__Employee__3214EC07371CFD87 workforcedb_user
+5173; 2606 33352 CONSTRAINT axionpro EmployeePersonalDetail PK__Employee__3214EC074796302D workforcedb_user
+5155; 2606 33354 CONSTRAINT axionpro EmployeeDependent PK__Employee__3214EC074B6A13E2 workforcedb_user
+5163; 2606 33356 CONSTRAINT axionpro EmployeeIdentity PK__Employee__3214EC074FF9BCC1 workforcedb_user
+5171; 2606 33358 CONSTRAINT axionpro EmployeeManagerMapping PK__Employee__3214EC075BB6D3FC workforcedb_user
+5194; 2606 33360 CONSTRAINT axionpro EmployeeWorkProfile PK__Employee__3214EC07605A7EB3 workforcedb_user
+5185; 2606 33362 CONSTRAINT axionpro EmployeeType PK__Employee__3214EC0760C5ED38 workforcedb_user
+5196; 2606 33364 CONSTRAINT axionpro EmployeesChangedTypeHistory PK__Employee__3214EC0779153EAD workforcedb_user
+5153; 2606 33366 CONSTRAINT axionpro EmployeeDailyAttendance PK__Employee__3214EC078C36F2DB workforcedb_user
+5192; 2606 33368 CONSTRAINT axionpro EmployeeWorkHistory PK__Employee__3214EC07994D46FA workforcedb_user
+5188; 2606 33370 CONSTRAINT axionpro EmployeeTypeBasicMenu PK__Employee__3214EC07A773CB3F workforcedb_user
+5181; 2606 33372 CONSTRAINT axionpro EmployeeStatutoryAccount PK__Employee__3214EC07ACDD4E51 workforcedb_user
+5167; 2606 33374 CONSTRAINT axionpro EmployeeLeaveBalance PK__Employee__3214EC07B6CC8062 workforcedb_user
+5147; 2606 33376 CONSTRAINT axionpro EmployeeCategorySkill PK__Employee__3214EC07BB3C49C9 workforcedb_user
+5190; 2606 33378 CONSTRAINT axionpro EmployeeWorkDocument PK__Employee__3214EC07BDFE60B6 workforcedb_user
+5165; 2606 33380 CONSTRAINT axionpro EmployeeImage PK__Employee__3214EC07C583D80F workforcedb_user
+5139; 2606 33382 CONSTRAINT axionpro Employee PK__Employee__3214EC07E3264254 workforcedb_user
+5198; 2606 33384 CONSTRAINT axionpro ForgotPasswordOTPDetail PK__ForgotPa__3214EC071E853072 workforcedb_user
+5200; 2606 33386 CONSTRAINT axionpro Gender PK__Gender__3214EC07EF3CD03D workforcedb_user
+5220; 2606 33390 CONSTRAINT axionpro IdentityCategory PK__Identity__3214EC07393AF557 workforcedb_user
+5224; 2606 33392 CONSTRAINT axionpro IdentityCategoryDocument PK__Identity__3214EC07AA61914F workforcedb_user
+5226; 2606 33408 CONSTRAINT axionpro LeaveRequest PK__LeaveReq__3214EC07D95D9BAD workforcedb_user
+5228; 2606 33418 CONSTRAINT axionpro LeaveType PK__LeaveTyp__3214EC0788A5EF9C workforcedb_user
+5230; 2606 33420 CONSTRAINT axionpro License PK__License__3214EC07FF575687 workforcedb_user
+5232; 2606 33422 CONSTRAINT axionpro LoginCredential PK__LoginCre__3214EC0750429DFA workforcedb_user
+5240; 2606 33426 CONSTRAINT axionpro ModuleOperationMapping PK__ModuleOp__3214EC07BF86A196 workforcedb_user
+5237; 2606 33428 CONSTRAINT axionpro Module PK__Module__3214EC078891AB2D workforcedb_user
+5242; 2606 33432 CONSTRAINT axionpro Operation PK__Operatio__3214EC079C437610 workforcedb_user
+5248; 2606 33436 CONSTRAINT axionpro PageTypeEnum PK__PageType__3214EC07D71C5D81 workforcedb_user
+5260; 2606 33438 CONSTRAINT axionpro PlanModuleMapping PK__PlanModu__3214EC0729948732 workforcedb_user
+5265; 2606 33446 CONSTRAINT axionpro RefreshToken PK__RefreshT__3214EC0731D02168 workforcedb_user
+5267; 2606 33448 CONSTRAINT axionpro ReportingType PK__Reportin__3214EC0773736C22 workforcedb_user
+5269; 2606 33450 CONSTRAINT axionpro RequestType PK__RequestT__3214EC07E53AD996 workforcedb_user
+5273; 2606 33452 CONSTRAINT axionpro Role PK__Role__3214EC0723371271 workforcedb_user
+5289; 2606 33456 CONSTRAINT axionpro State PK__State__3214EC0705AF0D74 workforcedb_user
+5294; 2606 33458 CONSTRAINT axionpro StatutoryType PK__Statutor__3214EC078EED6601 workforcedb_user
+5297; 2606 33460 CONSTRAINT axionpro SubscriptionPlan PK__Subscrip__3214EC07BED0F0D0 workforcedb_user
+5311; 2606 33462 CONSTRAINT axionpro TenantEmailConfig PK__TenantEm__3214EC077A90B3A3 workforcedb_user
+5315; 2606 33464 CONSTRAINT axionpro TenantEnabledOperation PK__TenantEn__3214EC07047C5B46 workforcedb_user
+5318; 2606 33466 CONSTRAINT axionpro TenantEncryptionKeys PK__TenantEn__3214EC070E3540EE workforcedb_user
+5313; 2606 33468 CONSTRAINT axionpro TenantEnabledModule PK__TenantEn__3214EC07AC610092 workforcedb_user
+5322; 2606 33470 CONSTRAINT axionpro TenantIndustry PK__TenantIn__3214EC0765258C5E workforcedb_user
+5324; 2606 33472 CONSTRAINT axionpro TenantProfile PK__TenantPr__3214EC0796A1B93D workforcedb_user
+5326; 2606 33474 CONSTRAINT axionpro TenantSubscription PK__TenantSu__3214EC07CF143048 workforcedb_user
+5307; 2606 33476 CONSTRAINT axionpro Tenant PK__Tenant__3214EC0728DD7C6E workforcedb_user
+5328; 2606 33490 CONSTRAINT axionpro Tender PK__Tender__3214EC076E847502 workforcedb_user
+5340; 2606 33492 CONSTRAINT axionpro TicketClassification PK__TicketCl__3214EC07BA509F8F workforcedb_user
+5342; 2606 33494 CONSTRAINT axionpro TicketHeader PK__TicketHe__3214EC07EADE3F1B workforcedb_user
+5346; 2606 33496 CONSTRAINT axionpro TicketType PK__TicketTy__3214EC07554DC568 workforcedb_user
+5348; 2606 33502 CONSTRAINT axionpro UserAttendanceSetting PK__UserAtte__3214EC0750CE7646 workforcedb_user
+5350; 2606 33504 CONSTRAINT axionpro UserRole PK__UserRole__3214EC07C9E25EB9 workforcedb_user
+5352; 2606 33506 CONSTRAINT axionpro WorkDocumentType PK__WorkDocu__3214EC0710449AA0 workforcedb_user
+5573; 2606 94252 CONSTRAINT axionpro PaymentAttempt PaymentAttempt_pkey workforcedb_user
+5545; 2606 94011 CONSTRAINT axionpro PaymentGateway PaymentGateway_pkey workforcedb_user
+5570; 2606 94231 CONSTRAINT axionpro PaymentTransaction PaymentTransaction_pkey workforcedb_user
+5577; 2606 94281 CONSTRAINT axionpro PaymentWebhookEvent PaymentWebhookEvent_pkey workforcedb_user
+5535; 2606 93371 CONSTRAINT axionpro PolicyAcknowledgement PolicyAcknowledgement_pkey workforcedb_user
+5512; 2606 93232 CONSTRAINT axionpro PolicyApplicability PolicyApplicability_pkey workforcedb_user
+5530; 2606 93352 CONSTRAINT axionpro PolicyApprovalHistory PolicyApprovalHistory_pkey workforcedb_user
+5526; 2606 93333 CONSTRAINT axionpro PolicyApprovalStage PolicyApprovalStage_pkey workforcedb_user
+5515; 2606 93253 CONSTRAINT axionpro PolicyAssignment PolicyAssignment_pkey workforcedb_user
+5479; 2606 93074 CONSTRAINT axionpro PolicyCategory PolicyCategory_pkey workforcedb_user
+5540; 2606 93391 CONSTRAINT axionpro PolicyChangeAudit PolicyChangeAudit_pkey workforcedb_user
+5491; 2606 93117 CONSTRAINT axionpro PolicyDocumentType PolicyDocumentType_pkey workforcedb_user
+5522; 2606 93311 CONSTRAINT axionpro PolicyDocument PolicyDocument_pkey workforcedb_user
+5520; 2606 93282 CONSTRAINT axionpro PolicyException PolicyException_pkey workforcedb_user
+5487; 2606 93105 CONSTRAINT axionpro PolicyRuleType PolicyRuleType_pkey workforcedb_user
+5507; 2606 93208 CONSTRAINT axionpro PolicyRule PolicyRule_pkey workforcedb_user
+5483; 2606 93088 CONSTRAINT axionpro PolicyStatus PolicyStatus_pkey workforcedb_user
+5495; 2606 93138 CONSTRAINT axionpro PolicyType PolicyType_pkey workforcedb_user
+5502; 2606 93184 CONSTRAINT axionpro PolicyVersion PolicyVersion_pkey workforcedb_user
+5498; 2606 93158 CONSTRAINT axionpro Policy Policy_pkey workforcedb_user
+5552; 2606 94071 CONSTRAINT axionpro SubscriptionPlanPrice SubscriptionPlanPrice_pkey workforcedb_user
+5558; 2606 94117 CONSTRAINT axionpro TenantBillingProfile TenantBillingProfile_pkey workforcedb_user
+5561; 2606 94143 CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_pkey workforcedb_user
+5468; 2606 37188 CONSTRAINT axionpro TenantCardMaster TenantCardMaster_pkey workforcedb_user
+5432; 2606 35337 CONSTRAINT axionpro TenantDeviceConfiguration TenantDeviceConfiguration_pkey workforcedb_user
+5542; 2606 93980 CONSTRAINT axionpro TenantEmailTemplate TenantEmailTemplate_pkey workforcedb_user
+5332; 2606 33512 CONSTRAINT axionpro ThreadMessage ThreadMessage_pkey workforcedb_user
+5334; 2606 33514 CONSTRAINT axionpro TicketThread Thread_pkey workforcedb_user
+5338; 2606 33516 CONSTRAINT axionpro TicketAttachment TicketAttachment_pkey workforcedb_user
+5344; 2606 33518 CONSTRAINT axionpro TicketHistory TicketHistory_pkey workforcedb_user
+5336; 2606 33520 CONSTRAINT axionpro Ticket Ticket_pkey workforcedb_user
+5583; 2606 94313 CONSTRAINT axionpro BillingInvoice UQ_BillingInvoice_Number workforcedb_user
+5585; 2606 94315 CONSTRAINT axionpro BillingInvoice UQ_BillingInvoice_Order workforcedb_user
+5567; 2606 94193 CONSTRAINT axionpro BillingOrder UQ_BillingOrder_Idempotency workforcedb_user
+5591; 2606 94370 CONSTRAINT axionpro BillingRefund UQ_BillingRefund_Idempotency workforcedb_user
+5111; 2606 33522 CONSTRAINT axionpro ComplianceTypeMaster UQ_ComplianceType_Country_Name workforcedb_user
+5213; 2606 33528 CONSTRAINT axionpro HostRoleModuleAndPermission UQ_HostRole_Module_Operation workforcedb_user
+5206; 2606 33530 CONSTRAINT axionpro HostRole UQ_HostRole_Name workforcedb_user
+5218; 2606 33532 CONSTRAINT axionpro HostUser UQ_HostUser_LoginId workforcedb_user
+5477; 2606 92967 CONSTRAINT axionpro LocalityType UQ_LocalityType_TypeName workforcedb_user
+5234; 2606 33534 CONSTRAINT axionpro LoginCredential UQ_LoginId workforcedb_user
+5575; 2606 94254 CONSTRAINT axionpro PaymentAttempt UQ_PaymentAttempt_Number workforcedb_user
+5547; 2606 94013 CONSTRAINT axionpro PaymentGateway UQ_PaymentGateway_Code workforcedb_user
+5579; 2606 94283 CONSTRAINT axionpro PaymentWebhookEvent UQ_PaymentWebhookEvent_GatewayEvent workforcedb_user
+5252; 2606 33536 CONSTRAINT axionpro PayrollEmployee UQ_PayrollEmployee workforcedb_user
+5258; 2606 33538 CONSTRAINT axionpro PayrollRun UQ_Payroll_Month workforcedb_user
+5537; 2606 93373 CONSTRAINT axionpro PolicyAcknowledgement UQ_PolicyAcknowledgement_Version_Employee workforcedb_user
+5532; 2606 93354 CONSTRAINT axionpro PolicyApprovalHistory UQ_PolicyApprovalHistory_Version_Sequence workforcedb_user
+5528; 2606 93335 CONSTRAINT axionpro PolicyApprovalStage UQ_PolicyApprovalStage_Tenant_Category_Order workforcedb_user
+5517; 2606 93255 CONSTRAINT axionpro PolicyAssignment UQ_PolicyAssignment_Version_Employee_From workforcedb_user
+5481; 2606 93076 CONSTRAINT axionpro PolicyCategory UQ_PolicyCategory_Code workforcedb_user
+5493; 2606 93119 CONSTRAINT axionpro PolicyDocumentType UQ_PolicyDocumentType_Code workforcedb_user
+5524; 2606 93313 CONSTRAINT axionpro PolicyDocument UQ_PolicyDocument_Version_Object workforcedb_user
+5489; 2606 93107 CONSTRAINT axionpro PolicyRuleType UQ_PolicyRuleType_Code workforcedb_user
+5509; 2606 93210 CONSTRAINT axionpro PolicyRule UQ_PolicyRule_Version_Order workforcedb_user
+5485; 2606 93090 CONSTRAINT axionpro PolicyStatus UQ_PolicyStatus_Code workforcedb_user
+5504; 2606 93186 CONSTRAINT axionpro PolicyVersion UQ_PolicyVersion_Policy_Version workforcedb_user
+5500; 2606 93160 CONSTRAINT axionpro Policy UQ_Policy_Tenant_Code workforcedb_user
+5271; 2606 33540 CONSTRAINT axionpro RequestType UQ_RequestType_Tenant workforcedb_user
+5282; 2606 33542 CONSTRAINT axionpro SalaryComponentMaster UQ_SalaryComponent_Tenant_ComponentName_Effective workforcedb_user
+5291; 2606 33544 CONSTRAINT axionpro State UQ_State_Country_Name workforcedb_user
+5434; 2606 35339 CONSTRAINT axionpro TenantDeviceConfiguration UQ_TenantDeviceConfiguration_TenantDeviceId workforcedb_user
+5320; 2606 33546 CONSTRAINT axionpro TenantEncryptionKeys UQ_TenantKey_TenantId workforcedb_user
+5363; 2606 34809 CONSTRAINT axionpro TenantLocation UQ_TenantLocation_Id_TenantId workforcedb_user
+5081; 2606 33548 CONSTRAINT axionpro AssetStatus UQ__AssetSta__05E7698A7AA7A28E workforcedb_user
+5085; 2606 33550 CONSTRAINT axionpro AssetType UQ__AssetTyp__D4E7DFA8692FD5DF workforcedb_user
+5202; 2606 33562 CONSTRAINT axionpro Gender UQ__Gender__F7C177153AF55502 workforcedb_user
+5222; 2606 33564 CONSTRAINT axionpro IdentityCategory UQ__Identity__A25C5AA7EC142E9A workforcedb_user
+5309; 2606 33566 CONSTRAINT axionpro Tenant UQ__Tenant__F7C944DD7E3D53D9 workforcedb_user
+5440; 2606 35894 CONSTRAINT axionpro DefaultEmailConfig UX_DefaultEmailConfig_ConfigName workforcedb_user
+5449; 2606 36564 CONSTRAINT axionpro DeviceCommand UX_DeviceCommand_InternalTrackingId workforcedb_user
+5275; 1259 33567 INDEX axionpro IDX_RolesPermission_OperationId workforcedb_user
+5276; 1259 33568 INDEX axionpro IDX_RolesPermission_RoleId workforcedb_user
+5365; 1259 34930 INDEX axionpro IX_AttendancePolicy_PolicyTypeId workforcedb_user
+5366; 1259 34929 INDEX axionpro IX_AttendancePolicy_TenantId workforcedb_user
+5367; 1259 34931 INDEX axionpro IX_AttendancePolicy_TenantId_IsActive_IsSoftDeleted workforcedb_user
+5472; 1259 38611 INDEX axionpro IX_BulkImportJob_Due workforcedb_user
+5473; 1259 38612 INDEX axionpro IX_BulkImportJob_Owner workforcedb_user
+5453; 1259 36615 INDEX axionpro IX_DeviceCommandResponse_TenantDevice_Received workforcedb_user
+5444; 1259 36676 INDEX axionpro IX_DeviceCommand_DeviceSerial_Order workforcedb_user
+5445; 1259 36580 INDEX axionpro IX_DeviceCommand_Dispatch workforcedb_user
+5446; 1259 36582 INDEX axionpro IX_DeviceCommand_TenantId workforcedb_user
+5447; 1259 36583 INDEX axionpro IX_DeviceCommand_TenantLocationId workforcedb_user
+5464; 1259 36712 INDEX axionpro IX_DeviceInitialProvisioning_DeviceMaster_Active workforcedb_user
+5409; 1259 35230 INDEX axionpro IX_DeviceMaster_CompanyName workforcedb_user
+5410; 1259 35229 INDEX axionpro IX_DeviceMaster_DeviceType workforcedb_user
+5411; 1259 35232 INDEX axionpro IX_DeviceMaster_IsActive_IsSoftDeleted workforcedb_user
+5412; 1259 35233 INDEX axionpro IX_DeviceMaster_IsAttendanceDevice workforcedb_user
+5413; 1259 35234 INDEX axionpro IX_DeviceMaster_IsIntegrationSupported workforcedb_user
+5414; 1259 35231 INDEX axionpro IX_DeviceMaster_ModelNo workforcedb_user
+5457; 1259 36651 INDEX axionpro IX_DeviceMessageLog_TenantDevice_Occurred workforcedb_user
+5458; 1259 36652 INDEX axionpro IX_DeviceMessageLog_Topic_PayloadHash workforcedb_user
+5128; 1259 33574 INDEX axionpro IX_District_DistrictName workforcedb_user
+5129; 1259 33575 INDEX axionpro IX_District_StateId workforcedb_user
+5133; 1259 93989 INDEX axionpro IX_EmailQueue_Pending workforcedb_user
+5603; 1259 95282 INDEX axionpro IX_EmployeeAttendancePunch_DayTimeline workforcedb_user
+5371; 1259 34973 INDEX axionpro IX_EmployeeDeviceEnrollment_EmployeeId workforcedb_user
+5372; 1259 34974 INDEX axionpro IX_EmployeeDeviceEnrollment_TenantDeviceId workforcedb_user
+5373; 1259 34972 INDEX axionpro IX_EmployeeDeviceEnrollment_TenantId workforcedb_user
+5381; 1259 35015 INDEX axionpro IX_EmployeeLocationAssignment_EmployeeId workforcedb_user
+5382; 1259 95191 INDEX axionpro IX_EmployeeLocationAssignment_Employee_Location_EffectiveFrom workforcedb_user
+5383; 1259 95192 INDEX axionpro IX_EmployeeLocationAssignment_Primary_EffectiveFrom workforcedb_user
+5384; 1259 35014 INDEX axionpro IX_EmployeeLocationAssignment_TenantId workforcedb_user
+5385; 1259 35016 INDEX axionpro IX_EmployeeLocationAssignment_TenantLocationId workforcedb_user
+5390; 1259 35066 INDEX axionpro IX_EmployeeWorkArrangement_AttendancePolicyId workforcedb_user
+5391; 1259 35065 INDEX axionpro IX_EmployeeWorkArrangement_EmployeeId workforcedb_user
+5392; 1259 95193 INDEX axionpro IX_EmployeeWorkArrangement_Employee_EffectiveFrom workforcedb_user
+5393; 1259 93957 INDEX axionpro IX_EmployeeWorkArrangement_PolicyVersionId workforcedb_user
+5394; 1259 35067 INDEX axionpro IX_EmployeeWorkArrangement_PrimaryLocationId workforcedb_user
+5395; 1259 35064 INDEX axionpro IX_EmployeeWorkArrangement_TenantId workforcedb_user
+5398; 1259 35107 INDEX axionpro IX_EmployeeWorkPattern_TenantLocationId workforcedb_user
+5399; 1259 35106 INDEX axionpro IX_EmployeeWorkPattern_WorkArrangementId workforcedb_user
+5209; 1259 33576 INDEX axionpro IX_HRMP_HostRoleId workforcedb_user
+5210; 1259 33577 INDEX axionpro IX_HRMP_ModuleId workforcedb_user
+5211; 1259 33578 INDEX axionpro IX_HRMP_OperationId workforcedb_user
+5243; 1259 93763 INDEX axionpro IX_Holiday_Location_Date workforcedb_user
+5216; 1259 33579 INDEX axionpro IX_HostUser_LoginId workforcedb_user
+5097; 1259 92981 INDEX axionpro IX_Locality_DistrictId workforcedb_user
+5098; 1259 92982 INDEX axionpro IX_Locality_LocalityTypeId workforcedb_user
+5533; 1259 93627 INDEX axionpro IX_PolicyAcknowledgement_Employee workforcedb_user
+5510; 1259 93624 INDEX axionpro IX_PolicyApplicability_Resolution workforcedb_user
+5513; 1259 93625 INDEX axionpro IX_PolicyAssignment_Employee workforcedb_user
+5538; 1259 93628 INDEX axionpro IX_PolicyChangeAudit_Policy workforcedb_user
+5518; 1259 93626 INDEX axionpro IX_PolicyException_Employee workforcedb_user
+5261; 1259 34679 INDEX axionpro IX_RefreshToken_HostUserId workforcedb_user
+5262; 1259 34678 INDEX axionpro IX_RefreshToken_LoginCredentialId workforcedb_user
+5263; 1259 34680 INDEX axionpro IX_RefreshToken_LoginId_UserType workforcedb_user
+5295; 1259 34687 INDEX axionpro IX_SubscriptionPlan_IsSoftDeleted workforcedb_user
+5466; 1259 37195 INDEX axionpro IX_TenantCardMaster_TenantId workforcedb_user
+5430; 1259 35346 INDEX axionpro IX_TenantDeviceConfiguration_TenantDeviceId workforcedb_user
+5419; 1259 35289 INDEX axionpro IX_TenantDevice_DeviceMasterId workforcedb_user
+5420; 1259 35293 INDEX axionpro IX_TenantDevice_DeviceMasterId_IsActive workforcedb_user
+5421; 1259 35287 INDEX axionpro IX_TenantDevice_TenantId workforcedb_user
+5422; 1259 35291 INDEX axionpro IX_TenantDevice_TenantId_IsActive_IsSoftDeleted workforcedb_user
+5423; 1259 35290 INDEX axionpro IX_TenantDevice_TenantId_TenantLocationId workforcedb_user
+5424; 1259 35288 INDEX axionpro IX_TenantDevice_TenantLocationId workforcedb_user
+5425; 1259 35292 INDEX axionpro IX_TenantDevice_TenantLocationId_IsActive workforcedb_user
+5353; 1259 34830 INDEX axionpro IX_TenantLocation_CityId workforcedb_user
+5354; 1259 34828 INDEX axionpro IX_TenantLocation_CountryId workforcedb_user
+5355; 1259 92988 INDEX axionpro IX_TenantLocation_DistrictId workforcedb_user
+5356; 1259 34829 INDEX axionpro IX_TenantLocation_StateId workforcedb_user
+5357; 1259 34825 INDEX axionpro IX_TenantLocation_TenantId workforcedb_user
+5358; 1259 34826 INDEX axionpro IX_TenantLocation_TenantId_IsActive workforcedb_user
+5359; 1259 34827 INDEX axionpro IX_TenantLocation_TenantId_IsSoftDeleted workforcedb_user
+5403; 1259 35159 INDEX axionpro IX_WorkModeOverride_ApprovalStatus workforcedb_user
+5404; 1259 35157 INDEX axionpro IX_WorkModeOverride_EmployeeId workforcedb_user
+5405; 1259 35158 INDEX axionpro IX_WorkModeOverride_Employee_Date workforcedb_user
+5406; 1259 35156 INDEX axionpro IX_WorkModeOverride_TenantId workforcedb_user
+5287; 1259 33580 INDEX axionpro UQ_Structure_Order workforcedb_user
+5316; 1259 33581 INDEX axionpro UQ_Tenant_Module_Operation workforcedb_user
+5092; 1259 101048 INDEX axionpro UX_AttendanceDeviceType_DeviceTypeCode workforcedb_user
+5599; 1259 95232 INDEX axionpro UX_AttendancePolicyVersionConfiguration_PolicyVersion workforcedb_user
+5600; 1259 95233 INDEX axionpro UX_AttendancePolicyVersionConfiguration_TenantVersion workforcedb_user
+5370; 1259 34932 INDEX axionpro UX_AttendancePolicy_TenantId_PolicyName workforcedb_user
+5568; 1259 94214 INDEX axionpro UX_BillingOrder_GatewayOrder workforcedb_user
+5592; 1259 94376 INDEX axionpro UX_BillingRefund_GatewayRefund workforcedb_user
+5556; 1259 94098 INDEX axionpro UX_BillingTaxRule_Live workforcedb_user
+5441; 1259 35895 INDEX axionpro UX_DefaultEmailConfig_OneDefault workforcedb_user
+5124; 1259 38613 INDEX axionpro UX_Department_Tenant_Name_Live workforcedb_user
+5127; 1259 38586 INDEX axionpro UX_Designation_Tenant_Department_Name_Live workforcedb_user
+5454; 1259 36614 INDEX axionpro UX_DeviceCommandResponse_DeviceCommand workforcedb_user
+5450; 1259 36677 INDEX axionpro UX_DeviceCommand_OneOutstandingSerial workforcedb_user
+5461; 1259 36675 INDEX axionpro UX_DeviceCredential_ActiveType workforcedb_user
+5465; 1259 36711 INDEX axionpro UX_DeviceInitialProvisioning_IngressTokenHash workforcedb_user
+5417; 1259 35236 INDEX axionpro UX_DeviceMaster_CompanyName_ModelNo workforcedb_user
+5418; 1259 35235 INDEX axionpro UX_DeviceMaster_DeviceCode workforcedb_user
+5132; 1259 92997 INDEX axionpro UX_District_StateId_DistrictCode workforcedb_user
+5604; 1259 95281 INDEX axionpro UX_EmployeeAttendancePunch_Idempotency workforcedb_user
+5376; 1259 34975 INDEX axionpro UX_EmployeeDeviceEnrollment_Device_EnrollId workforcedb_user
+5186; 1259 38620 INDEX axionpro UX_EmployeeType_Tenant_Name_Live workforcedb_user
+5402; 1259 35108 INDEX axionpro UX_EmployeeWorkPattern_Arrangement_Day workforcedb_user
+5140; 1259 33582 INDEX axionpro UX_Employee_SystemUser_OnlyOnce workforcedb_user
+5141; 1259 33583 INDEX axionpro UX_Employee_TenantIdNullOnce workforcedb_user
+5142; 1259 33584 INDEX axionpro UX_Employee_TenantId_Null_OnlyOnce workforcedb_user
+5143; 1259 43704 INDEX axionpro UX_Employee_Tenant_Code workforcedb_user
+5246; 1259 93893 INDEX axionpro UX_Holiday_Tenant_Location_Date_NotDeleted workforcedb_user
+5550; 1259 94051 INDEX axionpro UX_HostBillingConfiguration_Active workforcedb_user
+5101; 1259 92999 INDEX axionpro UX_Locality_DistrictId_LocalityCode workforcedb_user
+5235; 1259 43705 INDEX axionpro UX_LoginCredential_NormalizedLogin workforcedb_user
+5238; 1259 36884 INDEX axionpro UX_Module_PageName_CaseInsensitive workforcedb_user
+5571; 1259 94237 INDEX axionpro UX_PaymentTransaction_GatewayPayment workforcedb_user
+5496; 1259 93622 INDEX axionpro UX_PolicyType_Tenant_Code workforcedb_user
+5505; 1259 93623 INDEX axionpro UX_PolicyVersion_Current workforcedb_user
+5274; 1259 38614 INDEX axionpro UX_Role_Tenant_Name_Live workforcedb_user
+5292; 1259 92995 INDEX axionpro UX_State_CountryId_StateCode workforcedb_user
+5553; 1259 94077 INDEX axionpro UX_SubscriptionPlanPrice_Live workforcedb_user
+5559; 1259 94123 INDEX axionpro UX_TenantBillingProfile_Active workforcedb_user
+5562; 1259 94164 INDEX axionpro UX_TenantBillingSubscription_Current workforcedb_user
+5563; 1259 94165 INDEX axionpro UX_TenantBillingSubscription_Gateway workforcedb_user
+5469; 1259 37194 INDEX axionpro UX_TenantCardMaster_Tenant_CardHash_Live workforcedb_user
+5435; 1259 36684 INDEX axionpro UX_TenantDeviceConfiguration_HttpsIngressTokenHash workforcedb_user
+5436; 1259 37137 INDEX axionpro UX_TenantDeviceConfiguration_PendingHttpsIngressTokenHash workforcedb_user
+5428; 1259 35345 INDEX axionpro UX_TenantDevice_DeviceMasterId_Active workforcedb_user
+5429; 1259 35296 INDEX axionpro UX_TenantDevice_TenantId_DeviceCode workforcedb_user
+5543; 1259 93986 INDEX axionpro UX_TenantEmailTemplate_Tenant_TemplateCode workforcedb_user
+5364; 1259 34831 INDEX axionpro UX_TenantLocation_TenantId_LocationCode workforcedb_user
+5881; 2620 38631 TRIGGER axionpro EmployeeType TR_EmployeeType_OwnerImmutable workforcedb_user
+5880; 2620 38633 TRIGGER axionpro Employee TR_EmployeeType_Tenant workforcedb_user
+5882; 2620 38634 TRIGGER axionpro EmployeesChangedTypeHistory TR_EmployeeType_Tenant workforcedb_user
+5883; 2620 92941 TRIGGER axionpro Module TR_Module_PageNameImmutable workforcedb_user
+5867; 2606 94345 FK CONSTRAINT axionpro BillingInvoiceLine BillingInvoiceLine_BillingInvoiceId_fkey workforcedb_user
+5865; 2606 94321 FK CONSTRAINT axionpro BillingInvoice BillingInvoice_BillingOrderId_fkey workforcedb_user
+5866; 2606 94316 FK CONSTRAINT axionpro BillingInvoice BillingInvoice_TenantId_fkey workforcedb_user
+5858; 2606 94209 FK CONSTRAINT axionpro BillingOrder BillingOrder_PaymentGatewayId_fkey workforcedb_user
+5859; 2606 94204 FK CONSTRAINT axionpro BillingOrder BillingOrder_SubscriptionPlanPriceId_fkey workforcedb_user
+5860; 2606 94199 FK CONSTRAINT axionpro BillingOrder BillingOrder_TenantBillingSubscriptionId_fkey workforcedb_user
+5861; 2606 94194 FK CONSTRAINT axionpro BillingOrder BillingOrder_TenantId_fkey workforcedb_user
+5868; 2606 94371 FK CONSTRAINT axionpro BillingRefund BillingRefund_PaymentTransactionId_fkey workforcedb_user
+5869; 2606 94402 FK CONSTRAINT axionpro BillingSubscriptionChange BillingSubscriptionChange_FromSubscriptionPlanPriceId_fkey workforcedb_user
+5870; 2606 94397 FK CONSTRAINT axionpro BillingSubscriptionChange BillingSubscriptionChange_TenantBillingSubscriptionId_fkey workforcedb_user
+5871; 2606 94407 FK CONSTRAINT axionpro BillingSubscriptionChange BillingSubscriptionChange_ToSubscriptionPlanPriceId_fkey workforcedb_user
+5670; 2606 38615 FK CONSTRAINT axionpro EmployeeType EmployeeType_TenantId_fkey workforcedb_user
+5607; 2606 33585 FK CONSTRAINT axionpro AssetAssignment FK_AssetAssignment_Asset workforcedb_user
+5608; 2606 33590 FK CONSTRAINT axionpro AssetAssignment FK_AssetAssignment_Request workforcedb_user
+5609; 2606 33595 FK CONSTRAINT axionpro AssetCategory FK_AssetCategory_Tenant workforcedb_user
+5610; 2606 33600 FK CONSTRAINT axionpro AssetImage FK_AssetImage_Asset workforcedb_user
+5611; 2606 33605 FK CONSTRAINT axionpro AssetType FK_AssetType_AssetCategory workforcedb_user
+5605; 2606 33615 FK CONSTRAINT axionpro Asset FK_Asset_AssetStatus workforcedb_user
+5606; 2606 33620 FK CONSTRAINT axionpro Asset FK_Asset_AssetType workforcedb_user
+5641; 2606 33625 FK CONSTRAINT axionpro EmployeeDailyAttendance FK_AttendanceDeviceType workforcedb_user
+5872; 2606 95227 FK CONSTRAINT axionpro AttendancePolicyVersionConfiguration FK_AttendancePolicyVersionConfiguration_PolicyVersion workforcedb_user
+5873; 2606 95222 FK CONSTRAINT axionpro AttendancePolicyVersionConfiguration FK_AttendancePolicyVersionConfiguration_Tenant workforcedb_user
+5771; 2606 34919 FK CONSTRAINT axionpro AttendancePolicy FK_AttendancePolicy_Tenant workforcedb_user
+5612; 2606 33640 FK CONSTRAINT axionpro Category FK_Category_Parent workforcedb_user
+5616; 2606 33645 FK CONSTRAINT axionpro Client FK_Client_ClientType workforcedb_user
+5617; 2606 33655 FK CONSTRAINT axionpro ComplianceRule FK_ComplianceRule_ComplianceType workforcedb_user
+5618; 2606 33660 FK CONSTRAINT axionpro ComplianceRule FK_ComplianceRule_Country workforcedb_user
+5619; 2606 33665 FK CONSTRAINT axionpro ComplianceRule FK_ComplianceRule_State workforcedb_user
+5620; 2606 33670 FK CONSTRAINT axionpro ComplianceRule FK_ComplianceRule_Tenant workforcedb_user
+5621; 2606 33675 FK CONSTRAINT axionpro CountryIdentityRule FK_Country workforcedb_user
+5623; 2606 33680 FK CONSTRAINT axionpro CountryStatutoryRule FK_CountryStatutoryRule_Country workforcedb_user
+5624; 2606 33685 FK CONSTRAINT axionpro CountryStatutoryRule FK_CountryStatutoryRule_Statutory workforcedb_user
+5622; 2606 33690 FK CONSTRAINT axionpro CountryIdentityRule FK_Country_Document workforcedb_user
+5625; 2606 33700 FK CONSTRAINT axionpro DayCombination FK_DayCombination_Tenant workforcedb_user
+5626; 2606 33710 FK CONSTRAINT axionpro Department FK_Department_Tenant workforcedb_user
+5627; 2606 33715 FK CONSTRAINT axionpro Designation FK_Designation_Department workforcedb_user
+5628; 2606 33720 FK CONSTRAINT axionpro Designation FK_Designation_Tenant workforcedb_user
+5796; 2606 36599 FK CONSTRAINT axionpro DeviceCommandResponse FK_DeviceCommandResponse_DeviceCommand workforcedb_user
+5797; 2606 36604 FK CONSTRAINT axionpro DeviceCommandResponse FK_DeviceCommandResponse_Tenant workforcedb_user
+5798; 2606 36609 FK CONSTRAINT axionpro DeviceCommandResponse FK_DeviceCommandResponse_TenantDevice workforcedb_user
+5793; 2606 36565 FK CONSTRAINT axionpro DeviceCommand FK_DeviceCommand_Tenant workforcedb_user
+5794; 2606 36570 FK CONSTRAINT axionpro DeviceCommand FK_DeviceCommand_TenantDevice workforcedb_user
+5795; 2606 36575 FK CONSTRAINT axionpro DeviceCommand FK_DeviceCommand_TenantLocation workforcedb_user
+5801; 2606 36670 FK CONSTRAINT axionpro DeviceCredential FK_DeviceCredential_TenantDevice workforcedb_user
+5802; 2606 36706 FK CONSTRAINT axionpro DeviceInitialProvisioning FK_DeviceInitialProvisioning_DeviceMaster workforcedb_user
+5799; 2606 36641 FK CONSTRAINT axionpro DeviceMessageLog FK_DeviceMessageLog_Tenant workforcedb_user
+5800; 2606 36646 FK CONSTRAINT axionpro DeviceMessageLog FK_DeviceMessageLog_TenantDevice workforcedb_user
+5629; 2606 33730 FK CONSTRAINT axionpro District FK_District_State workforcedb_user
+5660; 2606 33735 FK CONSTRAINT axionpro EmployeePolicyDependentMapping FK_EPD_Dependent workforcedb_user
+5661; 2606 33740 FK CONSTRAINT axionpro EmployeePolicyDependentMapping FK_EPD_Enrollment workforcedb_user
+5642; 2606 33745 FK CONSTRAINT axionpro EmployeeDailyAttendance FK_Employee workforcedb_user
+5874; 2606 95266 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_Arrangement workforcedb_user
+5875; 2606 101050 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_AttendanceDeviceType workforcedb_user
+5876; 2606 95261 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_Employee workforcedb_user
+5877; 2606 95276 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_Location workforcedb_user
+5878; 2606 95271 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_PolicyVersion workforcedb_user
+5879; 2606 95256 FK CONSTRAINT axionpro EmployeeAttendancePunch FK_EmployeeAttendancePunch_Tenant workforcedb_user
+5636; 2606 33750 FK CONSTRAINT axionpro EmployeeBankDetail FK_EmployeeBank_Employee workforcedb_user
+5637; 2606 33755 FK CONSTRAINT axionpro EmployeeCategorySkill FK_EmployeeCategorySkill_Category workforcedb_user
+5638; 2606 33760 FK CONSTRAINT axionpro EmployeeCategorySkill FK_EmployeeCategorySkill_Employee workforcedb_user
+5639; 2606 33765 FK CONSTRAINT axionpro EmployeeCodePattern FK_EmployeeCodePattern_Tenant workforcedb_user
+5640; 2606 33770 FK CONSTRAINT axionpro EmployeeContact FK_EmployeeContact_Employee workforcedb_user
+5643; 2606 33775 FK CONSTRAINT axionpro EmployeeDependent FK_EmployeeDependents_Employee workforcedb_user
+5772; 2606 34962 FK CONSTRAINT axionpro EmployeeDeviceEnrollment FK_EmployeeDeviceEnrollment_Employee workforcedb_user
+5773; 2606 34957 FK CONSTRAINT axionpro EmployeeDeviceEnrollment FK_EmployeeDeviceEnrollment_Tenant workforcedb_user
+5645; 2606 33780 FK CONSTRAINT axionpro EmployeeExperienceDocument FK_EmployeeExperienceDocument_Experience workforcedb_user
+5644; 2606 33785 FK CONSTRAINT axionpro EmployeeExperience FK_EmployeeExperience_Employee workforcedb_user
+5646; 2606 33790 FK CONSTRAINT axionpro EmployeeIdentity FK_EmployeeIdentity_Document workforcedb_user
+5647; 2606 33795 FK CONSTRAINT axionpro EmployeeIdentity FK_EmployeeIdentity_Employee workforcedb_user
+5648; 2606 33800 FK CONSTRAINT axionpro EmployeeImage FK_EmployeeImages_Employee workforcedb_user
+5649; 2606 33805 FK CONSTRAINT axionpro EmployeeLeaveBalance FK_EmployeeLeaveBalance_EmployeeLeavePolicyMapping workforcedb_user
+5650; 2606 33810 FK CONSTRAINT axionpro EmployeeLeaveBalance FK_EmployeeLeaveBalance_Tenant workforcedb_user
+5774; 2606 35004 FK CONSTRAINT axionpro EmployeeLocationAssignment FK_EmployeeLocationAssignment_Employee workforcedb_user
+5775; 2606 34999 FK CONSTRAINT axionpro EmployeeLocationAssignment FK_EmployeeLocationAssignment_Tenant workforcedb_user
+5776; 2606 35009 FK CONSTRAINT axionpro EmployeeLocationAssignment FK_EmployeeLocationAssignment_TenantLocation workforcedb_user
+5653; 2606 33815 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Department workforcedb_user
+5654; 2606 33820 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Designation workforcedb_user
+5655; 2606 33825 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Employee workforcedb_user
+5656; 2606 33830 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Manager workforcedb_user
+5657; 2606 33835 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_ReportingType workforcedb_user
+5658; 2606 33840 FK CONSTRAINT axionpro EmployeeManagerMapping FK_EmployeeManagerMapping_Tenant workforcedb_user
+5659; 2606 33845 FK CONSTRAINT axionpro EmployeePersonalDetail FK_EmployeePersonalDetail_Employee workforcedb_user
+5662; 2606 33850 FK CONSTRAINT axionpro EmployeePolicyEnrollment FK_EmployeePolicyEnrollment_Employee workforcedb_user
+5663; 2606 33865 FK CONSTRAINT axionpro EmployeeSalary FK_EmployeeSalary_Employee workforcedb_user
+5664; 2606 33870 FK CONSTRAINT axionpro EmployeeSalary FK_EmployeeSalary_Structure workforcedb_user
+5675; 2606 33875 FK CONSTRAINT axionpro EmployeesChangedTypeHistory FK_EmployeeStatusHistory_Employee workforcedb_user
+5676; 2606 33880 FK CONSTRAINT axionpro EmployeesChangedTypeHistory FK_EmployeeStatusHistory_NewEmployeeType workforcedb_user
+5677; 2606 33885 FK CONSTRAINT axionpro EmployeesChangedTypeHistory FK_EmployeeStatusHistory_OldEmployeeType workforcedb_user
+5665; 2606 33890 FK CONSTRAINT axionpro EmployeeStatutoryAccount FK_EmployeeStatutoryAccount_Statutory workforcedb_user
+5666; 2606 33895 FK CONSTRAINT axionpro EmployeeTaxProfile FK_EmployeeTaxProfile_Country workforcedb_user
+5667; 2606 33900 FK CONSTRAINT axionpro EmployeeTaxProfile FK_EmployeeTaxProfile_Employee workforcedb_user
+5668; 2606 33905 FK CONSTRAINT axionpro EmployeeTaxProfile FK_EmployeeTaxProfile_Regime workforcedb_user
+5669; 2606 33910 FK CONSTRAINT axionpro EmployeeTaxProfile FK_EmployeeTaxProfile_State workforcedb_user
+5671; 2606 33920 FK CONSTRAINT axionpro EmployeeTypeBasicMenu FK_EmployeeTypeBasicMenu_EmployeeType workforcedb_user
+5777; 2606 35054 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_AttendancePolicy workforcedb_user
+5778; 2606 35049 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_Employee workforcedb_user
+5779; 2606 93958 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_PolicyVersion workforcedb_user
+5780; 2606 35059 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_PrimaryLocation workforcedb_user
+5781; 2606 35044 FK CONSTRAINT axionpro EmployeeWorkArrangement FK_EmployeeWorkArrangement_Tenant workforcedb_user
+5672; 2606 33925 FK CONSTRAINT axionpro EmployeeWorkDocument FK_EmployeeWorkDocument_DocumentType workforcedb_user
+5673; 2606 33930 FK CONSTRAINT axionpro EmployeeWorkDocument FK_EmployeeWorkDocument_WorkHistory workforcedb_user
+5674; 2606 33935 FK CONSTRAINT axionpro EmployeeWorkHistory FK_EmployeeWorkHistory_Profile workforcedb_user
+5782; 2606 35091 FK CONSTRAINT axionpro EmployeeWorkPattern FK_EmployeeWorkPattern_Tenant workforcedb_user
+5783; 2606 35101 FK CONSTRAINT axionpro EmployeeWorkPattern FK_EmployeeWorkPattern_TenantLocation workforcedb_user
+5784; 2606 35096 FK CONSTRAINT axionpro EmployeeWorkPattern FK_EmployeeWorkPattern_WorkArrangement workforcedb_user
+5631; 2606 33940 FK CONSTRAINT axionpro Employee FK_Employee_Country workforcedb_user
+5632; 2606 33945 FK CONSTRAINT axionpro Employee FK_Employee_Designation workforcedb_user
+5633; 2606 33950 FK CONSTRAINT axionpro Employee FK_Employee_EmployeeType workforcedb_user
+5634; 2606 33955 FK CONSTRAINT axionpro Employee FK_Employee_Gender workforcedb_user
+5635; 2606 33960 FK CONSTRAINT axionpro Employee FK_Employee_Tenant workforcedb_user
+5728; 2606 33965 FK CONSTRAINT axionpro Tenant FK_Gender_Tenant workforcedb_user
+5678; 2606 33970 FK CONSTRAINT axionpro HostRoleModuleAndPermission FK_HRMP_HostRole workforcedb_user
+5679; 2606 33975 FK CONSTRAINT axionpro HostRoleModuleAndPermission FK_HRMP_Module workforcedb_user
+5680; 2606 33980 FK CONSTRAINT axionpro HostRoleModuleAndPermission FK_HRMP_Operation workforcedb_user
+5693; 2606 34080 FK CONSTRAINT axionpro Holiday FK_Holiday_Tenant workforcedb_user
+5694; 2606 93758 FK CONSTRAINT axionpro Holiday FK_Holiday_TenantLocation workforcedb_user
+5681; 2606 33985 FK CONSTRAINT axionpro HostUser FK_HostUser_HostRole workforcedb_user
+5682; 2606 33990 FK CONSTRAINT axionpro IdentityCategoryDocument FK_IdentityDocument_Category workforcedb_user
+5686; 2606 34045 FK CONSTRAINT axionpro LeaveType FK_LeaveType_TenantId workforcedb_user
+5613; 2606 92971 FK CONSTRAINT axionpro Locality FK_Locality_District workforcedb_user
+5614; 2606 92976 FK CONSTRAINT axionpro Locality FK_Locality_LocalityType workforcedb_user
+5687; 2606 34050 FK CONSTRAINT axionpro LoginCredential FK_LoginCredential_Employee workforcedb_user
+5689; 2606 34055 FK CONSTRAINT axionpro ModuleOperationMapping FK_ModuleOperationMapping_DataViewStructure workforcedb_user
+5690; 2606 34060 FK CONSTRAINT axionpro ModuleOperationMapping FK_ModuleOperationMapping_Module workforcedb_user
+5691; 2606 34065 FK CONSTRAINT axionpro ModuleOperationMapping FK_ModuleOperationMapping_PageTypeEnum workforcedb_user
+5692; 2606 34070 FK CONSTRAINT axionpro ModuleOperationMapping FK_ModuleOperation_Operation workforcedb_user
+5688; 2606 34075 FK CONSTRAINT axionpro Module FK_Module_ParentModule workforcedb_user
+5700; 2606 34085 FK CONSTRAINT axionpro PlanModuleMapping FK_PMM_SubscriptionPlan workforcedb_user
+5697; 2606 34100 FK CONSTRAINT axionpro PayrollEmployeeDetail FK_PayrollDetail_Component workforcedb_user
+5698; 2606 34105 FK CONSTRAINT axionpro PayrollEmployeeDetail FK_PayrollDetail_Employee workforcedb_user
+5695; 2606 34110 FK CONSTRAINT axionpro PayrollEmployee FK_PayrollEmployee_Employee workforcedb_user
+5696; 2606 34115 FK CONSTRAINT axionpro PayrollEmployee FK_PayrollEmployee_Run workforcedb_user
+5699; 2606 34120 FK CONSTRAINT axionpro PayrollRun FK_PayrollRun_Tenant workforcedb_user
+5701; 2606 34125 FK CONSTRAINT axionpro PlanModuleMapping FK_PlanModuleMapping_Module workforcedb_user
+5844; 2606 93557 FK CONSTRAINT axionpro PolicyAcknowledgement FK_PolicyAcknowledgement_Employee workforcedb_user
+5845; 2606 93612 FK CONSTRAINT axionpro PolicyAcknowledgement FK_PolicyAcknowledgement_Tenant workforcedb_user
+5846; 2606 93552 FK CONSTRAINT axionpro PolicyAcknowledgement FK_PolicyAcknowledgement_Version workforcedb_user
+5815; 2606 93442 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Country workforcedb_user
+5816; 2606 93472 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Department workforcedb_user
+5817; 2606 93477 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Designation workforcedb_user
+5818; 2606 93452 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_District workforcedb_user
+5819; 2606 93482 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Employee workforcedb_user
+5820; 2606 93467 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_EmployeeType workforcedb_user
+5821; 2606 93487 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Gender workforcedb_user
+5822; 2606 93457 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Locality workforcedb_user
+5823; 2606 93447 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_State workforcedb_user
+5824; 2606 93582 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Tenant workforcedb_user
+5825; 2606 93462 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_TenantLocation workforcedb_user
+5826; 2606 93437 FK CONSTRAINT axionpro PolicyApplicability FK_PolicyApplicability_Version workforcedb_user
+5841; 2606 93547 FK CONSTRAINT axionpro PolicyApprovalHistory FK_PolicyApprovalHistory_Stage workforcedb_user
+5842; 2606 93607 FK CONSTRAINT axionpro PolicyApprovalHistory FK_PolicyApprovalHistory_Tenant workforcedb_user
+5843; 2606 93542 FK CONSTRAINT axionpro PolicyApprovalHistory FK_PolicyApprovalHistory_Version workforcedb_user
+5838; 2606 93532 FK CONSTRAINT axionpro PolicyApprovalStage FK_PolicyApprovalStage_Category workforcedb_user
+5839; 2606 93537 FK CONSTRAINT axionpro PolicyApprovalStage FK_PolicyApprovalStage_Role workforcedb_user
+5840; 2606 93602 FK CONSTRAINT axionpro PolicyApprovalStage FK_PolicyApprovalStage_Tenant workforcedb_user
+5827; 2606 93502 FK CONSTRAINT axionpro PolicyAssignment FK_PolicyAssignment_Applicability workforcedb_user
+5828; 2606 93497 FK CONSTRAINT axionpro PolicyAssignment FK_PolicyAssignment_Employee workforcedb_user
+5829; 2606 93587 FK CONSTRAINT axionpro PolicyAssignment FK_PolicyAssignment_Tenant workforcedb_user
+5830; 2606 93492 FK CONSTRAINT axionpro PolicyAssignment FK_PolicyAssignment_Version workforcedb_user
+5847; 2606 93562 FK CONSTRAINT axionpro PolicyChangeAudit FK_PolicyChangeAudit_Policy workforcedb_user
+5848; 2606 93617 FK CONSTRAINT axionpro PolicyChangeAudit FK_PolicyChangeAudit_Tenant workforcedb_user
+5849; 2606 93567 FK CONSTRAINT axionpro PolicyChangeAudit FK_PolicyChangeAudit_Version workforcedb_user
+5835; 2606 93597 FK CONSTRAINT axionpro PolicyDocument FK_PolicyDocument_Tenant workforcedb_user
+5836; 2606 93527 FK CONSTRAINT axionpro PolicyDocument FK_PolicyDocument_Type workforcedb_user
+5837; 2606 93522 FK CONSTRAINT axionpro PolicyDocument FK_PolicyDocument_Version workforcedb_user
+5831; 2606 93512 FK CONSTRAINT axionpro PolicyException FK_PolicyException_Employee workforcedb_user
+5832; 2606 93517 FK CONSTRAINT axionpro PolicyException FK_PolicyException_Status workforcedb_user
+5833; 2606 93592 FK CONSTRAINT axionpro PolicyException FK_PolicyException_Tenant workforcedb_user
+5834; 2606 93507 FK CONSTRAINT axionpro PolicyException FK_PolicyException_Version workforcedb_user
+5812; 2606 93577 FK CONSTRAINT axionpro PolicyRule FK_PolicyRule_Tenant workforcedb_user
+5813; 2606 93432 FK CONSTRAINT axionpro PolicyRule FK_PolicyRule_Type workforcedb_user
+5814; 2606 93427 FK CONSTRAINT axionpro PolicyRule FK_PolicyRule_Version workforcedb_user
+5804; 2606 93397 FK CONSTRAINT axionpro PolicyType FK_PolicyType_Category workforcedb_user
+5805; 2606 93392 FK CONSTRAINT axionpro PolicyType FK_PolicyType_Tenant workforcedb_user
+5809; 2606 93417 FK CONSTRAINT axionpro PolicyVersion FK_PolicyVersion_Policy workforcedb_user
+5810; 2606 93422 FK CONSTRAINT axionpro PolicyVersion FK_PolicyVersion_Status workforcedb_user
+5811; 2606 93572 FK CONSTRAINT axionpro PolicyVersion FK_PolicyVersion_Tenant workforcedb_user
+5806; 2606 93412 FK CONSTRAINT axionpro Policy FK_Policy_OwnerDepartment workforcedb_user
+5807; 2606 93402 FK CONSTRAINT axionpro Policy FK_Policy_Tenant workforcedb_user
+5808; 2606 93407 FK CONSTRAINT axionpro Policy FK_Policy_Type workforcedb_user
+5702; 2606 34672 FK CONSTRAINT axionpro RefreshToken FK_RefreshToken_HostUser workforcedb_user
+5703; 2606 34667 FK CONSTRAINT axionpro RefreshToken FK_RefreshToken_LoginCredential workforcedb_user
+5704; 2606 34140 FK CONSTRAINT axionpro RequestType FK_RequestType_Tenant workforcedb_user
+5705; 2606 34150 FK CONSTRAINT axionpro RoleModuleAndPermission FK_RoleModulePermission_Module workforcedb_user
+5706; 2606 34155 FK CONSTRAINT axionpro RoleModuleAndPermission FK_RoleModulePermission_Operation workforcedb_user
+5707; 2606 34160 FK CONSTRAINT axionpro RoleModuleAndPermission FK_RoleModulePermission_Role workforcedb_user
+5765; 2606 34165 FK CONSTRAINT axionpro UserRole FK_Role_Employee workforcedb_user
+5708; 2606 34170 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_Compliance workforcedb_user
+5709; 2606 34175 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_Country workforcedb_user
+5710; 2606 34180 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_Dependency workforcedb_user
+5711; 2606 34185 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_State workforcedb_user
+5712; 2606 34190 FK CONSTRAINT axionpro SalaryComponentMaster FK_SalaryComponent_Tenant workforcedb_user
+5713; 2606 34195 FK CONSTRAINT axionpro SalaryStructure FK_SalaryStructure_Tenant workforcedb_user
+5718; 2606 34205 FK CONSTRAINT axionpro StatutoryType FK_StatutoryType_Country workforcedb_user
+5714; 2606 34210 FK CONSTRAINT axionpro SalaryStructureDetail FK_StructureDetail_Component workforcedb_user
+5715; 2606 34215 FK CONSTRAINT axionpro SalaryStructureDetail FK_StructureDetail_Dependency workforcedb_user
+5716; 2606 34220 FK CONSTRAINT axionpro SalaryStructureDetail FK_StructureDetail_Structure workforcedb_user
+5719; 2606 34225 FK CONSTRAINT axionpro TaxRegimeMaster FK_TaxRegime_Country workforcedb_user
+5720; 2606 34230 FK CONSTRAINT axionpro TaxRegimeMaster FK_TaxRegime_TaxSystem workforcedb_user
+5721; 2606 34235 FK CONSTRAINT axionpro TaxRule FK_TaxRule_Country workforcedb_user
+5722; 2606 34240 FK CONSTRAINT axionpro TaxRule FK_TaxRule_Tenant workforcedb_user
+5723; 2606 34245 FK CONSTRAINT axionpro TaxSlab FK_TaxSlab_Country workforcedb_user
+5724; 2606 34250 FK CONSTRAINT axionpro TaxSlab FK_TaxSlab_Regime workforcedb_user
+5725; 2606 34255 FK CONSTRAINT axionpro TaxSlab FK_TaxSlab_State workforcedb_user
+5726; 2606 34260 FK CONSTRAINT axionpro TaxSlab FK_TaxSlab_Tenant workforcedb_user
+5727; 2606 34265 FK CONSTRAINT axionpro TaxSystemMaster FK_TaxSystem_Country workforcedb_user
+5803; 2606 37189 FK CONSTRAINT axionpro TenantCardMaster FK_TenantCardMaster_Tenant workforcedb_user
+5792; 2606 35340 FK CONSTRAINT axionpro TenantDeviceConfiguration FK_TenantDeviceConfiguration_TenantDevice workforcedb_user
+5789; 2606 35277 FK CONSTRAINT axionpro TenantDevice FK_TenantDevice_DeviceMaster workforcedb_user
+5790; 2606 35272 FK CONSTRAINT axionpro TenantDevice FK_TenantDevice_Tenant workforcedb_user
+5791; 2606 35282 FK CONSTRAINT axionpro TenantDevice FK_TenantDevice_TenantLocation workforcedb_user
+5730; 2606 34275 FK CONSTRAINT axionpro TenantEmailConfig FK_TenantEmailConfig_Tenant workforcedb_user
+5850; 2606 93981 FK CONSTRAINT axionpro TenantEmailTemplate FK_TenantEmailTemplate_Tenant workforcedb_user
+5731; 2606 34280 FK CONSTRAINT axionpro TenantEnabledModule FK_TenantEnabledModules_Module workforcedb_user
+5732; 2606 34285 FK CONSTRAINT axionpro TenantEnabledModule FK_TenantEnabledModules_Tenant workforcedb_user
+5733; 2606 34290 FK CONSTRAINT axionpro TenantEnabledOperation FK_TenantEnabledOperations_Module workforcedb_user
+5734; 2606 34295 FK CONSTRAINT axionpro TenantEnabledOperation FK_TenantEnabledOperations_Operation workforcedb_user
+5735; 2606 34300 FK CONSTRAINT axionpro TenantEnabledOperation FK_TenantEnabledOperations_Tenant workforcedb_user
+5767; 2606 34820 FK CONSTRAINT axionpro TenantLocation FK_TenantLocation_City workforcedb_user
+5768; 2606 34815 FK CONSTRAINT axionpro TenantLocation FK_TenantLocation_Country workforcedb_user
+5769; 2606 92983 FK CONSTRAINT axionpro TenantLocation FK_TenantLocation_District workforcedb_user
+5770; 2606 34810 FK CONSTRAINT axionpro TenantLocation FK_TenantLocation_Tenant workforcedb_user
+5736; 2606 34305 FK CONSTRAINT axionpro TenantProfile FK_TenantProfile_Tenant workforcedb_user
+5737; 2606 34310 FK CONSTRAINT axionpro TenantSubscription FK_TenantSubscription_Plan workforcedb_user
+5738; 2606 34315 FK CONSTRAINT axionpro TenantSubscription FK_TenantSubscription_Tenant workforcedb_user
+5729; 2606 34320 FK CONSTRAINT axionpro Tenant FK_Tenant_TenantIndustry workforcedb_user
+5739; 2606 34340 FK CONSTRAINT axionpro Tender FK_Tender_ClientId workforcedb_user
+5741; 2606 34345 FK CONSTRAINT axionpro ThreadMessage FK_ThreadMessage_Employee workforcedb_user
+5742; 2606 34350 FK CONSTRAINT axionpro ThreadMessage FK_ThreadMessage_Thread workforcedb_user
+5753; 2606 34355 FK CONSTRAINT axionpro TicketAttachment FK_TicketAttachment_User workforcedb_user
+5754; 2606 34360 FK CONSTRAINT axionpro TicketClassification FK_TicketClassification_Tenant workforcedb_user
+5755; 2606 34365 FK CONSTRAINT axionpro TicketHeader FK_TicketHeaderType_TicketClassification workforcedb_user
+5756; 2606 34370 FK CONSTRAINT axionpro TicketHeader FK_TicketHeader_TenantId workforcedb_user
+5757; 2606 34375 FK CONSTRAINT axionpro TicketHistory FK_TicketHistory_Ticket workforcedb_user
+5758; 2606 34380 FK CONSTRAINT axionpro TicketHistory FK_TicketHistory_User workforcedb_user
+5759; 2606 34385 FK CONSTRAINT axionpro TicketType FK_TicketType_ApprovalRole workforcedb_user
+5760; 2606 34390 FK CONSTRAINT axionpro TicketType FK_TicketType_Header workforcedb_user
+5761; 2606 34395 FK CONSTRAINT axionpro TicketType FK_TicketType_ResponsibleRole workforcedb_user
+5762; 2606 34400 FK CONSTRAINT axionpro TicketType FK_TicketType_Tenant workforcedb_user
+5743; 2606 34405 FK CONSTRAINT axionpro Ticket FK_Ticket_ApprovedBy workforcedb_user
+5744; 2606 34410 FK CONSTRAINT axionpro Ticket FK_Ticket_AssignedRole workforcedb_user
+5745; 2606 34415 FK CONSTRAINT axionpro Ticket FK_Ticket_AssignedUser workforcedb_user
+5746; 2606 34420 FK CONSTRAINT axionpro Ticket FK_Ticket_Classification workforcedb_user
+5747; 2606 34425 FK CONSTRAINT axionpro Ticket FK_Ticket_Header workforcedb_user
+5748; 2606 34430 FK CONSTRAINT axionpro Ticket FK_Ticket_RecommendedBy workforcedb_user
+5749; 2606 34435 FK CONSTRAINT axionpro Ticket FK_Ticket_RequestedBy workforcedb_user
+5750; 2606 34440 FK CONSTRAINT axionpro Ticket FK_Ticket_RequestedFor workforcedb_user
+5751; 2606 34445 FK CONSTRAINT axionpro Ticket FK_Ticket_Tenant workforcedb_user
+5752; 2606 34450 FK CONSTRAINT axionpro Ticket FK_Ticket_TicketType workforcedb_user
+5763; 2606 34465 FK CONSTRAINT axionpro UserAttendanceSetting FK_UserAttendanceSetting_AttendanceDeviceType workforcedb_user
+5764; 2606 34470 FK CONSTRAINT axionpro UserAttendanceSetting FK_UserAttendanceSetting_Employee workforcedb_user
+5766; 2606 34480 FK CONSTRAINT axionpro UserRole FK_UserRole_Role workforcedb_user
+5785; 2606 35141 FK CONSTRAINT axionpro EmployeeWorkModeOverrideRequest FK_WorkModeOverride_Employee workforcedb_user
+5786; 2606 35136 FK CONSTRAINT axionpro EmployeeWorkModeOverrideRequest FK_WorkModeOverride_Tenant workforcedb_user
+5787; 2606 35151 FK CONSTRAINT axionpro EmployeeWorkModeOverrideRequest FK_WorkModeOverride_TenantLocation workforcedb_user
+5788; 2606 35146 FK CONSTRAINT axionpro EmployeeWorkModeOverrideRequest FK_WorkModeOverride_WorkArrangement workforcedb_user
+5615; 2606 34535 FK CONSTRAINT axionpro Locality FK__City__StateId__6EE06CCD workforcedb_user
+5630; 2606 34540 FK CONSTRAINT axionpro EmailQueue FK__EmailQueu__Templ__44B528D7 workforcedb_user
+5651; 2606 34545 FK CONSTRAINT axionpro EmployeeLeavePolicyMapping FK__EmployeeL__Emplo__73D00A73 workforcedb_user
+5652; 2606 34555 FK CONSTRAINT axionpro EmployeeLeavePolicyMapping FK__EmployeeL__Tenan__72DBE63A workforcedb_user
+5683; 2606 34570 FK CONSTRAINT axionpro LeaveRequest FK__LeaveRequ__Emplo__05EEBAAE workforcedb_user
+5684; 2606 34575 FK CONSTRAINT axionpro LeaveRequest FK__LeaveRequ__Leave__06E2DEE7 workforcedb_user
+5685; 2606 34585 FK CONSTRAINT axionpro LeaveRequest FK__LeaveRequ__Tenan__04FA9675 workforcedb_user
+5717; 2606 34610 FK CONSTRAINT axionpro State FK__State__CountryId__6B0FDBE9 workforcedb_user
+5740; 2606 34645 FK CONSTRAINT axionpro Tender FK__Tender__TenderSt__3EDC53F0 workforcedb_user
+5851; 2606 94046 FK CONSTRAINT axionpro HostBillingConfiguration HostBillingConfiguration_PaymentGatewayId_fkey workforcedb_user
+5863; 2606 94255 FK CONSTRAINT axionpro PaymentAttempt PaymentAttempt_BillingOrderId_fkey workforcedb_user
+5862; 2606 94232 FK CONSTRAINT axionpro PaymentTransaction PaymentTransaction_BillingOrderId_fkey workforcedb_user
+5864; 2606 94284 FK CONSTRAINT axionpro PaymentWebhookEvent PaymentWebhookEvent_PaymentGatewayId_fkey workforcedb_user
+5852; 2606 94072 FK CONSTRAINT axionpro SubscriptionPlanPrice SubscriptionPlanPrice_SubscriptionPlanId_fkey workforcedb_user
+5853; 2606 94118 FK CONSTRAINT axionpro TenantBillingProfile TenantBillingProfile_TenantId_fkey workforcedb_user
+5854; 2606 94159 FK CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_PaymentGatewayId_fkey workforcedb_user
+5855; 2606 94154 FK CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_SubscriptionPlanPriceId_fkey workforcedb_user
+5856; 2606 94144 FK CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_TenantId_fkey workforcedb_user
+5857; 2606 94149 FK CONSTRAINT axionpro TenantBillingSubscription TenantBillingSubscription_TenantSubscriptionId_fkey workforcedb_user
