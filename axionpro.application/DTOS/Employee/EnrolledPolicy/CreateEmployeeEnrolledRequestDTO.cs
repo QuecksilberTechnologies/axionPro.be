@@ -22,6 +22,7 @@ namespace axionpro.application.DTOS.Employee.EnrolledPolicy
 
             //  BASIC POLICY INFO
             public required string EmployeeId { get; set; }   //  Encoded ID
+            public long? EmployeeInsuranceEnrollmentId { get; set; }
             public required int PolicyTypeId { get; set; }
             public required int InsurancePolicyId { get; set; }
 

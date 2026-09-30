@@ -8,12 +8,41 @@ using NUnit.Framework;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using axionpro.persistance.Data.Context;
+using System.Text.Json;
 
 namespace axionpro.automationtests.Unit;
 
 [TestFixture, Category("AuthenticationStatus")]
 public sealed class AuthenticationStatusRegressionTests
 {
+    [Test]
+    public async Task Unexpected_failure_returns_safe_message_and_request_identifier()
+    {
+        const string requestId = "employee-profile-test-request";
+        const string privateExceptionMessage = "private database detail";
+        var context = new DefaultHttpContext
+        {
+            TraceIdentifier = requestId
+        };
+        context.Response.Body = new MemoryStream();
+        var middleware = new ErrorHandlerMiddleware(
+            _ => throw new InvalidOperationException(privateExceptionMessage),
+            NullLogger<ErrorHandlerMiddleware>.Instance);
+
+        await middleware.InvokeAsync(context);
+        context.Response.Body.Position = 0;
+        using var response = await JsonDocument.ParseAsync(context.Response.Body);
+        var root = response.RootElement;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(context.Response.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
+            Assert.That(root.GetProperty("Message").GetString(), Does.Contain("contact support"));
+            Assert.That(root.GetProperty("Errors")[0].GetString(), Is.EqualTo($"Request ID: {requestId}"));
+            Assert.That(root.ToString(), Does.Not.Contain(privateExceptionMessage));
+        });
+    }
+
     [TestCase(0, 403)]
     [TestCase(-1, 401)]
     [TestCase(-2, 401)]

@@ -105,12 +105,17 @@ namespace axionpro.api.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception");
+                _logger.LogError(
+                    ex,
+                    "Unhandled exception. RequestId: {RequestId}",
+                    context.TraceIdentifier);
                 await HandleExceptionAsync(
                     context,
                     HttpStatusCode.InternalServerError,
                     AppConstants.ErrorCodes.InternalServerError,
-                    AppConstants.ErrorMessages.InternalServerError);
+                    "The server could not complete this request. Please try again. " +
+                    "If it continues, contact support with the request ID below.",
+                    new List<string> { $"Request ID: {context.TraceIdentifier}" });
             }
         }
 

@@ -55,7 +55,8 @@ namespace axionpro.persistance.Repositories
                 // -----------------------------
                 // 1️⃣ Insert Record
                 // -----------------------------
-              bool isSet =await  ResetPrimaryAccountAsync(entity.EmployeeId , entity.AddedById);
+                if (entity.IsPrimaryAccount)
+                    await ResetPrimaryAccountAsync(entity.EmployeeId, entity.AddedById);
                 await _context.EmployeeBankDetails.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
@@ -169,7 +170,7 @@ namespace axionpro.persistance.Repositories
                     "❌ Error occurred while creating bank record for EmployeeId: {EmployeeId}",
                     entity.EmployeeId
                 );
-                throw new Exception($"Failed to create bank info: {ex.Message}");
+                throw;
             }
         }
         public async Task<bool> UpdateVerificationStatus(

@@ -132,6 +132,26 @@ public class CreateBankInfoCommandHandler: IRequestHandler<CreateBankInfoCommand
                 if (!Regex.IsMatch(request.DTO.BankName, @"^[a-zA-Z\s]+$"))
                     throw new ValidationErrorException("Invalid bank name format.");
 
+                if (string.IsNullOrWhiteSpace(request.DTO.BranchName) ||
+                    !Regex.IsMatch(request.DTO.BranchName, @"^[A-Za-z0-9 ,.-]{3,100}$"))
+                    throw new ValidationErrorException("Branch name must contain 3 to 100 valid characters.");
+
+                if (string.IsNullOrWhiteSpace(request.DTO.AccountNumber) ||
+                    !Regex.IsMatch(request.DTO.AccountNumber, @"^\d{9,18}$"))
+                    throw new ValidationErrorException("Account number must contain 9 to 18 digits.");
+
+                if (string.IsNullOrWhiteSpace(request.DTO.IFSCCode) ||
+                    !Regex.IsMatch(request.DTO.IFSCCode.Trim().ToUpperInvariant(), @"^[A-Z]{4}0[A-Z0-9]{6}$"))
+                    throw new ValidationErrorException("IFSC code must use the format ABCD0XXXXXX.");
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.UPIId) &&
+                    !Regex.IsMatch(request.DTO.UPIId, @"^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$"))
+                    throw new ValidationErrorException("UPI ID must use a valid name@provider format.");
+
+                if (request.DTO.IsPrimaryAccount &&
+                    (request.DTO.CancelledChequeFile == null || request.DTO.CancelledChequeFile.Length == 0))
+                    throw new ValidationErrorException("Cancelled cheque is required for the primary account.");
+
                 // ===============================
                 // 5️⃣ START TRANSACTION
                 // ===============================
@@ -158,10 +178,20 @@ public class CreateBankInfoCommandHandler: IRequestHandler<CreateBankInfoCommand
                         $"{ConstantValues.EmployeeFolder}/{employeeId}/" +
                         $"{ConstantValues.BankFolder}";
 
-                    uploadedFileKey = await _fileStorageService.UploadFileAsync(
-                        request.DTO.CancelledChequeFile,
-                        folderPath,
-                        docName);
+                    try
+                    {
+                        uploadedFileKey = await _fileStorageService.UploadFileAsync(
+                            request.DTO.CancelledChequeFile,
+                            folderPath,
+                            docName);
+                    }
+                    catch (Exception uploadException)
+                    {
+                        _logger.LogError(uploadException, "Cancelled cheque upload failed");
+                        throw new ApiException(
+                            "Cancelled cheque upload failed. Check the file and storage configuration, then try again.",
+                            500);
+                    }
 
                     if (!string.IsNullOrEmpty(uploadedFileKey))
                         hasFile = true;

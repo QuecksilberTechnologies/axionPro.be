@@ -32,9 +32,12 @@
 7. On save, `POST /api/Employee/Sensitive/create` checks permission and employee
    access again, verifies that every submitted document is allowed for the
    employee's persisted country, uploads an optional file, and saves the
-   employee-specific values in one transaction.
+   employee-specific values in one transaction. An existing active row for the
+   same employee and document is updated; it is not duplicated.
 8. If persistence fails, the database transaction is rolled back and files
    uploaded during that request are removed.
+9. Delete uses `DELETE /api/Employee/Sensitive/delete`, soft deletes the saved
+   `EmployeeIdentity` row, and removes its stored file after the database commit.
 
 ## API contract
 
@@ -63,6 +66,38 @@ Each `Identities` item carries encoded `EmployeeId`,
 `IdentityCategoryDocumentId`, `IdentityValue`, document code, optional file,
 optional effective dates, plus dynamically resolved permission context. The
 server rejects a document that is not configured for the employee's country.
+
+The same route is the create/update upsert contract. The employee and document
+master pair identifies an existing row. Verified or edit-locked rows can only be
+changed through the existing admin/verification permission behavior.
+
+### Delete a saved identity
+
+`DELETE /api/Employee/Sensitive/delete`
+
+Illustrative request body (permission IDs must be resolved dynamically):
+
+```json
+{
+  "employeeIdentityId": 91,
+  "moduleId": 100,
+  "operationId": 4
+}
+```
+
+Success response:
+
+```json
+{
+  "isSucceeded": true,
+  "message": "Identity deleted successfully.",
+  "data": true,
+  "errors": []
+}
+```
+
+The API returns validation/not-found/forbidden errors for an invalid ID, missing
+record, cross-employee access, or a verified/edit-locked record.
 
 ## Tables used by this feature
 

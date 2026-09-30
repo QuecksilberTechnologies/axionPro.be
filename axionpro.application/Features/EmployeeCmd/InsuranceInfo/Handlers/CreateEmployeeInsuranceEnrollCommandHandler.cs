@@ -102,13 +102,18 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                     (request.DTO.Dependents == null || request.DTO.Dependents.Count == 0))
                     throw new ValidationErrorException("Select at least one dependent.");
 
+                await _unitOfWork.BeginTransactionAsync();
+
                 // ===============================
                 // 🔥 STEP 2: ENROLLMENT (INSERT OR USE EXISTING)
                 // ===============================
                 EmployeePolicyEnrollment createdEnrollment;
 
-                var existingEnrollment = await _unitOfWork
-                    .EmployeePolicyEnrollmentRepository.GetExistingAsync(
+                var existingEnrollment = request.DTO.EmployeeInsuranceEnrollmentId.HasValue
+                    ? await _unitOfWork.EmployeePolicyEnrollmentRepository.GetByIdAsync(
+                        request.DTO.EmployeeInsuranceEnrollmentId.Value,
+                        validation.TenantId)
+                    : await _unitOfWork.EmployeePolicyEnrollmentRepository.GetExistingAsync(
                         employeeId,
                         request.DTO.PolicyTypeId,
                         request.DTO.InsurancePolicyId,
@@ -116,8 +121,13 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
 
                 if (existingEnrollment != null)
                 {
+                    if (existingEnrollment.EmployeeId != employeeId)
+                        throw new ForbiddenAccessException("Employee insurance access denied.");
+
                     createdEnrollment = existingEnrollment;
 
+                    createdEnrollment.PolicyTypeId = request.DTO.PolicyTypeId;
+                    createdEnrollment.InsurancePolicyId = request.DTO.InsurancePolicyId;
                     createdEnrollment.HasDependent = request.DTO.HasDependent;
                     createdEnrollment.StartDate = request.DTO.StartDate;
                     createdEnrollment.EndDate = request.DTO.EndDate;
@@ -157,91 +167,58 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                 // ===============================
                 List<GetEmployeeDependentResponsePolicyDTO> dependentList = new();
 
-                if (request.DTO.HasDependent && request.DTO.Dependents != null)
+                var existingMappings = await _unitOfWork
+                    .EmployeeDependentInsuranceMappingRepository
+                    .GetByEnrollmentIdAsync(createdEnrollment.Id, validation.TenantId);
+
+                if (existingMappings.Count > 0)
                 {
-                    try
+                    foreach (var mapping in existingMappings)
                     {
-                        await _unitOfWork.BeginTransactionAsync();
-
-                        var existingMappings = await _unitOfWork
-                            .EmployeeDependentInsuranceMappingRepository
-                            .GetByEnrollmentIdAsync(createdEnrollment.Id, validation.TenantId);
-
-                        var existingDependentIds = existingMappings
-                            .Select(x => x.DependentId)
-                            .ToHashSet();
-
-                        var newDependents = request.DTO.Dependents
-                            .Where(d => !existingDependentIds.Contains(d.DependentId))
-                            .ToList();
-
-                        // 🔥 INSERT NEW MAPPINGS
-                        if (newDependents.Any())
-                        {
-                            var mappings = newDependents.Select(dep => new EmployeePolicyDependentMapping
-                            {
-                                TenantId = validation.TenantId,
-                                EmployeePolicyEnrollmentId = createdEnrollment.Id,
-                                DependentId = dep.DependentId,
-                                RelationType = dep.Relation,
-                                IsCovered = true,
-                                IsActive = true,
-                                IsSoftDeleted = false,
-                                AddedById = validation.UserEmployeeId,
-                                AddedDateTime = DateTime.UtcNow
-                            }).ToList();
-
-                            await _unitOfWork.EmployeeDependentInsuranceMappingRepository
-                                .AddRangeAsync(mappings);
-                        }
-
-                        // 🔥 UPDATE DEPENDENTS
-                        var dependentIdsToUpdate = newDependents
-                            .Select(d => d.DependentId)
-                            .ToList();
-
-                        if (dependentIdsToUpdate.Any())
-                        {
-                            var dependents = await _unitOfWork.EmployeeDependentRepository
-                                .GetBulkInfo(dependentIdsToUpdate);
-
-                            var updateList = dependents.Select(d => new EmployeeDependent
-                            {
-                                Id = d.Id,
-                                IsCoveredInPolicy = true,
-                                UpdatedById = validation.UserEmployeeId,
-                                UpdatedDateTime = DateTime.UtcNow
-                            }).ToList();
-
-                            if (updateList.Any())
-                            {
-                                await _unitOfWork.EmployeeDependentRepository
-                                    .UpdateAsyncRangeAsync(updateList);
-                            }
-                        }
-
-                        await _unitOfWork.CommitTransactionAsync();
-
-                        // 🔥 FINAL FETCH
-                        var finalMappings = await _unitOfWork
-                            .EmployeeDependentInsuranceMappingRepository
-                            .GetByEnrollmentIdAsync(createdEnrollment.Id, validation.TenantId);
-
-                        dependentList = finalMappings.Select(d => new GetEmployeeDependentResponsePolicyDTO
-                        {
-                            Id = d.Id,
-                            DependentId = d.DependentId,
-                            Relation = d.RelationType,
-                            IsCovered = d.IsCovered
-                        }).ToList();
+                        mapping.IsActive = false;
+                        mapping.IsSoftDeleted = true;
+                        mapping.SoftDeletedById = validation.UserEmployeeId;
+                        mapping.DeletedDateTime = DateTime.UtcNow;
                     }
-                    catch (Exception ex)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync();
 
-                        _logger.LogError(ex, "⚠️ Dependent mapping failed but enrollment saved");
-                    }
+                    await _unitOfWork.EmployeeDependentInsuranceMappingRepository
+                        .SoftDeleteByEnrollmentIdAsync(existingMappings);
                 }
+
+                var requestedDependents = request.DTO.HasDependent
+                    ? request.DTO.Dependents ?? new List<CreateEmployeeDependentRequestPolicyDTO>()
+                    : new List<CreateEmployeeDependentRequestPolicyDTO>();
+
+                if (requestedDependents.Count > 0)
+                {
+                    var mappings = requestedDependents.Select(dependent =>
+                        new EmployeePolicyDependentMapping
+                        {
+                            TenantId = validation.TenantId,
+                            EmployeePolicyEnrollmentId = createdEnrollment.Id,
+                            DependentId = dependent.DependentId,
+                            RelationType = dependent.Relation,
+                            IsCovered = dependent.IsCovered,
+                            IsActive = true,
+                            IsSoftDeleted = false,
+                            AddedById = validation.UserEmployeeId,
+                            AddedDateTime = DateTime.UtcNow
+                        }).ToList();
+
+                    await _unitOfWork.EmployeeDependentInsuranceMappingRepository
+                        .AddRangeAsync(mappings);
+
+                    dependentList = mappings.Select(mapping =>
+                        new GetEmployeeDependentResponsePolicyDTO
+                        {
+                            Id = mapping.Id,
+                            DependentId = mapping.DependentId,
+                            Relation = mapping.RelationType,
+                            IsCovered = mapping.IsCovered
+                        }).ToList();
+                }
+
+                await _unitOfWork.CommitTransactionAsync();
 
                 // ===============================
                 // 📤 FINAL RESPONSE
@@ -265,6 +242,7 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 _logger.LogError(ex, "❌ Critical failure in enrollment");
                 throw;
             }
