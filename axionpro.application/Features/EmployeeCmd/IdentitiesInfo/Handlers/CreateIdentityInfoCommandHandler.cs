@@ -207,6 +207,8 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                 if (!isSuccess)
                     throw new ApiException("Identity save failed.", 500);
 
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
                 // ===============================
                 // 7️⃣ COMMIT
                 // ===============================

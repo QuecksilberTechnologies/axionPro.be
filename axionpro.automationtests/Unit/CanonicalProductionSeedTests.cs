@@ -84,6 +84,37 @@ public sealed class CanonicalProductionSeedTests
         });
     }
 
+    [Test]
+    public void Employee_identity_flow_persists_and_uses_country_document_configuration()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var identitySeed = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "database-scripts",
+            "production-seed",
+            "05-dependent-master",
+            "001-employee-identity-catalog.sql"));
+        var handler = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "axionpro.application",
+            "Features",
+            "EmployeeCmd",
+            "IdentitiesInfo",
+            "Handlers",
+            "CreateIdentityInfoCommandHandler.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(identitySeed, Does.Contain("('PASSPORT', 'Passport'"));
+            Assert.That(identitySeed, Does.Contain("('IN', 'IND', 'India', 'EPIC')"));
+            Assert.That(identitySeed, Does.Contain("('IN', 'IND', 'India', 'UAN')"));
+            Assert.That(identitySeed, Does.Contain("('US', 'USA', 'United States', 'ITIN')"));
+            Assert.That(identitySeed, Does.Contain("('CA', 'CAN', 'Canada', 'SIN')"));
+            Assert.That(identitySeed, Does.Contain("FROM axionpro.\"Country\" country"));
+            Assert.That(handler, Does.Contain("await _unitOfWork.SaveChangesAsync(cancellationToken);"));
+        });
+    }
+
     private static string FindRepositoryRoot()
     {
         var current = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);

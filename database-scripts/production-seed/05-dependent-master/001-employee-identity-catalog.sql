@@ -12,13 +12,15 @@ WHERE rule."IdentityCategoryDocumentId" IN (
     SELECT document."Id"
     FROM axionpro."IdentityCategoryDocument" document
     WHERE upper(document."Code") IN (
-        'AADHAAR', 'PAN', 'CNIC', 'SSN', 'EMIRATES_ID', 'NATIONAL_ID_CN'
+        'AADHAAR', 'PAN', 'CNIC', 'SSN', 'EMIRATES_ID', 'NATIONAL_ID_CN',
+        'PASSPORT', 'EPIC', 'ITIN', 'SIN', 'UAN'
     )
 );
 
 DELETE FROM axionpro."IdentityCategoryDocument" document
 WHERE upper(document."Code") IN (
-    'AADHAAR', 'PAN', 'CNIC', 'SSN', 'EMIRATES_ID', 'NATIONAL_ID_CN'
+    'AADHAAR', 'PAN', 'CNIC', 'SSN', 'EMIRATES_ID', 'NATIONAL_ID_CN',
+    'PASSPORT'
 )
 AND NOT EXISTS (
     SELECT 1
@@ -74,7 +76,8 @@ CROSS JOIN (VALUES
     ('CNIC', 'CNIC', 'Pakistan national identity card'),
     ('SSN', 'Social Security Number', 'United States social security identifier'),
     ('EMIRATES_ID', 'Emirates ID', 'UAE citizen and resident identity card'),
-    ('NATIONAL_ID_CN', 'Resident Identity Card', 'China resident identity card')
+    ('NATIONAL_ID_CN', 'Resident Identity Card', 'China resident identity card'),
+    ('PASSPORT', 'Passport', 'Government-issued passport')
 ) AS seed(code, name, description)
 WHERE upper(category."Code") = 'GOVT'
   AND NOT EXISTS (
@@ -82,15 +85,29 @@ WHERE upper(category."Code") = 'GOVT'
       WHERE upper(existing."Code") = seed.code
   );
 
--- 4. Country mappings: India, Pakistan, USA, UAE and China.
+-- 4. Passport is a safe worldwide baseline. Additional documents are mapped
+-- only to the issuing country; the API never hardcodes country/document pairs.
 INSERT INTO axionpro."CountryIdentityRule"
     ("CountryId", "IdentityCategoryDocumentId", "IsMandatory", "IsActive", "AddedDateTime")
+SELECT country."Id", document."Id", false, true, now()
+FROM axionpro."Country" country
+JOIN axionpro."IdentityCategoryDocument" document
+  ON upper(document."Code") = 'PASSPORT'
+ AND document."IsActive" = true
+WHERE country."IsActive" = true
+
+UNION ALL
+
 SELECT country."Id", document."Id", false, true, now()
 FROM (VALUES
     ('IN', 'IND', 'India', 'AADHAAR'),
     ('IN', 'IND', 'India', 'PAN'),
+    ('IN', 'IND', 'India', 'EPIC'),
+    ('IN', 'IND', 'India', 'UAN'),
     ('PK', 'PAK', 'Pakistan', 'CNIC'),
     ('US', 'USA', 'United States', 'SSN'),
+    ('US', 'USA', 'United States', 'ITIN'),
+    ('CA', 'CAN', 'Canada', 'SIN'),
     ('AE', 'ARE', 'United Arab Emirates', 'EMIRATES_ID'),
     ('CN', 'CHN', 'China', 'NATIONAL_ID_CN')
 ) AS seed(iso2, iso3, country_name, document_code)
@@ -100,12 +117,7 @@ JOIN axionpro."Country" country
 JOIN axionpro."IdentityCategoryDocument" document
   ON upper(document."Code") = seed.document_code
  AND document."IsActive" = true
-WHERE country."IsActive" = true
-  AND NOT EXISTS (
-      SELECT 1 FROM axionpro."CountryIdentityRule" existing
-      WHERE existing."CountryId" = country."Id"
-        AND existing."IdentityCategoryDocumentId" = document."Id"
-  );
+WHERE country."IsActive" = true;
 
 -- Final schema-wide identity synchronization. Earlier stages intentionally use
 -- established explicit IDs for canonical operations and master rows. Align each

@@ -131,13 +131,19 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                 // ===============================
                 // 7️⃣ SUCCESS
                 // ===============================
-                return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
+                var apiResponse = ApiResponse<List<GetEmployeeIdentityResponseDTO>>
                     .Success(
                         response,
                         response.Any()
                             ? "Identity information retrieved successfully."
                             : "Identity information not found."
                     );
+
+                apiResponse.CompletionPercentage = response.Count == 0
+                    ? 0
+                    : Math.Round(response.Average(item => item.CompletionPercentage), 0);
+
+                return apiResponse;
             }
             catch (Exception ex)
             {

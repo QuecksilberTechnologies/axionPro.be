@@ -344,6 +344,24 @@ public sealed class EmployeeProfileCharacterizationTests
         });
     }
 
+    [Test]
+    public void Identity_projection_calculates_each_catalogue_row_completion_from_saved_value()
+    {
+        var source = new[]
+        {
+            new GetEmployeeIdentitySp { IdentityValue = "ABC123" },
+            new GetEmployeeIdentitySp { IdentityValue = "   " },
+            new GetEmployeeIdentitySp { IdentityValue = null }
+        };
+
+        var result = ProjectionHelper
+            .ToGetIdentityResponseDTO(source, new TestIdEncoder(), "tenant-key")
+            .Select(item => item.CompletionPercentage)
+            .ToArray();
+
+        Assert.That(result, Is.EqualTo(new[] { 100d, 0d, 0d }));
+    }
+
     #endregion
 
     #region Test helpers

@@ -181,7 +181,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                    ? e.EffectiveTo.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
                    : null,
 
-                IsActive = e.IsActive
+                IsActive = e.IsActive,
+                CompletionPercentage = EmployeeProfileCompletionCalculator.CalculateRowPercentage(
+                    !string.IsNullOrWhiteSpace(e.IdentityValue))
             }).ToList();
         }
 

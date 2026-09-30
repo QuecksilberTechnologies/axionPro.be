@@ -62,6 +62,11 @@ namespace axionpro.application.DTOS.StoreProcedures
         public DateTime? EffectiveTo { get; set; }
 
         public bool? IsActive { get; set; }
+
+        /// <summary>
+        /// Completion of this configured document row. A saved identity value completes the row.
+        /// </summary>
+        public double CompletionPercentage { get; set; }
     }
 
     [Keyless]
