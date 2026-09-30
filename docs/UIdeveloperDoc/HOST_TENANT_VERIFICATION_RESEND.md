@@ -52,5 +52,31 @@ is user initiated; the UI must prevent duplicate in-flight requests.
 ## Validation status
 
 Local focused automation passed on 2026-09-29. The Render deployment and live
-Brevo delivery remain unverified until the API server IP is authorized and the
-updated backend build is deployed.
+submission were verified on 2026-09-30 after the updated backend build was
+deployed and both current Render outbound CIDR ranges were authorized in Brevo.
+See the [deployed scenario report](../testing/tenant/resend-verification/2026-09-30.md).
+
+## Intermittent SMTP failure diagnostic
+
+A successful SMTP test from a developer workstation does not prove that the
+Render service can authenticate. Render can originate an outbound connection
+from any address in the ranges shown under the service's **Connect > Outbound**
+tab. When Brevo SMTP-key IP blocking is active, authorize every listed CIDR;
+authorizing one observed Render address can produce intermittent success and
+`SMTP_IP_NOT_AUTHORIZED` failures as the egress address changes.
+
+For a recurrence:
+
+1. Confirm the Render environment setting is named `EmailConfig__Secret` and
+   deploy the saved environment change.
+2. Copy the complete current CIDR list from Render **Connect > Outbound**.
+3. Compare it with Brevo **Security > Authorized IPs** and add every missing
+   range. Inspect Brevo's **Unauthorized IP addresses** tab for rejected callers.
+4. Repeat the real Host resend. Use a workstation SMTP test only to validate the
+   credentials, sender and recipient; record it as a different caller path.
+5. If Brevo has no matching transactional event, inspect authentication,
+   connection and IP-authorization logs before diagnosing delivery or templates.
+
+The verified 2026-09-30 Render ranges are recorded in the scenario report, not
+as permanent application constants. Re-read them from Render because the
+platform can change its network ranges.
