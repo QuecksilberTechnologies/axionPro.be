@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOs.Module;
+using axionpro.application.DTOs.Module;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Dependent;
@@ -76,7 +77,20 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                 // ===============================
                 if (!string.IsNullOrWhiteSpace(request.DTO.EmployeeId))
                 {
-                    var employeeId =  validation.UserEmployeeId;
+                    var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
+
+                    if (employeeId <= 0)
+                        throw new ValidationErrorException("Invalid EmployeeId.");
+
+                    if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                            validation,
+                            employeeId,
+                            EmployeeDataAccessRequirement.PersonalDetails,
+                            cancellationToken))
+                        throw new ForbiddenAccessException("Employee insurance access denied.");
 
                     var enrollments = await _unitOfWork
                         .EmployeePolicyEnrollmentRepository
@@ -144,6 +158,13 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
 
                     if (enr == null)
                         throw new ApiException("Enrollment not found.",404);
+
+                    if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                            validation,
+                            enr.EmployeeId,
+                            EmployeeDataAccessRequirement.PersonalDetails,
+                            cancellationToken))
+                        throw new ForbiddenAccessException("Employee insurance access denied.");
 
                     // 🔹 GET DEPENDENTS
                     var mappings = await _unitOfWork
@@ -218,5 +239,6 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
     }
 
 }
+
 
 

@@ -182,8 +182,8 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                    : null,
 
                 IsActive = e.IsActive,
-                CompletionPercentage = EmployeeProfileCompletionCalculator.CalculateRowPercentage(
-                    !string.IsNullOrWhiteSpace(e.IdentityValue))
+                CompletionPercentage = EmployeeProfileCompletionCalculator.CalculateIdentityRow(
+                    e.IdentityValue)
             }).ToList();
         }
 

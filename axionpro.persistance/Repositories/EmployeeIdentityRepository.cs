@@ -271,6 +271,36 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        public Task<EmployeeIdentity?> GetByEmployeeAndDocumentAsync(
+            long employeeId,
+            int documentId,
+            CancellationToken cancellationToken)
+        {
+            return _context.EmployeeIdentities.FirstOrDefaultAsync(
+                identity =>
+                    identity.EmployeeId == employeeId &&
+                    identity.IdentityCategoryDocumentId == documentId &&
+                    !identity.IsSoftDeleted &&
+                    identity.IsActive,
+                cancellationToken);
+        }
+
+        public async Task<bool> UpdateAsync(
+            EmployeeIdentity entity,
+            CancellationToken cancellationToken)
+        {
+            _context.EmployeeIdentities.Update(entity);
+            return await _context.SaveChangesAsync(cancellationToken) > 0;
+        }
+
+        public async Task<bool> SoftDeleteAsync(
+            EmployeeIdentity entity,
+            CancellationToken cancellationToken)
+        {
+            _context.EmployeeIdentities.Update(entity);
+            return await _context.SaveChangesAsync(cancellationToken) > 0;
+        }
+
 
         public async Task<bool> IsEmployeeIdentityExistsAsync(long id, bool? isActive)
         {

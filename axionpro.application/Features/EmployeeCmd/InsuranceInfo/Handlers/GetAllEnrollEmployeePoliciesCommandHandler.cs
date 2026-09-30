@@ -1,4 +1,6 @@
-﻿using axionpro.application.DTOS.Employee.Dependent;
+using axionpro.application.Common.Helpers.PercentageHelper;
+using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.EnrolledPolicy;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -55,12 +57,30 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
+
+                if (employeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
+
+                if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                        validation,
+                        employeeId,
+                        EmployeeDataAccessRequirement.PersonalDetails,
+                        cancellationToken))
+                    throw new ForbiddenAccessException("Employee insurance access denied.");
+
                 // ===============================
                 // 🔥 GET ENROLLMENTS
                 // ===============================
                 var enrollments = await _unitOfWork
                     .EmployeePolicyEnrollmentRepository
-                    .GetByEmployeeIdAsync(validation.UserEmployeeId, validation.TenantId);
+                    .GetByEmployeeIdAsync(employeeId, validation.TenantId);
 
                 var policies = new List<GetEmployeeEnrolledResponseDTO>();
 
@@ -69,7 +89,7 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                     // 🔹 GET DEPENDENTS (CORRECT METHOD)
                     var mappings = await _unitOfWork
                         .EmployeeDependentInsuranceMappingRepository
-                        .GetByEnrollmentIdAsync(validation.UserEmployeeId, validation.TenantId);
+                        .GetByEnrollmentIdAsync(enr.Id, validation.TenantId);
 
                     var dependents = mappings.Select(d => new GetEmployeeDependentResponsePolicyDTO
                     {
@@ -101,8 +121,18 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                     Policies = policies
                 };
 
-                return ApiResponse<GetAllEnrolledEmployeeResponseDTO>
+                var apiResponse = ApiResponse<GetAllEnrolledEmployeeResponseDTO>
                     .Success(response, "Employee policies fetched successfully.");
+                apiResponse.CompletionPercentage = policies.Count == 0
+                    ? 0
+                    : Math.Round(policies.Average(policy =>
+                        EmployeeProfileCompletionCalculator.CalculateInsuranceRow(
+                            policy.PolicyTypeId,
+                            policy.InsurancePolicyId,
+                            policy.StartDate,
+                            policy.EndDate)), 0);
+
+                return apiResponse;
             }
             catch (Exception ex)
             {

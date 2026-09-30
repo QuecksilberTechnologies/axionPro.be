@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
@@ -115,6 +116,14 @@ public class CreateDependentCommandHandler
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
+
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.RequireText(
+                    request.DTO.DependentName,
+                    "Dependent name");
+                if (!Enum.IsDefined(typeof(RelationDependant), request.DTO.Relation))
+                    throw new ValidationErrorException("Invalid dependent relation.");
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.ValidateDateOfBirth(
+                    request.DTO.DateOfBirth);
                 // 4️⃣ START TRANSACTION
                 // ===============================
                 await _unitOfWork.BeginTransactionAsync();
@@ -236,5 +245,6 @@ public class CreateDependentCommandHandler
 
     #endregion
 }
+
 
 

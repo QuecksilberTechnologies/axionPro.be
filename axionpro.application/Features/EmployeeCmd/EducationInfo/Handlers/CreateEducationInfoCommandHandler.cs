@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
@@ -124,6 +125,18 @@ public class CreateEducationInfoCommandHandler : IRequestHandler<CreateEducation
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
+
+                EmployeeProfileValidationHelper.RequireText(request.DTO.Degree, "Degree");
+                EmployeeProfileValidationHelper.RequireText(request.DTO.InstituteName, "Institute name");
+                EmployeeProfileValidationHelper.RequireText(request.DTO.ScoreType, "Score type");
+                EmployeeProfileValidationHelper.ValidateDateRange(
+                    request.DTO.StartDate,
+                    request.DTO.EndDate);
+                EmployeeProfileValidationHelper.ValidateGap(
+                    request.DTO.IsEducationGapBeforeDegree,
+                    request.DTO.GapYears,
+                    request.DTO.ReasonOfEducationGap,
+                    "Education gap");
                 // 4️⃣ START TRANSACTION
                 // ===============================
                 await _unitOfWork.BeginTransactionAsync();

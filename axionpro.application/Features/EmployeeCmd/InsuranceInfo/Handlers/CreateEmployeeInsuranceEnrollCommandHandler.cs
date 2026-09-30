@@ -1,4 +1,6 @@
-﻿using axionpro.application.DTOs.Module;
+using axionpro.application.DTOs.Module;
+using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Dependent;
@@ -71,6 +73,35 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
+
+                if (employeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
+
+                if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                        validation,
+                        employeeId,
+                        EmployeeDataAccessRequirement.PersonalDetails,
+                        cancellationToken))
+                    throw new ForbiddenAccessException("Employee insurance access denied.");
+
+                if (request.DTO.PolicyTypeId <= 0)
+                    throw new ValidationErrorException("Policy type is required.");
+
+                if (request.DTO.InsurancePolicyId <= 0)
+                    throw new ValidationErrorException("Insurance policy is required.");
+
+                EmployeeProfileValidationHelper.ValidateDateRange(
+                    request.DTO.StartDate,
+                    request.DTO.EndDate);
+
+                if (request.DTO.HasDependent &&
+                    (request.DTO.Dependents == null || request.DTO.Dependents.Count == 0))
+                    throw new ValidationErrorException("Select at least one dependent.");
+
                 // ===============================
                 // 🔥 STEP 2: ENROLLMENT (INSERT OR USE EXISTING)
                 // ===============================
@@ -78,7 +109,7 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
 
                 var existingEnrollment = await _unitOfWork
                     .EmployeePolicyEnrollmentRepository.GetExistingAsync(
-                        validation.UserEmployeeId,
+                        employeeId,
                         request.DTO.PolicyTypeId,
                         request.DTO.InsurancePolicyId,
                         validation.TenantId);
@@ -87,6 +118,15 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                 {
                     createdEnrollment = existingEnrollment;
 
+                    createdEnrollment.HasDependent = request.DTO.HasDependent;
+                    createdEnrollment.StartDate = request.DTO.StartDate;
+                    createdEnrollment.EndDate = request.DTO.EndDate;
+                    createdEnrollment.UpdatedById = validation.UserEmployeeId;
+                    createdEnrollment.UpdatedDateTime = DateTime.UtcNow;
+
+                    await _unitOfWork.EmployeePolicyEnrollmentRepository
+                        .UpdateAsync(createdEnrollment);
+
                     _logger.LogInformation("⚠️ Enrollment already exists. Using existing record.");
                 }
                 else
@@ -94,7 +134,7 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                     createdEnrollment = new EmployeePolicyEnrollment
                     {
                         TenantId = validation.TenantId,
-                        EmployeeId = validation.UserEmployeeId,
+                        EmployeeId = employeeId,
                         PolicyTypeId = request.DTO.PolicyTypeId,
                         InsurancePolicyId = request.DTO.InsurancePolicyId,
                         HasDependent = request.DTO.HasDependent,
@@ -236,3 +276,4 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
 
 
  
+

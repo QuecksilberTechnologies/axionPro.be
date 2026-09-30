@@ -98,6 +98,30 @@ public class CreateExperienceInfoCommandHandler
 
                 if (validation.TenantId <= 0)
                     throw new ValidationErrorException("Invalid TenantId.");
+
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.RequireText(
+                    request.DTO.CompanyName,
+                    "Company name");
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.RequireText(
+                    request.DTO.Designation,
+                    "Designation");
+                if (!request.DTO.StartDate.HasValue)
+                    throw new ValidationErrorException("Start date is required.");
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.ValidateDateRange(
+                    request.DTO.StartDate,
+                    request.DTO.EndDate);
+
+                if (request.DTO.IsAnyGap)
+                {
+                    axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.RequireText(
+                        request.DTO.ReasonOfGap,
+                        "Gap reason");
+                    axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.ValidateDateRange(
+                        request.DTO.GapYearFrom,
+                        request.DTO.GapYearTo,
+                        "Gap start date",
+                        "Gap end date");
+                }
                 // ===============================
                 // 2️⃣ TRANSACTION START
                 // ===============================
@@ -335,3 +359,4 @@ public class CreateExperienceInfoCommandHandler
 
     #endregion
 }
+

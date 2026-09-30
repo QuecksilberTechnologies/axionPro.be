@@ -82,6 +82,22 @@ namespace axionpro.api.Controllers.Employee
 
 
         }
+
+        /// <summary>
+        /// Used-In-Angular: soft deletes one persisted employee identity.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: deletes an editable identity record and its uploaded file.</para>
+        /// <para>Handler flow: DeleteIdentityInfoCommand is processed by DeleteIdentityInfoCommandHandler.</para>
+        /// <para>Integrated UI page(s): /app/profile/identity-info</para>
+        /// </remarks>
+        [HttpDelete("delete")]
+        public async Task<IActionResult> Delete([FromBody] DeleteIdentityRequestDTO dto)
+        {
+            var result = await _mediator.Send(new DeleteIdentityInfoCommand(dto));
+            return Ok(result);
+        }
         /// <summary>
         /// Updates employee details.
         /// </summary>

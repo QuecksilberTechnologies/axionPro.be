@@ -1,5 +1,11 @@
 using axionpro.application.Common.Enums;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
+using axionpro.application.DTOS.Employee.Contact;
+using axionpro.application.DTOS.Employee.Dependent;
+using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.DTOS.Employee.Experience;
+using axionpro.domain.Entity;
 
 namespace axionpro.application.Common.Helpers.PercentageHelper;
 
@@ -18,6 +24,152 @@ public static class EmployeeProfileCompletionCalculator
             requiredFields.Count(isComplete => isComplete) * 100d / requiredFields.Length,
             0);
     }
+
+    public static double CalculateOverviewRow(Employee employee, bool hasPrimaryImage)
+    {
+        ArgumentNullException.ThrowIfNull(employee);
+
+        return CalculateOverviewRow(
+            employee.FirstName,
+            employee.LastName,
+            employee.DateOfBirth,
+            employee.DateOfOnBoarding,
+            employee.DesignationId,
+            employee.DepartmentId,
+            employee.OfficialEmail,
+            hasPrimaryImage);
+    }
+
+    public static double CalculateOverviewRow(
+        string? firstName,
+        string? lastName,
+        DateTime? dateOfBirth,
+        DateTime? dateOfOnboarding,
+        int? designationId,
+        int? departmentId,
+        string? officialEmail,
+        bool hasPrimaryImage) =>
+        CalculateRowPercentage(
+            !string.IsNullOrWhiteSpace(firstName),
+            !string.IsNullOrWhiteSpace(lastName),
+            dateOfBirth.HasValue,
+            dateOfOnboarding.HasValue,
+            designationId > 0,
+            departmentId > 0,
+            !string.IsNullOrWhiteSpace(officialEmail),
+            hasPrimaryImage);
+
+    public static double CalculateBankRow(GetBankResponseDTO bank)
+    {
+        ArgumentNullException.ThrowIfNull(bank);
+
+        var documentComplete = !bank.IsPrimaryAccount ||
+            (bank.HasChequeDocUploaded &&
+             !string.IsNullOrWhiteSpace(bank.FilePath) &&
+             !string.IsNullOrWhiteSpace(bank.FileName));
+
+        return CalculateRowPercentage(
+            !string.IsNullOrWhiteSpace(bank.BankName),
+            !string.IsNullOrWhiteSpace(bank.BranchName),
+            !string.IsNullOrWhiteSpace(bank.IFSCCode),
+            !string.IsNullOrWhiteSpace(bank.AccountNumber),
+            !string.IsNullOrWhiteSpace(bank.AccountType),
+            documentComplete);
+    }
+
+    public static double CalculateContactRow(GetContactResponseDTO contact)
+    {
+        ArgumentNullException.ThrowIfNull(contact);
+
+        return CalculateRowPercentage(
+            !string.IsNullOrWhiteSpace(contact.ContactName),
+            !string.IsNullOrWhiteSpace(contact.ContactNumber),
+            contact.Relation > 0);
+    }
+
+    public static double CalculateExperienceRow(GetEmployeeExperienceResponseDTO experience)
+    {
+        ArgumentNullException.ThrowIfNull(experience);
+
+        return CalculateRowPercentage(
+            !string.IsNullOrWhiteSpace(experience.CompanyName),
+            !string.IsNullOrWhiteSpace(experience.Designation),
+            experience.StartDate.HasValue,
+            experience.EndDate.HasValue);
+    }
+
+    public static double CalculateIdentityRow(string? identityValue) =>
+        CalculateRowPercentage(!string.IsNullOrWhiteSpace(identityValue));
+
+    public static double CalculateInsuranceRow(
+        int policyTypeId,
+        int insurancePolicyId,
+        DateTime? startDate,
+        DateTime? endDate) =>
+        CalculateRowPercentage(
+            policyTypeId > 0,
+            insurancePolicyId > 0,
+            startDate.HasValue,
+            endDate.HasValue);
+
+    public static double CalculateEducationRow(GetEducationResponseDTO education)
+    {
+        ArgumentNullException.ThrowIfNull(education);
+
+        return CalculateRowPercentage(
+            !string.IsNullOrWhiteSpace(education.Degree),
+            !string.IsNullOrWhiteSpace(education.InstituteName),
+            education.StartDate.HasValue,
+            education.EndDate.HasValue,
+            education.HasEducationDocUploded,
+            !string.IsNullOrWhiteSpace(education.ScoreType));
+    }
+
+    public static double CalculateDependentRow(GetDependentResponseDTO dependent)
+    {
+        ArgumentNullException.ThrowIfNull(dependent);
+
+        return CalculateRowPercentage(
+            !string.IsNullOrWhiteSpace(dependent.DependentName),
+            dependent.Relation > 0,
+            dependent.DateOfBirth.HasValue,
+            dependent.HasProofUploaded);
+    }
+
+    public static CompletionSectionDTO CreateBankSection(IReadOnlyCollection<GetBankResponseDTO> rows)
+    {
+        var section = CreateSection(
+            "Bank",
+            rows.Select(CalculateBankRow).ToArray(),
+            rows.Select(row => row.IsInfoVerified).ToArray(),
+            rows.Select(row => row.IsEditAllowed).ToArray());
+
+        if (rows.Count > 0 && rows.All(row => !row.IsPrimaryAccount))
+            section.CompletionPercent = Math.Min(section.CompletionPercent ?? 0, 99);
+
+        return section;
+    }
+
+    public static CompletionSectionDTO CreateContactSection(IReadOnlyCollection<GetContactResponseDTO> rows)
+    {
+        var section = CreateSection(
+            "Contact",
+            rows.Select(CalculateContactRow).ToArray(),
+            rows.Select(row => row.IsInfoVerified).ToArray(),
+            rows.Select(row => row.IsEditAllowed).ToArray());
+
+        if (rows.Count > 0 && rows.All(row => !row.IsPrimary))
+            section.CompletionPercent = Math.Min(section.CompletionPercent ?? 0, 99);
+
+        return section;
+    }
+
+    public static CompletionSectionDTO CreateEducationSection(IReadOnlyCollection<GetEducationResponseDTO> rows) =>
+        CreateSection(
+            "Education",
+            rows.Select(CalculateEducationRow).ToArray(),
+            rows.Select(row => row.IsInfoVerified).ToArray(),
+            rows.Select(row => row.IsEditAllowed).ToArray());
 
     public static CompletionSectionDTO CreateSection(
         string sectionName,

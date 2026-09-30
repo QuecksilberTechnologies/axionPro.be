@@ -63,6 +63,7 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
     CancellationToken cancellationToken)
         {
             var uploadedFiles = new List<string>();
+            var replacedFiles = new List<string>();
 
             try
             {
@@ -88,6 +89,7 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                 await _unitOfWork.BeginTransactionAsync();
 
                 var entities = new List<EmployeeIdentity>();
+                var requestDocuments = new HashSet<(long EmployeeId, int DocumentId)>();
 
                 foreach (var identity in request.DTO.Identities)
                 {
@@ -99,6 +101,9 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
 
                     if (employeeId <= 0)
                         throw new ValidationErrorException("Invalid EmployeeId.");
+
+                    if (!requestDocuments.Add((employeeId, identity.IdentityCategoryDocumentId)))
+                        throw new ValidationErrorException("Duplicate identity document received.");
 
                     if (!await _commonRequestService.CanAccessEmployeeDataAsync(
                             validation,
@@ -177,6 +182,39 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                     // ===============================
                     // 5️⃣ BUILD ENTITY
                     // ===============================
+                    var existing = await _unitOfWork.EmployeeIdentityRepository
+                        .GetByEmployeeAndDocumentAsync(
+                            employeeId,
+                            identity.IdentityCategoryDocumentId,
+                            cancellationToken);
+
+                    if (existing != null)
+                    {
+                        if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin &&
+                            (existing.IsInfoVerified || !existing.IsEditAllowed))
+                            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
+                        if (!string.IsNullOrWhiteSpace(documentPath) &&
+                            !string.IsNullOrWhiteSpace(existing.DocumentFilePath))
+                            replacedFiles.Add(existing.DocumentFilePath);
+
+                        existing.IdentityValue = identity.IdentityValue.Trim();
+                        existing.EffectiveFrom = effectiveFrom;
+                        existing.EffectiveTo = identity.EffectiveTo;
+                        existing.DocumentFileName = documentName ?? existing.DocumentFileName;
+                        existing.DocumentFilePath = documentPath ?? existing.DocumentFilePath;
+                        existing.HasIdentityUploaded = !string.IsNullOrWhiteSpace(existing.DocumentFilePath);
+                        existing.UpdatedById = validation.UserEmployeeId;
+                        existing.UpdatedDateTime = DateTime.UtcNow;
+
+                        if (!await _unitOfWork.EmployeeIdentityRepository.UpdateAsync(
+                                existing,
+                                cancellationToken))
+                            throw new ApiException("Identity update failed.", 500);
+
+                        continue;
+                    }
+
                     entities.Add(new EmployeeIdentity
                     {
                         EmployeeId = employeeId,
@@ -201,7 +239,7 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                 // ===============================
                 // 6️⃣ SAVE
                 // ===============================
-                var isSuccess =
+                var isSuccess = entities.Count == 0 ||
                     await _unitOfWork.EmployeeIdentityRepository.CreateAsync(entities);
 
                 if (!isSuccess)
@@ -213,6 +251,18 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                 // 7️⃣ COMMIT
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
+
+                foreach (var replacedFile in replacedFiles)
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(replacedFile);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogWarning(cleanupEx, "Failed to delete replaced identity file");
+                    }
+                }
 
                 _logger.LogInformation("CreateEmployeeIdentity success");
 

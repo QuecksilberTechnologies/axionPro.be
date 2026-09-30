@@ -9,12 +9,15 @@
 using System.Reflection;
 using axionpro.api.Controllers.Employee;
 using axionpro.application.Common.Enums;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.DTOS.Employee.Dependent;
+using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.Extentions;
@@ -188,6 +191,95 @@ public sealed class EmployeeProfileCharacterizationTests
         });
     }
 
+    [Test]
+    public void Legacy_row_helpers_delegate_to_the_central_profile_calculator()
+    {
+        var experience = new GetEmployeeExperienceResponseDTO
+        {
+            CompanyName = "Example Ltd",
+            Designation = "Engineer",
+            StartDate = DateTime.UtcNow.AddYears(-2),
+            EndDate = DateTime.UtcNow.AddYears(-1),
+            IsInfoVerified = false,
+            IsEditAllowed = true
+        };
+        var dependent = new GetDependentResponseDTO
+        {
+            Id = 1,
+            DependentName = "Example Dependent",
+            Relation = 1,
+            DateOfBirth = DateTime.UtcNow.AddYears(-20),
+            HasProofUploaded = true,
+            IsInfoVerified = false,
+            IsEditAllowed = true
+        };
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                CompletionCalculatorHelper.ExperiencePropCalculate(experience),
+                Is.EqualTo(EmployeeProfileCompletionCalculator.CalculateExperienceRow(experience)));
+            Assert.That(
+                CompletionCalculatorHelper.DependentPropCalculate(dependent),
+                Is.EqualTo(EmployeeProfileCompletionCalculator.CalculateDependentRow(dependent)));
+        });
+    }
+
+    [Test]
+    public void Workflow_flags_do_not_change_row_completion_percentage()
+    {
+        var bank = new GetBankResponseDTO
+        {
+            BankName = "Example Bank",
+            BranchName = "Main",
+            IFSCCode = "TEST0001",
+            AccountNumber = "123456789",
+            AccountType = "Savings",
+            IsPrimaryAccount = false,
+            IsInfoVerified = false,
+            IsEditAllowed = true
+        };
+
+        var before = EmployeeProfileCompletionCalculator.CalculateBankRow(bank);
+        bank.IsInfoVerified = true;
+        bank.IsEditAllowed = false;
+        var after = EmployeeProfileCompletionCalculator.CalculateBankRow(bank);
+
+        Assert.That(after, Is.EqualTo(before));
+    }
+
+    [Test]
+    public void Shared_profile_validation_rejects_reversed_date_ranges()
+    {
+        Assert.Throws<axionpro.application.Exceptions.ValidationErrorException>(() =>
+            EmployeeProfileValidationHelper.ValidateDateRange(
+                new DateTime(2026, 2, 1),
+                new DateTime(2026, 1, 31)));
+    }
+
+    [Test]
+    public void Shared_profile_validation_accepts_an_open_end_date()
+    {
+        Assert.DoesNotThrow(() =>
+            EmployeeProfileValidationHelper.ValidateDateRange(
+                new DateTime(2026, 2, 1),
+                null));
+    }
+
+    [Test]
+    public void Shared_profile_validation_requires_gap_details_only_when_gap_is_selected()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.DoesNotThrow(() =>
+                EmployeeProfileValidationHelper.ValidateGap(false, 0, null, "Education gap"));
+            Assert.Throws<axionpro.application.Exceptions.ValidationErrorException>(() =>
+                EmployeeProfileValidationHelper.ValidateGap(true, 0, null, "Education gap"));
+            Assert.Throws<axionpro.application.Exceptions.ValidationErrorException>(() =>
+                EmployeeProfileValidationHelper.ValidateGap(true, 1, " ", "Education gap"));
+        });
+    }
+
     #endregion
 
     #region Permission pipeline coverage
@@ -306,7 +398,7 @@ public sealed class EmployeeProfileCharacterizationTests
     [TestCase(typeof(ExperienceController), "POST:create", "GET:get", "POST:update", "DELETE:delete", "DELETE:delete-doc")]
     [TestCase(typeof(DependentController), "POST:create", "GET:get", "GET:get-in-detail", "POST:update", "DELETE:delete")]
     [TestCase(typeof(InsuranceController), "POST:employee-insurance-enroll", "GET:get-all-enroll", "DELETE:delete")]
-    [TestCase(typeof(SensitiveController), "POST:Create", "GET:get")]
+    [TestCase(typeof(SensitiveController), "POST:Create", "GET:get", "DELETE:delete")]
     public void Legacy_profile_controller_keeps_its_current_route_surface(
         Type controllerType,
         params string[] expectedRoutes)

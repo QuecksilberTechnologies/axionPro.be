@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using axionpro.application.Common.Enums;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Dependent;
@@ -101,6 +101,14 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 if (validation.RoleTypeId != ConstantValues.RoleTypeAdmin &&
                     (dependent.IsInfoVerified == true || dependent.IsEditAllowed != true))
                     throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.RequireText(
+                    string.IsNullOrWhiteSpace(request.DTO.DependentName)
+                        ? dependent.DependentName
+                        : request.DTO.DependentName,
+                    "Dependent name");
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.ValidateDateOfBirth(
+                    request.DTO.DateOfBirth ?? dependent.DateOfBirth);
 
                 // ===============================
                 // 5️⃣ START TRANSACTION
@@ -226,4 +234,5 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     }
 
 }
+
 

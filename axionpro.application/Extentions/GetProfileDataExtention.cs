@@ -2,6 +2,7 @@
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Extentions
@@ -51,158 +52,24 @@ namespace axionpro.application.Extentions
         public static CompletionSectionDTO CalculateEducationCompletionDTO(
            this IEnumerable<GetEducationResponseDTO> items)
         {
-            if (items == null || !items.Any())
-                return CreateEmptyResponse("Education");
-         int   totalEducationDigree = 0;
-            double totalPercent = items.Sum(edu =>
-            {
-                bool[] fields =
-                {
-            !string.IsNullOrWhiteSpace(edu.Degree),
-            !string.IsNullOrWhiteSpace(edu.InstituteName),
-            edu.StartDate != null,
-            edu.EndDate != null,
-            edu.HasEducationDocUploded == true,   // ✅ true only
-            edu.ScoreType != null
-            };
-
-                int filled = fields.Count(f => f);
-                int totalFields = fields.Length;
-
-                return (filled / (double)totalFields) * 100;
-            });
-
-            var first = items.First();
-
-            return new CompletionSectionDTO
-            {
-                SectionName = "Education",
-                CompletionPercent = Math.Round(totalPercent / items.Count()),
-                IsInfoVerified = first.IsInfoVerified,
-                IsEditAllowed = first.IsInfoVerified == true ? false : first.IsEditAllowed,
-                IsSectionCreate = true
-            };
+            var rows = items?.ToArray() ?? Array.Empty<GetEducationResponseDTO>();
+            return EmployeeProfileCompletionCalculator.CreateEducationSection(rows);
         }
 
         // ------------------ BANK DTO-----------------
         public static CompletionSectionDTO CalculateBankCompletionDTO(
          this IEnumerable<GetBankResponseDTO> items)
         {
-            // 🔒 Safety
-            if (items == null || !items.Any())
-                return CreateEmptyResponse("Bank");
-
-            double totalPercent = 0;
-            int totalRows = 0;
-
-            // 🔥 RULE 3: At least one primary account must exist
-            bool hasPrimaryAccount = items.Any(x => x.IsPrimaryAccount == true);
-
-            foreach (var bank in items)
-            {
-                totalRows++;
-
-                bool isPrimary = bank.IsPrimaryAccount == true;
-
-                // 📄 Document rule
-                bool documentCompleted =
-                    !isPrimary ||
-                    (
-                        bank.HasChequeDocUploaded == true &&
-                        !string.IsNullOrWhiteSpace(bank.FilePath) &&
-                        !string.IsNullOrWhiteSpace(bank.FileName)
-                    );
-
-                bool[] fields =
-                {
-            !string.IsNullOrWhiteSpace(bank.BankName),
-            !string.IsNullOrWhiteSpace(bank.BranchName),
-            !string.IsNullOrWhiteSpace(bank.IFSCCode),
-            !string.IsNullOrWhiteSpace(bank.AccountNumber),
-            !string.IsNullOrWhiteSpace(bank.AccountType),
-            documentCompleted
-        };
-
-                int filled = fields.Count(f => f);
-                totalPercent += (filled / (double)fields.Length) * 100;
-            }
-
-            double averagePercent =
-                totalRows == 0 ? 0 : Math.Round(totalPercent / totalRows, 0);
-
-            // 🔥 RULE 3 enforcement (NO hacks)
-            if (!hasPrimaryAccount)
-                averagePercent = Math.Min(averagePercent, 99);
-
-            return new CompletionSectionDTO
-            {
-                SectionName = "Bank",
-
-                // ✅ TRUE average
-                CompletionPercent = averagePercent,
-
-                // ✅ Verified only if ALL rows verified
-                IsInfoVerified = items.All(x => x.IsInfoVerified == true),
-
-                // ✅ Editable if ANY row editable
-                IsEditAllowed = items.Any(x => x.IsEditAllowed == true && x.IsInfoVerified != true),
-
-                IsSectionCreate = true
-            };
+            var rows = items?.ToArray() ?? Array.Empty<GetBankResponseDTO>();
+            return EmployeeProfileCompletionCalculator.CreateBankSection(rows);
         }
 
         #region Contact Extension
         public static CompletionSectionDTO CalculateContactCompletionDTO(
            this IEnumerable<GetContactResponseDTO> items)
         {
-            // 🔒 SAFETY
-            if (items == null || !items.Any())
-                return CreateEmptyResponse("Contact");
-
-            double totalPercent = 0;
-            int totalRows = 0;
-
-            // 🔥 RULE: At least one primary contact must exist
-            bool hasPrimaryContact = items.Any(x => x.IsPrimary == true);
-
-            foreach (var contact in items)
-            {
-                totalRows++;
-
-                bool[] fields =
-                {
-            !string.IsNullOrWhiteSpace(contact.ContactName),
-            !string.IsNullOrWhiteSpace(contact.ContactNumber),
-            contact.Relation > 0,                     // 🔑 relation filled
-          
-               };
-
-                int filled = fields.Count(f => f);
-                totalPercent += (filled / (double)fields.Length) * 100;
-            }
-
-            double averagePercent =
-                totalRows == 0 ? 0 : Math.Round(totalPercent / totalRows, 0);
-
-            // 🔥 RULE enforcement (NO shortcut)
-            if (!hasPrimaryContact)
-                averagePercent = Math.Min(averagePercent, 99);
-
-            return new CompletionSectionDTO
-            {
-                SectionName = "Contact",
-
-                // ✅ TRUE average
-                CompletionPercent = averagePercent,
-
-                // ✅ Verified only if ALL rows verified
-                IsInfoVerified = items.All(x => x.IsInfoVerified == true),
-
-                // ✅ Editable if ANY row editable
-                IsEditAllowed = items.Any(x => x.IsEditAllowed == true && x.IsInfoVerified != true),
-
-                IsSectionCreate = true
-            };
+            var rows = items?.ToArray() ?? Array.Empty<GetContactResponseDTO>();
+            return EmployeeProfileCompletionCalculator.CreateContactSection(rows);
         }
 
         #endregion

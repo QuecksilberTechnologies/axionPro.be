@@ -113,6 +113,32 @@ public class UpdateExperienceInfoCommandHandler
                     (existing.IsInfoVerified == true || existing.IsEditAllowed != true))
                     throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
 
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.RequireText(
+                    string.IsNullOrWhiteSpace(request.DTO.CompanyName)
+                        ? existing.CompanyName
+                        : request.DTO.CompanyName,
+                    "Company name");
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.RequireText(
+                    string.IsNullOrWhiteSpace(request.DTO.Designation)
+                        ? existing.Designation
+                        : request.DTO.Designation,
+                    "Designation");
+                axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.ValidateDateRange(
+                    request.DTO.StartDate ?? existing.StartDate,
+                    request.DTO.EndDate ?? existing.EndDate);
+
+                if (request.DTO.IsAnyGap)
+                {
+                    axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.RequireText(
+                        request.DTO.ReasonOfGap,
+                        "Gap reason");
+                    axionpro.application.Common.Helpers.EmployeeProfileValidationHelper.ValidateDateRange(
+                        request.DTO.GapYearFrom,
+                        request.DTO.GapYearTo,
+                        "Gap start date",
+                        "Gap end date");
+                }
+
                 // ===============================
                 // 4️⃣ START TRANSACTION
                 // ===============================
@@ -225,3 +251,4 @@ public class UpdateExperienceInfoCommandHandler
 
     #endregion
 }
+

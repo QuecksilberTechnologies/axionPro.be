@@ -1787,7 +1787,7 @@ namespace axionpro.persistance.Repositories
                         ScoreType = x.ScoreType.ToString(),
                         HasEducationDocUploded = x.HasEducationDocUploded,
 
-                        StartDate = x.StartDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                        StartDate = x.StartDate,
                         EndDate = x.EndDate,
                         IsEditAllowed =x.IsEditAllowed,
                         IsInfoVerified =x.IsInfoVerified,
@@ -1838,6 +1838,15 @@ namespace axionpro.persistance.Repositories
                     })
                     .SingleOrDefaultAsync();
 
+                var hasPrimaryImage = await _context.EmployeeImages
+                    .AsNoTracking()
+                    .AnyAsync(x =>
+                        x.EmployeeId == employeeId &&
+                        x.IsPrimary &&
+                        x.IsActive &&
+                        !x.IsSoftDeleted &&
+                        x.HasImageUploaded);
+
                 var experienceRows = await _context.EmployeeExperienceDetails
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
@@ -1879,9 +1888,17 @@ namespace axionpro.persistance.Repositories
                     })
                     .ToListAsync();
 
-                bool hasInsurance = await _context.EmployeePolicyEnrollment
+                var insuranceRows = await _context.EmployeePolicyEnrollment
                     .AsNoTracking()
-                    .AnyAsync(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
+                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                    .Select(x => new
+                    {
+                        x.PolicyTypeId,
+                        x.InsurancePolicyId,
+                        x.StartDate,
+                        x.EndDate
+                    })
+                    .ToListAsync();
                 bool hasWorkLocation = await _context.EmployeeLocationAssignments
                     .AsNoTracking()
                     .AnyAsync(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
@@ -1911,14 +1928,15 @@ namespace axionpro.persistance.Repositories
                     ? Array.Empty<double>()
                     : new[]
                     {
-                        EmployeeProfileCompletionCalculator.CalculateRowPercentage(
-                            !string.IsNullOrWhiteSpace(employee.FirstName),
-                            !string.IsNullOrWhiteSpace(employee.LastName),
-                            employee.DateOfBirth.HasValue,
-                            employee.DateOfOnBoarding.HasValue,
-                            employee.DesignationId > 0,
-                            employee.DepartmentId > 0,
-                            !string.IsNullOrWhiteSpace(employee.OfficialEmail))
+                        EmployeeProfileCompletionCalculator.CalculateOverviewRow(
+                            employee.FirstName,
+                            employee.LastName,
+                            employee.DateOfBirth,
+                            employee.DateOfOnBoarding,
+                            employee.DesignationId,
+                            employee.DepartmentId,
+                            employee.OfficialEmail,
+                            hasPrimaryImage)
                     };
 
                 var overviewSection = EmployeeProfileCompletionCalculator.CreateSection(
@@ -1937,10 +1955,8 @@ namespace axionpro.persistance.Repositories
                     experienceRows.Select(x => x.IsEditAllowed).ToArray());
                 var identitySection = EmployeeProfileCompletionCalculator.CreateSection(
                     "Identity",
-                    identityRows.Select(x => EmployeeProfileCompletionCalculator.CalculateRowPercentage(
-                        x.IdentityCategoryDocumentId > 0,
-                        !string.IsNullOrWhiteSpace(x.IdentityValue),
-                        x.HasIdentityUploaded)).ToArray(),
+                    identityRows.Select(x => EmployeeProfileCompletionCalculator.CalculateIdentityRow(
+                        x.IdentityValue)).ToArray(),
                     identityRows.Select(x => (bool?)x.IsInfoVerified).ToArray(),
                     identityRows.Select(x => (bool?)x.IsEditAllowed).ToArray());
                 var dependentSection = EmployeeProfileCompletionCalculator.CreateSection(
@@ -1960,7 +1976,14 @@ namespace axionpro.persistance.Repositories
                         bankSection,
                         contactSection,
                         experienceSection,
-                        EmployeeProfileCompletionCalculator.CreateAssignmentSection("Insurance", hasInsurance),
+                        EmployeeProfileCompletionCalculator.CreateSection(
+                            "Insurance",
+                            insuranceRows.Select(x =>
+                                EmployeeProfileCompletionCalculator.CalculateInsuranceRow(
+                                    x.PolicyTypeId,
+                                    x.InsurancePolicyId,
+                                    x.StartDate,
+                                    x.EndDate)).ToArray()),
                         identitySection,
                         educationSection,
                         dependentSection,

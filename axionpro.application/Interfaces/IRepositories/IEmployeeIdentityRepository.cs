@@ -24,6 +24,12 @@ public interface IEmployeeIdentityRepository
 
     /// <summary>Validates a selected document against the employee's persisted country catalogue.</summary>
     Task<bool> IsDocumentAllowedAsync(long employeeId, long tenantId, int documentId, CancellationToken cancellationToken);
+    Task<EmployeeIdentity?> GetByEmployeeAndDocumentAsync(
+        long employeeId,
+        int documentId,
+        CancellationToken cancellationToken);
+    Task<bool> UpdateAsync(EmployeeIdentity entity, CancellationToken cancellationToken);
+    Task<bool> SoftDeleteAsync(EmployeeIdentity entity, CancellationToken cancellationToken);
     //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);
        public Task<EmployeeIdentity> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
        public Task<bool> IsEmployeeIdentityExistsAsync(long Id, bool? IsActive);  // Ensure this returns 

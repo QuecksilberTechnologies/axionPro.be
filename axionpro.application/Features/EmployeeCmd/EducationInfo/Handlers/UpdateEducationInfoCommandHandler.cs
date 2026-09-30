@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Education;
@@ -125,6 +126,37 @@ public class UpdateEducationInfoCommandHandler : IRequestHandler<UpdateEducation
                     (existing.IsInfoVerified == true || existing.IsEditAllowed != true))
                     throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
 
+                var effectiveStartDate = request.DTO.StartDate.HasValue
+                    ? DateOnly.FromDateTime(request.DTO.StartDate.Value)
+                    : existing.StartDate;
+                var effectiveEndDate = request.DTO.EndDate.HasValue
+                    ? DateOnly.FromDateTime(request.DTO.EndDate.Value)
+                    : existing.EndDate;
+
+                EmployeeProfileValidationHelper.RequireText(
+                    string.IsNullOrWhiteSpace(request.DTO.Degree) ? existing.Degree : request.DTO.Degree,
+                    "Degree");
+                EmployeeProfileValidationHelper.RequireText(
+                    string.IsNullOrWhiteSpace(request.DTO.InstituteName)
+                        ? existing.InstituteName
+                        : request.DTO.InstituteName,
+                    "Institute name");
+                if (existing.ScoreType <= 0 &&
+                    (string.IsNullOrWhiteSpace(request.DTO.ScoreType) ||
+                     !int.TryParse(request.DTO.ScoreType, out var requestedScoreType) ||
+                     requestedScoreType <= 0))
+                {
+                    throw new ValidationErrorException("Score type is required.");
+                }
+                EmployeeProfileValidationHelper.ValidateDateRange(
+                    effectiveStartDate?.ToDateTime(TimeOnly.MinValue),
+                    effectiveEndDate?.ToDateTime(TimeOnly.MinValue));
+                EmployeeProfileValidationHelper.ValidateGap(
+                    request.DTO.IsEducationGapBeforeDegree == true,
+                    request.DTO.GapYears,
+                    request.DTO.ReasonOfEducationGap,
+                    "Education gap");
+
                 // ===============================
                 // 5️⃣ START TRANSACTION
                 // ===============================
@@ -154,8 +186,8 @@ public class UpdateEducationInfoCommandHandler : IRequestHandler<UpdateEducation
                 existing.EducationGap = dto.IsEducationGapBeforeDegree;
                 existing.GapYears = dto.GapYears;
                 existing.ReasonOfEducationGap = dto.ReasonOfEducationGap?.Trim();
-                existing.StartDate = existing.StartDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
-                existing.EndDate = existing.EndDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+                existing.StartDate = effectiveStartDate;
+                existing.EndDate = effectiveEndDate;
 
 
                 // ===============================
