@@ -18,6 +18,9 @@
   section identifiers, read-only rows and the update-bulk payload contract.
 - [Employee list assigned roles](EMPLOYEE_GET_ALL_ASSIGNED_ROLES.md) — existing
   Employee get-all route with the `assignedRoles` response contract.
+- [Employee country-driven identity](EMPLOYEE_COUNTRY_IDENTITY.md) — dynamic
+  country document catalogue, API/UI flow, six-table ownership, four seeded
+  masters, persistence behavior and deferred legacy-function cleanup.
 - [Employee Reset Password](EMPLOYEE_RESET_PASSWORD.md) — Reset Password operation
   on `EMP_LIST`; standalone Module 38 removal and request contract.
 - [Employee Work Arrangement Attendance Policy Options](EMPLOYEE_WORK_ARRANGEMENT_ATTENDANCE_POLICY_OPTIONS.md) — token-only, effective-date-based Published Attendance policy dropdown and empty-state contract.

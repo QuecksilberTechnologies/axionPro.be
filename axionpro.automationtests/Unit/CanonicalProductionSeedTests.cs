@@ -106,6 +106,8 @@ public sealed class CanonicalProductionSeedTests
         Assert.Multiple(() =>
         {
             Assert.That(identitySeed, Does.Contain("('PASSPORT', 'Passport'"));
+            Assert.That(identitySeed, Does.Contain("('NINO', 'National Insurance Number'"));
+            Assert.That(identitySeed, Does.Contain("('GB', 'GBR', 'United Kingdom', 'NINO')"));
             Assert.That(identitySeed, Does.Contain("('IN', 'IND', 'India', 'EPIC')"));
             Assert.That(identitySeed, Does.Contain("('IN', 'IND', 'India', 'UAN')"));
             Assert.That(identitySeed, Does.Contain("('US', 'USA', 'United States', 'ITIN')"));

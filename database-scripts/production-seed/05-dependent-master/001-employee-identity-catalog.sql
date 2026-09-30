@@ -13,14 +13,14 @@ WHERE rule."IdentityCategoryDocumentId" IN (
     FROM axionpro."IdentityCategoryDocument" document
     WHERE upper(document."Code") IN (
         'AADHAAR', 'PAN', 'CNIC', 'SSN', 'EMIRATES_ID', 'NATIONAL_ID_CN',
-        'PASSPORT', 'EPIC', 'ITIN', 'SIN', 'UAN'
+        'PASSPORT', 'EPIC', 'ITIN', 'SIN', 'UAN', 'NINO'
     )
 );
 
 DELETE FROM axionpro."IdentityCategoryDocument" document
 WHERE upper(document."Code") IN (
     'AADHAAR', 'PAN', 'CNIC', 'SSN', 'EMIRATES_ID', 'NATIONAL_ID_CN',
-    'PASSPORT'
+    'PASSPORT', 'NINO'
 )
 AND NOT EXISTS (
     SELECT 1
@@ -77,6 +77,7 @@ CROSS JOIN (VALUES
     ('SSN', 'Social Security Number', 'United States social security identifier'),
     ('EMIRATES_ID', 'Emirates ID', 'UAE citizen and resident identity card'),
     ('NATIONAL_ID_CN', 'Resident Identity Card', 'China resident identity card'),
+    ('NINO', 'National Insurance Number', 'United Kingdom national insurance identifier'),
     ('PASSPORT', 'Passport', 'Government-issued passport')
 ) AS seed(code, name, description)
 WHERE upper(category."Code") = 'GOVT'
@@ -108,6 +109,7 @@ FROM (VALUES
     ('US', 'USA', 'United States', 'SSN'),
     ('US', 'USA', 'United States', 'ITIN'),
     ('CA', 'CAN', 'Canada', 'SIN'),
+    ('GB', 'GBR', 'United Kingdom', 'NINO'),
     ('AE', 'ARE', 'United Arab Emirates', 'EMIRATES_ID'),
     ('CN', 'CHN', 'China', 'NATIONAL_ID_CN')
 ) AS seed(iso2, iso3, country_name, document_code)
