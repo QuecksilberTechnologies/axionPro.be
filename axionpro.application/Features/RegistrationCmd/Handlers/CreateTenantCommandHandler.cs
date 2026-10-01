@@ -24,6 +24,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Data.Common;
 using System.Text.RegularExpressions;
 
 namespace axionpro.application.Features.RegistrationCmd.Handlers
@@ -89,6 +90,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
         public async Task<ApiResponse<TenantCreateResponseDTO>> Handle(CreateTenantCommand request, CancellationToken cancellationToken)
         {
             long newTenantId = 0;
+            string failureStage = "validating the registration request";
             var dto = request?.TenantCreateRequestDTO
                 ?? throw new ArgumentNullException(nameof(request.TenantCreateRequestDTO));
             var onboardingRequest = dto as INewTenantOnboardingConfiguration;
@@ -138,34 +140,39 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 2 : Duplicate checks
                 // =====================================================
+                failureStage = "checking whether the email is already registered";
                 bool isTenantEmailExists = await _unitOfWork.TenantRepository
                     .CheckTenantByEmailAsync(dto.TenantEmail);
 
                 if (isTenantEmailExists)
-                    return Fail("Tenant with this email already exists.");
+                    return Fail("Tenant with this email already exists.", AppConstants.ErrorCodes.Conflict);
 
                 var existingUser = await _unitOfWork.UserLoginRepository
                     .GetEmployeeIdByUserLogin(dto.TenantEmail);
 
                 if (existingUser != null)
-                    return Fail("Tenant with this email already exists as an employee.");
+                    return Fail("Tenant with this email already exists as an employee.", AppConstants.ErrorCodes.Conflict);
 
                 #region Subscription Plan Validation
 
                 // Prevent a new tenant from being assigned to a soft-deleted subscription plan.
+                failureStage = "validating the selected subscription plan";
                 var subscriptionPlan = await _unitOfWork.SubscriptionRepository
                     .GetNonDeletedSubscriptionPlanByIdAsync(dto.SubscriptionPlanId, cancellationToken);
 
                 if (subscriptionPlan is null)
-                    return Fail(AppConstants.ErrorMessages.SubscriptionPlanNotFound);
+                    return Fail(AppConstants.ErrorMessages.SubscriptionPlanNotFound, AppConstants.ErrorCodes.NotFound);
 
                 #endregion
 
+                failureStage = "checking the email configuration";
                 var defaultEmailConfiguration = await GetActiveHostEmailConfigurationAsync(cancellationToken);
 
                 if (defaultEmailConfiguration is null)
                 {
-                    return Fail("An active default email configuration is required before tenant registration.");
+                    return Fail(
+                        "An active default email configuration is required before tenant registration.",
+                        AppConstants.ErrorCodes.SmtpConfigurationUnavailable);
                 }
 
                 // =====================================================
@@ -177,6 +184,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 4 : Start transaction
                 // =====================================================
+                failureStage = "saving the company account";
                 await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
                 // =====================================================
@@ -197,6 +205,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
                 if (onboardingRequest is not null)
                 {
+                    failureStage = "saving the initial tenant location";
                     var location = onboardingRequest.InitialLocation;
                     if (location.LocationType is < 1 or > 4 ||
                         string.IsNullOrWhiteSpace(location.LocationCode) ||
@@ -237,6 +246,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 6 : Create tenant subscription
                 // =====================================================
+                failureStage = "saving the tenant subscription";
                 var subscription = new TenantSubscription
                 {
                     TenantId = newTenantId,
@@ -259,6 +269,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 7 : Fetch subscription plan info
                 // =====================================================
+                failureStage = "loading the selected subscription plan";
                 var tenantSubscriptionPlan = await _unitOfWork.TenantSubscriptionRepository
                     .GetTenantSubscriptionPlanInfoAsync(new TenantSubscriptionPlanRequestDTO
                     {
@@ -277,6 +288,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 8 : Load subscribed modules
                 // =====================================================
+                failureStage = "loading the selected plan modules";
                 List<Module> subscriptionModules = await _unitOfWork.PlanModuleMappingRepository
                     .GetAllSubscribedModuleAsync(dto.SubscriptionPlanId);
 
@@ -309,6 +321,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 10 : Prepare tenant enabled operations
                 // =====================================================
+                failureStage = "configuring the selected plan access";
                 List<ModuleOperationMapping> allModuleOperations =
                     await _unitOfWork.UserRolesPermissionOnModuleRepository
                         .GetModuleOperationMappings(leafNodeModules);
@@ -328,6 +341,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 11 : Create tenant encryption key
                 // =====================================================
+                failureStage = "creating tenant security data";
                 string encryptedTenantKey = _encryptionService.GenerateKey();
 
                 var tenantEncryptionKey = new TenantEncryptionKeys
@@ -342,6 +356,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 12 : Seed departments
                 // =====================================================
+                failureStage = "creating default departments";
                 var departmentList = DepartmentSeedHelper.GetRuntimeDepartmentsToSeeds(
                     new Dictionary<int, string>(),
                     newTenantId,
@@ -380,6 +395,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 13 : Seed designations
                 // =====================================================
+                failureStage = "creating default designations";
                 List<Designation> designations =
                     DesignationsSeedHelper.GetRuntimeDesignationsToSeed(
                         newTenantId,
@@ -400,6 +416,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 14 : Create employee code pattern
                 // =====================================================
+                failureStage = "creating the employee code pattern";
                 var employeeCodePattern = new EmployeeCodePattern
                 {
                     TenantId = newTenantId,
@@ -443,20 +460,23 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 16 : Create default roles
                 // =====================================================
+                failureStage = "creating default roles";
                 var rolesToCreate = new List<Role>();
 
                 foreach (var roleName in new[]
                 {
                     ConstantValues.TenantAdminRoleName,
                     ConstantValues.TenantManagerRoleName,
-                    ConstantValues.TenantEmployeeRoleName
-                                          })
+                    ConstantValues.TenantEmployeeRoleName,
+                    ConstantValues.TenantExternalRoleName
+                })
                 {
                     int roleType = roleName switch
                     {
                         var r when r == ConstantValues.TenantAdminRoleName => ConstantValues.RoleTypeAdmin,
                         var r when r == ConstantValues.TenantManagerRoleName => ConstantValues.RoleTypeManager,
                         var r when r == ConstantValues.TenantEmployeeRoleName => ConstantValues.RoleTypeEmployee,
+                        var r when r == ConstantValues.TenantExternalRoleName => ConstantValues.RoleTypeClient,
                         _ => 0
                     };
 
@@ -485,6 +505,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 16.1 : Create Role Permissions 🔥
                 // =====================================================
+                failureStage = "assigning administrator permissions";
                
 
                 // 🔥 IMPORTANT: rolesToCreate me Id reliable nahi hota → DB se fetch karo
@@ -547,6 +568,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 17 : Create employee (tenant admin)
                 // =====================================================
+                failureStage = "creating the administrator account";
                 var onboardingTypeId = await _unitOfWork.EmployeeTypeRepository.EnsureOnboardingTypeAsync(
                     newTenantId, newTenantId, cancellationToken);
                 var employee = new Employee
@@ -623,57 +645,10 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     return Fail("Employee creation failed.");
                 }
 
-                // ===============================
-                //  CREATE POLICY TYPE
-                // ===============================
-                var policyTypes = new List<PolicyType>
-                        {
-                            new PolicyType
-                            {
-                                TenantId = newTenantId,
-                                PolicyName = ConstantValues.DefaultInsurancePolicy,
-                                Description = "System Generated Predefined Insurance Policy",
-                                IsActive = true,
-                                IsStructured = true,
-                                IsSoftDelete = false,
-                                AddedById = newTenantId,
-                                AddedDateTime = DateTime.UtcNow
-                            },
-                        new PolicyType
-                        {
-                            TenantId = newTenantId,
-                            PolicyName = ConstantValues.DefaultLeavePolicy,
-                            Description = "System Generated Predefined Leave Policy",
-                            IsActive = true,
-                            IsStructured = true,
-                            IsSoftDelete = false,
-                            AddedById = newTenantId,
-                            AddedDateTime = DateTime.UtcNow
-                        }
-                    };
-                    
-                // INSERT POLICY TYPES
-                // ===============================
-                var insertedPolicies = await _unitOfWork.PolicyTypeRepository
-                    .AutoCreatePolicyTypesAsync(policyTypes);
-              
-
-                // ✅ VALIDATE INSERT RESULT
-                if (insertedPolicies == null || !insertedPolicies.Any())
-                {
-                    await SafeRollbackAsync();
-                    throw new Exception("Policy creation failed. Insert operation returned empty.");
-                }
-
-                // ===============================
-                // FINAL COMMIT (SINGLE TRANSACTION)
-                // ===============================
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-
                 // =====================================================
                 // STEP 18 : Create tenant profile
                 // =====================================================
+                failureStage = "saving the tenant profile";
                 var tenantProfile = new TenantProfile
                 {
                     TenantId = newTenantId,
@@ -703,6 +678,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 23 : Prepare token
                 // =====================================================
+                failureStage = "generating the onboarding link";
                 string encryptedEmployeeId = _idEncoderService.EncodeId_long(employeeId, null);
                 string encryptedTenantId = _idEncoderService.EncodeId_long(newTenantId, null);
 
@@ -735,6 +711,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 25 : Commit the Tenant aggregate before attempting external SMTP work.
                 // =====================================================
+                failureStage = "finalizing tenant registration";
                 await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
                 // =====================================================
@@ -748,31 +725,87 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
                 return CreateSuccessResponse(emailSent);
             }
-            catch (Exception ex)
+            catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
             {
-                _logger.LogError(ex, "Error occurred while creating tenant | TenantId={TenantId}", newTenantId);
+                _logger.LogWarning(
+                    ex,
+                    "Tenant registration was cancelled | TenantId={TenantId}, Stage={Stage}",
+                    newTenantId,
+                    failureStage);
 
                 await SafeRollbackAsync();
 
-                return new ApiResponse<TenantCreateResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "An error occurred while creating tenant. Please try again later.",
-                    Data = new TenantCreateResponseDTO
-                    {
-                        Success = false,
-                        EmailSent = false
-                    }
-                };
+                return Fail(
+                    "Tenant registration was cancelled before it completed. No account was finalized.",
+                    AppConstants.ErrorCodes.TenantRegistrationFailed);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error occurred while creating tenant | TenantId={TenantId}, Stage={Stage}",
+                    newTenantId,
+                    failureStage);
+
+                await SafeRollbackAsync();
+
+                return CreateUnexpectedFailureResponse(ex, failureStage);
             }
         }
 
-        private ApiResponse<TenantCreateResponseDTO> Fail(string message)
+        private ApiResponse<TenantCreateResponseDTO> CreateUnexpectedFailureResponse(
+            Exception exception,
+            string failureStage)
+        {
+            var databaseException = FindDatabaseException(exception);
+
+            return databaseException?.SqlState switch
+            {
+                "23505" => Fail(
+                    $"Tenant registration conflicts with existing setup data while {failureStage}. " +
+                    "No account was finalized. Contact support before retrying.",
+                    AppConstants.ErrorCodes.Conflict),
+                "23503" => Fail(
+                    $"A selected registration option is no longer available while {failureStage}. " +
+                    "Refresh the page, select the current options, and try again.",
+                    AppConstants.ErrorCodes.Conflict),
+                "23502" => Fail(
+                    $"Required tenant setup data is missing while {failureStage}. " +
+                    "No account was finalized. Contact support.",
+                    AppConstants.ErrorCodes.TenantRegistrationFailed),
+                "40001" or "40P01" => Fail(
+                    $"Tenant registration was interrupted by another database operation while {failureStage}. " +
+                    "No account was finalized. Please try again.",
+                    AppConstants.ErrorCodes.Conflict),
+                _ => Fail(
+                    $"Tenant registration could not complete while {failureStage}. " +
+                    "Please try again. If the problem continues, contact support.",
+                    AppConstants.ErrorCodes.TenantRegistrationFailed)
+            };
+        }
+
+        private static DbException? FindDatabaseException(Exception exception)
+        {
+            for (Exception? current = exception; current is not null; current = current.InnerException)
+            {
+                if (current is DbException databaseException)
+                {
+                    return databaseException;
+                }
+            }
+
+            return null;
+        }
+
+        private ApiResponse<TenantCreateResponseDTO> Fail(
+            string message,
+            string errorCode = AppConstants.ErrorCodes.TenantRegistrationFailed)
         {
             return new ApiResponse<TenantCreateResponseDTO>
             {
                 IsSucceeded = false,
                 Message = message,
+                ErrorCode = errorCode,
                 Data = new TenantCreateResponseDTO
                 {
                     Success = false,

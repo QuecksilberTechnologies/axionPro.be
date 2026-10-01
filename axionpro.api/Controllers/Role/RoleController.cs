@@ -158,6 +158,34 @@ namespace axionpro.api.Controllers.Role
             _logger = logger;
         }
 
+        #region Role Type Options
+
+        /// <summary>
+        /// Used-In-Angular: retrieves the centralized role-type options.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>API endpoint purpose: supplies Role create, edit and filter controls from backend constants.</para>
+        /// <para>Authentication: bearer authentication is required. ModuleId and OperationId are not accepted for this constant-backed lookup.</para>
+        /// <para>Handler flow: GetRoleTypeOptionsQuery is processed by GetRoleTypeOptionsQueryHandler without a database write or tenant-data read.</para>
+        /// <para>Response DTO: Id (int), Name (string), Description (string).</para>
+        /// <para>Angular function: RolesApi.getRoleTypeOptions.</para>
+        /// <para>Integrated UI page: /app/roles.</para>
+        /// <para>Angular components: RolesList and RoleDialog.</para>
+        /// </remarks>
+        [Authorize]
+        [HttpGet("type-options")]
+        public async Task<IActionResult> GetRoleTypeOptions(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetRoleTypeOptionsQuery(),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        #endregion
+
         /// <summary>
         /// Used-In-Angular: updates role.
         /// </summary>

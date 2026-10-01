@@ -45,6 +45,13 @@ public sealed class RolePermissionBehavior<TRequest, TResponse>(
             return await next();
         }
 
+        // This authenticated, constant-backed lookup has no tenant data and does
+        // not accept ModuleId or OperationId. Role CRUD keeps the existing pipeline.
+        if (request is Handlers.GetRoleTypeOptionsQuery)
+        {
+            return await next();
+        }
+
         var permissionRequest = ResolvePermissionRequest(request)
             ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
 

@@ -2,6 +2,19 @@
 
 These instructions apply throughout this repository and should be followed in every session working on this project.
 
+## Mandatory first read and locked-fix gate
+
+- Before any code, database, configuration or test work, read
+  `LOCKED_FIXES.md` in full and follow its pre-change and post-change regression
+  gates. This is required for every contributor, account, automated agent and
+  session.
+- Do not change, unlock, weaken or retire a `LOCKED` behavior without explicit
+  user authorization. Before fixing another feature, verify every applicable
+  locked baseline and stop to report any regression.
+- Do not touch the Angular workspace unless the user explicitly authorizes
+  Angular work in the current request. Backend work or an API issue does not
+  imply Angular authorization.
+
 - Do not create or change code, folders, or business logic on your own initiative. Work only within the scope explicitly requested by the user. Do not add unsolicited implementations, refactors, or alternative flows.
 - If a requirement, existing flow, or intended change is unclear, ask the user before implementing it. Do not guess or invent behavior.
 - Maintain the existing Employee handler and repository patterns. Preserve and maintain the project's `#region` structure, comments, and endpoint documentation when making authorized changes.

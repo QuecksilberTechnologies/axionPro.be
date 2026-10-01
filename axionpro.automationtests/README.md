@@ -96,6 +96,9 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter 
 # Host administration API scenarios: auth boundary, resend-verification state,
 # HTTP 409 conflict envelope, and the Host/Tenant device ownership rule
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=HostApi"
+
+# Tenant role-type response mapping, including Client=4 and unknown fallback
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj --filter "Category=RoleTypeMapping"
 ```
 
 ## Host API regression scenarios
@@ -584,3 +587,18 @@ tests solely for documentation.
   JSON response/empty-array contract passed locally. The distinct active
   same-Tenant role database case is implemented and skipped unless the isolated
   `axionpro_bulk_test` connection is configured; deployed acceptance is pending.
+- [Tenant creation without implicit policy types](../docs/testing/tenant/creation-policy-independence/2026-10-01.md):
+  public and Host tenant-creation transaction variants passed 6/6 locally after
+  removing the obsolete Insurance/Leave policy-type auto-seed path; deployed
+  tenant/database acceptance remains pending.
+- [Tenant registration actionable errors](../docs/testing/tenant/registration-actionable-errors/2026-10-01.md):
+  the existing public and Host transaction regression now covers 14 success,
+  persistence, conflict, cancellation and post-commit email cases; the final
+  Development-database rollback probe passed 2/2 after four orphan tenant
+  encryption keys were removed. Angular registration tests passed 44/44 and the
+  production build passed; deployed registration acceptance remains pending.
+- [Role Client type display](../docs/testing/role/client-role-type-display/2026-10-01.md):
+  centralized Role/login mappings and the authenticated permission-ID-free
+  role-type options contract passed 9/9. The protected tenant registration gate
+  passed 14/14, and the API-backed Angular Add/Edit/filter integration passed
+  69/69 focused tests. Authenticated and deployed HTTP verification remain pending.

@@ -220,12 +220,25 @@ public sealed class HostApiRegressionTests
     [TestCase(true, "success")]
     [TestCase(false, "save-failure")]
     [TestCase(true, "save-failure")]
+    [TestCase(false, "plan-access-failure")]
+    [TestCase(true, "plan-access-failure")]
+    [TestCase(false, "duplicate-setup-data")]
+    [TestCase(true, "duplicate-setup-data")]
+    [TestCase(false, "duplicate-email")]
+    [TestCase(true, "duplicate-email")]
+    [TestCase(false, "cancelled")]
+    [TestCase(true, "cancelled")]
     [TestCase(false, "email-failure")]
     [TestCase(true, "email-failure")]
     public async Task Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome(bool host, string scenario)
     {
         var calls = new List<string>();
         var departments = new Dictionary<string, int>();
+        var saveChangesCalls = 0;
+        var requestCancellation = scenario == "cancelled"
+            ? new CancellationToken(canceled: true)
+            : CancellationToken.None;
+
         object? Invoke(MethodInfo method, object?[]? args)
         {
             calls.Add(method.Name);
@@ -238,8 +251,18 @@ public sealed class HostApiRegressionTests
             }
             Assert.That(method.Name, Is.Not.EqualTo("AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync"),
                 "Permissions must not be inserted again after BulkInsertAsync.");
-            if (method.Name == "SaveChangesAsync" && scenario == "save-failure")
-                return Task.FromException<int>(new InvalidOperationException("Simulated database failure"));
+            if (method.Name == "SaveChangesAsync")
+            {
+                saveChangesCalls++;
+                if (scenario == "save-failure")
+                    return Task.FromException<int>(new InvalidOperationException("Simulated database failure"));
+                if (scenario == "cancelled")
+                    return Task.FromCanceled<int>(requestCancellation);
+                if (scenario == "duplicate-setup-data" && saveChangesCalls == 4)
+                    return Task.FromException<int>(new RegistrationDbException("23505"));
+            }
+            if (method.Name == "GetAllSubscribedModuleAsync" && scenario == "plan-access-failure")
+                throw new InvalidOperationException("Simulated plan-module failure");
             if (method.Name == "AddTenantAsync") ((Tenant)args![0]!).Id = 501;
             if (method.Name == "AddEmployeeAggregateAsync") ((Employee)args![0]!).Id = 50000001;
             if (method.Name == "AutoCreateDepartmentSeedAsync")
@@ -249,7 +272,7 @@ public sealed class HostApiRegressionTests
                 ? method.ReturnType.GetGenericArguments()[0] : method.ReturnType;
             object? value = method.Name switch
             {
-                "CheckTenantByEmailAsync" => false,
+                "CheckTenantByEmailAsync" => scenario == "duplicate-email",
                 "GetEmployeeIdByUserLogin" => null,
                 "CheckHostUserPermissionAsync" => new HostUserPermissionCheckResponseDTO { ResultCode = 1 },
                 "GetDepartmentNameIdMapAsync" => departments,
@@ -257,7 +280,6 @@ public sealed class HostApiRegressionTests
                 "GetAllSubscribedModuleAsync" => new List<axionpro.domain.Entity.Module> { new() { Id = 8, IsLeafNode = true } },
                 "GetModuleOperationMappings" => new List<ModuleOperationMapping> { new() { ModuleId = 8, OperationId = 4 } },
                 "GetAllTenantModuleWithOperation" => new TenantEnabledOperationsResponseDTO { Modules = [new() { Id = 8, Operations = [new() { Id = 4 }] }] },
-                "AutoCreatePolicyTypesAsync" => args![0],
                 "AddTenantSubscriptionAsync" => args![0],
                 "SendTemplatedEmailUsingHostConfigAsync" => scenario != "email-failure",
                 _ => resultType == typeof(bool) ? true : resultType == typeof(int) ? 1 : resultType == typeof(string) ? "test-value" : Activator.CreateInstance(resultType)
@@ -295,18 +317,64 @@ public sealed class HostApiRegressionTests
                 ModuleId = 34, OperationId = 1, CompanyName = dto.CompanyName, TenantEmail = dto.TenantEmail,
                 TenantCode = dto.TenantCode, CompanyEmailDomain = dto.CompanyEmailDomain, ContactPersonName = dto.ContactPersonName,
                 CountryId = 1, SubscriptionPlanId = 2, TenantIndustryId = 9
-            }), default);
+            }), requestCancellation);
         }
-        else result = await handler.Handle(new(dto), default);
-        Assert.That(result.IsSucceeded, Is.EqualTo(scenario != "save-failure"), result.Message + " | " + string.Join(",", calls));
-        Assert.That(calls.Count(c => c == "CommitTransactionAsync"), Is.EqualTo(scenario == "save-failure" ? 0 : 1));
-        Assert.That(calls.Count(c => c == "RollbackTransactionAsync"), Is.EqualTo(scenario == "save-failure" ? 1 : 0));
-        if (scenario != "save-failure")
+        else result = await handler.Handle(new(dto), requestCancellation);
+
+        var expectedSuccess = scenario is "success" or "email-failure";
+        Assert.That(result.IsSucceeded, Is.EqualTo(expectedSuccess), result.Message + " | " + string.Join(",", calls));
+        Assert.That(
+            calls.Count(c => c == "CommitTransactionAsync"),
+            Is.EqualTo(expectedSuccess ? 1 : 0));
+        Assert.That(
+            calls.Count(c => c == "RollbackTransactionAsync"),
+            Is.EqualTo(scenario is "save-failure" or "plan-access-failure" or "duplicate-setup-data" or "cancelled" ? 1 : 0));
+
+        if (expectedSuccess)
         {
             Assert.That(calls.Count(c => c == "BulkInsertAsync"), Is.EqualTo(1));
+            Assert.That(calls, Does.Not.Contain("AutoCreatePolicyTypesAsync"));
             Assert.That(calls.IndexOf("SendTemplatedEmailUsingHostConfigAsync"), Is.GreaterThan(calls.IndexOf("CommitTransactionAsync")));
             Assert.That(result.Data.EmailSent, Is.EqualTo(scenario != "email-failure"));
         }
+
+        if (scenario == "save-failure")
+        {
+            Assert.That(result.ErrorCode, Is.EqualTo(AppConstants.ErrorCodes.TenantRegistrationFailed));
+            Assert.That(result.Message, Does.Contain("saving the company account"));
+        }
+
+        if (scenario == "plan-access-failure")
+        {
+            Assert.That(result.ErrorCode, Is.EqualTo(AppConstants.ErrorCodes.TenantRegistrationFailed));
+            Assert.That(result.Message, Does.Contain("loading the selected plan modules"));
+        }
+
+        if (scenario == "duplicate-email")
+        {
+            Assert.That(result.ErrorCode, Is.EqualTo(AppConstants.ErrorCodes.Conflict));
+            Assert.That(result.Message, Is.EqualTo("Tenant with this email already exists."));
+            Assert.That(calls, Does.Not.Contain("BeginTransactionAsync"));
+        }
+
+        if (scenario == "duplicate-setup-data")
+        {
+            Assert.That(result.ErrorCode, Is.EqualTo(AppConstants.ErrorCodes.Conflict));
+            Assert.That(result.Message, Does.Contain("conflicts with existing setup data"));
+            Assert.That(result.Message, Does.Contain("creating tenant security data"));
+        }
+
+        if (scenario == "cancelled")
+        {
+            Assert.That(result.ErrorCode, Is.EqualTo(AppConstants.ErrorCodes.TenantRegistrationFailed));
+            Assert.That(result.Message, Does.Contain("cancelled before it completed"));
+        }
+    }
+
+    private sealed class RegistrationDbException(string sqlState)
+        : DbException("Simulated tenant-registration database failure")
+    {
+        public override string? SqlState => sqlState;
     }
 
     private static async Task<T> DelayedResult<T>(T value) { await Task.Delay(1); return value; }

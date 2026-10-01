@@ -1,5 +1,8 @@
 # UI developer documents
 
+- [Role Type Options API](ROLE_TYPE_OPTIONS_API.md) — authenticated, permission-ID-free
+  backend catalogue for Role filters and Add/Edit dropdowns, including Client type 4.
+
 - [Attendance Punch API](ATTENDANCE_PUNCH_API.md) — authenticated employee Mobile/Web check-in, check-out, idempotency, geofence and today status contract.
 
 - [Full Policy With Example](fullPolicyWithExample.md) — single consolidated guide with table ownership, UI screens, applicability, lifecycle, IOCL and Dubai-to-India transfer, leave balances, diagrams, APIs and implementation gaps.

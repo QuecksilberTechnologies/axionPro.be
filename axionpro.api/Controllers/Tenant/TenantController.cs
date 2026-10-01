@@ -105,6 +105,7 @@ public class TenantController : ControllerBase
     /// <para>Angular purpose: creates tenant.</para>
     /// <para>Integrated UI page(s): /auth/register-tenant</para>
     /// <para>Angular UI component(s): Registration (app/features/authentication/registration/registration.ts)</para>
+    /// <para>Failure contract: IsSucceeded=false returns a safe, actionable Message and a stable ErrorCode. Validation, duplicate, missing-plan, email-configuration, cancellation, and stage-specific setup failures do not expose raw exception details.</para>
     /// </remarks>
     [AllowAnonymous]
     [HttpPost("create-tenant")]

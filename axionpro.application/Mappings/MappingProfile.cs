@@ -478,11 +478,9 @@ namespace axionpro.application.Mappings
                 .ForMember(destination => destination.RoleId, options => options.MapFrom(source => source.Id))
                 .ForMember(destination => destination.RoleName, options => options.MapFrom(source => source.RoleName ?? string.Empty))
                 .ForMember(destination => destination.RoleTypeId, options => options.MapFrom(source => source.RoleType))
-                .ForMember(destination => destination.RoleTypeName, options => options.MapFrom(source =>
-                    source.RoleType == ConstantValues.RoleTypeAdmin ? "Super Admin" :
-                    source.RoleType == ConstantValues.RoleTypeEmployee ? "Employee" :
-                    source.RoleType == ConstantValues.RoleTypeManager ? "Manager" :
-                    "Unknown"));
+                .ForMember(
+                    destination => destination.RoleTypeName,
+                    options => options.MapFrom(source => ConstantValues.GetRoleTypeDisplayName(source.RoleType)));
 
             #endregion
 
@@ -845,19 +843,16 @@ namespace axionpro.application.Mappings
             //    .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));// Example
 
             CreateMap<Role, GetRoleResponseDTO>()
-      .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
-      .ForMember(dest => dest.RoleType, opt => opt.MapFrom(src => src.RoleType.ToString()))
-      .ForMember(dest => dest.RoleTypeName, opt => opt.MapFrom(src =>
-          src.RoleType == 1 ? "Super Admin" :
-          src.RoleType == 2 ? "Employee" :
-          src.RoleType == 3 ? "Manager" :
-          "Unknown"
-      ))
-      .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark)) // ✅ Added
-      .ReverseMap()
-       .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-        .ForMember(dest => dest.RoleType, opt => opt.MapFrom(src => src.RoleType))
-       .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark)); // ✅ Added
+                .ForMember(destination => destination.Id, options => options.MapFrom(source => source.Id.ToString()))
+                .ForMember(destination => destination.RoleType, options => options.MapFrom(source => source.RoleType.ToString()))
+                .ForMember(
+                    destination => destination.RoleTypeName,
+                    options => options.MapFrom(source => ConstantValues.GetRoleTypeDisplayName(source.RoleType)))
+                .ForMember(destination => destination.Remark, options => options.MapFrom(source => source.Remark))
+                .ReverseMap()
+                .ForMember(destination => destination.Id, options => options.MapFrom(source => source.Id))
+                .ForMember(destination => destination.RoleType, options => options.MapFrom(source => source.RoleType))
+                .ForMember(destination => destination.Remark, options => options.MapFrom(source => source.Remark));
 
 
 

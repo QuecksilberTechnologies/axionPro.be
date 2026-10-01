@@ -39,6 +39,7 @@ namespace axionpro.application.Constants
             public const string SmtpConfigurationUnavailable = "SMTP_CONFIGURATION_UNAVAILABLE";
             public const string EmailTemplateUnavailable = "EMAIL_TEMPLATE_UNAVAILABLE";
             public const string SmtpConnectionFailed = "SMTP_CONNECTION_FAILED";
+            public const string TenantRegistrationFailed = "TENANT_REGISTRATION_FAILED";
         }
 
         #endregion
@@ -91,17 +92,10 @@ namespace axionpro.application.Constants
             public const string SmtpConnectionFailed = "The API server could not establish a valid connection with the SMTP provider. Verify the SMTP host, port, encryption, and network access.";
             public const string EmailDeliveryFailed = "The email could not be delivered because of an unexpected mail-service error. Review the API mail-service log and try again.";
             public const string RequiredDataMissing = "Required data is missing.";
-            public const string ValidationFailed = "The request failed validation.";
-
             /// <summary>
             /// Indicates that the requested subscription plan is unavailable or already soft deleted.
             /// </summary>
             public const string SubscriptionPlanNotFound = "The requested subscription plan was not found.";
-
-            /// <summary>
-            /// Indicates that a subscription plan cannot be deleted while an active tenant uses it.
-            /// </summary>
-            public const string SubscriptionPlanInUse = "The subscription plan cannot be deleted because it is currently assigned to one or more tenants.";
 
             /// <summary>
             /// Indicates that one or more submitted Modules cannot be assigned to a subscription plan.
@@ -112,16 +106,6 @@ namespace axionpro.application.Constants
             /// Indicates that the requested Parent Module is unavailable in the requested scope.
             /// </summary>
             public const string ParentModuleNotFound = "The requested Parent Module was not found.";
-
-            /// <summary>
-            /// Indicates that an operation remains linked to one or more module-operation mappings.
-            /// </summary>
-            public const string OperationLinkedToModule = "The operation cannot be deactivated or deleted because it is linked to one or more modules. Unlink the operation from all module-operation mappings first.";
-
-            /// <summary>
-            /// Indicates that an operation remains assigned to one or more current Host-role permissions.
-            /// </summary>
-            public const string OperationAssignedToHostRolePermission = "The operation cannot be updated or deleted because it is assigned to Host-role module permissions.";
 
             /// <summary>
             /// Indicates that verification cannot be resent for an already verified Tenant.
@@ -171,7 +155,6 @@ namespace axionpro.application.Constants
             public const string DuplicateEmployeeLocationAssignment = "The employee already has this active location assignment.";
             public const string EmployeeAlreadyHasPrimaryLocation = "The employee already has an active primary location assignment.";
             public const string EmployeeLocationAssignmentInUse = "This location assignment is the primary location of an active work arrangement. Update the work arrangement first.";
-            public const string DuplicateDeviceEnrollId = "The selected device already has this live enrollment identifier.";
             public const string EmployeeWorkArrangementDateOverlap = "The requested work arrangement from {0} to {1} overlaps an existing active work arrangement from {2} to {3}. Change one period so they do not share any calendar date. Start and end dates are inclusive.";
             public const string EmployeeWorkArrangementOpenEndedDateOverlap = "The requested work arrangement from {0} to {1} overlaps an existing active work arrangement that starts on {2} and has no end date. End the existing arrangement before the requested start date, or move the requested arrangement after the new end date. Start and end dates are inclusive.";
             public const string WorkArrangementPrimaryLocationAssignmentRequired = "The selected primary location must have an active, primary, attendance-allowed employee location assignment covering the full arrangement period.";
@@ -201,7 +184,6 @@ namespace axionpro.application.Constants
             public const string InvalidOverrideWorkMode = "Hybrid work mode is not allowed for a temporary override request.";
             public const string DeviceMasterNotFound = "The requested device master was not found.";
             public const string DuplicateDeviceMaster = "A live device master already uses this device code or company and model combination.";
-            public const string DeviceMasterInUse = "Device master is currently assigned to one or more Tenant devices. Remove those device assignments before changing the device master lifecycle.";
             public const string DeviceMasterAlreadyRegisteredWithTenant = "This device is already registered with a tenant and cannot be updated, have its status changed, or be deleted.";
             public const string TenantDeviceNotFound = "The requested tenant device was not found.";
             public const string TenantDeviceConfigurationNotFound = "The requested tenant device configuration was not found.";
@@ -222,9 +204,7 @@ namespace axionpro.application.Constants
             public const string DefaultEmailConfigMustBeInactiveToDelete = "Deactivate this email configuration before deleting it.";
             public const string TenantEmailConfigNotFound = "The requested tenant email configuration was not found.";
             public const string TenantEmailConfigMustBeInactiveToDelete = "Deactivate this tenant email configuration before deleting it.";
-            public const string DuplicateTenantDeviceSerialNumber = "A live tenant device already uses this serial number.";
             public const string DuplicateTenantDeviceCode = "A live tenant device already uses this device code for the selected tenant.";
-            public const string DuplicateTenantDeviceAssetTag = "A live tenant device already uses this asset tag for the selected tenant.";
             public const string RoleHasDependencies = "The role cannot be deactivated or deleted because it is assigned to an employee or has module-operation permissions. Remove or soft-delete all role dependencies first.";
             public const string DepartmentHasEmployees = "The department cannot be deactivated or deleted because it is assigned to one or more employees. Remove or soft-delete all dependent employees first.";
             public const string DesignationHasEmployees = "The designation cannot be deactivated or deleted because it is assigned to one or more employees. Remove or soft-delete all dependent employees first.";
@@ -501,15 +481,6 @@ namespace axionpro.application.Constants
 
         #endregion
 
-        public static readonly int DeviceTypeWeb = 1;
-        public static readonly int DeviceTypeMobile = 2;
-        public static readonly int DeviceTypeForAll = 3;
-        public static int EmployeeRoll = 14;
-
-        // Add other constants as needed
-        public static readonly string DefaultDateFormat = "yyyy-MM-dd";
-        // etc.
-
         #region Policy Codes
 
         /// <summary>Defines stable seeded Policy Category codes used for relationship-based lookup.</summary>
@@ -560,85 +531,96 @@ namespace axionpro.application.Constants
 
     public static class ConstantValues
     {
+        #region Contact Types
+
         public enum ContactTypeEnum
         {
             None = 0,
             Personal = 1,
             Official = 2
         }
+
+        #endregion
+
+        #region Storage Folders
+
         public const string TenantFolder = "tenants";
         public const string EmployeeFolder = "employees";
         public const string ProfileFolder = "profile";
-        public const string GapDocFolder = "gap-doc";
         public const string AssetsFolder = "assets";
-        public const string IdentityFolder = "identity";
         public const string BankFolder = "bank";
         public const string PoliciesFolder = "policies";
-        public const string TenantPoliciesFolder = "tenant-policies";
         public const string DependentFolder = "dependent";
         public const string EducationFolder = "education";
         public const string ExperienceFolder = "experience";
 
-        public const string DefaultInsurancePolicy = "Insurance Policy";
-        public const string DefaultLeavePolicy = "Leave Policy";
+        #endregion
+
+        #region Authentication And System Values
 
         public static readonly string invalidCredential = "Invalid credentials";
         public static readonly int ParmanentEmployeeType = 1;
-        public static readonly string Duplicate = "Name you inserted is already exist";
-        public static readonly string userMissingAttendanceProfile = "Attendance settings not configured or not matched! for this employee.";
-        public static readonly string attendanceNotAllowed = "Attendance is not allowed for the employee based on current settings";
-        public static readonly string outOfGeoFence = "You are outside the geofence area and cannot mark attendance.";
-        public static readonly string invalidId = "Invalid Id";
-        public static readonly string invalidPassword = "Invalid credentials";
-        public static readonly string successMessage = "Request processed successfully";
-        public static readonly string attendanceSucessful = "Attendance successfully marked";
-        public static readonly string attendancefail = "Attendance not marked please try again";
         public static readonly bool isSucceeded = true;
-        public static readonly bool fail = false;
-        public static readonly DateTime ExpireTokenDate = DateTime.UtcNow.AddDays(5);
         public static readonly string IP = "100.100.100.100";
-
-        public static readonly string SuperAdminRoleName = "Host-Super-Admin";
-        public static readonly string SuperAdminRoleType = "SYSTEM";
-        public static readonly string SuperAdminRoleCode = "Auth_0";
         public static readonly int Web = 1;
 
+        #endregion
+
+        #region Tenant Role Types
+
         public static readonly string TenantAdminRoleName = "Super-Admin";
-        //public static readonly string TenantAdminRoleType = "Employee";
+        public static readonly string TenantAdminRoleDisplayName = "Super Admin";
+        public static readonly string TenantAdminRoleOptionName = "Admin";
+        public static readonly string TenantManagerRoleName = "Manager";
+        public static readonly string TenantEmployeeRoleName = "Employee";
+        public static readonly string TenantExternalRoleName = "Client";
+        public static readonly string UnknownRoleTypeDisplayName = "Unknown";
+
+        public static readonly string TenantAdminRoleDescription =
+            "Full access to manage users, roles, settings, and system-level configurations.";
+        public static readonly string TenantEmployeeRoleDescription =
+            "Can manage team members, assign tasks, and oversee day-to-day operations.";
+        public static readonly string TenantManagerRoleDescription =
+            "Limited access to perform assigned tasks and view only relevant information.";
+        public static readonly string TenantExternalRoleDescription = string.Empty;
 
         public static readonly int RoleTypeAdmin = 1;
         public static readonly int RoleTypeEmployee = 2;
         public static readonly int RoleTypeManager = 3;
         public static readonly int RoleTypeClient = 4;
 
-         
+        /// <summary>
+        /// Resolves the stable display name for a persisted Tenant role type.
+        /// </summary>
+        public static string GetRoleTypeDisplayName(int roleType) => roleType switch
+        {
+            var value when value == RoleTypeAdmin => TenantAdminRoleDisplayName,
+            var value when value == RoleTypeEmployee => TenantEmployeeRoleName,
+            var value when value == RoleTypeManager => TenantManagerRoleName,
+            var value when value == RoleTypeClient => TenantExternalRoleName,
+            _ => UnknownRoleTypeDisplayName
+        };
+
+        public static readonly string TenantAllRoleRemark = "This is an auto-generated Admin account by AI for the initial setup of the tenant.";
+
+        #endregion
+
+        #region Token Purposes
 
         public static readonly int SetPassword = 1;
         public static readonly int Auth = 2;
-        public static readonly int ForgotPassword = 3;
 
+        #endregion
 
-        public static readonly string TenantHRRoleCode = "TENANT_HR";
-        public static readonly string TenantHRRoleType = "TENANT_OPERATIONAL";
-        public static readonly string TenantManagerRoleName = "Manager";
+        #region Default Record Values
 
-
-        public static readonly string TenantEmployeeRoleCode = "TENANT_EMPLOYEE";
-        public static readonly string TenantEmployeeRoleType = "EMPLOYEE";
-        public static readonly string TenantEmployeeRoleName = "Employee";
-
-
-
-
-        public static readonly string TenantAllRoleRemark = "This is an auto-generated Admin account by AI for the initial setup of the tenant.";
         public static readonly bool IsByDefaultTrue = true;
         public static readonly bool IsByDefaultFalse = false;
-        public static readonly long SystemUserIdByDefaultZero = 0; // For system-generated entries
-        public static readonly string DefaultPassword = "Guest@123"; // For system-generated entries
 
+        #endregion
 
+        #region Email Template Codes
 
-        #region Email Templates
         public static readonly string WelcomeEmail = "WELCOME_EMAIL";
         public static readonly string ForgotPasswordEmail = "FORGOT_PASSWORD";
         public static readonly string BirthdayWishEmail = "BIRTHDAY_WISH";
@@ -658,22 +640,15 @@ namespace axionpro.application.Constants
         public static bool IsSupportedEmailTemplateCode(string? templateCode) =>
             !string.IsNullOrWhiteSpace(templateCode) &&
             SupportedEmailTemplateCodes.Contains(templateCode.Trim());
+
         #endregion
 
         #region Attendance Device Types
+
         public const string AttendanceDeviceMobile = "MOBILE";
         public const string AttendanceDeviceWeb = "WEB";
-        public const string AttendanceDeviceBiometric = "BIOMETRIC";
-        public const string AttendanceDeviceManual = "MANUAL";
+
         #endregion
-
-        //   public static readonly DateOnly SystemOnlyTodaysDate= DateOnly.MaxValue;
-
-        //int adminRoleId = await _unitOfWork.RoleRepository.GetRoleIdByRoleInfoAsync(role);
-        //public static readonly string RoleCode = "Super-Admin";
-        //public static readonly string AdminRoleName = "Admin";
-        //public static readonly string AdminRoleRemark = "This is an auto-generated Admin account by AI for the initial setup of the tenant.";
-
     }
 
 }
