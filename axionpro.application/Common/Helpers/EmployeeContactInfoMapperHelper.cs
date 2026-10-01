@@ -10,6 +10,42 @@ namespace axionpro.application.Common.Helpers
 {
     public static class EmployeeContactInfoMapperHelper
     {
+        /// <summary>
+        /// Creates the editable placeholder contact that is persisted in the same transaction as
+        /// a newly created Employee. Only the Employee name and selected country are copied from
+        /// onboarding; user-entered contact and address values remain unset.
+        /// </summary>
+        public static EmployeeContact CreateInitialContact(
+            Employee employee,
+            long addedById,
+            DateTime addedDateTime)
+        {
+            ArgumentNullException.ThrowIfNull(employee);
+
+            return new EmployeeContact
+            {
+                Employee = employee,
+                ContactName = string.Join(
+                    " ",
+                    new[]
+                    {
+                        employee.FirstName,
+                        employee.MiddleName,
+                        employee.LastName
+                    }.Where(name => !string.IsNullOrWhiteSpace(name))),
+                ContactNumber = null,
+                Relation = null,
+                CountryId = employee.CountryId,
+                IsPrimary = false,
+                IsActive = true,
+                IsSoftDeleted = false,
+                IsEditAllowed = true,
+                IsInfoVerified = false,
+                AddedById = addedById,
+                AddedDateTime = addedDateTime
+            };
+        }
+
         public static GetContactAccessResponseDTO ConvertToAccessResponseDTO<T>(T source)
         {
             var result = new GetContactAccessResponseDTO();

@@ -38,6 +38,7 @@ namespace axionpro.application.DTOS.Employee.Contact
         public int? CountryId { get; set; }
         public int? StateId { get; set; }
         public int? DistrictId { get; set; }
+        public int? LocalityId { get; set; }
         public string? HouseNo { get; set; }
         public string? LandMark { get; set; }
         public string? Street { get; set; }

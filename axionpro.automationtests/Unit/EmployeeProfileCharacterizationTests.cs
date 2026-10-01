@@ -298,10 +298,11 @@ public sealed class EmployeeProfileCharacterizationTests
                 StringComparison.Ordinal) == true)
             .Where(type => type.GetInterfaces().Any(contract =>
                 contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IRequest<>)))
-            // This read-only dropdown intentionally authenticates the Tenant token only. It does not
-            // represent a module operation and never accepts an employee identifier from the caller.
-            .Where(type => type.FullName !=
-                "axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo.Handlers.GetAttendancePolicyOptionsQuery")
+            // These read-only dropdowns intentionally authenticate the Tenant token only. They do
+            // not represent module operations and never accept employee identifiers from callers.
+            .Where(type => type.FullName is not
+                "axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo.Handlers.GetAttendancePolicyOptionsQuery" and not
+                "axionpro.application.Features.EmployeeCmd.Contact.Handlers.GetContactRelationOptionsQuery")
             .OrderBy(type => type.FullName)
             .ToArray();
 
@@ -393,7 +394,7 @@ public sealed class EmployeeProfileCharacterizationTests
     /// Verifies each legacy Employee profile controller keeps its currently published CRUD routes.
     /// </summary>
     [TestCase(typeof(BankController), "POST:create", "GET:get", "POST:update", "DELETE:delete")]
-    [TestCase(typeof(ContactController), "POST:create", "GET:get", "POST:update", "DELETE:delete")]
+    [TestCase(typeof(ContactController), "GET:relation-options", "POST:create", "GET:get", "POST:update", "DELETE:delete")]
     [TestCase(typeof(EducationController), "POST:create", "GET:get", "POST:update-education", "DELETE:delete")]
     [TestCase(typeof(ExperienceController), "POST:create", "GET:get", "POST:update", "DELETE:delete", "DELETE:delete-doc")]
     [TestCase(typeof(DependentController), "POST:create", "GET:get", "GET:get-in-detail", "POST:update", "DELETE:delete")]

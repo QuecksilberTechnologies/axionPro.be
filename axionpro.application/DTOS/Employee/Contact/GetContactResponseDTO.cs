@@ -22,9 +22,11 @@ namespace axionpro.application.DTOS.Employee.Contact
             public string? CountryName { get; set; }               // Country
             public string? StateName { get; set; }               // Country
             public string? DistrictName { get; set; }               // Country
+            public string? LocalityName { get; set; }
             public int? CountryId { get; set; }               // Country
             public int? StateId { get; set; }                // State
             public int? DistrictId { get; set; }             // District
+            public int? LocalityId { get; set; }
             public string? HouseNo { get; set; }              // Address details
             public string? LandMark { get; set; }
             public string? Street { get; set; }
@@ -44,5 +46,3 @@ namespace axionpro.application.DTOS.Employee.Contact
     
 
 }
-
- 

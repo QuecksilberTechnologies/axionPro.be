@@ -1263,8 +1263,10 @@ namespace axionpro.persistance.Data.Context
 
             entity.Property(e => e.Address).HasMaxLength(250);
             entity.Property(e => e.AlternateNumber).HasMaxLength(20);
-            entity.Property(e => e.ContactName).HasMaxLength(20);
-            entity.Property(e => e.ContactNumber).HasMaxLength(20);
+            entity.Property(e => e.ContactName).HasMaxLength(302);
+            entity.Property(e => e.ContactNumber)
+                .HasMaxLength(20)
+                .IsRequired(false);
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.HouseNo).HasMaxLength(250);
@@ -1280,6 +1282,11 @@ namespace axionpro.persistance.Data.Context
             entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeContact)
                 .HasForeignKey(d => d.EmployeeId)
                 .HasConstraintName("FK_EmployeeContact_Employee");
+
+            entity.HasOne(d => d.Locality).WithMany()
+                .HasForeignKey(d => d.LocalityId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_EmployeeContact_Locality");
         });
 
         modelBuilder.Entity<EmployeeDailyAttendance>(entity =>

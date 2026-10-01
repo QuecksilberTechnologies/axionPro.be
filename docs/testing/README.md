@@ -4,6 +4,7 @@
 - [Tenant creation without implicit policy types — 2026-10-01](tenant/creation-policy-independence/2026-10-01.md)
 - [Tenant registration actionable errors — 2026-10-01](tenant/registration-actionable-errors/2026-10-01.md)
 - [Role Client type display — 2026-10-01](role/client-role-type-display/2026-10-01.md)
+- [Employee contact relation and location cascade — 2026-10-01](employee/contact-relation-location/2026-10-01.md)
 - [Work-mode override missing location assignment — 2026-09-27](employee-work-mode-override/missing-location-assignment/2026-09-27.md)
 - [Attendance punch flow — 2026-09-24](attendance/punch-flow/2026-09-24.md)
 - [Subscription billing foundation — 2026-09-24](billing/foundation/2026-09-24.md)
@@ -71,6 +72,7 @@ for a later run. Keep earlier failures and link the run that supersedes them.
 | Employee / identity table usage audit | [2026-09-30](employee/identity-table-usage/2026-09-30.md) | All four identity tables remain required. Two obsolete functions were removed locally and from project definitions; Render cleanup remains pending while its database is suspended. |
 | Employee / legacy identity function removal | [2026-09-30](employee/legacy-identity-function-removal/2026-09-30.md) | Two obsolete functions removed from the local database and project definitions with no CASCADE; all four identity tables and 260 rules preserved. Build and 20 executed focused tests passed; Render cleanup pending. |
 | Employee / profile CRUD, validation and percentage | [2026-09-30](employee/profile-crud/2026-09-30.md) | Central percentage rules and confirmed Education, Insurance and Identity defects fixed locally; focused backend and Angular verification recorded, authenticated deployed CRUD pending. |
+| Employee / contact relation and location cascade | [2026-10-01](employee/contact-relation-location/2026-10-01.md) | Token-only relation API with Owner; initial contact/edit/add PostgreSQL rollback verification; UAE seed and schema applied locally; 81 combined backend/DB/isolated HTTP tests, 66 Contact UI and 69 protected Role UI tests, production build/lint passed. Running-product browser and deployed acceptance pending. |
 | Employee / get-all assigned roles | [2026-09-13](employee/get-all-assigned-roles/2026-09-13.md) | Response contract/build pass locally; isolated DB and deployed response verification pending. |
 | Employee / Reset Password module consolidation | [2026-09-23](employee/reset-password-module-consolidation/2026-09-23.md) | Module 38 and all checked dependencies removed from the Development DB; Operation 21, tenant entitlement and role grant moved to `EMP_LIST`; focused suite 3/3 passed. |
 | Employee Work Arrangement / Attendance policy options | [2026-09-23](employee-work-arrangement/attendance-policy-options/2026-09-23.md) | Token-only effective-date dropdown endpoint added; build, 4 new tests, 23 relevant regressions and local unauthenticated HTTP 401 passed; authenticated data and deployed verification pending. |

@@ -29,7 +29,7 @@ namespace axionpro.application.DTOS.Employee.Contact
         //  Contact Info
         public int? Relation { get; set; }        // e.g. Father, Mother, Spouse
         public int? ContactType { get; set; }          // e.g. Personal, Work, Emergency
-        public string ContactNumber { get; set; } = string.Empty;
+        public string? ContactNumber { get; set; }
         public string? AlternateNumber { get; set; }
         public string? Email { get; set; }
         public bool? IsPrimary { get; set; }
@@ -38,6 +38,7 @@ namespace axionpro.application.DTOS.Employee.Contact
         public int? CountryId { get; set; }
         public int? StateId { get; set; }
         public int? DistrictId { get; set; }
+        public int? LocalityId { get; set; }
         public string? HouseNo { get; set; }
         public string? LandMark { get; set; }
         public string? Street { get; set; }

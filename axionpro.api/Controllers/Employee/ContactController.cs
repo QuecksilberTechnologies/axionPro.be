@@ -14,6 +14,7 @@ using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -34,6 +35,28 @@ namespace axionpro.api.Controllers.Employee
             _mediator = mediator;
             _logger = logger;
         }
+
+        /// <summary>
+        /// Used-In-Angular: retrieves the centralized Employee contact relation catalogue.
+        /// </summary>
+        /// <remarks>
+        /// <para>Authentication: bearer token is required.</para>
+        /// <para>Permission behavior: this constants lookup accepts no ModuleId or OperationId.</para>
+        /// <para>Handler flow: GetContactRelationOptionsQuery is processed by GetContactRelationOptionsQueryHandler without a database read.</para>
+        /// <para>Angular function(s): EmployeeContactsAPI.getRelationOptions.</para>
+        /// <para>Angular UI component(s): EmployeeContactForm; EmployeeManageDialog; EmployeeContactInfo; EmployeeBasicInfo; AvatarPopup.</para>
+        /// </remarks>
+        [Authorize]
+        [HttpGet("relation-options")]
+        public async Task<IActionResult> GetRelationOptions(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetContactRelationOptionsQuery(),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
         /// <summary>
         /// Used-In-Angular: creates employee contact.
         /// </summary>

@@ -602,3 +602,11 @@ tests solely for documentation.
   role-type options contract passed 9/9. The protected tenant registration gate
   passed 14/14, and the API-backed Angular Add/Edit/filter integration passed
   69/69 focused tests. Authenticated and deployed HTTP verification remain pending.
+- [Employee contact relation and location cascade](../docs/testing/employee/contact-relation-location/2026-10-01.md):
+  enum-backed token-only relations (including Owner), the initial-contact
+  transaction contract and nullable Locality persistence passed 45 backend/profile
+  tests (including isolated HTTP 401/401/200) and 9 applicable locality tests.
+  Contact DB probes passed 2/2; protected tenant DB rollback passed 2/2.
+  UAE seed and migration applied locally; seed rerun inserted zero duplicates.
+  Affected Angular consumers passed 66/66 and the production build passed.
+  Full running-product authenticated/browser and deployed acceptance remain pending.

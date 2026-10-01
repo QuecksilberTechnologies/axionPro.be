@@ -981,7 +981,8 @@ namespace axionpro.application.Mappings
      .ForMember(dest => dest.Relation, opt => opt.MapFrom(src => src.Relation))
      .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryId))
      .ForMember(dest => dest.DistrictId, opt => opt.MapFrom(src => src.DistrictId))
-     .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.StateId))  
+     .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.StateId))
+     .ForMember(dest => dest.LocalityId, opt => opt.MapFrom(src => src.LocalityId))
 
     // 🔹 ContactType (ENUM → INT) ✅
     .ForMember(dest => dest.ContactType,

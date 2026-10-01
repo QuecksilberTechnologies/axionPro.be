@@ -21,6 +21,9 @@
   section identifiers, read-only rows and the update-bulk payload contract.
 - [Employee list assigned roles](EMPLOYEE_GET_ALL_ASSIGNED_ROLES.md) — existing
   Employee get-all route with the `assignedRoles` response contract.
+- [Employee Contact Relation and Location](EMPLOYEE_CONTACT_RELATION_LOCATION.md) —
+  token-only enum relation catalogue, automatic initial contact row and
+  Country/State/District/Locality cascade.
 - [Employee country-driven identity](EMPLOYEE_COUNTRY_IDENTITY.md) — dynamic
   country document catalogue, API/UI flow, six-table ownership, four seeded
   masters, persistence behavior and deferred legacy-function cleanup.

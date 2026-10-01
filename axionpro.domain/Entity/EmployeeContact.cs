@@ -15,7 +15,7 @@ public partial class EmployeeContact
 
     public string? ContactName { get; set; }
 
-    public string ContactNumber { get; set; } = null!;
+    public string? ContactNumber { get; set; }
 
     public string? AlternateNumber { get; set; }
 
@@ -28,6 +28,8 @@ public partial class EmployeeContact
     public int? StateId { get; set; }
 
     public int? DistrictId { get; set; }
+
+    public int? LocalityId { get; set; }
 
     public string? HouseNo { get; set; }
 
@@ -66,4 +68,6 @@ public partial class EmployeeContact
     public string? Description { get; set; }
 
     public virtual Employee Employee { get; set; } = null!;
+
+    public virtual Locality? Locality { get; set; }
 }

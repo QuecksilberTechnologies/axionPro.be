@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Module;
@@ -141,6 +142,12 @@ public class CreateBaseEmployeeInfoCommandHandler
                 employee.IsInfoVerified = false;
                 employee.IsEditAllowed = true;
                 employee.IsSoftDeleted = false;
+
+                employee.EmployeeContact.Add(
+                    EmployeeContactInfoMapperHelper.CreateInitialContact(
+                        employee,
+                        validation.UserEmployeeId,
+                        DateTime.UtcNow));
 
                 // ===============================
                 // 7️⃣ GENERATE EMPLOYEE CODE

@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Module;
@@ -118,8 +119,7 @@ public class UpdateContactInfoCommandHandler
             if (!string.IsNullOrWhiteSpace(dto.ContactNumber))
             {
                 var clean = dto.ContactNumber.Trim();
-                if (!Regex.IsMatch(clean, @"^[0-9]{10}$"))
-                    throw new ValidationErrorException("Invalid contact number.");
+                EmployeeProfileValidationHelper.ValidateContactNumber(clean, "contact number");
 
                 existing.ContactNumber = clean;
             }
@@ -127,8 +127,7 @@ public class UpdateContactInfoCommandHandler
             if (!string.IsNullOrWhiteSpace(dto.AlternateNumber))
             {
                 var clean = dto.AlternateNumber.Trim();
-                if (!Regex.IsMatch(clean, @"^[0-9]{10}$"))
-                    throw new ValidationErrorException("Invalid alternate number.");
+                EmployeeProfileValidationHelper.ValidateContactNumber(clean, "alternate number");
 
                 existing.AlternateNumber = clean;
             }
@@ -153,6 +152,9 @@ public class UpdateContactInfoCommandHandler
 
             if (dto.DistrictId.HasValue)
                 existing.DistrictId = dto.DistrictId.Value;
+
+            if (dto.LocalityId.HasValue)
+                existing.LocalityId = dto.LocalityId.Value;
 
             if (dto.HouseNo != null)
                 existing.HouseNo = dto.HouseNo.Trim();

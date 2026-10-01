@@ -103,6 +103,11 @@ namespace axionpro.persistance.Repositories
                         equals (int?)district.Id into districtJoin
                     from district in districtJoin.DefaultIfEmpty()
 
+                    join locality in _context.Localities
+                        on (c.LocalityId > 0 ? c.LocalityId : null)
+                        equals (int?)locality.Id into localityJoin
+                    from locality in localityJoin.DefaultIfEmpty()
+
                     where c.EmployeeId == entity.EmployeeId
                           && c.IsSoftDeleted != true
                     //  IsActive filter hata diya
@@ -130,6 +135,9 @@ namespace axionpro.persistance.Repositories
 
                         DistrictId = c.DistrictId,
                         DistrictName = district != null ? district.DistrictName : string.Empty,
+
+                        LocalityId = c.LocalityId,
+                        LocalityName = locality != null ? locality.LocalityName : string.Empty,
 
                         HouseNo = c.HouseNo,
                         LandMark = c.LandMark,
@@ -219,6 +227,10 @@ namespace axionpro.persistance.Repositories
                         on c.DistrictId equals (int?)district.Id into districtJoin
                     from district in districtJoin.DefaultIfEmpty()
 
+                    join locality in _context.Localities
+                        on c.LocalityId equals (int?)locality.Id into localityJoin
+                    from locality in localityJoin.DefaultIfEmpty()
+
                     where
                         c.EmployeeId == employeeId &&
                         (c.IsSoftDeleted == false || c.IsSoftDeleted == null)
@@ -250,6 +262,9 @@ namespace axionpro.persistance.Repositories
 
                         DistrictId = c.DistrictId,
                         DistrictName = district != null ? district.DistrictName : string.Empty,
+
+                        LocalityId = c.LocalityId,
+                        LocalityName = locality != null ? locality.LocalityName : string.Empty,
 
                         IsPrimary = c.IsPrimary,
                         IsActive = c.IsActive,

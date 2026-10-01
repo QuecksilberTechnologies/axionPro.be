@@ -50,6 +50,15 @@ shape, optional UPI ID, and the cancelled-cheque requirement for a primary
 account on the API as well as in Angular. Adding a non-primary account does not
 clear the employee's existing primary account.
 
+Contact relation options come from the bearer-authenticated, permission-ID-free
+`GET /api/Employee/Contact/relation-options` endpoint. Employee creation also
+creates one editable contact placeholder in the same transaction with the full
+employee name and selected `CountryId`; relation and remaining contact/address
+fields are null. Manual Contact Add/Edit follows Country -> State -> District ->
+Locality and persists nullable `LocalityId`. See
+[Employee Contact Relation and Location](EMPLOYEE_CONTACT_RELATION_LOCATION.md)
+for the complete API, payload, migration and UI contract.
+
 ## Error response and display contract
 
 The Angular `BaseService` is the shared error boundary for these tab services.
@@ -93,7 +102,7 @@ The profile CRUD path writes these 11 primary transaction tables:
 10. `EmployeeEducation`
 11. `EmployeeDependent`
 
-Country, state/district, identity catalogue, policy, bank account type and other
+Country, state, district, locality, identity catalogue, policy, bank account type and other
 lookup masters are read-only inputs and require seed/master data. Transaction
 tables must be populated through application workflows, not fabricated seed
 employees. The exact master-table seed list is module-specific; identity uses

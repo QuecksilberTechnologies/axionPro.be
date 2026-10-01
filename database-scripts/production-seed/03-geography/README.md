@@ -14,3 +14,19 @@ domains. Verified statutory masters are additionally inserted for India (`IN`), 
 (`DE`) and the United States (`US`). Contribution flags are not invented for jurisdictions without a
 verified statutory catalogue. Country IDs are resolved from `CountryCode`; no environment-specific
 numeric country ID is embedded in the mappings.
+
+## Additive UAE supplement
+
+After Country and LocalityType masters, run
+[`../../SeedUaeLocations.sql`](../../SeedUaeLocations.sql) separately; the existing
+canonical reset/runner is unchanged. This approved GeoNames CC BY 4.0 catalogue
+adds 7 emirates, 28 source districts plus 7 explicitly Unassigned District groups,
+and 2,776 localities. Existing rows are preserved; missing district membership and
+postal codes are not invented. Source SHA256 and attribution are in the SQL header.
+
+```powershell
+python database-scripts/location-seed/GenerateUaeLocationSeed.py <path-to-AE.zip> database-scripts/SeedUaeLocations.sql
+```
+
+Regeneration against a changed source requires data review; snapshot tests pin
+these counts. [Local verification](../../../docs/testing/employee/contact-relation-location/2026-10-01.md).

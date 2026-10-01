@@ -1,4 +1,5 @@
 using axionpro.application.Exceptions;
+using System.Text.RegularExpressions;
 
 namespace axionpro.application.Common.Helpers;
 
@@ -7,6 +8,18 @@ namespace axionpro.application.Common.Helpers;
 /// </summary>
 public static class EmployeeProfileValidationHelper
 {
+    /// <summary>
+    /// Preserves legacy ten-digit numbers and accepts the international format sent by Contact UI.
+    /// Country-specific national-number validation remains with the selected-country control.
+    /// </summary>
+    public static void ValidateContactNumber(string value, string fieldName)
+    {
+        if (!Regex.IsMatch(value, @"^(?:[0-9]{10}|\+[1-9][0-9]{6,14})$"))
+        {
+            throw new ValidationErrorException($"Invalid {fieldName}.");
+        }
+    }
+
     public static void RequireText(string? value, string fieldName)
     {
         if (string.IsNullOrWhiteSpace(value))

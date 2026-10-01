@@ -51,6 +51,14 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
             return await next();
         }
 
+        // Like Role/type-options, this enum-only endpoint is protected by [Authorize]
+        // at the HTTP boundary. The user explicitly requested token verification only:
+        // no tenant/user persistence, identifier decoding or module permission lookup.
+        if (request is Contact.Handlers.GetContactRelationOptionsQuery)
+        {
+            return await next();
+        }
+
         var validation = await commonRequestService.ValidateTenantUserRequestAsync();
         if (!validation.Success)
         {
@@ -58,9 +66,7 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
                 validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
         }
 
-        // This dropdown only exposes active, published Attendance policy options for the
-        // Tenant resolved from the authenticated token. It has no module operation of its
-        // own, so the validated Tenant context is its complete authorization boundary.
+        // Attendance options retain their existing validated Tenant context and no module operation.
         if (typeof(TRequest) == typeof(EmployeeWorkInfo.Handlers.GetAttendancePolicyOptionsQuery))
         {
             return await next();

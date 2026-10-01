@@ -104,6 +104,7 @@ Every entry must include:
 | --- | --- | --- | --- | --- | --- |
 | `LOCK-TENANT-REG-001` | Tenant registration transaction and actionable errors | LOCKED | Backend 14/14; PostgreSQL rollback 2/2; Angular 44/44 and production build | PENDING | [2026-10-01](docs/testing/tenant/registration-actionable-errors/2026-10-01.md) |
 | `LOCK-ROLE-TYPE-002` | Tenant role-type response mapping and API-backed DDL | LOCKED | Backend 9/9; protected tenant registration 14/14; Angular 69/69 and production build | PENDING | [2026-10-01](docs/testing/role/client-role-type-display/2026-10-01.md) |
+| `LOCK-EMP-CONTACT-003` | Employee contact relations, initial row and location cascade | LOCKED | Backend 45/45 + contact DB 2/2; locality 9/9; protected tenant 14/14 + DB rollback 2/2; Angular 66/66; Role interceptor 9/9 + 69/69; production build | PENDING | [2026-10-01](docs/testing/employee/contact-relation-location/2026-10-01.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -262,6 +263,123 @@ Expected locked baseline: 3 files and 69 tests pass.
 - Deployed Role type options and UI acceptance: PENDING.
 - Angular Role create/edit dropdown: known hardcoded 1–3 list, unchanged and
   outside this backend lock.
+
+## LOCK-EMP-CONTACT-003: Employee contact relations, initial row and location cascade
+
+### Locked behavior
+
+- Employee contact relations come from backend `EmergencyContactRelation`; no
+  Angular `RELATIONS` catalogue may replace it.
+- Values 1–16 and 99 remain stable. `Owner` is value 16 and `Other` is 99.
+- `GET /api/Employee/Contact/relation-options` is bearer-authenticated, accepts
+  no ModuleId/OperationId or employee ID. As explicitly requested by the user,
+  only bearer-token verification applies; no tenant/user database or permission
+  query runs. This follows the existing Role-options boundary. Other Employee
+  requests retain the established permission pipeline. This corrects the initial
+  draft's extra tenant-context check to match the same user request, before final acceptance.
+- Normal Employee creation adds exactly one editable, active, unverified,
+  non-primary EmployeeContact to the same aggregate and transaction. It copies
+  only full employee name and CountryId; Relation and the remaining user-entered
+  contact/address fields are null.
+- Existing Contact rows remain editable and employees may create more rows
+  through existing Contact CRUD authorization.
+- Manual Contact Add/Edit loads Country -> State -> District -> Locality, clears
+  downstream values when a parent changes, and persists nullable LocalityId.
+- Contact reads return nullable LocalityId/LocalityName. The additive migration
+  never rewrites or deletes existing EmployeeContact rows.
+- Contact edit accepts international plus-prefixed numbers while preserving
+  legacy ten-digit numbers and ownership/editable/verified guards.
+- The approved public UAE seed is additive/idempotent and preserves non-AE rows.
+  Missing source district membership stays explicitly Unassigned; no postal
+  codes or administrative membership are invented.
+
+### Protected areas
+
+- `axionpro.application/Common/Enums/OperationType.cs`,
+  `EmergencyContactRelation`.
+- Relation DTO/query/handler, `ContactController.GetRelationOptions` and the
+  narrow exception in `EmployeeTenantPermissionBehavior`.
+- `EmployeeContactInfoMapperHelper.CreateInitialContact` and
+  `CreateBaseEmployeeInfoCommandHandler` aggregate wiring.
+- EmployeeContact entity/EF model/repository, Contact create/update/get DTOs and
+  `database-scripts/AddEmployeeContactDefaultAndLocality.sql`.
+- `EmployeeContactRelationAndCreationTests` and Employee profile route/permission
+  characterization.
+- Angular EmployeeContactsAPI, LookupStore relation/location resources, Contact
+  form, Employee Manage dialog, relation pipe/display consumers and the
+  `/Employee/Contact/relation-options` interceptor exclusion.
+
+### Required backend gates
+
+Run before and after any change that can affect this lock:
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "TestCategory=EmployeeContactRelation|FullyQualifiedName~EmployeeProfileCharacterizationTests" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~LocalityRefactorTests&FullyQualifiedName!~Four_country_postal_seed_is_idempotent_and_populates_locality_postal_code" --logger "console;verbosity=minimal"
+```
+
+Expected locked baseline: 45/45 Employee contact/profile and 9/9 applicable
+locality tests pass, with zero failed or skipped. The excluded historical
+postal-seed test is BLOCKED by its absent
+`database-scripts/SeedFourCountryPostalLocalities.sql` fixture and must never be
+reported as passed until that fixture is restored or the test is explicitly
+retired.
+
+Because Employee persistence and shared constants/interceptor paths overlap
+existing locks, also run their applicable gates:
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "TestCategory=RoleTypeMapping" --logger "console;verbosity=minimal"
+```
+
+Expected baselines: Tenant 14/14 and Role 9/9 pass. For entity/repository/schema
+changes, run the LOCK-TENANT-REG-001 real-database rollback probe; expected 2/2
+pass with no retained test tenant.
+
+For Contact persistence and UAE geography, also run (after applying the additive
+schema script and UAE seed to the approved local target):
+
+```powershell
+$env:AXIONPRO_CONTACT_DB_SETTINGS=(Resolve-Path '.\axionpro.api\appsettings.Development.json').Path
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "TestCategory=EmployeeContactDatabase" --logger "console;verbosity=minimal"
+```
+
+Expected: 2 passed, no skipped; initial contact, edit/add/read-back, UAE lookup
+hierarchy and rollback cleanup are verified. The DB probe substitutes auth/email;
+it does not establish running-product authenticated HTTP acceptance.
+
+### Required Angular gates
+
+Run only with explicit Angular authorization:
+
+```powershell
+npx ng test --watch=false --include=src/app/core/services/employee-contacts-api.spec.ts --include=src/app/shared/pipes/get-relation-name-pipe.spec.ts --include=src/app/features/user-menu/employee-profile/employee-contact-info/employee-contact-form/employee-contact-form.spec.ts --include=src/app/core/interceptors/module-operation-routes.spec.ts --include=src/app/shared/components/employee/employee-manage-dialog/employee-manage-dialog.spec.ts --include=src/app/features/user-menu/employee-profile/employee-contact-info/employee-contact-info.spec.ts --include=src/app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.spec.ts --include=src/app/features/employees/avatar-popup/avatar-popup.spec.ts
+npx ng test --project axionpro --include src/app/features/roles/role-dialog/role-dialog.spec.ts --include src/app/core/services/roles-api.spec.ts --include src/app/core/interceptors/module-operation-routes.spec.ts --watch=false
+npx ng build --configuration production --progress=false
+```
+
+Expected baselines: affected Employee UI 8 files/66 tests, protected Role UI 3
+files/69 tests, and the production build all pass. Changed TS/HTML files must
+also pass `oxfmt --check` and ESLint.
+
+### Acceptance state
+
+- Local backend Employee contact/profile gate: PASS, 45/45, including three
+  isolated HTTP bearer cases (401/401/200), with zero persistence dependencies.
+- Local locality contract gate: PASS, 9/9 applicable tests; one historical
+  fixture-dependent case remains BLOCKED and excluded as documented.
+- Protected tenant mocked gate: PASS, 14/14 before and after.
+- Protected tenant PostgreSQL rollback probe: PASS, 2/2, no retained test tenant.
+- Protected Role backend/interceptor gate: PASS, 9/9 backend and 69/69 Angular.
+- Affected Angular gate: PASS, 66/66; format and ESLint PASS.
+- Angular production build: PASS.
+- EmployeeContact schema migration and UAE seed: APPLIED locally; second seed
+  run inserted zero rows and non-AE row fingerprints stayed unchanged.
+- Real Employee-create/contact edit/add/read-back and UAE repository cascade:
+  PASS, 2/2 database probes; test graph rolled back with no retained account.
+- Running-product authenticated employee/browser acceptance: PENDING.
+- Deployed API/UI acceptance: PENDING.
 
 ## Adding the next lock
 

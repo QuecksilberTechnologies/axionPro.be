@@ -256,6 +256,7 @@ namespace axionpro.application.Constants
             public const string HostAccessRetrieved = "Host access retrieved successfully.";
 
             public const string GenderOptionsRetrieved = "Gender options fetched successfully.";
+            public const string ContactRelationOptionsRetrieved = "Contact relation options fetched successfully.";
             public const string RoleOptionsRetrieved = "Role options fetched successfully.";
             public const string RolesRetrieved = "Roles retrieved successfully.";
             public const string RolePermissionsRetrieved = "Role permissions retrieved successfully.";

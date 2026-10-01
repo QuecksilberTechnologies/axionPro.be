@@ -79,6 +79,7 @@ public enum RelationDependant
         Cousin = 13,
         Guardian = 14,
         Landlord = 15,
+        Owner = 16,
 
         Other = 99
     }
