@@ -5,6 +5,7 @@
 - [Tenant registration actionable errors — 2026-10-01](tenant/registration-actionable-errors/2026-10-01.md)
 - [Role Client type display — 2026-10-01](role/client-role-type-display/2026-10-01.md)
 - [Employee contact relation and location cascade — 2026-10-01](employee/contact-relation-location/2026-10-01.md)
+- [Four-country local-to-Render replacement — 2026-10-01](database/tenant-cleanup-geography-regulatory-seed/2026-10-01.md#authorized-four-country-local-to-render-replacement-follow-up): 164 tables reconciled, 58 MB; local gates 81/81 before and after, Render rollback probes 4/4.
 - [Work-mode override missing location assignment — 2026-09-27](employee-work-mode-override/missing-location-assignment/2026-09-27.md)
 - [Attendance punch flow — 2026-09-24](attendance/punch-flow/2026-09-24.md)
 - [Subscription billing foundation — 2026-09-24](billing/foundation/2026-09-24.md)
@@ -130,3 +131,7 @@ saving evidence. Documentation-only work does not require repeating passed tests
 
 - [2026-09-29 SMTP rejection and actionable error](tenant/resend-verification/2026-09-29.md)
 - [2026-09-30 intermittent Render outbound-IP authorization](tenant/resend-verification/2026-09-30.md)
+# Policy generic rule metadata
+
+- [2026-10-02 — code-driven rule schema, Angular authoring and Render metadata migration](policy/generic-rule-metadata/2026-10-02.md)
+

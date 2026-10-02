@@ -30,6 +30,43 @@ public partial class WorkforceDbContext
             entity.Property(e => e.Description).HasMaxLength(500);
         });
 
+        modelBuilder.Entity<PolicyCategoryRuleType>(entity =>
+        {
+            entity.ToTable("PolicyCategoryRuleType", "axionpro");
+            entity.HasIndex(e => new { e.PolicyCategoryId, e.PolicyRuleTypeId }).IsUnique();
+        });
+
+        modelBuilder.Entity<PolicyRuleSettingDefinition>(entity =>
+        {
+            entity.ToTable("PolicyRuleSettingDefinition", "axionpro");
+            entity.Property(e => e.SettingCode).HasMaxLength(80);
+            entity.Property(e => e.DisplayName).HasMaxLength(120);
+            entity.Property(e => e.DataTypeCode).HasMaxLength(30);
+            entity.Property(e => e.DefaultValueJson).HasColumnType("jsonb");
+            entity.Property(e => e.RegexPattern).HasMaxLength(500);
+            entity.Property(e => e.Placeholder).HasMaxLength(200);
+            entity.Property(e => e.HelpText).HasMaxLength(500);
+            entity.HasIndex(e => new { e.PolicyRuleTypeId, e.SettingCode }).IsUnique();
+        });
+
+        modelBuilder.Entity<PolicyRuleSettingOption>(entity =>
+        {
+            entity.ToTable("PolicyRuleSettingOption", "axionpro");
+            entity.Property(e => e.OptionCode).HasMaxLength(80);
+            entity.Property(e => e.OptionLabel).HasMaxLength(120);
+            entity.Property(e => e.ValueJson).HasColumnType("jsonb");
+            entity.HasIndex(e => new { e.PolicyRuleSettingDefinitionId, e.OptionCode }).IsUnique();
+        });
+
+        modelBuilder.Entity<PolicyRuleSettingDependency>(entity =>
+        {
+            entity.ToTable("PolicyRuleSettingDependency", "axionpro");
+            entity.Property(e => e.OperatorCode).HasMaxLength(30);
+            entity.Property(e => e.ActionCode).HasMaxLength(30);
+            entity.Property(e => e.ExpectedValueJson).HasColumnType("jsonb");
+            entity.HasIndex(e => new { e.PolicyRuleSettingDefinitionId, e.DependsOnSettingDefinitionId, e.ActionCode }).IsUnique();
+        });
+
         modelBuilder.Entity<PolicyDocumentType>(entity =>
         {
             entity.ToTable("PolicyDocumentType", "axionpro");

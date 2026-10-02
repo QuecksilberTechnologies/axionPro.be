@@ -74,6 +74,7 @@ public sealed class GetPolicyLookupsQueryHandler(IGenericPolicyRepository reposi
             categories = await Repository.GetCategoriesAsync(token),
             statuses = await Repository.GetStatusesAsync(token),
             ruleTypes = await Repository.GetRuleTypesAsync(token),
+            ruleDefinitions = await Repository.GetRuleDefinitionsAsync(token),
             documentTypes = await Repository.GetDocumentTypesAsync(token),
             // Attendance Policy forms consume these enum-derived values instead of duplicating
             // numeric enum mappings in the UI. Adding a domain enum member automatically publishes it.

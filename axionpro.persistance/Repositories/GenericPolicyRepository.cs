@@ -30,6 +30,61 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         await context.PolicyRuleTypes.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.RuleTypeName)
             .Select(x => new PolicyLookupResponseDTO(x.Id, x.RuleTypeCode, x.RuleTypeName, x.Description)).ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<PolicyRuleDefinitionResponseDTO>> GetRuleDefinitionsAsync(CancellationToken cancellationToken)
+    {
+        var mappings = await (
+            from mapping in context.PolicyCategoryRuleTypes.AsNoTracking()
+            join category in context.PolicyCategories.AsNoTracking() on mapping.PolicyCategoryId equals category.Id
+            join ruleType in context.PolicyRuleTypes.AsNoTracking() on mapping.PolicyRuleTypeId equals ruleType.Id
+            where mapping.IsActive && category.IsActive && ruleType.IsActive
+            orderby category.CategoryName, mapping.DisplayOrder
+            select new { mapping, category.CategoryCode, ruleType.RuleTypeCode, ruleType.RuleTypeName })
+            .ToListAsync(cancellationToken);
+        var ruleTypeIds = mappings.Select(x => x.mapping.PolicyRuleTypeId).Distinct().ToArray();
+        var settings = await context.PolicyRuleSettingDefinitions.AsNoTracking()
+            .Where(x => ruleTypeIds.Contains(x.PolicyRuleTypeId) && x.IsActive)
+            .OrderBy(x => x.DisplayOrder)
+            .ToListAsync(cancellationToken);
+        var settingIds = settings.Select(x => x.Id).ToArray();
+        var options = await context.PolicyRuleSettingOptions.AsNoTracking()
+            .Where(x => settingIds.Contains(x.PolicyRuleSettingDefinitionId) && x.IsActive)
+            .OrderBy(x => x.DisplayOrder)
+            .ToListAsync(cancellationToken);
+        var dependencies = await context.PolicyRuleSettingDependencies.AsNoTracking()
+            .Where(x => settingIds.Contains(x.PolicyRuleSettingDefinitionId))
+            .ToListAsync(cancellationToken);
+        var settingCodeById = settings.ToDictionary(x => x.Id, x => x.SettingCode);
+
+        return mappings.Select(x => new PolicyRuleDefinitionResponseDTO(
+            x.CategoryCode,
+            x.RuleTypeCode,
+            x.RuleTypeName,
+            x.mapping.IsRequired,
+            x.mapping.AllowMultiple,
+            x.mapping.DisplayOrder,
+            settings.Where(setting => setting.PolicyRuleTypeId == x.mapping.PolicyRuleTypeId)
+                .Select(setting => new PolicyRuleSettingDefinitionResponseDTO(
+                    setting.SettingCode,
+                    setting.DisplayName,
+                    setting.DataTypeCode,
+                    setting.IsRequired,
+                    setting.DefaultValueJson,
+                    setting.MinimumValue,
+                    setting.MaximumValue,
+                    setting.RegexPattern,
+                    setting.Placeholder,
+                    setting.HelpText,
+                    setting.DisplayOrder,
+                    options.Where(option => option.PolicyRuleSettingDefinitionId == setting.Id)
+                        .Select(option => new PolicyRuleSettingOptionResponseDTO(
+                            option.OptionCode, option.OptionLabel, option.ValueJson, option.DisplayOrder)).ToList(),
+                    dependencies.Where(dependency => dependency.PolicyRuleSettingDefinitionId == setting.Id)
+                        .Select(dependency => new PolicyRuleSettingDependencyResponseDTO(
+                            settingCodeById[dependency.DependsOnSettingDefinitionId], dependency.OperatorCode,
+                            dependency.ExpectedValueJson, dependency.ActionCode)).ToList()))
+                .ToList())).ToList();
+    }
+
     public async Task<IReadOnlyList<PolicyLookupResponseDTO>> GetDocumentTypesAsync(CancellationToken cancellationToken) =>
         await context.PolicyDocumentTypes.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.Id)
             .Select(x => new PolicyLookupResponseDTO(x.Id, x.DocumentTypeCode, x.DocumentTypeName)).ToListAsync(cancellationToken);
@@ -132,6 +187,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
     {
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo);
         ValidateRulesAndScopes(dto.Rules, dto.Applicability);
+        await ValidatePolicyRulesAsync(tenantId, dto.PolicyTypeId, dto.Rules, cancellationToken);
         await ValidateScopeReferencesAsync(tenantId, dto.Applicability, cancellationToken);
         await ValidatePolicyReferencesAsync(tenantId, dto.OwnerDepartmentId, dto.Rules, cancellationToken);
         await ValidateAttendanceConfigurationAsync(tenantId, dto.PolicyTypeId, dto.AttendanceConfiguration, cancellationToken);
@@ -161,6 +217,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
     {
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo);
         ValidateRulesAndScopes(dto.Rules, dto.Applicability);
+        await ValidatePolicyRulesAsync(tenantId, dto.PolicyTypeId, dto.Rules, cancellationToken);
         await ValidateScopeReferencesAsync(tenantId, dto.Applicability, cancellationToken);
         await ValidatePolicyReferencesAsync(tenantId, dto.OwnerDepartmentId, dto.Rules, cancellationToken);
         await ValidateAttendanceConfigurationAsync(tenantId, dto.PolicyTypeId, dto.AttendanceConfiguration, cancellationToken);
@@ -504,6 +561,14 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var date = dto.EffectiveDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var versions = await (from v in context.PolicyVersions.AsNoTracking() join p in context.Policies.AsNoTracking() on v.PolicyId equals p.Id where v.TenantId == tenantId && v.PolicyStatusId == Published && v.IsCurrent && v.IsActive && p.IsActive && !p.IsSoftDeleted && v.EffectiveFrom <= date && (v.EffectiveTo == null || v.EffectiveTo >= date) select new { Version = v, Policy = p }).ToListAsync(cancellationToken);
         var ids = versions.Select(x => x.Version.Id).ToArray();
+        var resolvedRules = await (from rule in context.PolicyRules.AsNoTracking()
+                                   join ruleType in context.PolicyRuleTypes.AsNoTracking() on rule.PolicyRuleTypeId equals ruleType.Id
+                                   where ids.Contains(rule.PolicyVersionId) && rule.IsActive && ruleType.IsActive
+                                   orderby rule.RuleOrder
+                                   select new { PolicyVersionId = rule.PolicyVersionId, ruleType.RuleTypeCode, rule.RuleName, rule.RuleOrder, rule.RuleConfiguration })
+            .ToListAsync(cancellationToken);
+        var rulesByVersion = resolvedRules.GroupBy(x => x.PolicyVersionId).ToDictionary(x => x.Key,
+            x => (IReadOnlyList<ResolvedPolicyRuleResponseDTO>)x.Select(y => new ResolvedPolicyRuleResponseDTO(y.RuleTypeCode, y.RuleName, y.RuleOrder, y.RuleConfiguration)).ToList());
         var scopes = await context.PolicyApplicabilities.AsNoTracking().Where(x => x.TenantId == tenantId && ids.Contains(x.PolicyVersionId) && x.IsActive && x.EffectiveFrom <= date && (x.EffectiveTo == null || x.EffectiveTo >= date)).ToListAsync(cancellationToken);
         var manual = await context.PolicyAssignments.AsNoTracking().Where(x => x.TenantId == tenantId && x.EmployeeId == employee.Id && ids.Contains(x.PolicyVersionId) && x.IsActive && x.EffectiveFrom <= date && (x.EffectiveTo == null || x.EffectiveTo >= date)).Select(x => x.PolicyVersionId).ToListAsync(cancellationToken);
         var locations = await (from assignment in context.EmployeeLocationAssignments.AsNoTracking()
@@ -516,8 +581,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         {
             if (manual.Contains(item.Version.Id))
             {
+                var rules = rulesByVersion.GetValueOrDefault(item.Version.Id, Array.Empty<ResolvedPolicyRuleResponseDTO>());
                 result.Add(new ResolvedPolicyResponseDTO(item.Policy.Id, item.Version.Id,
-                    item.Policy.PolicyCode, item.Policy.PolicyName, int.MinValue, "MANUAL_ASSIGNMENT"));
+                    item.Policy.PolicyCode, item.Policy.PolicyName, int.MinValue, "MANUAL_ASSIGNMENT",
+                    rules));
                 continue;
             }
             var matching = scopes
@@ -538,8 +605,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             var include = winners.FirstOrDefault(x => x.ApplicabilityMode == 1);
             if (include != null)
             {
+                var rules = rulesByVersion.GetValueOrDefault(item.Version.Id, Array.Empty<ResolvedPolicyRuleResponseDTO>());
                 result.Add(new ResolvedPolicyResponseDTO(item.Policy.Id, item.Version.Id,
-                    item.Policy.PolicyCode, item.Policy.PolicyName, include.Priority, "APPLICABILITY"));
+                    item.Policy.PolicyCode, item.Policy.PolicyName, include.Priority, "APPLICABILITY",
+                    rules));
             }
         }
         return result.OrderBy(x => x.Priority).ThenBy(x => x.PolicyName).ToList();
@@ -1063,6 +1132,102 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         if (validRuleTypeCount != ruleTypeIds.Count)
         {
             throw new ValidationErrorException("One or more PolicyRuleTypeId values are invalid.");
+        }
+    }
+
+    private async Task ValidatePolicyRulesAsync(
+        long tenantId,
+        int policyTypeId,
+        IReadOnlyCollection<PolicyRuleInputDTO> rules,
+        CancellationToken cancellationToken)
+    {
+        var categoryId = await context.PolicyTypes.AsNoTracking()
+            .Where(x => x.Id == policyTypeId && x.TenantId == tenantId && x.IsActive == true && x.IsSoftDelete != true)
+            .Select(x => x.PolicyCategoryId)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (!categoryId.HasValue)
+        {
+            throw new ValidationErrorException("PolicyTypeId is not active for this tenant.");
+        }
+
+        var allowedMappings = await context.PolicyCategoryRuleTypes.AsNoTracking()
+            .Where(x => x.PolicyCategoryId == categoryId.Value && x.IsActive)
+            .ToListAsync(cancellationToken);
+        var allowedIds = allowedMappings.Select(x => x.PolicyRuleTypeId).ToHashSet();
+        if (rules.Any(rule => !allowedIds.Contains(rule.PolicyRuleTypeId)))
+        {
+            throw new ValidationErrorException("One or more rules are not allowed for this policy category.");
+        }
+        if (allowedMappings.Where(x => x.IsRequired).Any(x => rules.All(rule => rule.PolicyRuleTypeId != x.PolicyRuleTypeId)))
+        {
+            throw new ValidationErrorException("One or more required rules are missing for this policy category.");
+        }
+        if (allowedMappings.Where(x => !x.AllowMultiple).Any(x => rules.Count(rule => rule.PolicyRuleTypeId == x.PolicyRuleTypeId) > 1))
+        {
+            throw new ValidationErrorException("A rule type configured as single-use was added more than once.");
+        }
+
+        var definitions = await context.PolicyRuleSettingDefinitions.AsNoTracking()
+            .Where(x => allowedIds.Contains(x.PolicyRuleTypeId) && x.IsActive)
+            .ToListAsync(cancellationToken);
+        var definitionIds = definitions.Select(x => x.Id).ToArray();
+        var options = await context.PolicyRuleSettingOptions.AsNoTracking()
+            .Where(x => definitionIds.Contains(x.PolicyRuleSettingDefinitionId) && x.IsActive)
+            .ToListAsync(cancellationToken);
+
+        foreach (var rule in rules)
+        {
+            using var document = JsonDocument.Parse(rule.RuleConfiguration);
+            var root = document.RootElement;
+            var ruleDefinitions = definitions.Where(x => x.PolicyRuleTypeId == rule.PolicyRuleTypeId).ToList();
+            var allowedCodes = ruleDefinitions.Select(x => x.SettingCode).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var unsupported = root.EnumerateObject().FirstOrDefault(property => !allowedCodes.Contains(property.Name));
+            if (!string.IsNullOrEmpty(unsupported.Name))
+            {
+                throw new ValidationErrorException($"Rule setting '{unsupported.Name}' is not supported.");
+            }
+            foreach (var definition in ruleDefinitions)
+            {
+                if (!root.TryGetProperty(definition.SettingCode, out var value))
+                {
+                    if (definition.IsRequired)
+                    {
+                        throw new ValidationErrorException($"Rule setting '{definition.SettingCode}' is required.");
+                    }
+                    continue;
+                }
+                ValidateSettingValue(definition, value, options);
+            }
+        }
+    }
+
+    private static void ValidateSettingValue(
+        PolicyRuleSettingDefinition definition,
+        JsonElement value,
+        IReadOnlyCollection<PolicyRuleSettingOption> options)
+    {
+        var validType = definition.DataTypeCode switch
+        {
+            "BOOLEAN" => value.ValueKind is JsonValueKind.True or JsonValueKind.False,
+            "INTEGER" => value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out _),
+            "DECIMAL" => value.ValueKind == JsonValueKind.Number && value.TryGetDecimal(out _),
+            "STRING" or "CODE" => value.ValueKind == JsonValueKind.String,
+            _ => false
+        };
+        if (!validType)
+        {
+            throw new ValidationErrorException($"Rule setting '{definition.SettingCode}' must be {definition.DataTypeCode}.");
+        }
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetDecimal(out var number)
+            && (definition.MinimumValue.HasValue && number < definition.MinimumValue
+                || definition.MaximumValue.HasValue && number > definition.MaximumValue))
+        {
+            throw new ValidationErrorException($"Rule setting '{definition.SettingCode}' is outside its allowed range.");
+        }
+        var allowedOptions = options.Where(x => x.PolicyRuleSettingDefinitionId == definition.Id).ToList();
+        if (allowedOptions.Count > 0 && allowedOptions.All(option => option.ValueJson != value.GetRawText()))
+        {
+            throw new ValidationErrorException($"Rule setting '{definition.SettingCode}' has an unsupported option.");
         }
     }
 

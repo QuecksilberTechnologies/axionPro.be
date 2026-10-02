@@ -4,6 +4,10 @@ This project runs API tests directly and opens Playwright-managed Chromium for U
 
 ## What is already covered
 
+Four-country Render replacement evidence (81 local locked cases before/after,
+4 Render rollback probes, complete table reconciliation):
+[2026-10-01 database report](../docs/testing/database/tenant-cleanup-geography-regulatory-seed/2026-10-01.md#authorized-four-country-local-to-render-replacement-follow-up).
+
 - API: Swagger document is available.
 - API: public `ClientInfo/detect-device` response contains the automation browser identity.
 - API: authenticated navigation rejects a request without a token.

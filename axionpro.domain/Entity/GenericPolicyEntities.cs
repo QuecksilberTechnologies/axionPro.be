@@ -32,6 +32,60 @@ public sealed class PolicyRuleType
     public bool IsActive { get; set; }
 }
 
+/// <summary>Declares which rule types a policy category supports.</summary>
+public sealed class PolicyCategoryRuleType
+{
+    public int Id { get; set; }
+    public int PolicyCategoryId { get; set; }
+    public int PolicyRuleTypeId { get; set; }
+    public bool IsRequired { get; set; }
+    public bool AllowMultiple { get; set; }
+    public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; }
+}
+
+/// <summary>Defines one validated, UI-renderable setting for a policy rule type.</summary>
+public sealed class PolicyRuleSettingDefinition
+{
+    public int Id { get; set; }
+    public int PolicyRuleTypeId { get; set; }
+    public string SettingCode { get; set; } = null!;
+    public string DisplayName { get; set; } = null!;
+    public string DataTypeCode { get; set; } = null!;
+    public bool IsRequired { get; set; }
+    public string? DefaultValueJson { get; set; }
+    public decimal? MinimumValue { get; set; }
+    public decimal? MaximumValue { get; set; }
+    public string? RegexPattern { get; set; }
+    public string? Placeholder { get; set; }
+    public string? HelpText { get; set; }
+    public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; }
+}
+
+/// <summary>Defines a stable code/value option for select-style rule settings.</summary>
+public sealed class PolicyRuleSettingOption
+{
+    public int Id { get; set; }
+    public int PolicyRuleSettingDefinitionId { get; set; }
+    public string OptionCode { get; set; } = null!;
+    public string OptionLabel { get; set; } = null!;
+    public string ValueJson { get; set; } = null!;
+    public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; }
+}
+
+/// <summary>Controls conditional visibility or required state between rule settings.</summary>
+public sealed class PolicyRuleSettingDependency
+{
+    public int Id { get; set; }
+    public int PolicyRuleSettingDefinitionId { get; set; }
+    public int DependsOnSettingDefinitionId { get; set; }
+    public string OperatorCode { get; set; } = null!;
+    public string ExpectedValueJson { get; set; } = null!;
+    public string ActionCode { get; set; } = null!;
+}
+
 public sealed class PolicyDocumentType
 {
     public short Id { get; set; }

@@ -227,6 +227,15 @@ public sealed record PolicyLookupResponseDTO(int Id, string Code, string Name, s
 /// The numeric value comes directly from the domain enum so UI clients never maintain a second mapping.
 /// </summary>
 public sealed record PolicyEnumLookupResponseDTO(short Id, string Code, string Name);
+public sealed record PolicyRuleSettingOptionResponseDTO(string Code, string Label, string ValueJson, int Order);
+public sealed record PolicyRuleSettingDependencyResponseDTO(string DependsOnCode, string OperatorCode, string ExpectedValueJson, string ActionCode);
+public sealed record PolicyRuleSettingDefinitionResponseDTO(string Code, string Name, string DataTypeCode, bool IsRequired,
+    string? DefaultValueJson, decimal? MinimumValue, decimal? MaximumValue, string? RegexPattern,
+    string? Placeholder, string? HelpText, int Order,
+    IReadOnlyList<PolicyRuleSettingOptionResponseDTO> Options,
+    IReadOnlyList<PolicyRuleSettingDependencyResponseDTO> Dependencies);
+public sealed record PolicyRuleDefinitionResponseDTO(string CategoryCode, string RuleTypeCode, string RuleTypeName,
+    bool IsRequired, bool AllowMultiple, int Order, IReadOnlyList<PolicyRuleSettingDefinitionResponseDTO> Settings);
 public sealed record PolicyTypeResponseDTO(int Id, string Code, string Name, string? Description, int? CategoryId, string? CurrencyCode, bool IsActive);
 public sealed record PolicySummaryResponseDTO(long Id, string Code, string Name, int PolicyTypeId, bool IsActive, long? CurrentVersionId, int? VersionNumber, string? Status);
 public sealed record PolicyRuleResponseDTO(long Id, int RuleTypeId, string Name, int Order, string Configuration);
@@ -243,7 +252,9 @@ public sealed record PolicyDetailResponseDTO(long Id, string Code, string Name, 
     IReadOnlyList<PolicyApplicabilityResponseDTO> Applicability,
     AttendancePolicyVersionConfigurationDTO? AttendanceConfiguration);
 public sealed record PolicyAssignmentResultDTO(int Inserted, int Existing);
-public sealed record ResolvedPolicyResponseDTO(long PolicyId, long PolicyVersionId, string PolicyCode, string PolicyName, int Priority, string ResolutionSource);
+public sealed record ResolvedPolicyRuleResponseDTO(string RuleTypeCode, string RuleName, int Order, string Configuration);
+public sealed record ResolvedPolicyResponseDTO(long PolicyId, long PolicyVersionId, string PolicyCode, string PolicyName, int Priority, string ResolutionSource,
+    IReadOnlyList<ResolvedPolicyRuleResponseDTO> Rules);
 public sealed record PolicyDocumentResponseDTO(long Id, long PolicyVersionId, short DocumentTypeId, string Title, string OriginalFileName, string ContentType, long FileSizeBytes, string? LanguageCode, bool IsEmployeeVisible, string Url);
 public sealed record PolicyAuditResponseDTO(
     long Id,

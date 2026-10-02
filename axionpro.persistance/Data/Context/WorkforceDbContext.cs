@@ -226,6 +226,10 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<PolicyCategory> PolicyCategories { get; set; }
         public virtual DbSet<PolicyStatus> PolicyStatuses { get; set; }
         public virtual DbSet<PolicyRuleType> PolicyRuleTypes { get; set; }
+        public virtual DbSet<PolicyCategoryRuleType> PolicyCategoryRuleTypes { get; set; }
+        public virtual DbSet<PolicyRuleSettingDefinition> PolicyRuleSettingDefinitions { get; set; }
+        public virtual DbSet<PolicyRuleSettingOption> PolicyRuleSettingOptions { get; set; }
+        public virtual DbSet<PolicyRuleSettingDependency> PolicyRuleSettingDependencies { get; set; }
         public virtual DbSet<PolicyDocumentType> PolicyDocumentTypes { get; set; }
         public virtual DbSet<Policy> Policies { get; set; }
         public virtual DbSet<PolicyVersion> PolicyVersions { get; set; }
