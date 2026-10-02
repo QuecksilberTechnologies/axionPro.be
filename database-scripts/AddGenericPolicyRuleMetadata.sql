@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS axionpro."PolicyRuleSettingDependency"
 
 WITH mapping("CategoryCode", "RuleTypeCode", "DisplayOrder") AS (VALUES
  ('LEAVE','ELIGIBILITY',10),('LEAVE','ENTITLEMENT',20),('LEAVE','ACCRUAL',30),('LEAVE','CARRY_FORWARD',40),('LEAVE','SANDWICH',50),('LEAVE','LIMIT',60),('LEAVE','APPROVAL',70),
- ('ATTENDANCE','LATE_PENALTY',10),('ATTENDANCE','OVERTIME',20),('ATTENDANCE','APPROVAL',30),
+ ('ATTENDANCE','ATTENDANCE_CHANNEL',10),('ATTENDANCE','LATE_PENALTY',20),('ATTENDANCE','OVERTIME',30),('ATTENDANCE','APPROVAL',40),
  ('WORK_ARRANGEMENT','ELIGIBILITY',10),('WORK_ARRANGEMENT','LIMIT',20),('WORK_ARRANGEMENT','APPROVAL',30),
  ('TRAVEL','ELIGIBILITY',10),('TRAVEL','LIMIT',20),('TRAVEL','REIMBURSEMENT',30),('TRAVEL','APPROVAL',40),
  ('ACCOMMODATION','ELIGIBILITY',10),('ACCOMMODATION','LIMIT',20),('ACCOMMODATION','REIMBURSEMENT',30),('ACCOMMODATION','APPROVAL',40),
@@ -81,45 +81,47 @@ JOIN axionpro."PolicyRuleType" rule_type ON rule_type."RuleTypeCode" = mapping."
 ON CONFLICT ("PolicyCategoryId","PolicyRuleTypeId") DO UPDATE
 SET "DisplayOrder"=EXCLUDED."DisplayOrder", "IsActive"=true;
 
-WITH setting("RuleTypeCode","SettingCode","DisplayName","DataTypeCode","IsRequired","DefaultValueJson","MinimumValue","MaximumValue","DisplayOrder","HelpText") AS (VALUES
- ('ELIGIBILITY','minimumServiceDays','Minimum service days','INTEGER',false,'0'::jsonb,0,NULL,10,'Minimum completed service before eligibility.'),
- ('ENTITLEMENT','quantity','Entitlement quantity','DECIMAL',true,NULL,0,NULL,10,'Quantity granted in the selected unit.'),
- ('ENTITLEMENT','unit','Unit','CODE',true,'"DAY"'::jsonb,NULL,NULL,20,'Stable unit code.'),
- ('ACCRUAL','frequency','Accrual frequency','CODE',true,'"MONTHLY"'::jsonb,NULL,NULL,10,'How often entitlement is credited.'),
- ('ACCRUAL','amountPerCycle','Amount per cycle','DECIMAL',true,NULL,0,NULL,20,'Amount credited each cycle.'),
- ('ACCRUAL','prorateNewJoiner','Prorate new joiner','BOOLEAN',true,'true'::jsonb,NULL,NULL,30,'Prorate the first cycle for joiners.'),
- ('CARRY_FORWARD','enabled','Enable carry forward','BOOLEAN',true,'false'::jsonb,NULL,NULL,10,'Whether unused balance carries forward.'),
- ('CARRY_FORWARD','maximumQuantity','Maximum carry-forward quantity','DECIMAL',false,NULL,0,NULL,20,'Maximum quantity that may carry forward.'),
- ('CARRY_FORWARD','expiryMonths','Expiry months','INTEGER',false,NULL,1,120,30,'Months after which carried balance expires.'),
- ('SANDWICH','enabled','Enable sandwich rule','BOOLEAN',true,'false'::jsonb,NULL,NULL,10,'Include intervening non-working days when conditions match.'),
- ('SANDWICH','includeWeeklyOff','Include weekly off','BOOLEAN',true,'true'::jsonb,NULL,NULL,20,'Count intervening weekly off.'),
- ('SANDWICH','includePublicHoliday','Include public holiday','BOOLEAN',true,'true'::jsonb,NULL,NULL,30,'Count intervening public holidays.'),
- ('LIMIT','minimum','Minimum allowed','DECIMAL',false,NULL,0,NULL,10,'Minimum value per request.'),
- ('LIMIT','maximum','Maximum allowed','DECIMAL',false,NULL,0,NULL,20,'Maximum value per request.'),
- ('LIMIT','negativeAllowed','Allow negative balance','BOOLEAN',true,'false'::jsonb,NULL,NULL,30,'Whether the result may become negative.'),
- ('LATE_PENALTY','graceMinutes','Grace minutes','INTEGER',true,'0'::jsonb,0,1440,10,'Allowed delay before penalty.'),
- ('LATE_PENALTY','occurrences','Occurrences before penalty','INTEGER',true,'1'::jsonb,1,NULL,20,'Number of late events before penalty.'),
- ('OVERTIME','minimumMinutes','Minimum overtime minutes','INTEGER',true,'0'::jsonb,0,NULL,10,'Minimum duration qualifying as overtime.'),
- ('OVERTIME','multiplier','Overtime multiplier','DECIMAL',true,'1'::jsonb,0,NULL,20,'Multiplier applied by the consuming module.'),
- ('APPROVAL','levels','Approval levels','INTEGER',true,'1'::jsonb,1,20,10,'Number of approval levels.'),
- ('APPROVAL','managerRequired','Manager approval required','BOOLEAN',true,'true'::jsonb,NULL,NULL,20,'Whether manager approval is required.'),
- ('REIMBURSEMENT','currencyCode','Currency code','CODE',true,NULL,NULL,NULL,10,'ISO 4217 currency code.'),
- ('REIMBURSEMENT','maximumAmount','Maximum amount','DECIMAL',true,NULL,0,NULL,20,'Maximum reimbursable amount.'),
- ('REIMBURSEMENT','evidenceRequired','Evidence required','BOOLEAN',true,'true'::jsonb,NULL,NULL,30,'Whether supporting evidence is mandatory.'),
- ('CALENDAR','calendarCode','Calendar code','CODE',true,NULL,NULL,NULL,10,'Stable calendar code used by the module adapter.'),
- ('CUSTOM','configurationCode','Configuration code','CODE',true,NULL,NULL,NULL,10,'Stable tenant-defined configuration code.'),
- ('CUSTOM','value','Value','STRING',true,NULL,NULL,NULL,20,'Tenant-defined value consumed by a registered adapter.')
+WITH setting("RuleTypeCode","SettingCode","DisplayName","DataTypeCode","IsRequired","DefaultValueJson","MinimumValue","MaximumValue","DisplayOrder","Placeholder","HelpText") AS (VALUES
+ ('ATTENDANCE_CHANNEL','channelCode','Attendance channel','CODE',true,'"WEB"'::jsonb,NULL,NULL,10,'e.g. WEB','Primary channel allowed for attendance capture.'),
+ ('ELIGIBILITY','minimumServiceDays','Minimum service days','INTEGER',false,'0'::jsonb,0,NULL,10,'e.g. 180','Minimum completed service before eligibility.'),
+ ('ENTITLEMENT','quantity','Entitlement quantity','DECIMAL',true,NULL,0,NULL,10,'e.g. 12','Quantity granted in the selected unit.'),
+ ('ENTITLEMENT','unit','Unit','CODE',true,'"DAY"'::jsonb,NULL,NULL,20,'e.g. DAY','Stable unit code.'),
+ ('ACCRUAL','frequency','Accrual frequency','CODE',true,'"MONTHLY"'::jsonb,NULL,NULL,10,'e.g. MONTHLY','How often entitlement is credited.'),
+ ('ACCRUAL','amountPerCycle','Amount per cycle','DECIMAL',true,NULL,0,NULL,20,'e.g. 1.5','Amount credited each cycle.'),
+ ('ACCRUAL','prorateNewJoiner','Prorate new joiner','BOOLEAN',true,'true'::jsonb,NULL,NULL,30,'true or false','Prorate the first cycle for joiners.'),
+ ('CARRY_FORWARD','enabled','Enable carry forward','BOOLEAN',true,'false'::jsonb,NULL,NULL,10,'true or false','Whether unused balance carries forward.'),
+ ('CARRY_FORWARD','maximumQuantity','Maximum carry-forward quantity','DECIMAL',false,NULL,0,NULL,20,'e.g. 10','Maximum quantity that may carry forward.'),
+ ('CARRY_FORWARD','expiryMonths','Expiry months','INTEGER',false,NULL,1,120,30,'e.g. 12','Months after which carried balance expires.'),
+ ('SANDWICH','enabled','Enable sandwich rule','BOOLEAN',true,'false'::jsonb,NULL,NULL,10,'true or false','Include intervening non-working days when conditions match.'),
+ ('SANDWICH','includeWeeklyOff','Include weekly off','BOOLEAN',true,'true'::jsonb,NULL,NULL,20,'true or false','Count intervening weekly off.'),
+ ('SANDWICH','includePublicHoliday','Include public holiday','BOOLEAN',true,'true'::jsonb,NULL,NULL,30,'true or false','Count intervening public holidays.'),
+ ('LIMIT','minimum','Minimum allowed','DECIMAL',false,NULL,0,NULL,10,'e.g. 0','Minimum value per request.'),
+ ('LIMIT','maximum','Maximum allowed','DECIMAL',false,NULL,0,NULL,20,'e.g. 30','Maximum value per request.'),
+ ('LIMIT','negativeAllowed','Allow negative balance','BOOLEAN',true,'false'::jsonb,NULL,NULL,30,'true or false','Whether the result may become negative.'),
+ ('LATE_PENALTY','graceMinutes','Grace minutes','INTEGER',true,'0'::jsonb,0,1440,10,'e.g. 15','Allowed delay before penalty.'),
+ ('LATE_PENALTY','occurrences','Occurrences before penalty','INTEGER',true,'1'::jsonb,1,NULL,20,'e.g. 3','Number of late events before penalty.'),
+ ('OVERTIME','minimumMinutes','Minimum overtime minutes','INTEGER',true,'0'::jsonb,0,NULL,10,'e.g. 30','Minimum duration qualifying as overtime.'),
+ ('OVERTIME','multiplier','Overtime multiplier','DECIMAL',true,'1'::jsonb,0,NULL,20,'e.g. 1.5','Multiplier applied by the consuming module.'),
+ ('APPROVAL','levels','Approval levels','INTEGER',true,'1'::jsonb,1,20,10,'e.g. 2','Number of approval levels.'),
+ ('APPROVAL','managerRequired','Manager approval required','BOOLEAN',true,'true'::jsonb,NULL,NULL,20,'true or false','Whether manager approval is required.'),
+ ('REIMBURSEMENT','currencyCode','Currency code','CODE',true,NULL,NULL,NULL,10,'e.g. INR','ISO 4217 currency code.'),
+ ('REIMBURSEMENT','maximumAmount','Maximum amount','DECIMAL',true,NULL,0,NULL,20,'e.g. 50000','Maximum reimbursable amount.'),
+ ('REIMBURSEMENT','evidenceRequired','Evidence required','BOOLEAN',true,'true'::jsonb,NULL,NULL,30,'true or false','Whether supporting evidence is mandatory.'),
+ ('CALENDAR','calendarCode','Calendar code','CODE',true,NULL,NULL,NULL,10,'e.g. INDIA_PUBLIC_HOLIDAYS','Stable calendar code used by the module adapter.'),
+ ('CUSTOM','configurationCode','Configuration code','CODE',true,NULL,NULL,NULL,10,'e.g. CUSTOM_RULE_CODE','Stable tenant-defined configuration code.'),
+ ('CUSTOM','value','Value','STRING',true,NULL,NULL,NULL,20,'e.g. configured value','Tenant-defined value consumed by a registered adapter.')
 )
 INSERT INTO axionpro."PolicyRuleSettingDefinition"
- ("PolicyRuleTypeId","SettingCode","DisplayName","DataTypeCode","IsRequired","DefaultValueJson","MinimumValue","MaximumValue","DisplayOrder","HelpText","IsActive")
-SELECT rule_type."Id", setting."SettingCode", setting."DisplayName", setting."DataTypeCode", setting."IsRequired", setting."DefaultValueJson", setting."MinimumValue", setting."MaximumValue", setting."DisplayOrder", setting."HelpText", true
+ ("PolicyRuleTypeId","SettingCode","DisplayName","DataTypeCode","IsRequired","DefaultValueJson","MinimumValue","MaximumValue","DisplayOrder","Placeholder","HelpText","IsActive")
+SELECT rule_type."Id", setting."SettingCode", setting."DisplayName", setting."DataTypeCode", setting."IsRequired", setting."DefaultValueJson", setting."MinimumValue", setting."MaximumValue", setting."DisplayOrder", setting."Placeholder", setting."HelpText", true
 FROM setting JOIN axionpro."PolicyRuleType" rule_type ON rule_type."RuleTypeCode"=setting."RuleTypeCode"
 ON CONFLICT ("PolicyRuleTypeId","SettingCode") DO UPDATE SET
  "DisplayName"=EXCLUDED."DisplayName", "DataTypeCode"=EXCLUDED."DataTypeCode", "IsRequired"=EXCLUDED."IsRequired",
  "DefaultValueJson"=EXCLUDED."DefaultValueJson", "MinimumValue"=EXCLUDED."MinimumValue", "MaximumValue"=EXCLUDED."MaximumValue",
- "DisplayOrder"=EXCLUDED."DisplayOrder", "HelpText"=EXCLUDED."HelpText", "IsActive"=true;
+ "DisplayOrder"=EXCLUDED."DisplayOrder", "Placeholder"=EXCLUDED."Placeholder", "HelpText"=EXCLUDED."HelpText", "IsActive"=true;
 
 WITH option_seed("RuleTypeCode","SettingCode","OptionCode","OptionLabel","ValueJson","DisplayOrder") AS (VALUES
+ ('ATTENDANCE_CHANNEL','channelCode','WEB','Web','"WEB"'::jsonb,10),('ATTENDANCE_CHANNEL','channelCode','MOBILE','Mobile','"MOBILE"'::jsonb,20),('ATTENDANCE_CHANNEL','channelCode','BIOMETRIC','Biometric','"BIOMETRIC"'::jsonb,30),('ATTENDANCE_CHANNEL','channelCode','MANUAL','Manual','"MANUAL"'::jsonb,40),
  ('ENTITLEMENT','unit','DAY','Day','"DAY"'::jsonb,10),('ENTITLEMENT','unit','HOUR','Hour','"HOUR"'::jsonb,20),('ENTITLEMENT','unit','AMOUNT','Amount','"AMOUNT"'::jsonb,30),
  ('ACCRUAL','frequency','MONTHLY','Monthly','"MONTHLY"'::jsonb,10),('ACCRUAL','frequency','QUARTERLY','Quarterly','"QUARTERLY"'::jsonb,20),('ACCRUAL','frequency','YEARLY','Yearly','"YEARLY"'::jsonb,30)
 )

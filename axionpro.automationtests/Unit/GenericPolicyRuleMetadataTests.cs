@@ -34,6 +34,35 @@ public sealed class GenericPolicyRuleMetadataTests
     }
 
     [Test]
+    public void Seed_publishes_category_scoped_rule_mappings_and_user_facing_placeholders()
+    {
+        var sql = Read("database-scripts", "AddGenericPolicyRuleMetadata.sql");
+
+        foreach (var mapping in new[]
+        {
+            "('INSURANCE','ELIGIBILITY'", "('INSURANCE','ENTITLEMENT'", "('INSURANCE','LIMIT'",
+            "('ATTENDANCE','ATTENDANCE_CHANNEL'",
+            "('LEAVE','ACCRUAL'", "('ATTENDANCE','LATE_PENALTY'", "('EXPENSE','REIMBURSEMENT'",
+            "('CUSTOM','CUSTOM'"
+        })
+        {
+            Assert.That(sql, Does.Contain(mapping), $"Missing category/rule mapping: {mapping}");
+        }
+
+        foreach (var placeholder in new[]
+        {
+            "'e.g. 180'", "'e.g. 12'", "'e.g. DAY'", "'e.g. MONTHLY'",
+            "'true or false'", "'e.g. WEB'", "'e.g. INR'", "'e.g. INDIA_PUBLIC_HOLIDAYS'",
+            "'e.g. CUSTOM_RULE_CODE'"
+        })
+        {
+            Assert.That(sql, Does.Contain(placeholder), $"Missing setting placeholder: {placeholder}");
+        }
+
+        Assert.That(sql, Does.Contain("\"Placeholder\"=EXCLUDED.\"Placeholder\""));
+    }
+
+    [Test]
     public void Lookup_contract_publishes_rule_definitions_for_dynamic_UI_fields()
     {
         var handler = Read("axionpro.application", "Features", "GenericPolicyCmd", "GenericPolicyHandlers.cs");
