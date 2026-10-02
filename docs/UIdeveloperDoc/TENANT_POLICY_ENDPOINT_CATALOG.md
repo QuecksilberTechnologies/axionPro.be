@@ -462,6 +462,36 @@ RowNumber,Status,Errors
 2,Created,
 ```
 
+### 38. GET `/{policyId}/versions/{versionId}`
+
+```json
+{ "moduleId": 101, "operationId": 4 }
+```
+
+Output sample:
+
+```json
+{
+  "isSucceeded": true,
+  "message": "Policy version retrieved successfully.",
+  "data": {
+    "id": 15,
+    "code": "LIFE_INSURANCE",
+    "name": "Life Insurance",
+    "versionId": 42,
+    "versionNumber": 2,
+    "status": "Draft",
+    "rules": [],
+    "applicability": []
+  },
+  "errors": []
+}
+```
+
+This version-workspace read returns exactly `versionId`; it does not substitute the current
+version. Resolve Policy Definitions `View` permission IDs dynamically through the authenticated
+menu tree.
+
 ## Common error samples
 
 ```json
@@ -478,7 +508,8 @@ RowNumber,Status,Errors
 
 ## Current verification status
 
-- PASS: all 37 operations are deployed; authenticated route-ID binding now works.
+- LOCAL CONTRACT: all 38 operations are documented. The exact-version route requires the updated
+  backend deployment before deployed acceptance.
 - PASS: Policy Type CRUD/status; policy draft create/read/update; ordered
   submit/approve/publish; assignment/resolve; exception approval;
   acknowledgement; audit; clone; reject/resubmit/approve.

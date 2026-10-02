@@ -24,6 +24,12 @@ Each rule definition contains:
 Database IDs remain internal foreign keys. All metadata seed joins resolve
 `PolicyCategory.CategoryCode`, `PolicyRuleType.RuleTypeCode`, setting codes and option codes.
 
+Every Policy Type response includes its stable `categoryCode`. After a user selects a Policy Type,
+the authoring UI filters rule definitions directly by that code and then intersects the result with
+the stable `ruleTypeCode` catalogue. It does not derive the category through environment-specific
+numeric IDs and it does not fall back to showing every rule when category metadata is unavailable.
+Numeric IDs remain only as internal foreign-key values in create/update payloads.
+
 ## Save validation
 
 `POST /api/TenantPolicy` and the Draft update endpoint validate:
@@ -112,4 +118,3 @@ corresponding module regression tests pass.
 - Angular production build: passed locally.
 - Render PostgreSQL: four additive metadata tables created and seeded; orphan verification passed.
 - Render API deployment of the updated backend: not performed by this database migration.
-

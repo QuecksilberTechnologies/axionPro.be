@@ -250,7 +250,8 @@ public sealed record PolicyRuleSettingDefinitionResponseDTO(string Code, string 
     IReadOnlyList<PolicyRuleSettingDependencyResponseDTO> Dependencies);
 public sealed record PolicyRuleDefinitionResponseDTO(string CategoryCode, string RuleTypeCode, string RuleTypeName,
     bool IsRequired, bool AllowMultiple, int Order, IReadOnlyList<PolicyRuleSettingDefinitionResponseDTO> Settings);
-public sealed record PolicyTypeResponseDTO(int Id, string Code, string Name, string? Description, int? CategoryId, string? CurrencyCode, bool IsActive);
+public sealed record PolicyTypeResponseDTO(int Id, string Code, string Name, string? Description,
+    int? CategoryId, string CategoryCode, string? CurrencyCode, bool IsActive);
 public sealed record PolicySummaryResponseDTO(long Id, string Code, string Name, int PolicyTypeId, bool IsActive, long? CurrentVersionId, int? VersionNumber, string? Status);
 public sealed record PolicyRuleResponseDTO(long Id, int RuleTypeId, string Name, int Order, string Configuration);
 public sealed record PolicyApplicabilityResponseDTO(long Id, short Mode, int Priority,

@@ -302,7 +302,7 @@ public sealed class GenericPolicyApiContractTests
             .ToArray();
         Assert.Multiple(() =>
         {
-            Assert.That(methods, Has.Length.EqualTo(37));
+            Assert.That(methods, Has.Length.EqualTo(38));
             for (var number = 1; number <= methods.Length; number++)
             {
                 Assert.That(catalog, Does.Contain($"### {number}."), $"Missing documented endpoint number {number}");

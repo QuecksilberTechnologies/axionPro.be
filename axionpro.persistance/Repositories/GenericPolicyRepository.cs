@@ -90,15 +90,27 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             .Select(x => new PolicyLookupResponseDTO(x.Id, x.DocumentTypeCode, x.DocumentTypeName)).ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<PolicyTypeResponseDTO>> GetPolicyTypesAsync(long tenantId, bool isActive, CancellationToken cancellationToken) =>
-        await context.PolicyTypes.AsNoTracking()
-            .Where(x => x.TenantId == tenantId && x.IsActive == isActive && x.IsSoftDelete != true)
-            .OrderBy(x => x.PolicyName)
-            .Select(x => MapType(x)).ToListAsync(cancellationToken);
+        await (from policyType in context.PolicyTypes.AsNoTracking()
+               join category in context.PolicyCategories.AsNoTracking()
+                   on policyType.PolicyCategoryId equals category.Id
+               where policyType.TenantId == tenantId && policyType.IsActive == isActive
+                   && policyType.IsSoftDelete != true && category.IsActive
+               orderby policyType.PolicyName
+               select new PolicyTypeResponseDTO(
+                   policyType.Id,
+                   policyType.PolicyTypeCode ?? string.Empty,
+                   policyType.PolicyName,
+                   policyType.Description,
+                   policyType.PolicyCategoryId,
+                   category.CategoryCode,
+                   policyType.DefaultCurrencyCode,
+                   policyType.IsActive == true))
+            .ToListAsync(cancellationToken);
 
     public async Task<PolicyTypeResponseDTO> CreatePolicyTypeAsync(long tenantId, long actorId, CreateGenericPolicyTypeRequestDTO dto, CancellationToken cancellationToken)
     {
         var code = NormalizeCode(dto.PolicyTypeCode);
-        await EnsureCategoryAsync(dto.PolicyCategoryId, cancellationToken);
+        var categoryCode = await GetCategoryCodeAsync(dto.PolicyCategoryId, cancellationToken);
         if (await context.PolicyTypes.AnyAsync(x => x.TenantId == tenantId && x.PolicyTypeCode == code && x.IsSoftDelete != true, cancellationToken))
         {
             throw new ConflictException("Policy type code already exists for this tenant.");
@@ -120,7 +132,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         };
         context.PolicyTypes.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
-        return MapType(entity);
+        return MapType(entity, categoryCode);
     }
 
     public async Task<PolicyTypeResponseDTO> UpdatePolicyTypeAsync(long tenantId, long actorId, UpdateGenericPolicyTypeRequestDTO dto, CancellationToken cancellationToken)
@@ -128,7 +140,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var entity = await context.PolicyTypes.FirstOrDefaultAsync(x => x.Id == dto.Id && x.TenantId == tenantId && x.IsSoftDelete != true, cancellationToken)
             ?? throw new NotFoundException("Policy type was not found.");
         var code = NormalizeCode(dto.PolicyTypeCode);
-        await EnsureCategoryAsync(dto.PolicyCategoryId, cancellationToken);
+        var categoryCode = await GetCategoryCodeAsync(dto.PolicyCategoryId, cancellationToken);
         if (await context.PolicyTypes.AnyAsync(x => x.Id != dto.Id && x.TenantId == tenantId && x.PolicyTypeCode == code && x.IsSoftDelete != true, cancellationToken))
         {
             throw new ConflictException("Policy type code already exists for this tenant.");
@@ -142,7 +154,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         entity.UpdateById = actorId;
         entity.UpdateDateTime = DateTime.UtcNow;
         await context.SaveChangesAsync(cancellationToken);
-        return MapType(entity);
+        return MapType(entity, categoryCode);
     }
 
     public async Task<bool> ChangePolicyTypeStatusAsync(long tenantId, long actorId, ChangePolicyTypeStatusRequestDTO dto, CancellationToken cancellationToken)
@@ -1100,7 +1112,9 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             CorrelationId = Guid.NewGuid()
         });
     }
-    private static PolicyTypeResponseDTO MapType(PolicyType x) => new(x.Id, x.PolicyTypeCode ?? string.Empty, x.PolicyName, x.Description, x.PolicyCategoryId, x.DefaultCurrencyCode, x.IsActive == true);
+    private static PolicyTypeResponseDTO MapType(PolicyType x, string categoryCode) =>
+        new(x.Id, x.PolicyTypeCode ?? string.Empty, x.PolicyName, x.Description,
+            x.PolicyCategoryId, categoryCode, x.DefaultCurrencyCode, x.IsActive == true);
     private static string NormalizeCode(string value) => value.Trim().ToUpperInvariant().Replace(' ', '_');
     private static string? NormalizeCurrency(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToUpperInvariant();
     private static void ValidateDates(DateOnly from, DateOnly? to)
@@ -1135,12 +1149,17 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         if (rules.GroupBy(x => x.RuleOrder).Any(group => group.Count() > 1)) throw new ValidationErrorException("RuleOrder must be unique within a policy version.");
         foreach (var scope in scopes) ValidateDates(scope.EffectiveFrom, scope.EffectiveTo);
     }
-    private async Task EnsureCategoryAsync(int id, CancellationToken token)
+    private async Task<string> GetCategoryCodeAsync(int id, CancellationToken token)
     {
-        if (!await context.PolicyCategories.AnyAsync(x => x.Id == id && x.IsActive, token))
+        var categoryCode = await context.PolicyCategories.AsNoTracking()
+            .Where(x => x.Id == id && x.IsActive)
+            .Select(x => x.CategoryCode)
+            .FirstOrDefaultAsync(token);
+        if (string.IsNullOrWhiteSpace(categoryCode))
         {
             throw new ValidationErrorException("PolicyCategoryId is invalid.");
         }
+        return categoryCode;
     }
     private async Task ValidatePolicyReferencesAsync(
         long tenantId,

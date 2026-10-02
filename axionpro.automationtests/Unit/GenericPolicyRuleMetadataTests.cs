@@ -45,6 +45,17 @@ public sealed class GenericPolicyRuleMetadataTests
     }
 
     [Test]
+    public void Policy_type_contract_publishes_stable_category_code_for_rule_filtering()
+    {
+        var dto = Read("axionpro.application", "DTOS", "Policy", "GenericPolicyDTOs.cs");
+        var repository = Read("axionpro.persistance", "Repositories", "GenericPolicyRepository.cs");
+
+        Assert.That(dto, Does.Contain("int? CategoryId, string CategoryCode"));
+        Assert.That(repository, Does.Contain("category.CategoryCode"));
+        Assert.That(repository, Does.Contain("MapType(entity, categoryCode)"));
+    }
+
+    [Test]
     public void Save_validation_rejects_disallowed_unknown_wrong_type_and_out_of_range_settings()
     {
         var repository = Read("axionpro.persistance", "Repositories", "GenericPolicyRepository.cs");
