@@ -24,6 +24,7 @@ public sealed record UpdateGenericPolicyTypeCommand(UpdateGenericPolicyTypeReque
 public sealed record ChangePolicyTypeStatusCommand(ChangePolicyTypeStatusRequestDTO DTO) : IRequest<ApiResponse<bool>>;
 public sealed record GetPoliciesQuery(PolicyListRequestDTO DTO) : IRequest<ApiResponse<IReadOnlyList<PolicySummaryResponseDTO>>>;
 public sealed record GetPolicyQuery(PolicyByIdRequestDTO DTO) : IRequest<ApiResponse<PolicyDetailResponseDTO>>;
+public sealed record GetPolicyVersionQuery(PolicyVersionByIdRequestDTO DTO) : IRequest<ApiResponse<PolicyDetailResponseDTO>>;
 public sealed record CreatePolicyCommand(CreatePolicyRequestDTO DTO) : IRequest<ApiResponse<PolicyDetailResponseDTO>>;
 public sealed record UpdatePolicyDraftCommand(UpdatePolicyDraftRequestDTO DTO) : IRequest<ApiResponse<PolicyDetailResponseDTO>>;
 public sealed record ClonePolicyVersionCommand(ClonePolicyVersionRequestDTO DTO) : IRequest<ApiResponse<PolicyDetailResponseDTO>>;
@@ -151,6 +152,25 @@ public sealed class GetPolicyQueryHandler(IGenericPolicyRepository repository, I
     {
         var actor = await GetActorAsync();
         return ApiResponse<PolicyDetailResponseDTO>.Success(await Repository.GetPolicyAsync(actor.TenantId, request.DTO.Id, token), "Policy retrieved successfully.");
+    }
+}
+
+public sealed class GetPolicyVersionQueryHandler(
+    IGenericPolicyRepository repository,
+    ICommonRequestService commonRequestService)
+    : GenericPolicyHandlerBase(repository, commonRequestService),
+      IRequestHandler<GetPolicyVersionQuery, ApiResponse<PolicyDetailResponseDTO>>
+{
+    public async Task<ApiResponse<PolicyDetailResponseDTO>> Handle(GetPolicyVersionQuery request, CancellationToken token)
+    {
+        var actor = await GetActorAsync();
+        return ApiResponse<PolicyDetailResponseDTO>.Success(
+            await Repository.GetPolicyVersionAsync(
+                actor.TenantId,
+                request.DTO.PolicyId,
+                request.DTO.PolicyVersionId,
+                token),
+            "Policy version retrieved successfully.");
     }
 }
 

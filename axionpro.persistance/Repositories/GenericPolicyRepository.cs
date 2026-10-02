@@ -183,6 +183,9 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public Task<PolicyDetailResponseDTO> GetPolicyAsync(long tenantId, long policyId, CancellationToken cancellationToken) => GetDetailAsync(tenantId, policyId, null, cancellationToken);
 
+    public Task<PolicyDetailResponseDTO> GetPolicyVersionAsync(long tenantId, long policyId, long policyVersionId, CancellationToken cancellationToken) =>
+        GetDetailAsync(tenantId, policyId, policyVersionId, cancellationToken);
+
     public async Task<PolicyDetailResponseDTO> CreatePolicyAsync(long tenantId, long actorId, CreatePolicyRequestDTO dto, CancellationToken cancellationToken)
     {
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo);

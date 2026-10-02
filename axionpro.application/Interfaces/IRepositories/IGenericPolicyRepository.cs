@@ -16,6 +16,7 @@ public interface IGenericPolicyRepository
     Task<bool> ChangePolicyTypeStatusAsync(long tenantId, long actorId, ChangePolicyTypeStatusRequestDTO dto, CancellationToken cancellationToken);
     Task<(IReadOnlyList<PolicySummaryResponseDTO> Items, int Total)> GetPoliciesAsync(long tenantId, PolicyListRequestDTO dto, CancellationToken cancellationToken);
     Task<PolicyDetailResponseDTO> GetPolicyAsync(long tenantId, long policyId, CancellationToken cancellationToken);
+    Task<PolicyDetailResponseDTO> GetPolicyVersionAsync(long tenantId, long policyId, long policyVersionId, CancellationToken cancellationToken);
     Task<PolicyDetailResponseDTO> CreatePolicyAsync(long tenantId, long actorId, CreatePolicyRequestDTO dto, CancellationToken cancellationToken);
     Task<PolicyDetailResponseDTO> UpdateDraftAsync(long tenantId, long actorId, UpdatePolicyDraftRequestDTO dto, CancellationToken cancellationToken);
     Task<PolicyDetailResponseDTO> CloneVersionAsync(long tenantId, long actorId, ClonePolicyVersionRequestDTO dto, CancellationToken cancellationToken);

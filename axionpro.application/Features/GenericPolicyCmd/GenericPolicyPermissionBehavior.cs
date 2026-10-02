@@ -49,7 +49,7 @@ public sealed class GenericPolicyPermissionBehavior<TRequest, TResponse>(IUnitOf
         {
             GetPolicyTypesQuery or CreatePolicyTypeCommand or UpdateGenericPolicyTypeCommand
                 or ChangePolicyTypeStatusCommand => "TENANT_POLICY_TYPES",
-            GetPoliciesQuery or GetPolicyQuery or CreatePolicyCommand or UpdatePolicyDraftCommand
+            GetPoliciesQuery or GetPolicyQuery or GetPolicyVersionQuery or CreatePolicyCommand or UpdatePolicyDraftCommand
                 or ClonePolicyVersionCommand or ResolveEmployeePoliciesQuery or UploadPolicyDocumentCommand
                 or GetPolicyDocumentsQuery or DeletePolicyDocumentCommand => "TENANT_POLICY_DEFINITIONS",
             TransitionPolicyCommand transition when transition.DTO.Action.Trim().Equals("SUBMIT", StringComparison.OrdinalIgnoreCase)

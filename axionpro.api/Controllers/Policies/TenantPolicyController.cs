@@ -103,6 +103,23 @@ public sealed class TenantPolicyController(IMediator mediator) : ControllerBase
         return Ok(await mediator.Send(new GetPolicyQuery(dto)));
     }
 
+    /// <summary>Gets one exact Policy Version with its rules and applicability.</summary>
+    /// <remarks>
+    /// Use this endpoint in version workspaces and review screens. Unlike the Policy endpoint,
+    /// this route never substitutes the current version for the version named in the URL.
+    /// Requires Policy Definitions View permission.
+    /// </remarks>
+    [HttpGet("{policyId:long}/versions/{versionId:long}")]
+    public async Task<IActionResult> GetVersion(
+        long policyId,
+        long versionId,
+        [FromQuery] PolicyVersionByIdRequestDTO dto)
+    {
+        dto.PolicyId = policyId;
+        dto.PolicyVersionId = versionId;
+        return Ok(await mediator.Send(new GetPolicyVersionQuery(dto)));
+    }
+
     /// <summary>Creates a Policy and its Version 1 Draft in one transaction.</summary>
     /// <remarks>
     /// This is the main starting point for a new policy. It atomically saves policy identity,

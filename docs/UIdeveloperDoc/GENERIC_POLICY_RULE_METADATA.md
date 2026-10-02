@@ -65,6 +65,13 @@ workspace.
 - Direct employee assignment returns `resolutionSource: "MANUAL_ASSIGNMENT"`; applicability
   continues to return `APPLICABILITY`.
 
+## Exact version workspace read
+
+`GET /api/TenantPolicy/{policyId}/versions/{versionId}` returns the exact tenant-owned version named
+in the route, including its lifecycle status, rules, applicability and typed Attendance
+configuration. Version workspaces must use this route; `GET /api/TenantPolicy/{policyId}` remains
+the policy/current-version read used by the definition list and editor.
+
 ## Tables and responsibilities
 
 | Table | Responsibility | Seeded |

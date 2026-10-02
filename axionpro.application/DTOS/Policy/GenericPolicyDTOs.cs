@@ -25,6 +25,12 @@ public sealed class PolicyByIdRequestDTO : PermissionRequestDTO
     public long Id { get; set; }
 }
 
+public sealed class PolicyVersionByIdRequestDTO : PermissionRequestDTO
+{
+    public long PolicyId { get; set; }
+    public long PolicyVersionId { get; set; }
+}
+
 public class CreateGenericPolicyTypeRequestDTO : PermissionRequestDTO
 {
     [Required, MaxLength(50)] public string PolicyTypeCode { get; set; } = null!;
