@@ -154,7 +154,9 @@ public sealed class RemovePolicyAssignmentRequestDTO : PermissionRequestDTO
 public sealed class CreatePolicyExceptionRequestDTO : PermissionRequestDTO
 {
     [Range(1, long.MaxValue)] public long PolicyVersionId { get; set; }
-    [Range(1, long.MaxValue)] public long EmployeeId { get; set; }
+    /// <summary>Globally salted encoded employee identifier returned by the Employee APIs.</summary>
+    [Required] public string EmployeeId { get; set; } = string.Empty;
+    [JsonIgnore] public long ResolvedEmployeeId { get; set; }
     public short ExceptionType { get; set; }
     [Required] public string OverrideConfiguration { get; set; } = "{}";
     [Required, MaxLength(1000)] public string Reason { get; set; } = null!;
@@ -259,8 +261,10 @@ public sealed record PolicyDetailResponseDTO(long Id, string Code, string Name, 
     AttendancePolicyVersionConfigurationDTO? AttendanceConfiguration);
 public sealed record PolicyAssignmentResultDTO(int Inserted, int Existing);
 public sealed record ResolvedPolicyRuleResponseDTO(string RuleTypeCode, string RuleName, int Order, string Configuration);
+public sealed record ResolvedPolicyExceptionResponseDTO(long Id, short ExceptionType, string OverrideConfiguration, string Reason);
 public sealed record ResolvedPolicyResponseDTO(long PolicyId, long PolicyVersionId, string PolicyCode, string PolicyName, int Priority, string ResolutionSource,
-    IReadOnlyList<ResolvedPolicyRuleResponseDTO> Rules);
+    IReadOnlyList<ResolvedPolicyRuleResponseDTO> Rules,
+    ResolvedPolicyExceptionResponseDTO? Exception = null);
 public sealed record PolicyDocumentResponseDTO(long Id, long PolicyVersionId, short DocumentTypeId, string Title, string OriginalFileName, string ContentType, long FileSizeBytes, string? LanguageCode, bool IsEmployeeVisible, string Url);
 public sealed record PolicyAuditResponseDTO(
     long Id,

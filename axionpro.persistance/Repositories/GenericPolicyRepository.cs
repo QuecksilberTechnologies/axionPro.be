@@ -524,8 +524,8 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
     public async Task<long> CreateExceptionAsync(long tenantId, long actorId, CreatePolicyExceptionRequestDTO dto, CancellationToken cancellationToken)
     {
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo); ValidateJson(new[] { dto.OverrideConfiguration });
-        if (!await context.PolicyVersions.AnyAsync(x => x.Id == dto.PolicyVersionId && x.TenantId == tenantId, cancellationToken) || !await context.Employees.AnyAsync(x => x.Id == dto.EmployeeId && x.TenantId == tenantId, cancellationToken)) throw new ValidationErrorException("Policy version or employee is invalid for this tenant.");
-        var entity = new PolicyException { TenantId = tenantId, PolicyVersionId = dto.PolicyVersionId, EmployeeId = dto.EmployeeId, ExceptionType = dto.ExceptionType, OverrideConfiguration = dto.OverrideConfiguration, Reason = dto.Reason.Trim(), EffectiveFrom = dto.EffectiveFrom, EffectiveTo = dto.EffectiveTo, ApprovalStatusId = UnderReview, IsActive = true, AddedById = actorId, AddedDateTime = DateTime.UtcNow };
+        if (!await context.PolicyVersions.AnyAsync(x => x.Id == dto.PolicyVersionId && x.TenantId == tenantId, cancellationToken) || !await context.Employees.AnyAsync(x => x.Id == dto.ResolvedEmployeeId && x.TenantId == tenantId, cancellationToken)) throw new ValidationErrorException("Policy version or employee is invalid for this tenant.");
+        var entity = new PolicyException { TenantId = tenantId, PolicyVersionId = dto.PolicyVersionId, EmployeeId = dto.ResolvedEmployeeId, ExceptionType = dto.ExceptionType, OverrideConfiguration = dto.OverrideConfiguration, Reason = dto.Reason.Trim(), EffectiveFrom = dto.EffectiveFrom, EffectiveTo = dto.EffectiveTo, ApprovalStatusId = UnderReview, IsActive = true, AddedById = actorId, AddedDateTime = DateTime.UtcNow };
         context.PolicyExceptions.Add(entity); await context.SaveChangesAsync(cancellationToken); return entity.Id;
     }
 
@@ -571,6 +571,17 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             x => (IReadOnlyList<ResolvedPolicyRuleResponseDTO>)x.Select(y => new ResolvedPolicyRuleResponseDTO(y.RuleTypeCode, y.RuleName, y.RuleOrder, y.RuleConfiguration)).ToList());
         var scopes = await context.PolicyApplicabilities.AsNoTracking().Where(x => x.TenantId == tenantId && ids.Contains(x.PolicyVersionId) && x.IsActive && x.EffectiveFrom <= date && (x.EffectiveTo == null || x.EffectiveTo >= date)).ToListAsync(cancellationToken);
         var manual = await context.PolicyAssignments.AsNoTracking().Where(x => x.TenantId == tenantId && x.EmployeeId == employee.Id && ids.Contains(x.PolicyVersionId) && x.IsActive && x.EffectiveFrom <= date && (x.EffectiveTo == null || x.EffectiveTo >= date)).Select(x => x.PolicyVersionId).ToListAsync(cancellationToken);
+        var exceptions = await context.PolicyExceptions.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.EmployeeId == employee.Id
+                && ids.Contains(x.PolicyVersionId) && x.IsActive
+                && x.ApprovalStatusId == Approved && x.EffectiveFrom <= date
+                && x.EffectiveTo >= date)
+            .OrderByDescending(x => x.ApprovedDateTime)
+            .ThenByDescending(x => x.Id)
+            .ToListAsync(cancellationToken);
+        var exceptionByVersion = exceptions
+            .GroupBy(x => x.PolicyVersionId)
+            .ToDictionary(x => x.Key, x => x.First());
         var locations = await (from assignment in context.EmployeeLocationAssignments.AsNoTracking()
                                join location in context.TenantLocations.AsNoTracking() on assignment.TenantLocationId equals location.Id
                                where assignment.TenantId == tenantId && assignment.EmployeeId == employee.Id && assignment.IsActive && !assignment.IsSoftDeleted && assignment.EffectiveFrom <= date && (assignment.EffectiveTo == null || assignment.EffectiveTo >= date)
@@ -579,6 +590,20 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var result = new List<ResolvedPolicyResponseDTO>();
         foreach (var item in versions)
         {
+            if (exceptionByVersion.TryGetValue(item.Version.Id, out var policyException))
+            {
+                var rules = rulesByVersion.GetValueOrDefault(item.Version.Id, Array.Empty<ResolvedPolicyRuleResponseDTO>());
+                result.Add(new ResolvedPolicyResponseDTO(item.Policy.Id, item.Version.Id,
+                    item.Policy.PolicyCode, item.Policy.PolicyName, int.MinValue, "EXCEPTION",
+                    rules,
+                    new ResolvedPolicyExceptionResponseDTO(
+                        policyException.Id,
+                        policyException.ExceptionType,
+                        policyException.OverrideConfiguration,
+                        policyException.Reason)));
+                continue;
+            }
+
             if (manual.Contains(item.Version.Id))
             {
                 var rules = rulesByVersion.GetValueOrDefault(item.Version.Id, Array.Empty<ResolvedPolicyRuleResponseDTO>());

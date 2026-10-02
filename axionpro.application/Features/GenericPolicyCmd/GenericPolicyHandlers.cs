@@ -309,12 +309,44 @@ public sealed class RemovePolicyAssignmentCommandHandler(IGenericPolicyRepositor
     }
 }
 
-public sealed class CreatePolicyExceptionCommandHandler(IGenericPolicyRepository repository, ICommonRequestService commonRequestService) : GenericPolicyHandlerBase(repository, commonRequestService), IRequestHandler<CreatePolicyExceptionCommand, ApiResponse<long>>
+public sealed class CreatePolicyExceptionCommandHandler(
+    IGenericPolicyRepository repository,
+    ICommonRequestService commonRequestService,
+    IIdEncoderService idEncoderService)
+    : GenericPolicyHandlerBase(repository, commonRequestService),
+      IRequestHandler<CreatePolicyExceptionCommand, ApiResponse<long>>
 {
     public async Task<ApiResponse<long>> Handle(CreatePolicyExceptionCommand request, CancellationToken token)
     {
-        var actor = await GetActorAsync();
-        return ApiResponse<long>.Success(await Repository.CreateExceptionAsync(actor.TenantId, actor.EmployeeId, request.DTO, token), "Policy exception submitted successfully.");
+        var actor = await commonRequestService.ValidateTenantUserRequestAsync();
+        if (!actor.Success || actor.TenantId <= 0 || actor.LoggedInEmployeeId <= 0)
+        {
+            throw new UnauthorizedAccessException(actor.ErrorMessage ?? "Unauthorized request.");
+        }
+
+        try
+        {
+            request.DTO.ResolvedEmployeeId = idEncoderService.DecodeId_long(
+                EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId),
+                actor.Claims.TenantEncriptionKey);
+        }
+        catch (Exception)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        if (request.DTO.ResolvedEmployeeId <= 0)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        return ApiResponse<long>.Success(
+            await Repository.CreateExceptionAsync(
+                actor.TenantId,
+                actor.LoggedInEmployeeId,
+                request.DTO,
+                token),
+            "Policy exception submitted successfully.");
     }
 }
 

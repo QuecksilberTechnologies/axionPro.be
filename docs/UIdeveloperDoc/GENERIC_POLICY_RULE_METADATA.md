@@ -54,6 +54,17 @@ Assignments use employee/version IDs because they reference tenant transaction r
 selection uses stable codes. The UI already exposes assignment/unassignment in the Policy Version
 workspace.
 
+## Employee exceptions and effective resolution
+
+- Exception creation accepts the same tenant-salted encoded employee identifier returned by the
+  Employee APIs. UI clients must not convert or expose the internal numeric employee key.
+- An approved, active exception inside its effective date range has precedence over a manual
+  assignment and ordinary applicability for the same published version.
+- A resolved exception returns `resolutionSource: "EXCEPTION"`, the normal ordered rules and an
+  `exception` object containing the override JSON and its user-entered reason.
+- Direct employee assignment returns `resolutionSource: "MANUAL_ASSIGNMENT"`; applicability
+  continues to return `APPLICABILITY`.
+
 ## Tables and responsibilities
 
 | Table | Responsibility | Seeded |
