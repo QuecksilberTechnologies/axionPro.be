@@ -235,12 +235,43 @@ public sealed class ResolveEmployeePoliciesQueryHandler(
     }
 }
 
-public sealed class AssignPolicyCommandHandler(IGenericPolicyRepository repository, ICommonRequestService commonRequestService) : GenericPolicyHandlerBase(repository, commonRequestService), IRequestHandler<AssignPolicyCommand, ApiResponse<PolicyAssignmentResultDTO>>
+public sealed class AssignPolicyCommandHandler(
+    IGenericPolicyRepository repository,
+    ICommonRequestService commonRequestService,
+    IIdEncoderService idEncoderService)
+    : GenericPolicyHandlerBase(repository, commonRequestService),
+      IRequestHandler<AssignPolicyCommand, ApiResponse<PolicyAssignmentResultDTO>>
 {
     public async Task<ApiResponse<PolicyAssignmentResultDTO>> Handle(AssignPolicyCommand request, CancellationToken token)
     {
-        var actor = await GetActorAsync();
-        return ApiResponse<PolicyAssignmentResultDTO>.Success(await Repository.AssignAsync(actor.TenantId, actor.EmployeeId, request.DTO, token), "Policy assignments processed successfully.");
+        var actor = await commonRequestService.ValidateTenantUserRequestAsync();
+        if (!actor.Success || actor.TenantId <= 0 || actor.LoggedInEmployeeId <= 0)
+        {
+            throw new UnauthorizedAccessException(actor.ErrorMessage ?? "Unauthorized request.");
+        }
+
+        try
+        {
+            request.DTO.ResolvedEmployeeIds = request.DTO.EmployeeIds
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Select(id => idEncoderService.DecodeId_long(
+                    EncryptionSanitizer.CleanEncodedInput(id),
+                    actor.Claims.TenantEncriptionKey))
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+        }
+        catch (Exception)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        if (request.DTO.ResolvedEmployeeIds.Count != request.DTO.EmployeeIds.Distinct().Count())
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        return ApiResponse<PolicyAssignmentResultDTO>.Success(await Repository.AssignAsync(actor.TenantId, actor.LoggedInEmployeeId, request.DTO, token), "Policy assignments processed successfully.");
     }
 }
 

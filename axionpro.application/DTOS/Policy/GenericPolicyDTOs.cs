@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.domain.Entity;
 using Microsoft.AspNetCore.Http;
@@ -134,7 +135,9 @@ public sealed class ResolveEmployeePoliciesRequestDTO : PermissionRequestDTO
 public sealed class AssignPolicyRequestDTO : PermissionRequestDTO
 {
     [Range(1, long.MaxValue)] public long PolicyVersionId { get; set; }
-    [MinLength(1)] public List<long> EmployeeIds { get; set; } = new();
+    /// <summary>Globally salted encoded employee identifiers returned by the Employee APIs.</summary>
+    [MinLength(1)] public List<string> EmployeeIds { get; set; } = new();
+    [JsonIgnore] public List<long> ResolvedEmployeeIds { get; set; } = new();
     public DateOnly EffectiveFrom { get; set; }
     public DateOnly? EffectiveTo { get; set; }
     public bool IsMandatory { get; set; } = true;

@@ -446,7 +446,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var version = await context.PolicyVersions.FirstOrDefaultAsync(x => x.Id == dto.PolicyVersionId
             && x.TenantId == tenantId && x.PolicyStatusId == Published, cancellationToken)
             ?? throw new ConflictException("Only a published policy version can be assigned.");
-        var employeeIds = dto.EmployeeIds.Distinct().ToList();
+        var employeeIds = dto.ResolvedEmployeeIds.Distinct().ToList();
         var validEmployeeIds = await context.Employees
             .Where(x => x.TenantId == tenantId && employeeIds.Contains(x.Id))
             .Select(x => x.Id)

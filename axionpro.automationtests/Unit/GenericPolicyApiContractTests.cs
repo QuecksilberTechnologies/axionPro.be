@@ -60,6 +60,37 @@ public sealed class GenericPolicyApiContractTests
     }
 
     [Test]
+    public void Assign_employee_identifiers_use_the_encoded_public_contract()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeof(AssignPolicyRequestDTO)
+                .GetProperty(nameof(AssignPolicyRequestDTO.EmployeeIds))?.PropertyType,
+                Is.EqualTo(typeof(List<string>)));
+            Assert.That(typeof(AssignPolicyRequestDTO)
+                .GetProperty(nameof(AssignPolicyRequestDTO.ResolvedEmployeeIds)), Is.Not.Null);
+        });
+
+        var handler = ReadRepositoryFile(
+            "axionpro.application",
+            "Features",
+            "GenericPolicyCmd",
+            "GenericPolicyHandlers.cs");
+        var repository = ReadRepositoryFile(
+            "axionpro.persistance",
+            "Repositories",
+            "GenericPolicyRepository.cs");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(handler, Does.Contain("request.DTO.ResolvedEmployeeIds = request.DTO.EmployeeIds"));
+            Assert.That(handler, Does.Contain("idEncoderService.DecodeId_long("));
+            Assert.That(handler, Does.Contain("EncryptionSanitizer.CleanEncodedInput(id)"));
+            Assert.That(repository, Does.Contain("dto.ResolvedEmployeeIds.Distinct().ToList()"));
+        });
+    }
+
+    [Test]
     public void Policy_audit_contract_includes_server_resolved_actor_name_and_version_number()
     {
         Assert.Multiple(() =>
