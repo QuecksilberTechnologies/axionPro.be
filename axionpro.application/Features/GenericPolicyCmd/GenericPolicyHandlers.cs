@@ -154,21 +154,46 @@ public sealed class GetPolicyQueryHandler(IGenericPolicyRepository repository, I
     }
 }
 
-public sealed class CreatePolicyCommandHandler(IGenericPolicyRepository repository, ICommonRequestService commonRequestService) : GenericPolicyHandlerBase(repository, commonRequestService), IRequestHandler<CreatePolicyCommand, ApiResponse<PolicyDetailResponseDTO>>
+public sealed class CreatePolicyCommandHandler(IGenericPolicyRepository repository, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService) : GenericPolicyHandlerBase(repository, commonRequestService), IRequestHandler<CreatePolicyCommand, ApiResponse<PolicyDetailResponseDTO>>
 {
     public async Task<ApiResponse<PolicyDetailResponseDTO>> Handle(CreatePolicyCommand request, CancellationToken token)
     {
-        var actor = await GetActorAsync();
-        return ApiResponse<PolicyDetailResponseDTO>.Success(await Repository.CreatePolicyAsync(actor.TenantId, actor.EmployeeId, request.DTO, token), "Policy draft created successfully.");
+        var actor = await commonRequestService.ValidateTenantUserRequestAsync();
+        if (!actor.Success || actor.TenantId <= 0 || actor.LoggedInEmployeeId <= 0) throw new UnauthorizedAccessException(actor.ErrorMessage ?? "Unauthorized request.");
+        DecodeApplicabilityEmployees(request.DTO.Applicability, idEncoderService, actor.Claims.TenantEncriptionKey);
+        return ApiResponse<PolicyDetailResponseDTO>.Success(await Repository.CreatePolicyAsync(actor.TenantId, actor.LoggedInEmployeeId, request.DTO, token), "Policy draft created successfully.");
+    }
+
+    internal static void DecodeApplicabilityEmployees(IEnumerable<PolicyApplicabilityInputDTO> scopes, IIdEncoderService encoder, string tenantKey)
+    {
+        try
+        {
+            foreach (var scope in scopes)
+            {
+                if (string.IsNullOrWhiteSpace(scope.EmployeePublicId))
+                {
+                    scope.ResolvedEmployeeId = scope.EmployeeId;
+                    continue;
+                }
+
+                scope.ResolvedEmployeeId = encoder.DecodeId_long(
+                    EncryptionSanitizer.CleanEncodedInput(scope.EmployeePublicId), tenantKey);
+                if (scope.ResolvedEmployeeId <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+            }
+        }
+        catch (ValidationErrorException) { throw; }
+        catch (Exception) { throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); }
     }
 }
 
-public sealed class UpdatePolicyDraftCommandHandler(IGenericPolicyRepository repository, ICommonRequestService commonRequestService) : GenericPolicyHandlerBase(repository, commonRequestService), IRequestHandler<UpdatePolicyDraftCommand, ApiResponse<PolicyDetailResponseDTO>>
+public sealed class UpdatePolicyDraftCommandHandler(IGenericPolicyRepository repository, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService) : GenericPolicyHandlerBase(repository, commonRequestService), IRequestHandler<UpdatePolicyDraftCommand, ApiResponse<PolicyDetailResponseDTO>>
 {
     public async Task<ApiResponse<PolicyDetailResponseDTO>> Handle(UpdatePolicyDraftCommand request, CancellationToken token)
     {
-        var actor = await GetActorAsync();
-        return ApiResponse<PolicyDetailResponseDTO>.Success(await Repository.UpdateDraftAsync(actor.TenantId, actor.EmployeeId, request.DTO, token), "Policy draft updated successfully.");
+        var actor = await commonRequestService.ValidateTenantUserRequestAsync();
+        if (!actor.Success || actor.TenantId <= 0 || actor.LoggedInEmployeeId <= 0) throw new UnauthorizedAccessException(actor.ErrorMessage ?? "Unauthorized request.");
+        CreatePolicyCommandHandler.DecodeApplicabilityEmployees(request.DTO.Applicability, idEncoderService, actor.Claims.TenantEncriptionKey);
+        return ApiResponse<PolicyDetailResponseDTO>.Success(await Repository.UpdateDraftAsync(actor.TenantId, actor.LoggedInEmployeeId, request.DTO, token), "Policy draft updated successfully.");
     }
 }
 

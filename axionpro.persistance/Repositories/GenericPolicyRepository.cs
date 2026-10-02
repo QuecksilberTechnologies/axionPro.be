@@ -1051,7 +1051,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
     private void AddRulesAndApplicability(long tenantId, long actorId, long versionId, IEnumerable<PolicyRuleInputDTO> rules, IEnumerable<PolicyApplicabilityInputDTO> scopes, DateTime now)
     {
         context.PolicyRules.AddRange(rules.Select(x => new PolicyRule { TenantId = tenantId, PolicyVersionId = versionId, PolicyRuleTypeId = x.PolicyRuleTypeId, RuleName = x.RuleName.Trim(), RuleOrder = x.RuleOrder, RuleConfiguration = x.RuleConfiguration, IsActive = true, AddedById = actorId, AddedDateTime = now }));
-        context.PolicyApplicabilities.AddRange(scopes.Select(x => new PolicyApplicability { TenantId = tenantId, PolicyVersionId = versionId, ApplicabilityMode = x.ApplicabilityMode, CountryId = x.CountryId, StateId = x.StateId, DistrictId = x.DistrictId, LocalityId = x.LocalityId, TenantLocationId = x.TenantLocationId, EmployeeTypeId = x.EmployeeTypeId, DepartmentId = x.DepartmentId, DesignationId = x.DesignationId, EmployeeId = x.EmployeeId, GenderId = x.GenderId, WorkArrangementType = x.WorkArrangementType, EmploymentStatus = x.EmploymentStatus, MinimumServiceDays = x.MinimumServiceDays, Priority = x.Priority, EffectiveFrom = x.EffectiveFrom, EffectiveTo = x.EffectiveTo, IsActive = true, AddedById = actorId, AddedDateTime = now }));
+        context.PolicyApplicabilities.AddRange(scopes.Select(x => new PolicyApplicability { TenantId = tenantId, PolicyVersionId = versionId, ApplicabilityMode = x.ApplicabilityMode, CountryId = x.CountryId, StateId = x.StateId, DistrictId = x.DistrictId, LocalityId = x.LocalityId, TenantLocationId = x.TenantLocationId, EmployeeTypeId = x.EmployeeTypeId, DepartmentId = x.DepartmentId, DesignationId = x.DesignationId, EmployeeId = x.ResolvedEmployeeId ?? x.EmployeeId, GenderId = x.GenderId, WorkArrangementType = x.WorkArrangementType, EmploymentStatus = x.EmploymentStatus, MinimumServiceDays = x.MinimumServiceDays, Priority = x.Priority, EffectiveFrom = x.EffectiveFrom, EffectiveTo = x.EffectiveTo, IsActive = true, AddedById = actorId, AddedDateTime = now }));
     }
 
     private void AddAudit(long tenantId, long actorId, long policyId, long? versionId,
@@ -1315,8 +1315,9 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             {
                 throw new ValidationErrorException("EmployeeTypeId is invalid for this tenant.");
             }
-            if (scope.EmployeeId.HasValue && !await context.Employees.AsNoTracking().AnyAsync(
-                x => x.Id == scope.EmployeeId && x.TenantId == tenantId, cancellationToken))
+            var employeeId = scope.ResolvedEmployeeId ?? scope.EmployeeId;
+            if (employeeId.HasValue && !await context.Employees.AsNoTracking().AnyAsync(
+                x => x.Id == employeeId && x.TenantId == tenantId, cancellationToken))
             {
                 throw new ValidationErrorException("EmployeeId is invalid for this tenant.");
             }

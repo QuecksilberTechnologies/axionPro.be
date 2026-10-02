@@ -101,6 +101,9 @@ public sealed class PolicyApplicabilityInputDTO
     public int? DepartmentId { get; set; }
     public int? DesignationId { get; set; }
     public long? EmployeeId { get; set; }
+    /// <summary>Globally salted encoded employee identifier returned by the Employee APIs.</summary>
+    public string? EmployeePublicId { get; set; }
+    [JsonIgnore] public long? ResolvedEmployeeId { get; set; }
     public int? GenderId { get; set; }
     public short? WorkArrangementType { get; set; }
     public short? EmploymentStatus { get; set; }
