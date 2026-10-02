@@ -1,5 +1,11 @@
 # Tenant Policy API handoff
 
+Policy metadata is database-backed and is exposed through the authenticated
+`GET /api/TenantPolicy/lookups` endpoint. Use its categories, statuses, rule
+types, category-rule definitions, settings, options, dependencies and document
+types. Do not add a duplicate JSON catalogue or embed numeric master IDs; use
+stable codes for matching and returned IDs for write payloads.
+
 For one-by-one request and response examples for all 37 operations, see
 [TENANT_POLICY_ENDPOINT_CATALOG.md](TENANT_POLICY_ENDPOINT_CATALOG.md).
 For the beginner-friendly business order and the purpose of each API, see

@@ -493,7 +493,12 @@ namespace axionpro.application.Constants
         /// <summary>Defines stable seeded Policy Status codes used for lifecycle filtering.</summary>
         public static class PolicyStatusCodes
         {
+            public const string Draft = "DRAFT";
+            public const string UnderReview = "UNDER_REVIEW";
+            public const string Approved = "APPROVED";
             public const string Published = "PUBLISHED";
+            public const string Archived = "ARCHIVED";
+            public const string Rejected = "REJECTED";
         }
 
         /// <summary>Defines stable employee-calendar event keys returned to UI clients.</summary>

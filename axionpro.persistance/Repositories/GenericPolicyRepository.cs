@@ -11,13 +11,6 @@ namespace axionpro.persistance.Repositories;
 
 public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGenericPolicyRepository
 {
-    private const short Draft = 1;
-    private const short UnderReview = 2;
-    private const short Approved = 3;
-    private const short Published = 4;
-    private const short Archived = 6;
-    private const short Rejected = 7;
-
     public async Task<IReadOnlyList<PolicyLookupResponseDTO>> GetCategoriesAsync(CancellationToken cancellationToken) =>
         await context.PolicyCategories.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.CategoryName)
             .Select(x => new PolicyLookupResponseDTO(x.Id, x.CategoryCode, x.CategoryName, x.Description)).ToListAsync(cancellationToken);
@@ -200,6 +193,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public async Task<PolicyDetailResponseDTO> CreatePolicyAsync(long tenantId, long actorId, CreatePolicyRequestDTO dto, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo);
         ValidateRulesAndScopes(dto.Rules, dto.Applicability);
         await ValidatePolicyRulesAsync(tenantId, dto.PolicyTypeId, dto.Rules, cancellationToken);
@@ -217,7 +211,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var policy = new Policy { TenantId = tenantId, PolicyTypeId = dto.PolicyTypeId, PolicyCode = code, PolicyName = dto.PolicyName.Trim(), Summary = dto.Summary?.Trim(), OwnerDepartmentId = dto.OwnerDepartmentId, DefaultCurrencyCode = NormalizeCurrency(dto.DefaultCurrencyCode), IsActive = true, AddedById = actorId, AddedDateTime = now };
         context.Policies.Add(policy);
         await context.SaveChangesAsync(cancellationToken);
-        var version = new PolicyVersion { TenantId = tenantId, PolicyId = policy.Id, VersionNumber = 1, PolicyStatusId = Draft, EffectiveFrom = dto.EffectiveFrom, EffectiveTo = dto.EffectiveTo, ChangeSummary = dto.ChangeSummary?.Trim(), RuleSchemaVersion = 1, IsActive = true, AddedById = actorId, AddedDateTime = now };
+        var version = new PolicyVersion { TenantId = tenantId, PolicyId = policy.Id, VersionNumber = 1, PolicyStatusId = statusIds.Draft, EffectiveFrom = dto.EffectiveFrom, EffectiveTo = dto.EffectiveTo, ChangeSummary = dto.ChangeSummary?.Trim(), RuleSchemaVersion = 1, IsActive = true, AddedById = actorId, AddedDateTime = now };
         context.PolicyVersions.Add(version);
         await context.SaveChangesAsync(cancellationToken);
         await UpsertAttendanceConfigurationAsync(tenantId, actorId, version.Id, dto.AttendanceConfiguration, now, cancellationToken);
@@ -230,6 +224,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public async Task<PolicyDetailResponseDTO> UpdateDraftAsync(long tenantId, long actorId, UpdatePolicyDraftRequestDTO dto, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo);
         ValidateRulesAndScopes(dto.Rules, dto.Applicability);
         await ValidatePolicyRulesAsync(tenantId, dto.PolicyTypeId, dto.Rules, cancellationToken);
@@ -238,13 +233,13 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         await ValidateAttendanceConfigurationAsync(tenantId, dto.PolicyTypeId, dto.AttendanceConfiguration, cancellationToken);
         var policy = await context.Policies.FirstOrDefaultAsync(x => x.Id == dto.PolicyId && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken) ?? throw new NotFoundException("Policy was not found.");
         var version = await context.PolicyVersions.FirstOrDefaultAsync(x => x.Id == dto.PolicyVersionId && x.PolicyId == policy.Id && x.TenantId == tenantId, cancellationToken) ?? throw new NotFoundException("Policy version was not found.");
-        if (version.PolicyStatusId != Draft && version.PolicyStatusId != Rejected) throw new ConflictException("Only draft or rejected versions can be edited.");
+        if (version.PolicyStatusId != statusIds.Draft && version.PolicyStatusId != statusIds.Rejected) throw new ConflictException("Only draft or rejected versions can be edited.");
         var code = NormalizeCode(dto.PolicyCode);
         if (!await context.PolicyTypes.AnyAsync(x => x.Id == dto.PolicyTypeId && x.TenantId == tenantId && x.IsActive == true && x.IsSoftDelete != true, cancellationToken)) throw new ValidationErrorException("PolicyTypeId is not active for this tenant.");
         if (await context.Policies.AnyAsync(x => x.Id != policy.Id && x.TenantId == tenantId && x.PolicyCode == code && !x.IsSoftDeleted, cancellationToken)) throw new ConflictException("Policy code already exists for this tenant.");
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         policy.PolicyTypeId = dto.PolicyTypeId; policy.PolicyCode = code; policy.PolicyName = dto.PolicyName.Trim(); policy.Summary = dto.Summary?.Trim(); policy.OwnerDepartmentId = dto.OwnerDepartmentId; policy.DefaultCurrencyCode = NormalizeCurrency(dto.DefaultCurrencyCode); policy.UpdatedById = actorId; policy.UpdatedDateTime = DateTime.UtcNow;
-        version.EffectiveFrom = dto.EffectiveFrom; version.EffectiveTo = dto.EffectiveTo; version.ChangeSummary = dto.ChangeSummary?.Trim(); version.UpdatedById = actorId; version.UpdatedDateTime = DateTime.UtcNow; version.PolicyStatusId = Draft;
+        version.EffectiveFrom = dto.EffectiveFrom; version.EffectiveTo = dto.EffectiveTo; version.ChangeSummary = dto.ChangeSummary?.Trim(); version.UpdatedById = actorId; version.UpdatedDateTime = DateTime.UtcNow; version.PolicyStatusId = statusIds.Draft;
         context.PolicyRules.RemoveRange(context.PolicyRules.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
         context.PolicyApplicabilities.RemoveRange(context.PolicyApplicabilities.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
         await UpsertAttendanceConfigurationAsync(tenantId, actorId, version.Id, dto.AttendanceConfiguration, DateTime.UtcNow, cancellationToken);
@@ -257,12 +252,13 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public async Task<PolicyDetailResponseDTO> CloneVersionAsync(long tenantId, long actorId, ClonePolicyVersionRequestDTO dto, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         var policy = await context.Policies.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.PolicyId && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken) ?? throw new NotFoundException("Policy was not found.");
         var source = await context.PolicyVersions.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.SourceVersionId && x.PolicyId == policy.Id && x.TenantId == tenantId, cancellationToken) ?? throw new NotFoundException("Source version was not found.");
-        if (await context.PolicyVersions.AnyAsync(x => x.PolicyId == policy.Id && x.PolicyStatusId == Draft, cancellationToken)) throw new ConflictException("A draft version already exists.");
+        if (await context.PolicyVersions.AnyAsync(x => x.PolicyId == policy.Id && x.PolicyStatusId == statusIds.Draft, cancellationToken)) throw new ConflictException("A draft version already exists.");
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         var number = await context.PolicyVersions.Where(x => x.PolicyId == policy.Id).MaxAsync(x => x.VersionNumber, cancellationToken) + 1;
-        var version = new PolicyVersion { TenantId = tenantId, PolicyId = policy.Id, VersionNumber = number, PolicyStatusId = Draft, EffectiveFrom = dto.EffectiveFrom, ChangeSummary = dto.ChangeSummary?.Trim(), RuleSchemaVersion = source.RuleSchemaVersion, IsActive = true, AddedById = actorId, AddedDateTime = DateTime.UtcNow };
+        var version = new PolicyVersion { TenantId = tenantId, PolicyId = policy.Id, VersionNumber = number, PolicyStatusId = statusIds.Draft, EffectiveFrom = dto.EffectiveFrom, ChangeSummary = dto.ChangeSummary?.Trim(), RuleSchemaVersion = source.RuleSchemaVersion, IsActive = true, AddedById = actorId, AddedDateTime = DateTime.UtcNow };
         context.PolicyVersions.Add(version); await context.SaveChangesAsync(cancellationToken);
         var rules = await context.PolicyRules.AsNoTracking().Where(x => x.PolicyVersionId == source.Id).ToListAsync(cancellationToken);
         var scopes = await context.PolicyApplicabilities.AsNoTracking().Where(x => x.PolicyVersionId == source.Id).ToListAsync(cancellationToken);
@@ -286,22 +282,23 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public async Task<PolicyDetailResponseDTO> TransitionAsync(long tenantId, long actorId, PolicyTransitionRequestDTO dto, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         var version = await context.PolicyVersions
             .FirstOrDefaultAsync(x => x.Id == dto.PolicyVersionId && x.TenantId == tenantId, cancellationToken)
             ?? throw new NotFoundException("Policy version was not found.");
         var action = dto.Action.Trim().ToUpperInvariant();
 
-        if (version.PolicyStatusId == UnderReview && action is "APPROVE" or "REJECT")
+        if (version.PolicyStatusId == statusIds.UnderReview && action is "APPROVE" or "REJECT")
         {
-            return await RecordApprovalDecisionAsync(tenantId, actorId, version, action, dto.Comments, cancellationToken);
+            return await RecordApprovalDecisionAsync(tenantId, actorId, version, action, dto.Comments, statusIds, cancellationToken);
         }
 
         var target = (version.PolicyStatusId, action) switch
         {
-            (Draft, "SUBMIT") => UnderReview,
-            (Rejected, "SUBMIT") => UnderReview,
-            (Approved, "PUBLISH") => Published,
-            (Published, "ARCHIVE") => Archived,
+            (var current, "SUBMIT") when current == statusIds.Draft => statusIds.UnderReview,
+            (var current, "SUBMIT") when current == statusIds.Rejected => statusIds.UnderReview,
+            (var current, "PUBLISH") when current == statusIds.Approved => statusIds.Published,
+            (var current, "ARCHIVE") when current == statusIds.Published => statusIds.Archived,
             _ => throw new ConflictException($"Action {action} is invalid for the current policy status.")
         };
 
@@ -309,7 +306,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         version.PolicyStatusId = target;
         version.UpdatedById = actorId;
         version.UpdatedDateTime = DateTime.UtcNow;
-        if (target == Published)
+        if (target == statusIds.Published)
         {
             var categoryId = await GetPolicyCategoryIdAsync(tenantId, version.PolicyId, cancellationToken);
             var categoryCode = categoryId.HasValue
@@ -342,7 +339,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             version.PublishedDateTime = DateTime.UtcNow;
             version.IsCurrent = true;
         }
-        if (target == Archived)
+        if (target == statusIds.Archived)
         {
             version.IsCurrent = false;
         }
@@ -360,6 +357,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         PolicyVersion version,
         string action,
         string? comments,
+        PolicyStatusIds statusIds,
         CancellationToken cancellationToken)
     {
         var categoryId = await GetPolicyCategoryIdAsync(tenantId, version.PolicyId, cancellationToken);
@@ -371,7 +369,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
         if (stages.Count == 0)
         {
-            version.PolicyStatusId = action == "APPROVE" ? Approved : Rejected;
+            version.PolicyStatusId = action == "APPROVE" ? statusIds.Approved : statusIds.Rejected;
             version.UpdatedById = actorId;
             version.UpdatedDateTime = DateTime.UtcNow;
             if (action == "APPROVE")
@@ -432,7 +430,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
         if (action == "REJECT")
         {
-            version.PolicyStatusId = Rejected;
+            version.PolicyStatusId = statusIds.Rejected;
         }
         else
         {
@@ -442,7 +440,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             var laterStageExists = stages.Any(x => x.StageOrder > currentStage.StageOrder);
             if (stageCompleted && !laterStageExists)
             {
-                version.PolicyStatusId = Approved;
+                version.PolicyStatusId = statusIds.Approved;
                 version.ApprovedById = actorId;
                 version.ApprovedDateTime = DateTime.UtcNow;
             }
@@ -457,9 +455,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public async Task<PolicyAssignmentResultDTO> AssignAsync(long tenantId, long actorId, AssignPolicyRequestDTO dto, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo);
         var version = await context.PolicyVersions.FirstOrDefaultAsync(x => x.Id == dto.PolicyVersionId
-            && x.TenantId == tenantId && x.PolicyStatusId == Published, cancellationToken)
+            && x.TenantId == tenantId && x.PolicyStatusId == statusIds.Published, cancellationToken)
             ?? throw new ConflictException("Only a published policy version can be assigned.");
         var employeeIds = dto.ResolvedEmployeeIds.Distinct().ToList();
         var validEmployeeIds = await context.Employees
@@ -538,16 +537,18 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public async Task<long> CreateExceptionAsync(long tenantId, long actorId, CreatePolicyExceptionRequestDTO dto, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo); ValidateJson(new[] { dto.OverrideConfiguration });
         if (!await context.PolicyVersions.AnyAsync(x => x.Id == dto.PolicyVersionId && x.TenantId == tenantId, cancellationToken) || !await context.Employees.AnyAsync(x => x.Id == dto.ResolvedEmployeeId && x.TenantId == tenantId, cancellationToken)) throw new ValidationErrorException("Policy version or employee is invalid for this tenant.");
-        var entity = new PolicyException { TenantId = tenantId, PolicyVersionId = dto.PolicyVersionId, EmployeeId = dto.ResolvedEmployeeId, ExceptionType = dto.ExceptionType, OverrideConfiguration = dto.OverrideConfiguration, Reason = dto.Reason.Trim(), EffectiveFrom = dto.EffectiveFrom, EffectiveTo = dto.EffectiveTo, ApprovalStatusId = UnderReview, IsActive = true, AddedById = actorId, AddedDateTime = DateTime.UtcNow };
+        var entity = new PolicyException { TenantId = tenantId, PolicyVersionId = dto.PolicyVersionId, EmployeeId = dto.ResolvedEmployeeId, ExceptionType = dto.ExceptionType, OverrideConfiguration = dto.OverrideConfiguration, Reason = dto.Reason.Trim(), EffectiveFrom = dto.EffectiveFrom, EffectiveTo = dto.EffectiveTo, ApprovalStatusId = statusIds.UnderReview, IsActive = true, AddedById = actorId, AddedDateTime = DateTime.UtcNow };
         context.PolicyExceptions.Add(entity); await context.SaveChangesAsync(cancellationToken); return entity.Id;
     }
 
     public async Task<bool> ApproveExceptionAsync(long tenantId, long actorId, ApprovePolicyExceptionRequestDTO dto, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         var entity = await context.PolicyExceptions.FirstOrDefaultAsync(x => x.Id == dto.ExceptionId && x.TenantId == tenantId, cancellationToken) ?? throw new NotFoundException("Policy exception was not found.");
-        entity.ApprovalStatusId = dto.Approve ? Approved : Rejected; entity.ApprovedById = actorId; entity.ApprovedDateTime = DateTime.UtcNow; await context.SaveChangesAsync(cancellationToken); return true;
+        entity.ApprovalStatusId = dto.Approve ? statusIds.Approved : statusIds.Rejected; entity.ApprovedById = actorId; entity.ApprovedDateTime = DateTime.UtcNow; await context.SaveChangesAsync(cancellationToken); return true;
     }
 
     public async Task<bool> AcknowledgeAsync(long tenantId, long employeeId, AcknowledgePolicyRequestDTO dto, CancellationToken cancellationToken)
@@ -572,9 +573,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public async Task<IReadOnlyList<ResolvedPolicyResponseDTO>> ResolveAsync(long tenantId, long employeeId, ResolveEmployeePoliciesRequestDTO dto, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         var employee = await context.Employees.AsNoTracking().FirstOrDefaultAsync(x => x.Id == employeeId && x.TenantId == tenantId, cancellationToken) ?? throw new NotFoundException("Employee was not found.");
         var date = dto.EffectiveDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
-        var versions = await (from v in context.PolicyVersions.AsNoTracking() join p in context.Policies.AsNoTracking() on v.PolicyId equals p.Id where v.TenantId == tenantId && v.PolicyStatusId == Published && v.IsCurrent && v.IsActive && p.IsActive && !p.IsSoftDeleted && v.EffectiveFrom <= date && (v.EffectiveTo == null || v.EffectiveTo >= date) select new { Version = v, Policy = p }).ToListAsync(cancellationToken);
+        var versions = await (from v in context.PolicyVersions.AsNoTracking() join p in context.Policies.AsNoTracking() on v.PolicyId equals p.Id where v.TenantId == tenantId && v.PolicyStatusId == statusIds.Published && v.IsCurrent && v.IsActive && p.IsActive && !p.IsSoftDeleted && v.EffectiveFrom <= date && (v.EffectiveTo == null || v.EffectiveTo >= date) select new { Version = v, Policy = p }).ToListAsync(cancellationToken);
         var ids = versions.Select(x => x.Version.Id).ToArray();
         var resolvedRules = await (from rule in context.PolicyRules.AsNoTracking()
                                    join ruleType in context.PolicyRuleTypes.AsNoTracking() on rule.PolicyRuleTypeId equals ruleType.Id
@@ -589,7 +591,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var exceptions = await context.PolicyExceptions.AsNoTracking()
             .Where(x => x.TenantId == tenantId && x.EmployeeId == employee.Id
                 && ids.Contains(x.PolicyVersionId) && x.IsActive
-                && x.ApprovalStatusId == Approved && x.EffectiveFrom <= date
+                && x.ApprovalStatusId == statusIds.Approved && x.EffectiveFrom <= date
                 && x.EffectiveTo >= date)
             .OrderByDescending(x => x.ApprovedDateTime)
             .ThenByDescending(x => x.Id)
@@ -656,8 +658,9 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public async Task<long> AddDocumentAsync(long tenantId, long actorId, UploadPolicyDocumentRequestDTO dto, string objectKey, string checksum, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         var version = await context.PolicyVersions.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.PolicyVersionId && x.TenantId == tenantId, cancellationToken) ?? throw new NotFoundException("Policy version was not found.");
-        if (version.PolicyStatusId is Published or Archived) throw new ConflictException("Documents cannot be changed on published or archived versions.");
+        if (version.PolicyStatusId == statusIds.Published || version.PolicyStatusId == statusIds.Archived) throw new ConflictException("Documents cannot be changed on published or archived versions.");
         if (!await context.PolicyDocumentTypes.AnyAsync(x => x.Id == dto.PolicyDocumentTypeId && x.IsActive, cancellationToken)) throw new ValidationErrorException("PolicyDocumentTypeId is invalid.");
         var entity = new PolicyDocument { TenantId = tenantId, PolicyVersionId = dto.PolicyVersionId, PolicyDocumentTypeId = dto.PolicyDocumentTypeId, DocumentTitle = dto.DocumentTitle.Trim(), OriginalFileName = Path.GetFileName(dto.File.FileName), StorageProvider = "S3", ObjectKey = objectKey, ContentType = dto.File.ContentType, FileSizeBytes = dto.File.Length, ChecksumSha256 = checksum, LanguageCode = dto.LanguageCode?.Trim(), IsEmployeeVisible = dto.IsEmployeeVisible, IsActive = true, AddedById = actorId, AddedDateTime = DateTime.UtcNow };
         context.PolicyDocuments.Add(entity);
@@ -677,9 +680,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
 
     public async Task<string> DeleteDocumentAsync(long tenantId, long actorId, long documentId, CancellationToken cancellationToken)
     {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         var entity = await context.PolicyDocuments.FirstOrDefaultAsync(x => x.Id == documentId && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken) ?? throw new NotFoundException("Policy document was not found.");
         var version = await context.PolicyVersions.FirstAsync(x => x.Id == entity.PolicyVersionId && x.TenantId == tenantId, cancellationToken);
-        if (version.PolicyStatusId is Published or Archived) throw new ConflictException("Documents cannot be changed on published or archived versions.");
+        if (version.PolicyStatusId == statusIds.Published || version.PolicyStatusId == statusIds.Archived) throw new ConflictException("Documents cannot be changed on published or archived versions.");
         entity.IsActive = false; entity.IsSoftDeleted = true; entity.SoftDeletedById = actorId; entity.SoftDeletedDateTime = DateTime.UtcNow;
         AddAudit(tenantId, actorId, version.PolicyId, version.Id, "PolicyDocument", entity.Id, "DELETE", JsonSerializer.Serialize(new { entity.DocumentTitle, entity.ObjectKey }), null);
         await context.SaveChangesAsync(cancellationToken); return entity.ObjectKey;
@@ -1161,6 +1165,34 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         }
         return categoryCode;
     }
+
+    private async Task<PolicyStatusIds> GetPolicyStatusIdsAsync(CancellationToken cancellationToken)
+    {
+        var requiredCodes = new[]
+        {
+            AppConstants.PolicyStatusCodes.Draft,
+            AppConstants.PolicyStatusCodes.UnderReview,
+            AppConstants.PolicyStatusCodes.Approved,
+            AppConstants.PolicyStatusCodes.Published,
+            AppConstants.PolicyStatusCodes.Archived,
+            AppConstants.PolicyStatusCodes.Rejected
+        };
+        var idsByCode = await context.PolicyStatuses.AsNoTracking()
+            .Where(status => status.IsActive && requiredCodes.Contains(status.StatusCode))
+            .ToDictionaryAsync(status => status.StatusCode, status => status.Id, cancellationToken);
+        if (idsByCode.Count != requiredCodes.Length)
+        {
+            throw new InvalidOperationException("Policy lifecycle status metadata is incomplete.");
+        }
+
+        return new PolicyStatusIds(
+            idsByCode[AppConstants.PolicyStatusCodes.Draft],
+            idsByCode[AppConstants.PolicyStatusCodes.UnderReview],
+            idsByCode[AppConstants.PolicyStatusCodes.Approved],
+            idsByCode[AppConstants.PolicyStatusCodes.Published],
+            idsByCode[AppConstants.PolicyStatusCodes.Archived],
+            idsByCode[AppConstants.PolicyStatusCodes.Rejected]);
+    }
     private async Task ValidatePolicyReferencesAsync(
         long tenantId,
         int? ownerDepartmentId,
@@ -1409,4 +1441,12 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             && (!x.MinimumServiceDays.HasValue || serviceDays >= x.MinimumServiceDays);
     }
     private static PolicyApplicability CloneScope(PolicyApplicability x, long versionId, long actorId) => new() { TenantId = x.TenantId, PolicyVersionId = versionId, ApplicabilityMode = x.ApplicabilityMode, CountryId = x.CountryId, StateId = x.StateId, DistrictId = x.DistrictId, LocalityId = x.LocalityId, TenantLocationId = x.TenantLocationId, EmployeeTypeId = x.EmployeeTypeId, DepartmentId = x.DepartmentId, DesignationId = x.DesignationId, EmployeeId = x.EmployeeId, GenderId = x.GenderId, WorkArrangementType = x.WorkArrangementType, EmploymentStatus = x.EmploymentStatus, MinimumServiceDays = x.MinimumServiceDays, Priority = x.Priority, EffectiveFrom = x.EffectiveFrom, EffectiveTo = x.EffectiveTo, IsActive = x.IsActive, AddedById = actorId, AddedDateTime = DateTime.UtcNow };
+
+    private sealed record PolicyStatusIds(
+        short Draft,
+        short UnderReview,
+        short Approved,
+        short Published,
+        short Archived,
+        short Rejected);
 }

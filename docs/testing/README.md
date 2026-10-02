@@ -12,6 +12,7 @@
 - [Employee bulk invitation email smoke — 2026-09-24](bulk/employee-invitation-email/2026-09-24.md)
 - [All durable bulk targets — live smoke test — 2026-09-19](bulk/all-live-smoke/2026-09-19.md)
 - [Tenant Policy interactive HTML simulator — 2026-09-18](policy/interactive-html-simulator/2026-09-18.md)
+- [Policy metadata source audit — 2026-10-02](policy/metadata-source-audit/2026-10-02.md)
 
 Every tested scenario has a report grouped by module, scenario and test date.
 Start with [the report template](SCENARIO_TEMPLATE.md). This is the continuing
@@ -134,4 +135,3 @@ saving evidence. Documentation-only work does not require repeating passed tests
 # Policy generic rule metadata
 
 - [2026-10-02 — code-driven rule schema, Angular authoring and Render metadata migration](policy/generic-rule-metadata/2026-10-02.md)
-

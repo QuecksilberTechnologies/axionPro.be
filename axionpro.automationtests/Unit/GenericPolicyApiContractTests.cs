@@ -286,7 +286,10 @@ public sealed class GenericPolicyApiContractTests
         var source = ReadRepositoryFile("axionpro.persistance", "Repositories", "BulkImportRepository.Policy.cs");
         Assert.Multiple(() =>
         {
-            Assert.That(source, Does.Contain("PolicyStatusId = 1"));
+            Assert.That(source, Does.Contain("PolicyStatusId = draftStatusId"));
+            Assert.That(source, Does.Contain("AppConstants.PolicyStatusCodes.Draft"));
+            Assert.That(source, Does.Contain("AppConstants.PolicyStatusCodes.Published"));
+            Assert.That(source, Does.Not.Contain("candidate.PolicyStatusId == 4"));
             Assert.That(source, Does.Contain("ActionName = \"BULK_CREATE\""));
             Assert.That(source, Does.Contain("context.PolicyAcknowledgements.Add"));
             Assert.That(source, Does.Contain("AcknowledgementStatus = 1"));
@@ -327,13 +330,15 @@ public sealed class GenericPolicyApiContractTests
         var source = ReadRepositoryFile("axionpro.persistance", "Repositories", "GenericPolicyRepository.cs");
         Assert.Multiple(() =>
         {
-            Assert.That(source, Does.Contain("(Draft, \"SUBMIT\") => UnderReview"));
+            Assert.That(source, Does.Contain("current == statusIds.Draft => statusIds.UnderReview"));
             Assert.That(source, Does.Contain("RecordApprovalDecisionAsync"));
             Assert.That(source, Does.Contain("currentStage.MinimumApprovals"));
             Assert.That(source, Does.Contain("currentStage.ApproverRoleId"));
             Assert.That(source, Does.Contain("x.ActionById == actorId"));
-            Assert.That(source, Does.Contain("(Approved, \"PUBLISH\") => Published"));
-            Assert.That(source, Does.Contain("(Published, \"ARCHIVE\") => Archived"));
+            Assert.That(source, Does.Contain("current == statusIds.Approved => statusIds.Published"));
+            Assert.That(source, Does.Contain("current == statusIds.Published => statusIds.Archived"));
+            Assert.That(source, Does.Contain("AppConstants.PolicyStatusCodes.Draft"));
+            Assert.That(source, Does.Not.Contain("private const short Draft = 1"));
             Assert.That(source, Does.Contain("Only a published policy version can be assigned."));
         });
     }

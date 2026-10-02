@@ -270,6 +270,7 @@ public sealed partial class BulkImportRepository
 
     private async Task ValidatePolicyAssignmentRowAsync(BulkImportPreviewRowDTO row, long tenantId, CancellationToken token)
     {
+        var publishedStatusId = await GetPolicyStatusIdAsync(AppConstants.PolicyStatusCodes.Published, token);
         if (!int.TryParse(row.Values["VersionNumber"], out var versionNumber) || versionNumber < 1)
         {
             row.Errors.Add("VersionNumber must be a positive integer.");
@@ -287,7 +288,7 @@ public sealed partial class BulkImportRepository
                              join candidate in context.PolicyVersions.AsNoTracking() on policy.Id equals candidate.PolicyId
                              where policy.TenantId == tenantId && policy.PolicyCode == policyCode
                                 && !policy.IsSoftDeleted && candidate.TenantId == tenantId
-                                && candidate.VersionNumber == versionNumber && candidate.PolicyStatusId == 4
+                                && candidate.VersionNumber == versionNumber && candidate.PolicyStatusId == publishedStatusId
                              select candidate).FirstOrDefaultAsync(token);
         if (version == null)
         {
@@ -448,6 +449,7 @@ public sealed partial class BulkImportRepository
 
     private async Task InsertPolicyDefinitionAsync(BulkImportJob job, BulkImportPreviewRowDTO row, CancellationToken token)
     {
+        var draftStatusId = await GetPolicyStatusIdAsync(AppConstants.PolicyStatusCodes.Draft, token);
         var typeCode = NormalizePolicyCode(row.Values["PolicyTypeCode"]);
         var typeId = await context.PolicyTypes.Where(x => x.TenantId == job.TenantId
                 && x.PolicyTypeCode == typeCode && x.IsActive == true && x.IsSoftDelete != true)
@@ -472,7 +474,7 @@ public sealed partial class BulkImportRepository
             TenantId = job.TenantId,
             PolicyId = policy.Id,
             VersionNumber = 1,
-            PolicyStatusId = 1,
+            PolicyStatusId = draftStatusId,
             EffectiveFrom = DateOnly.ParseExact(row.Values["EffectiveFrom"], "yyyy-MM-dd", CultureInfo.InvariantCulture),
             EffectiveTo = ParseOptionalDate(row.Values.GetValueOrDefault("EffectiveTo")),
             RuleSchemaVersion = 1,
@@ -536,6 +538,16 @@ public sealed partial class BulkImportRepository
         await context.SaveChangesAsync(token);
         row.HostRecordId = policy.Id;
         row.PolicyVersionId = version.Id;
+    }
+
+    private async Task<short> GetPolicyStatusIdAsync(string statusCode, CancellationToken cancellationToken)
+    {
+        var statusId = await context.PolicyStatuses.AsNoTracking()
+            .Where(status => status.IsActive && status.StatusCode == statusCode)
+            .Select(status => (short?)status.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+        return statusId
+            ?? throw new InvalidOperationException($"Policy status metadata '{statusCode}' is missing.");
     }
 
     private static IReadOnlyCollection<string> PolicyColumns(BulkImportMaster master) => master switch
