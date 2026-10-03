@@ -207,6 +207,19 @@ public sealed class PolicyVersionAccessRequestDTO : PermissionRequestDTO
     public long PolicyVersionId { get; set; }
 }
 
+public sealed class PolicyAssignmentCandidateRequestDTO : PermissionRequestDTO
+{
+    public long PolicyVersionId { get; set; }
+    public DateOnly? EffectiveDate { get; set; }
+    public int? EmployeeTypeId { get; set; }
+    public int? DepartmentId { get; set; }
+    public int? DesignationId { get; set; }
+    [MaxLength(100)] public string? Search { get; set; }
+    public bool IncludeAssigned { get; set; } = true;
+    [Range(1, int.MaxValue)] public int PageNumber { get; set; } = 1;
+    [Range(1, 200)] public int PageSize { get; set; } = 20;
+}
+
 public sealed class PolicyApprovalStageListRequestDTO : PermissionRequestDTO
 {
     public int? PolicyCategoryId { get; set; }
@@ -290,5 +303,27 @@ public sealed record PolicyAuditResponseDTO(
 public sealed record PolicyApprovalStageResponseDTO(long Id, int? PolicyCategoryId, string StageName, int StageOrder, int? ApproverRoleId, int MinimumApprovals, bool IsMandatory, bool IsActive);
 public sealed record PolicyApprovalProgressResponseDTO(long StageId, string StageName, int StageOrder, int MinimumApprovals, int ApprovalCount, bool IsComplete);
 public sealed record PolicyAssignmentResponseDTO(long Id, long PolicyVersionId, long EmployeeId, short AssignmentSource, DateOnly EffectiveFrom, DateOnly? EffectiveTo, bool IsMandatory, bool IsActive);
+public sealed record PolicyAssignmentFilterOptionDTO(int Id, string Name, int EmployeeCount);
+public sealed record PolicyAssignmentCandidateDataDTO(long EmployeeId, string EmployeeCode, string EmployeeName,
+    int? EmployeeTypeId, string? EmployeeTypeName, int? DepartmentId, string? DepartmentName,
+    int? DesignationId, string? DesignationName, bool IsAssigned);
+public sealed record PolicyAssignmentCandidateResponseDTO(string EmployeeId, string EmployeeCode, string EmployeeName,
+    int? EmployeeTypeId, string? EmployeeTypeName, int? DepartmentId, string? DepartmentName,
+    int? DesignationId, string? DesignationName, bool IsAssigned);
+public sealed record PolicyAssignmentCandidatePageDTO(long PolicyId, long PolicyVersionId, string PolicyCode,
+    string PolicyName, int VersionNumber, DateOnly EffectiveDate, int TotalRecords,
+    IReadOnlyList<PolicyAssignmentCandidateResponseDTO> Employees,
+    IReadOnlyList<PolicyAssignmentFilterOptionDTO> EmployeeTypes,
+    IReadOnlyList<PolicyAssignmentFilterOptionDTO> Departments,
+    IReadOnlyList<PolicyAssignmentFilterOptionDTO> Designations);
+public sealed record PolicyAssignmentCandidateDataPageDTO(long PolicyId, long PolicyVersionId, string PolicyCode,
+    string PolicyName, int VersionNumber, DateOnly EffectiveDate, int TotalRecords,
+    IReadOnlyList<PolicyAssignmentCandidateDataDTO> Employees,
+    IReadOnlyList<PolicyAssignmentFilterOptionDTO> EmployeeTypes,
+    IReadOnlyList<PolicyAssignmentFilterOptionDTO> Departments,
+    IReadOnlyList<PolicyAssignmentFilterOptionDTO> Designations);
+public sealed record PolicyAssignmentExportRowDTO(long AssignmentId, long EmployeeId, string EmployeeCode,
+    string EmployeeName, string? EmployeeTypeName, string? DepartmentName, string? DesignationName,
+    short AssignmentSource, DateOnly EffectiveFrom, DateOnly? EffectiveTo, bool IsMandatory, bool IsActive);
 public sealed record PolicyExceptionResponseDTO(long Id, long PolicyVersionId, long EmployeeId, short ExceptionType, string OverrideConfiguration, string Reason, DateOnly EffectiveFrom, DateOnly EffectiveTo, short ApprovalStatusId, bool IsActive);
 public sealed record PolicyAcknowledgementResponseDTO(long Id, long PolicyVersionId, long EmployeeId, short Status, DateTime AssignedDateTime, DateTime? ViewedDateTime, DateTime? AcknowledgedDateTime);

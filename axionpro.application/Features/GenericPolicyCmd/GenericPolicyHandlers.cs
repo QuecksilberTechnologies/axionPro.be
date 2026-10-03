@@ -45,6 +45,8 @@ public sealed record UpdatePolicyApprovalStageCommand(UpdatePolicyApprovalStageR
 public sealed record DeletePolicyApprovalStageCommand(DeletePolicyApprovalStageRequestDTO DTO) : IRequest<ApiResponse<bool>>;
 public sealed record GetPolicyApprovalProgressQuery(PolicyVersionAccessRequestDTO DTO) : IRequest<ApiResponse<IReadOnlyList<PolicyApprovalProgressResponseDTO>>>;
 public sealed record GetPolicyAssignmentsQuery(PolicyVersionAccessRequestDTO DTO) : IRequest<ApiResponse<IReadOnlyList<PolicyAssignmentResponseDTO>>>;
+public sealed record GetPolicyAssignmentCandidatesQuery(PolicyAssignmentCandidateRequestDTO DTO) : IRequest<ApiResponse<PolicyAssignmentCandidatePageDTO>>;
+public sealed record ExportPolicyAssignmentsQuery(PolicyVersionAccessRequestDTO DTO) : IRequest<ApiResponse<string>>;
 public sealed record GetPolicyExceptionsQuery(PolicyVersionAccessRequestDTO DTO) : IRequest<ApiResponse<IReadOnlyList<PolicyExceptionResponseDTO>>>;
 public sealed record GetPolicyAcknowledgementsQuery(PolicyVersionAccessRequestDTO DTO) : IRequest<ApiResponse<IReadOnlyList<PolicyAcknowledgementResponseDTO>>>;
 public sealed record PreviewPolicyBulkImportCommand(BulkImportMaster Master, BulkImportPreviewRequestDTO DTO) : IRequest<ApiResponse<BulkImportPreviewResponseDTO>>;
@@ -531,6 +533,69 @@ public sealed class GetPolicyAcknowledgementsQueryHandler(IGenericPolicyReposito
         var actor = await GetActorAsync();
         var data = await Repository.GetAcknowledgementsAsync(actor.TenantId, request.DTO.PolicyVersionId, token);
         return ApiResponse<IReadOnlyList<PolicyAcknowledgementResponseDTO>>.Success(data, "Policy acknowledgements retrieved successfully.");
+    }
+}
+
+public sealed class GetPolicyAssignmentCandidatesQueryHandler(
+    IGenericPolicyRepository repository,
+    ICommonRequestService commonRequestService,
+    IIdEncoderService idEncoderService)
+    : GenericPolicyHandlerBase(repository, commonRequestService),
+      IRequestHandler<GetPolicyAssignmentCandidatesQuery, ApiResponse<PolicyAssignmentCandidatePageDTO>>
+{
+    public async Task<ApiResponse<PolicyAssignmentCandidatePageDTO>> Handle(
+        GetPolicyAssignmentCandidatesQuery request,
+        CancellationToken token)
+    {
+        var actor = await commonRequestService.ValidateTenantUserRequestAsync();
+        if (!actor.Success || actor.TenantId <= 0 || actor.LoggedInEmployeeId <= 0)
+        {
+            throw new UnauthorizedAccessException(actor.ErrorMessage ?? "Unauthorized request.");
+        }
+
+        var data = await repository.GetAssignmentCandidatesAsync(actor.TenantId, request.DTO, token);
+        var employees = data.Employees.Select(employee => new PolicyAssignmentCandidateResponseDTO(
+            idEncoderService.EncodeId_long(employee.EmployeeId, actor.Claims.TenantEncriptionKey),
+            employee.EmployeeCode,
+            employee.EmployeeName,
+            employee.EmployeeTypeId,
+            employee.EmployeeTypeName,
+            employee.DepartmentId,
+            employee.DepartmentName,
+            employee.DesignationId,
+            employee.DesignationName,
+            employee.IsAssigned)).ToList();
+        var response = new PolicyAssignmentCandidatePageDTO(data.PolicyId, data.PolicyVersionId,
+            data.PolicyCode, data.PolicyName, data.VersionNumber, data.EffectiveDate, data.TotalRecords,
+            employees, data.EmployeeTypes, data.Departments, data.Designations);
+        return ApiResponse<PolicyAssignmentCandidatePageDTO>.Success(response,
+            "Eligible policy-assignment employees retrieved successfully.");
+    }
+}
+
+public sealed class ExportPolicyAssignmentsQueryHandler(
+    IGenericPolicyRepository repository,
+    ICommonRequestService commonRequestService)
+    : GenericPolicyHandlerBase(repository, commonRequestService),
+      IRequestHandler<ExportPolicyAssignmentsQuery, ApiResponse<string>>
+{
+    public async Task<ApiResponse<string>> Handle(ExportPolicyAssignmentsQuery request, CancellationToken token)
+    {
+        var actor = await GetActorAsync();
+        var rows = await repository.GetAssignmentExportAsync(actor.TenantId, request.DTO.PolicyVersionId, token);
+        static string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
+        var output = new System.Text.StringBuilder();
+        output.AppendLine("AssignmentId,EmployeeCode,EmployeeName,EmployeeType,Department,Designation,AssignmentSource,EffectiveFrom,EffectiveTo,IsMandatory,IsActive");
+        foreach (var row in rows)
+        {
+            output.Append(row.AssignmentId).Append(',').Append(Csv(row.EmployeeCode)).Append(',')
+                .Append(Csv(row.EmployeeName)).Append(',').Append(Csv(row.EmployeeTypeName)).Append(',')
+                .Append(Csv(row.DepartmentName)).Append(',').Append(Csv(row.DesignationName)).Append(',')
+                .Append(row.AssignmentSource).Append(',').Append(row.EffectiveFrom.ToString("yyyy-MM-dd")).Append(',')
+                .Append(row.EffectiveTo?.ToString("yyyy-MM-dd") ?? string.Empty).Append(',')
+                .Append(row.IsMandatory).Append(',').Append(row.IsActive).AppendLine();
+        }
+        return ApiResponse<string>.Success(output.ToString(), "Policy assignments exported successfully.");
     }
 }
 

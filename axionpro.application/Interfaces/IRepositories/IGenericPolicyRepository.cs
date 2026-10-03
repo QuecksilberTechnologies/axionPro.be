@@ -37,6 +37,8 @@ public interface IGenericPolicyRepository
     Task<bool> DeleteApprovalStageAsync(long tenantId, long actorId, long id, CancellationToken cancellationToken);
     Task<IReadOnlyList<PolicyApprovalProgressResponseDTO>> GetApprovalProgressAsync(long tenantId, long policyVersionId, CancellationToken cancellationToken);
     Task<IReadOnlyList<PolicyAssignmentResponseDTO>> GetAssignmentsAsync(long tenantId, long policyVersionId, CancellationToken cancellationToken);
+    Task<PolicyAssignmentCandidateDataPageDTO> GetAssignmentCandidatesAsync(long tenantId, PolicyAssignmentCandidateRequestDTO dto, CancellationToken cancellationToken);
+    Task<IReadOnlyList<PolicyAssignmentExportRowDTO>> GetAssignmentExportAsync(long tenantId, long policyVersionId, CancellationToken cancellationToken);
     Task<IReadOnlyList<PolicyExceptionResponseDTO>> GetExceptionsAsync(long tenantId, long policyVersionId, CancellationToken cancellationToken);
     Task<IReadOnlyList<PolicyAcknowledgementResponseDTO>> GetAcknowledgementsAsync(long tenantId, long policyVersionId, CancellationToken cancellationToken);
 }

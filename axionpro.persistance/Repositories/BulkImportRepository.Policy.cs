@@ -310,6 +310,20 @@ public sealed partial class BulkImportRepository
         {
             row.TargetEmployeeId = employee.Id;
         }
+        if (version != null && employee != null && from.HasValue)
+        {
+            var eligibleEmployeeIds = await GenericPolicyRepository.GetApplicabilityEligibleEmployeeIdsAsync(
+                context,
+                tenantId,
+                version.Id,
+                new[] { employee.Id },
+                from.Value,
+                token);
+            if (!eligibleEmployeeIds.Contains(employee.Id))
+            {
+                row.Errors.Add("EmployeeCode is outside the selected policy version applicability on EffectiveFrom.");
+            }
+        }
         if (version != null && employee != null && from.HasValue
             && await context.PolicyAssignments.AsNoTracking().AnyAsync(x => x.TenantId == tenantId
                 && x.PolicyVersionId == version.Id && x.EmployeeId == employee.Id

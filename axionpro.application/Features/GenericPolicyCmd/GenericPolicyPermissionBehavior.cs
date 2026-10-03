@@ -56,6 +56,7 @@ public sealed class GenericPolicyPermissionBehavior<TRequest, TResponse>(IUnitOf
                 => "TENANT_POLICY_DEFINITIONS",
             TransitionPolicyCommand => "TENANT_POLICY_APPROVALS",
             AssignPolicyCommand or RemovePolicyAssignmentCommand or GetPolicyAssignmentsQuery
+                or GetPolicyAssignmentCandidatesQuery or ExportPolicyAssignmentsQuery
                 => "TENANT_POLICY_ASSIGNMENTS",
             CreatePolicyExceptionCommand or ApprovePolicyExceptionCommand or GetPolicyExceptionsQuery
                 => "TENANT_POLICY_EXCEPTIONS",

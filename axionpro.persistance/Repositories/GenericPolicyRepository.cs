@@ -470,6 +470,18 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         {
             throw new ValidationErrorException("One or more employees do not belong to the authenticated tenant.");
         }
+        var eligibleEmployeeIds = await GetApplicabilityEligibleEmployeeIdsAsync(
+            context,
+            tenantId,
+            dto.PolicyVersionId,
+            validEmployeeIds,
+            dto.EffectiveFrom,
+            cancellationToken);
+        if (eligibleEmployeeIds.Count != validEmployeeIds.Count)
+        {
+            throw new ValidationErrorException(
+                "One or more employees are outside the selected policy version applicability.");
+        }
 
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         var matching = await context.PolicyAssignments.Where(x => x.TenantId == tenantId
@@ -816,6 +828,142 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             .Select(x => new PolicyAssignmentResponseDTO(x.Id, x.PolicyVersionId, x.EmployeeId,
                 x.AssignmentSource, x.EffectiveFrom, x.EffectiveTo, x.IsMandatory, x.IsActive))
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<PolicyAssignmentCandidateDataPageDTO> GetAssignmentCandidatesAsync(
+        long tenantId,
+        PolicyAssignmentCandidateRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
+        var policyVersion = await (from version in context.PolicyVersions.AsNoTracking()
+                                   join policy in context.Policies.AsNoTracking() on version.PolicyId equals policy.Id
+                                   where version.Id == dto.PolicyVersionId && version.TenantId == tenantId
+                                       && version.PolicyStatusId == statusIds.Published
+                                       && version.IsActive && policy.IsActive && !policy.IsSoftDeleted
+                                   select new
+                                   {
+                                       PolicyId = policy.Id,
+                                       PolicyVersionId = version.Id,
+                                       policy.PolicyCode,
+                                       policy.PolicyName,
+                                       version.VersionNumber,
+                                       version.EffectiveFrom,
+                                       version.EffectiveTo
+                                   }).FirstOrDefaultAsync(cancellationToken)
+            ?? throw new ConflictException("Only a published policy version can be mapped to employees.");
+        var effectiveDate = dto.EffectiveDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        if (effectiveDate < policyVersion.EffectiveFrom
+            || policyVersion.EffectiveTo.HasValue && effectiveDate > policyVersion.EffectiveTo.Value)
+        {
+            throw new ValidationErrorException("EffectiveDate must be inside the policy version effective period.");
+        }
+
+        var tenantEmployeeIds = await context.Employees.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+        var eligibleIds = await GetApplicabilityEligibleEmployeeIdsAsync(context, tenantId,
+            dto.PolicyVersionId, tenantEmployeeIds, effectiveDate, cancellationToken);
+        var assignedIds = await context.PolicyAssignments.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.PolicyVersionId == dto.PolicyVersionId
+                && x.IsActive && x.EffectiveFrom <= effectiveDate
+                && (x.EffectiveTo == null || x.EffectiveTo >= effectiveDate))
+            .Select(x => x.EmployeeId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        var assignedSet = assignedIds.ToHashSet();
+
+        var eligibleEmployees = await (from employee in context.Employees.AsNoTracking()
+                                       where eligibleIds.Contains(employee.Id)
+                                       join employeeType in context.EmployeeTypes.AsNoTracking()
+                                           on employee.EmployeeTypeId equals (int?)employeeType.Id into employeeTypeRows
+                                       from employeeType in employeeTypeRows.DefaultIfEmpty()
+                                       join department in context.Departments.AsNoTracking()
+                                           on employee.DepartmentId equals (int?)department.Id into departmentRows
+                                       from department in departmentRows.DefaultIfEmpty()
+                                       join designation in context.Designations.AsNoTracking()
+                                           on employee.DesignationId equals (int?)designation.Id into designationRows
+                                       from designation in designationRows.DefaultIfEmpty()
+                                       select new PolicyAssignmentCandidateDataDTO(
+                                           employee.Id,
+                                           employee.EmployementCode ?? string.Empty,
+                                           string.Join(" ", new[] { employee.FirstName, employee.MiddleName, employee.LastName }
+                                               .Where(name => !string.IsNullOrWhiteSpace(name))),
+                                           employee.EmployeeTypeId,
+                                           employeeType != null ? employeeType.TypeName : null,
+                                           employee.DepartmentId,
+                                           department != null ? department.DepartmentName : null,
+                                           employee.DesignationId,
+                                           designation != null ? designation.DesignationName : null,
+                                           assignedSet.Contains(employee.Id)))
+            .ToListAsync(cancellationToken);
+
+        var employeeTypes = eligibleEmployees.Where(x => x.EmployeeTypeId.HasValue)
+            .GroupBy(x => new { Id = x.EmployeeTypeId!.Value, x.EmployeeTypeName })
+            .Select(x => new PolicyAssignmentFilterOptionDTO(x.Key.Id, x.Key.EmployeeTypeName ?? string.Empty, x.Count()))
+            .OrderBy(x => x.Name).ToList();
+        var departments = eligibleEmployees.Where(x => x.DepartmentId.HasValue)
+            .GroupBy(x => new { Id = x.DepartmentId!.Value, x.DepartmentName })
+            .Select(x => new PolicyAssignmentFilterOptionDTO(x.Key.Id, x.Key.DepartmentName ?? string.Empty, x.Count()))
+            .OrderBy(x => x.Name).ToList();
+        var designations = eligibleEmployees
+            .Where(x => x.DesignationId.HasValue && (!dto.DepartmentId.HasValue || x.DepartmentId == dto.DepartmentId))
+            .GroupBy(x => new { Id = x.DesignationId!.Value, x.DesignationName })
+            .Select(x => new PolicyAssignmentFilterOptionDTO(x.Key.Id, x.Key.DesignationName ?? string.Empty, x.Count()))
+            .OrderBy(x => x.Name).ToList();
+
+        IEnumerable<PolicyAssignmentCandidateDataDTO> filtered = eligibleEmployees;
+        if (dto.EmployeeTypeId.HasValue) filtered = filtered.Where(x => x.EmployeeTypeId == dto.EmployeeTypeId);
+        if (dto.DepartmentId.HasValue) filtered = filtered.Where(x => x.DepartmentId == dto.DepartmentId);
+        if (dto.DesignationId.HasValue) filtered = filtered.Where(x => x.DesignationId == dto.DesignationId);
+        if (!dto.IncludeAssigned) filtered = filtered.Where(x => !x.IsAssigned);
+        if (!string.IsNullOrWhiteSpace(dto.Search))
+        {
+            var search = dto.Search.Trim();
+            filtered = filtered.Where(x => x.EmployeeCode.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || x.EmployeeName.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+        var ordered = filtered.OrderBy(x => x.DepartmentName).ThenBy(x => x.DesignationName)
+            .ThenBy(x => x.EmployeeCode).ThenBy(x => x.EmployeeName).ToList();
+        var pageNumber = Math.Max(1, dto.PageNumber);
+        var pageSize = Math.Clamp(dto.PageSize, 1, 200);
+        var page = ordered.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        return new PolicyAssignmentCandidateDataPageDTO(policyVersion.PolicyId,
+            policyVersion.PolicyVersionId, policyVersion.PolicyCode, policyVersion.PolicyName,
+            policyVersion.VersionNumber, effectiveDate, ordered.Count, page,
+            employeeTypes, departments, designations);
+    }
+
+    public async Task<IReadOnlyList<PolicyAssignmentExportRowDTO>> GetAssignmentExportAsync(
+        long tenantId,
+        long policyVersionId,
+        CancellationToken cancellationToken)
+    {
+        await EnsureVersionAsync(tenantId, policyVersionId, cancellationToken);
+        return await (from assignment in context.PolicyAssignments.AsNoTracking()
+                      where assignment.TenantId == tenantId && assignment.PolicyVersionId == policyVersionId
+                      join employee in context.Employees.AsNoTracking() on assignment.EmployeeId equals employee.Id
+                      join employeeType in context.EmployeeTypes.AsNoTracking()
+                          on employee.EmployeeTypeId equals (int?)employeeType.Id into employeeTypes
+                      from employeeType in employeeTypes.DefaultIfEmpty()
+                      join department in context.Departments.AsNoTracking()
+                          on employee.DepartmentId equals (int?)department.Id into departments
+                      from department in departments.DefaultIfEmpty()
+                      join designation in context.Designations.AsNoTracking()
+                          on employee.DesignationId equals (int?)designation.Id into designations
+                      from designation in designations.DefaultIfEmpty()
+                      orderby department.DepartmentName, designation.DesignationName,
+                          employee.EmployementCode, employee.FirstName
+                      select new PolicyAssignmentExportRowDTO(assignment.Id, employee.Id,
+                          employee.EmployementCode ?? string.Empty,
+                          string.Join(" ", new[] { employee.FirstName, employee.MiddleName, employee.LastName }
+                              .Where(name => !string.IsNullOrWhiteSpace(name))),
+                          employeeType != null ? employeeType.TypeName : null,
+                          department != null ? department.DepartmentName : null,
+                          designation != null ? designation.DesignationName : null,
+                          assignment.AssignmentSource, assignment.EffectiveFrom, assignment.EffectiveTo,
+                          assignment.IsMandatory, assignment.IsActive)).ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<PolicyExceptionResponseDTO>> GetExceptionsAsync(
@@ -1444,6 +1592,77 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         if (scope.EmployeeTypeId.HasValue) return 200;
         if (scope.DepartmentId.HasValue || scope.DesignationId.HasValue) return 100;
         return 0;
+    }
+
+    internal static async Task<HashSet<long>> GetApplicabilityEligibleEmployeeIdsAsync(
+        WorkforceDbContext database,
+        long tenantId,
+        long policyVersionId,
+        IReadOnlyCollection<long> employeeIds,
+        DateOnly effectiveDate,
+        CancellationToken cancellationToken)
+    {
+        if (employeeIds.Count == 0)
+        {
+            return new HashSet<long>();
+        }
+        var scopes = await database.PolicyApplicabilities.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId
+                && x.IsActive && x.EffectiveFrom <= effectiveDate
+                && (x.EffectiveTo == null || x.EffectiveTo >= effectiveDate))
+            .ToListAsync(cancellationToken);
+        if (scopes.Count == 0)
+        {
+            return new HashSet<long>();
+        }
+        var employees = await database.Employees.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && employeeIds.Contains(x.Id)
+                && x.IsActive && !x.IsSoftDeleted)
+            .ToListAsync(cancellationToken);
+        var locations = await (from assignment in database.EmployeeLocationAssignments.AsNoTracking()
+                               join location in database.TenantLocations.AsNoTracking()
+                                   on assignment.TenantLocationId equals location.Id
+                               where assignment.TenantId == tenantId && employeeIds.Contains(assignment.EmployeeId)
+                                   && assignment.IsActive && !assignment.IsSoftDeleted
+                                   && assignment.EffectiveFrom <= effectiveDate
+                                   && (assignment.EffectiveTo == null || assignment.EffectiveTo >= effectiveDate)
+                               select new { assignment.EmployeeId, Location = location })
+            .ToListAsync(cancellationToken);
+        var locationsByEmployee = locations.GroupBy(x => x.EmployeeId)
+            .ToDictionary(x => x.Key, x => (IReadOnlyCollection<TenantLocation>)x.Select(y => y.Location).ToList());
+        var workModes = await database.EmployeeWorkArrangements.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && employeeIds.Contains(x.EmployeeId)
+                && x.IsActive && !x.IsSoftDeleted && x.EffectiveFrom <= effectiveDate
+                && (x.EffectiveTo == null || x.EffectiveTo >= effectiveDate))
+            .OrderByDescending(x => x.EffectiveFrom)
+            .ThenByDescending(x => x.Id)
+            .Select(x => new { x.EmployeeId, x.WorkMode })
+            .ToListAsync(cancellationToken);
+        var workModeByEmployee = workModes.GroupBy(x => x.EmployeeId)
+            .ToDictionary(x => x.Key, x => (short?)x.First().WorkMode);
+        var eligible = new HashSet<long>();
+        foreach (var employee in employees)
+        {
+            var employeeLocations = locationsByEmployee.GetValueOrDefault(employee.Id,
+                Array.Empty<TenantLocation>());
+            var workMode = workModeByEmployee.GetValueOrDefault(employee.Id);
+            var matching = scopes.Where(x => ScopeMatches(x, employee, employeeLocations,
+                workMode, effectiveDate)).ToList();
+            if (matching.Count == 0)
+            {
+                continue;
+            }
+            var specificity = matching.Max(ScopeSpecificity);
+            var mostSpecific = matching.Where(x => ScopeSpecificity(x) == specificity).ToList();
+            var priority = mostSpecific.Min(x => x.Priority);
+            var winners = mostSpecific.Where(x => x.Priority == priority).ToList();
+            if (!winners.Any(x => x.ApplicabilityMode == 2)
+                && winners.Any(x => x.ApplicabilityMode == 1))
+            {
+                eligible.Add(employee.Id);
+            }
+        }
+        return eligible;
     }
 
     private static bool ScopeMatches(PolicyApplicability x, Employee e, IReadOnlyCollection<TenantLocation> locations, short? workMode, DateOnly date)

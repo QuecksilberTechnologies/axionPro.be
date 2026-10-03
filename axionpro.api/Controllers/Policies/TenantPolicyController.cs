@@ -391,6 +391,41 @@ public sealed class TenantPolicyController(IMediator mediator) : ControllerBase
         return Ok(await mediator.Send(new GetPolicyAssignmentsQuery(dto)));
     }
 
+    /// <summary>Returns only employees eligible under the selected Policy Version applicability.</summary>
+    /// <remarks>
+    /// Use this when opening the Map Policies popup. Employee code, employee type, department and
+    /// designation are returned with every row to disambiguate duplicate names. The same
+    /// applicability resolution used by assignment validation is applied before paging. Filter
+    /// options are calculated from the eligible population. Requires Policy Assignments View
+    /// permission.
+    /// </remarks>
+    [HttpGet("versions/{versionId:long}/assignment-candidates")]
+    public async Task<IActionResult> GetAssignmentCandidates(
+        long versionId,
+        [FromQuery] PolicyAssignmentCandidateRequestDTO dto)
+    {
+        dto.PolicyVersionId = versionId;
+        return Ok(await mediator.Send(new GetPolicyAssignmentCandidatesQuery(dto)));
+    }
+
+    /// <summary>Exports the complete employee mapping list for a Policy Version.</summary>
+    /// <remarks>
+    /// The CSV includes employee code, employee name, employee type, department, designation,
+    /// effective dates and active state. It is not paged. Requires Policy Assignments Export
+    /// permission resolved through the existing dynamic permission pipeline.
+    /// </remarks>
+    [HttpGet("versions/{versionId:long}/assignments/export")]
+    public async Task<IActionResult> ExportAssignments(
+        long versionId,
+        [FromQuery] PolicyVersionAccessRequestDTO dto,
+        CancellationToken cancellationToken)
+    {
+        dto.PolicyVersionId = versionId;
+        var response = await mediator.Send(new ExportPolicyAssignmentsQuery(dto), cancellationToken);
+        return File(Encoding.UTF8.GetBytes(response.Data ?? string.Empty), "text/csv; charset=utf-8",
+            $"Policy-version-{versionId}-assignments.csv");
+    }
+
     /// <summary>Lists employee exceptions and their decisions for a Policy Version.</summary>
     /// <remarks>
     /// Use this on the Exceptions screen to review override configuration, reason, effective window,
