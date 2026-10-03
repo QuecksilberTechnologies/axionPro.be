@@ -1,6 +1,7 @@
 namespace axionpro.application.Constants;
 
 /// <summary>Central parsing limits and column contracts for master import previews.</summary>
+/// ///
 public static class BulkImportConstants
 {
     public const string HostDeviceBulkModuleCode = "HOST_DEVICE_SETUP";
@@ -18,7 +19,7 @@ public static class BulkImportConstants
     public const string DesignationName = "DesignationName";
     public const string RoleName = "RoleName";
     public const string RoleType = "RoleType";
-    public const string TypeName = "TypeName";
+    public const string TypeName = "TypeName"; 
     public const string EmployeeTypeModuleCode = "EMPLOYEE_TYPE";
     public const string EmployeeCodeModuleCode = "TENANT_EMPLOYEE_CODE";
     public const string EmployeeModuleCode = "EMP_LIST";
