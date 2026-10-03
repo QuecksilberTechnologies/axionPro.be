@@ -61,6 +61,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
                     setting.DisplayName,
                     setting.DataTypeCode,
                     setting.IsRequired,
+                    setting.AllowMultiple,
                     setting.DefaultValueJson,
                     setting.MinimumValue,
                     setting.MaximumValue,
@@ -1281,6 +1282,31 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
     }
 
     private static void ValidateSettingValue(
+        PolicyRuleSettingDefinition definition,
+        JsonElement value,
+        IReadOnlyCollection<PolicyRuleSettingOption> options)
+    {
+        if (definition.AllowMultiple)
+        {
+            if (value.ValueKind != JsonValueKind.Array)
+            {
+                throw new ValidationErrorException($"Rule setting '{definition.SettingCode}' must be an array.");
+            }
+            if (definition.IsRequired && value.GetArrayLength() == 0)
+            {
+                throw new ValidationErrorException($"Rule setting '{definition.SettingCode}' requires at least one value.");
+            }
+            foreach (var item in value.EnumerateArray())
+            {
+                ValidateSingleSettingValue(definition, item, options);
+            }
+            return;
+        }
+
+        ValidateSingleSettingValue(definition, value, options);
+    }
+
+    private static void ValidateSingleSettingValue(
         PolicyRuleSettingDefinition definition,
         JsonElement value,
         IReadOnlyCollection<PolicyRuleSettingOption> options)

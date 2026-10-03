@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS axionpro."PolicyRuleSettingDefinition"
     "DisplayName" varchar(120) NOT NULL,
     "DataTypeCode" varchar(30) NOT NULL,
     "IsRequired" boolean NOT NULL DEFAULT false,
+    "AllowMultiple" boolean NOT NULL DEFAULT false,
     "DefaultValueJson" jsonb,
     "MinimumValue" numeric,
     "MaximumValue" numeric,
@@ -33,6 +34,9 @@ CREATE TABLE IF NOT EXISTS axionpro."PolicyRuleSettingDefinition"
     CONSTRAINT "UQ_PolicyRuleSettingDefinition_Rule_Code" UNIQUE ("PolicyRuleTypeId", "SettingCode"),
     CONSTRAINT "CK_PolicyRuleSettingDefinition_Type" CHECK ("DataTypeCode" IN ('BOOLEAN','INTEGER','DECIMAL','STRING','CODE'))
 );
+
+ALTER TABLE axionpro."PolicyRuleSettingDefinition"
+    ADD COLUMN IF NOT EXISTS "AllowMultiple" boolean NOT NULL DEFAULT false;
 
 CREATE TABLE IF NOT EXISTS axionpro."PolicyRuleSettingOption"
 (
@@ -119,6 +123,15 @@ ON CONFLICT ("PolicyRuleTypeId","SettingCode") DO UPDATE SET
  "DisplayName"=EXCLUDED."DisplayName", "DataTypeCode"=EXCLUDED."DataTypeCode", "IsRequired"=EXCLUDED."IsRequired",
  "DefaultValueJson"=EXCLUDED."DefaultValueJson", "MinimumValue"=EXCLUDED."MinimumValue", "MaximumValue"=EXCLUDED."MaximumValue",
  "DisplayOrder"=EXCLUDED."DisplayOrder", "Placeholder"=EXCLUDED."Placeholder", "HelpText"=EXCLUDED."HelpText", "IsActive"=true;
+
+UPDATE axionpro."PolicyRuleSettingDefinition" definition
+SET "AllowMultiple" = true,
+    "DefaultValueJson" = '["WEB"]'::jsonb,
+    "Placeholder" = 'Select one or more attendance channels'
+FROM axionpro."PolicyRuleType" rule_type
+WHERE definition."PolicyRuleTypeId" = rule_type."Id"
+  AND rule_type."RuleTypeCode" = 'ATTENDANCE_CHANNEL'
+  AND definition."SettingCode" = 'channelCode';
 
 WITH option_seed("RuleTypeCode","SettingCode","OptionCode","OptionLabel","ValueJson","DisplayOrder") AS (VALUES
  ('ATTENDANCE_CHANNEL','channelCode','WEB','Web','"WEB"'::jsonb,10),('ATTENDANCE_CHANNEL','channelCode','MOBILE','Mobile','"MOBILE"'::jsonb,20),('ATTENDANCE_CHANNEL','channelCode','BIOMETRIC','Biometric','"BIOMETRIC"'::jsonb,30),('ATTENDANCE_CHANNEL','channelCode','MANUAL','Manual','"MANUAL"'::jsonb,40),

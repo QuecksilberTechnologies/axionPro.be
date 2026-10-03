@@ -243,7 +243,7 @@ public sealed record PolicyLookupResponseDTO(int Id, string Code, string Name, s
 public sealed record PolicyEnumLookupResponseDTO(short Id, string Code, string Name);
 public sealed record PolicyRuleSettingOptionResponseDTO(string Code, string Label, string ValueJson, int Order);
 public sealed record PolicyRuleSettingDependencyResponseDTO(string DependsOnCode, string OperatorCode, string ExpectedValueJson, string ActionCode);
-public sealed record PolicyRuleSettingDefinitionResponseDTO(string Code, string Name, string DataTypeCode, bool IsRequired,
+public sealed record PolicyRuleSettingDefinitionResponseDTO(string Code, string Name, string DataTypeCode, bool IsRequired, bool AllowMultiple,
     string? DefaultValueJson, decimal? MinimumValue, decimal? MaximumValue, string? RegexPattern,
     string? Placeholder, string? HelpText, int Order,
     IReadOnlyList<PolicyRuleSettingOptionResponseDTO> Options,

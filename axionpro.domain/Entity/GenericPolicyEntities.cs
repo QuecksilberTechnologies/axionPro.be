@@ -53,6 +53,7 @@ public sealed class PolicyRuleSettingDefinition
     public string DisplayName { get; set; } = null!;
     public string DataTypeCode { get; set; } = null!;
     public bool IsRequired { get; set; }
+    public bool AllowMultiple { get; set; }
     public string? DefaultValueJson { get; set; }
     public decimal? MinimumValue { get; set; }
     public decimal? MaximumValue { get; set; }

@@ -60,6 +60,8 @@ public sealed class GenericPolicyRuleMetadataTests
         }
 
         Assert.That(sql, Does.Contain("\"Placeholder\"=EXCLUDED.\"Placeholder\""));
+        Assert.That(sql, Does.Contain("\"AllowMultiple\" boolean NOT NULL DEFAULT false"));
+        Assert.That(sql, Does.Contain("ATTENDANCE_CHANNEL"));
     }
 
     [Test]
@@ -93,6 +95,7 @@ public sealed class GenericPolicyRuleMetadataTests
         Assert.That(repository, Does.Contain("must be {definition.DataTypeCode}"));
         Assert.That(repository, Does.Contain("is outside its allowed range"));
         Assert.That(repository, Does.Contain("has an unsupported option"));
+        Assert.That(repository, Does.Contain("must be an array"));
     }
 
     [Test]
