@@ -1,5 +1,7 @@
 # Scenario test reports
 
+- [Render API-only restore — 2026-10-03](deployment/api-only-restore/2026-10-03.md)
+
 - [Employee Bank sensitive-field encryption — 2026-10-03](employee/bank-sensitive-field-encryption/2026-10-03.md)
 
 - [Employee Education create date mapping — 2026-10-03](employee/education-create-date-mapping/2026-10-03.md)

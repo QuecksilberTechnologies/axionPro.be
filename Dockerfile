@@ -8,11 +8,13 @@ WORKDIR /src
 # copy entire repository
 COPY . .
 
-# restore solution
-RUN dotnet restore AxionPro.sln
+# Restore only the API dependency graph. The solution also contains the
+# Windows Forms employee agent, which is not part of this Linux service.
+RUN dotnet restore axionpro.api/axionpro.api.csproj
 
 # publish api
 RUN dotnet publish axionpro.api/axionpro.api.csproj \
+    --no-restore \
     -c Release \
     -o /app/publish \
     /p:UseAppHost=false
