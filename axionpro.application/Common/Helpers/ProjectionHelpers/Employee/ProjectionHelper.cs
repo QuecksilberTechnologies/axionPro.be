@@ -570,6 +570,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         public static List<GetBankResponseDTO> ToGetBankResponseDTOs(
      PagedResponseDTO<GetBankResponseDTO> entities,
      IIdEncoderService encoderService,
+     IEncryptionService encryptionService,
      string tenantKey,
      IConfiguration configuration, IFileStorageService _fileStorageService)
         {
@@ -591,6 +592,10 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     item.EmployeeId = encoderService.EncodeId_long(rawEmpId, tenantKey);
                 }
 
+                item.AccountNumber = DecryptBankValue(item.AccountNumber, encryptionService, tenantKey);
+                item.IFSCCode = DecryptBankValue(item.IFSCCode, encryptionService, tenantKey);
+                item.UPIId = DecryptBankValue(item.UPIId, encryptionService, tenantKey);
+
                if (!string.IsNullOrEmpty(item.FilePath))
                     item.FilePath = _fileStorageService.GetFileUrl(item.FilePath);
 
@@ -604,6 +609,17 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             }
 
             return entities.Data;
+        }
+
+        private static string? DecryptBankValue(
+            string? encryptedValue,
+            IEncryptionService encryptionService,
+            string tenantKey)
+        {
+            if (string.IsNullOrWhiteSpace(encryptedValue))
+                return null;
+
+            return encryptionService.Decrypt(encryptedValue, tenantKey);
         }
 
         private static string EncodeId(

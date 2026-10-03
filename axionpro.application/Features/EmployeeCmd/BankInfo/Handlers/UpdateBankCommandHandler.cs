@@ -154,10 +154,14 @@ public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiRe
                     bank.BankName = dto.BankName.Trim();
 
                 if (!string.IsNullOrWhiteSpace(dto.AccountNumber))
-                    bank.AccountNumber = dto.AccountNumber.Trim();
+                    bank.AccountNumber = _encryptionService.Encrypt(
+                        dto.AccountNumber.Trim(),
+                        validation.Claims.TenantEncriptionKey);
 
                 if (!string.IsNullOrWhiteSpace(dto.IFSCCode))
-                    bank.Ifsccode = dto.IFSCCode.Trim();
+                    bank.Ifsccode = _encryptionService.Encrypt(
+                        dto.IFSCCode.Trim().ToUpperInvariant(),
+                        validation.Claims.TenantEncriptionKey);
 
                 if (!string.IsNullOrWhiteSpace(dto.BranchName))
                     bank.BranchName = dto.BranchName.Trim();
@@ -166,7 +170,9 @@ public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiRe
                     bank.AccountType = AccountTypeHelper.Normalize(dto.AccountType);
 
                 if (!string.IsNullOrWhiteSpace(dto.UPIId))
-                    bank.Upiid = dto.UPIId.Trim();
+                    bank.Upiid = _encryptionService.Encrypt(
+                        dto.UPIId.Trim(),
+                        validation.Claims.TenantEncriptionKey);
 
                 // ===============================
                 // 6️⃣ PRIMARY ACCOUNT RULE

@@ -203,6 +203,17 @@ public class CreateBankInfoCommandHandler: IRequestHandler<CreateBankInfoCommand
                 var bankEntity = _mapper.Map<EmployeeBankDetail>(request.DTO);
 
                 bankEntity.EmployeeId = employeeId;
+                bankEntity.AccountNumber = _encryptionService.Encrypt(
+                    request.DTO.AccountNumber!.Trim(),
+                    validation.Claims.TenantEncriptionKey);
+                bankEntity.Ifsccode = _encryptionService.Encrypt(
+                    request.DTO.IFSCCode!.Trim().ToUpperInvariant(),
+                    validation.Claims.TenantEncriptionKey);
+                bankEntity.Upiid = string.IsNullOrWhiteSpace(request.DTO.UPIId)
+                    ? null
+                    : _encryptionService.Encrypt(
+                        request.DTO.UPIId.Trim(),
+                        validation.Claims.TenantEncriptionKey);
                 bankEntity.AddedById = validation.LoggedInEmployeeId;
                 bankEntity.AddedDateTime = DateTime.UtcNow;
                 bankEntity.AccountType = AccountTypeHelper.Normalize(request.DTO.AccountType);
@@ -230,6 +241,7 @@ public class CreateBankInfoCommandHandler: IRequestHandler<CreateBankInfoCommand
                 var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(
                     responseDTO,
                     _idEncoderService,
+                    _encryptionService,
                     validation.Claims.TenantEncriptionKey,
                     _config, _fileStorageService);
 

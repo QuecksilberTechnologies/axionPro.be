@@ -129,6 +129,9 @@ public class CreateEducationInfoCommandHandler : IRequestHandler<CreateEducation
                 EmployeeProfileValidationHelper.RequireText(request.DTO.Degree, "Degree");
                 EmployeeProfileValidationHelper.RequireText(request.DTO.InstituteName, "Institute name");
                 EmployeeProfileValidationHelper.RequireText(request.DTO.ScoreType, "Score type");
+                if (!int.TryParse(request.DTO.ScoreType?.Trim(), out var scoreType) || scoreType <= 0)
+                    throw new ValidationErrorException("Invalid score type.");
+
                 EmployeeProfileValidationHelper.ValidateDateRange(
                     request.DTO.StartDate,
                     request.DTO.EndDate);
@@ -188,6 +191,7 @@ public class CreateEducationInfoCommandHandler : IRequestHandler<CreateEducation
                 var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);
 
                 educationEntity.EmployeeId = employeeId;
+                educationEntity.ScoreType = scoreType;
                 educationEntity.AddedById = validation.LoggedInEmployeeId;
                 educationEntity.AddedDateTime = DateTime.UtcNow;
 

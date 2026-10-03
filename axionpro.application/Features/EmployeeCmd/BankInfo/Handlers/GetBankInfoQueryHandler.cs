@@ -149,6 +149,7 @@ public class GetBankInfoQueryHandler : IRequestHandler<GetBankInfoQuery, ApiResp
                 var result = ProjectionHelper.ToGetBankResponseDTOs(
                     bankEntities,
                     _idEncoderService,
+                    _encryptionService,
                     validation.Claims.TenantEncriptionKey,
                     _config, _fileStorageService
                 );

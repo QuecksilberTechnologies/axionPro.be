@@ -7,6 +7,7 @@
 // ================================================================
 
 using System.Reflection;
+using AutoMapper;
 using axionpro.api.Controllers.Employee;
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers;
@@ -23,7 +24,9 @@ using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.Extentions;
 using axionpro.application.Features.EmployeeCmd;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Mappings;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -86,6 +89,32 @@ public sealed class EmployeeProfileCharacterizationTests
             Assert.That(result.IsInfoVerified, Is.True);
             Assert.That(result.IsEditAllowed, Is.False);
             Assert.That(result.IsSectionCreate, Is.True);
+        });
+    }
+
+    [Test]
+    public void Education_create_mapping_accepts_the_form_contract()
+    {
+        var mapper = new MapperConfiguration(configuration =>
+            configuration.AddProfile<MappingProfile>()).CreateMapper();
+        var request = new CreateEducationRequestDTO
+        {
+            Degree = "Bachelor of Technology in Computer Science",
+            InstituteName = "Example Institute",
+            StartDate = new DateTime(2016, 7, 1),
+            EndDate = new DateTime(2020, 6, 30),
+            ScoreType = "1",
+            ScoreValue = "80",
+            GradeDivision = "First"
+        };
+
+        var result = mapper.Map<EmployeeEducation>(request);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.StartDate, Is.EqualTo(new DateOnly(2016, 7, 1)));
+            Assert.That(result.EndDate, Is.EqualTo(new DateOnly(2020, 6, 30)));
+            Assert.That(result.ScoreType, Is.EqualTo(1));
         });
     }
 

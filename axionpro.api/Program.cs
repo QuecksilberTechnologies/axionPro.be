@@ -147,6 +147,16 @@ try
                     QueueLimit = 0,
                     AutoReplenishment = true
                 }));
+        options.AddPolicy("employee-monitoring-agent", context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 180,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                    AutoReplenishment = true
+                }));
     });
 
     // ============================

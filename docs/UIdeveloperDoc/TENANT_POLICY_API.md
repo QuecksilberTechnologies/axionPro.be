@@ -321,3 +321,6 @@ those checks.
 ```json
 { "isSucceeded": false, "message": "Action PUBLISH is invalid for the current policy status.", "data": null, "errors": [], "errorCode": "CONFLICT" }
 ```
+# Attendance channel UI verification
+
+The single channel selector preserves saved execution flags and synchronizes existing channel rule JSON before saving. See [local verification and remaining live acceptance](../testing/policy/unified-attendance-channels/2026-10-03.md).

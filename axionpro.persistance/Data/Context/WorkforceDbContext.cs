@@ -131,6 +131,12 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; }
 
+        public virtual DbSet<EmployeeMonitoringPolicy> EmployeeMonitoringPolicies { get; set; }
+
+        public virtual DbSet<EmployeeMonitoringAgent> EmployeeMonitoringAgents { get; set; }
+
+        public virtual DbSet<EmployeeScreenCapture> EmployeeScreenCaptures { get; set; }
+
         public virtual DbSet<EmployeeDeviceAccessWindow> EmployeeDeviceAccessWindows { get; set; }
 
         public virtual DbSet<TenantCardMaster> TenantCardMasters { get; set; }
@@ -1200,7 +1206,7 @@ namespace axionpro.persistance.Data.Context
 
             entity.ToTable("EmployeeBankDetail", "axionpro");
 
-            entity.Property(e => e.AccountNumber).HasMaxLength(50);
+            entity.Property(e => e.AccountNumber).HasMaxLength(128);
             entity.Property(e => e.AccountType).HasMaxLength(50);
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.BankName).HasMaxLength(100);
@@ -1208,11 +1214,11 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.FileName).HasMaxLength(100);
             entity.Property(e => e.FilePath).HasMaxLength(500);
             entity.Property(e => e.Ifsccode)
-                .HasMaxLength(20)
+                .HasMaxLength(128)
                 .HasColumnName("IFSCCode");
             entity.Property(e => e.IsPrimaryAccount).HasDefaultValue(true);
             entity.Property(e => e.Upiid)
-                .HasMaxLength(100)
+                .HasMaxLength(512)
                 .HasColumnName("UPIId");
 
             entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeBankDetail)
@@ -3409,6 +3415,52 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeLocationAssignment_Employee");
                 entity.HasOne(e => e.TenantLocation).WithMany(e => e.EmployeeLocationAssignment)
                     .HasForeignKey(e => e.TenantLocationId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeLocationAssignment_TenantLocation");
+            });
+
+            modelBuilder.Entity<EmployeeMonitoringPolicy>(entity =>
+            {
+                entity.ToTable("EmployeeMonitoringPolicy", "axionpro");
+                entity.HasIndex(e => e.TenantId, "UX_EmployeeMonitoringPolicy_Tenant")
+                    .IsUnique().HasFilter("((\"IsActive\" = true) AND (\"IsSoftDeleted\" = false))");
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.HasOne<Tenant>().WithMany().HasForeignKey(e => e.TenantId)
+                    .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeMonitoringPolicy_Tenant");
+            });
+
+            modelBuilder.Entity<EmployeeMonitoringAgent>(entity =>
+            {
+                entity.ToTable("EmployeeMonitoringAgent", "axionpro");
+                entity.HasIndex(e => e.AgentInstanceId, "UX_EmployeeMonitoringAgent_Instance").IsUnique();
+                entity.HasIndex(e => e.CredentialHash, "UX_EmployeeMonitoringAgent_CredentialHash").IsUnique();
+                entity.HasIndex(e => new { e.TenantId, e.EmployeeId }, "IX_EmployeeMonitoringAgent_Tenant_Employee");
+                entity.HasIndex(e => e.LastHeartbeatDateTime, "IX_EmployeeMonitoringAgent_LastHeartbeat");
+                entity.Property(e => e.DeviceName).HasMaxLength(200);
+                entity.Property(e => e.CredentialHash).HasMaxLength(64);
+                entity.Property(e => e.AgentVersion).HasMaxLength(50);
+                entity.Property(e => e.LastErrorCode).HasMaxLength(100);
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.HasOne(e => e.Policy).WithMany().HasForeignKey(e => e.PolicyId)
+                    .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeMonitoringAgent_Policy");
+                entity.HasOne<Tenant>().WithMany().HasForeignKey(e => e.TenantId)
+                    .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeMonitoringAgent_Tenant");
+                entity.HasOne<Employee>().WithMany().HasForeignKey(e => e.EmployeeId)
+                    .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeMonitoringAgent_Employee");
+            });
+
+            modelBuilder.Entity<EmployeeScreenCapture>(entity =>
+            {
+                entity.ToTable("EmployeeScreenCapture", "axionpro");
+                entity.HasIndex(e => new { e.MonitoringAgentId, e.CaptureId }, "UX_EmployeeScreenCapture_Agent_Capture").IsUnique();
+                entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.CapturedAtUtc }, "IX_EmployeeScreenCapture_Tenant_Employee_Captured");
+                entity.Property(e => e.ContentType).HasMaxLength(50);
+                entity.Property(e => e.ChecksumSha256).HasMaxLength(64);
+                entity.Property(e => e.StorageObjectKey).HasMaxLength(1000);
+                entity.HasOne(e => e.MonitoringAgent).WithMany().HasForeignKey(e => e.MonitoringAgentId)
+                    .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeScreenCapture_Agent");
+                entity.HasOne<Tenant>().WithMany().HasForeignKey(e => e.TenantId)
+                    .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeScreenCapture_Tenant");
+                entity.HasOne<Employee>().WithMany().HasForeignKey(e => e.EmployeeId)
+                    .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeScreenCapture_Employee");
             });
 
             modelBuilder.Entity<EmployeeDeviceEnrollment>(entity =>

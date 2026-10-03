@@ -1,5 +1,13 @@
 # Scenario test reports
 
+- [Employee Bank sensitive-field encryption — 2026-10-03](employee/bank-sensitive-field-encryption/2026-10-03.md)
+
+- [Employee Education create date mapping — 2026-10-03](employee/education-create-date-mapping/2026-10-03.md)
+
+- [Employee monitoring Windows agent foundation — 2026-10-03](employee/monitoring-agent/2026-10-03.md)
+
+- [Unified attendance channels — 2026-10-03](policy/unified-attendance-channels/2026-10-03.md)
+
 - [Tenant demo end-to-end readiness — 2026-09-28](tenant/demo-e2e/2026-09-28.md)
 - [Tenant creation without implicit policy types — 2026-10-01](tenant/creation-policy-independence/2026-10-01.md)
 - [Tenant registration actionable errors — 2026-10-01](tenant/registration-actionable-errors/2026-10-01.md)

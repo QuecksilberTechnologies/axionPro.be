@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Interfaces.ICacheService;
+using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -10,6 +11,7 @@ using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IQRService;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
+using axionpro.application.Common.Models;
 
 using axionpro.infrastructure.BackgroundJob;
 using axionpro.infrastructure.CacheMemory;
@@ -34,6 +36,17 @@ namespace axionpro.infrastructure
     {
         public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddOptions<EmployeeMonitoringStorageOptions>()
+                .Bind(configuration.GetSection(EmployeeMonitoringStorageOptions.SectionName))
+                .Validate(value => string.Equals(value.Provider, "FileSystem", StringComparison.OrdinalIgnoreCase),
+                    "EmployeeMonitoringStorage:Provider must be FileSystem for the configured adapter.")
+                .Validate(value => !string.IsNullOrWhiteSpace(value.RootPath),
+                    "EmployeeMonitoringStorage:RootPath is required.")
+                .Validate(value => value.MaximumUploadBytes > 0,
+                    "EmployeeMonitoringStorage:MaximumUploadBytes must be positive.")
+                .Validate(value => value.AllowedContentTypes.Length > 0,
+                    "EmployeeMonitoringStorage:AllowedContentTypes is required.")
+                .ValidateOnStart();
             services.AddOptions<axionpro.application.Common.Models.BulkImportOptions>()
                 .Bind(configuration.GetSection(axionpro.application.Common.Models.BulkImportOptions.SectionName))
                 .Validate(value => value.PollIntervalSeconds is >= 1 and <= 300,
@@ -82,6 +95,7 @@ namespace axionpro.infrastructure
             services.AddScoped<ITenantEmailConfigRepository, TenantEmailConfigRepository>();
             services.AddScoped<IQRService, QRService>();
             services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<IEmployeeScreenshotStorage, EmployeeScreenshotFileStorage>();
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ICommonRequestService, CommonRequestService>();

@@ -50,6 +50,15 @@ shape, optional UPI ID, and the cancelled-cheque requirement for a primary
 account on the API as well as in Angular. Adding a non-primary account does not
 clear the employee's existing primary account.
 
+Bank `AccountNumber`, `IFSCCode` and optional `UPIId` are encrypted at rest with
+the existing tenant encryption key and `IEncryptionService`. Create and Update
+encrypt before persistence. Get decrypts only inside the authenticated tenant
+request and returns the original values over HTTPS so the existing UI mask/reveal
+and Edit flows continue to work. Delete and verification/edit-status operations
+do not transform these values. The database column capacities are 128, 128 and
+512 characters respectively to hold AES ciphertext. A hash is not used because
+these three values must remain reversible for the authorized Edit/reveal flow.
+
 Contact relation options come from the bearer-authenticated, permission-ID-free
 `GET /api/Employee/Contact/relation-options` endpoint. Employee creation also
 creates one editable contact placeholder in the same transaction with the full
@@ -107,6 +116,35 @@ lookup masters are read-only inputs and require seed/master data. Transaction
 tables must be populated through application workflows, not fabricated seed
 employees. The exact master-table seed list is module-specific; identity uses
 the four seeded masters documented in `EMPLOYEE_COUNTRY_IDENTITY.md`.
+
+### Education create FormData contract
+
+`POST /api/Employee/Education/create` consumes `multipart/form-data`. `EmployeeId`
+is the tenant-salted encoded employee ID. `ModuleId` and `OperationId` must be
+resolved through the authenticated menu/permission flow; numeric values must not
+be hardcoded. Dates use ISO form values and are persisted as date-only values.
+`ScoreType` is the existing numeric-string contract (`1` for Percentage and `2`
+for CPG); invalid or non-positive values return validation failure instead of a
+generic server error.
+
+```text
+EmployeeId=<encoded-employee-id>
+Degree=Bachelor of Technology in Computer Science
+InstituteName=Example Institute
+StartDate=2016-07-01
+EndDate=2020-06-30
+ScoreType=1
+ScoreValue=80
+GradeDivision=First
+IsEducationGapBeforeDegree=false
+GapYears=0
+Remark=test
+ModuleId=<dynamic-module-id>
+OperationId=<dynamic-operation-id>
+```
+
+`EducationDocument` is optional. When supplied, it uses the same FormData request.
+No retry or polling contract applies to this synchronous create endpoint.
 
 ## Tested and deployed status
 

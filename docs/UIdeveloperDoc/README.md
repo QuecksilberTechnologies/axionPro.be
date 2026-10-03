@@ -1,5 +1,8 @@
 # UI developer documents
 
+- [Employee Monitoring Agent API](EMPLOYEE_MONITORING_AGENT_API.md) — Tenant policy,
+  one-time PC-agent enrollment, heartbeat/disconnect status and offline screenshot synchronization.
+
 - [Role Type Options API](ROLE_TYPE_OPTIONS_API.md) — authenticated, permission-ID-free
   backend catalogue for Role filters and Add/Edit dropdowns, including Client type 4.
 

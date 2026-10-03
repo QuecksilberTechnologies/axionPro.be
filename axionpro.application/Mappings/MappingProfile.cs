@@ -919,6 +919,14 @@ namespace axionpro.application.Mappings
                 .ForMember(dest => dest.AddedById, opt => opt.Ignore())
                 .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
 
+                .ForMember(dest => dest.StartDate,
+                           opt => opt.MapFrom(src => src.StartDate.HasValue
+                                ? DateOnly.FromDateTime(src.StartDate.Value)
+                                : (DateOnly?)null))
+                .ForMember(dest => dest.EndDate,
+                           opt => opt.MapFrom(src => src.EndDate.HasValue
+                                ? DateOnly.FromDateTime(src.EndDate.Value)
+                                : (DateOnly?)null))
 
                 // BOOL → BOOL
                 .ForMember(dest => dest.EducationGap,
@@ -939,11 +947,8 @@ namespace axionpro.application.Mappings
                                 ? src.GradeDivision.ToString()
                                 : null))
 
-                // ScoreType → string
                 .ForMember(dest => dest.ScoreType,
-                           opt => opt.MapFrom(src => src.ScoreType != null
-                                ? src.ScoreType.ToString()
-                                : null));
+                           opt => opt.MapFrom(src => int.Parse(src.ScoreType!.Trim())));
 
 
 

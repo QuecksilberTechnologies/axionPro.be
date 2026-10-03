@@ -104,7 +104,9 @@ Every entry must include:
 | --- | --- | --- | --- | --- | --- |
 | `LOCK-TENANT-REG-001` | Tenant registration transaction and actionable errors | LOCKED | Backend 14/14; PostgreSQL rollback 2/2; Angular 44/44 and production build | PENDING | [2026-10-01](docs/testing/tenant/registration-actionable-errors/2026-10-01.md) |
 | `LOCK-ROLE-TYPE-002` | Tenant role-type response mapping and API-backed DDL | LOCKED | Backend 9/9; protected tenant registration 14/14; Angular 69/69 and production build | PENDING | [2026-10-01](docs/testing/role/client-role-type-display/2026-10-01.md) |
-| `LOCK-EMP-CONTACT-003` | Employee contact relations, initial row and location cascade | LOCKED | Backend 45/45 + contact DB 2/2; locality 9/9; protected tenant 14/14 + DB rollback 2/2; Angular 66/66; Role interceptor 9/9 + 69/69; production build | PENDING | [2026-10-01](docs/testing/employee/contact-relation-location/2026-10-01.md) |
+| `LOCK-EMP-CONTACT-003` | Employee contact relations, initial row and location cascade | LOCKED | Backend 46/46 + contact DB 2/2; locality 9/9; protected tenant 14/14 + DB rollback 2/2; Angular 66/66; Role interceptor 9/9 + 69/69; production build | PENDING | [2026-10-01](docs/testing/employee/contact-relation-location/2026-10-01.md) |
+| `LOCK-EMP-EDU-004` | Employee Education create date and score-type mapping | LOCKED | Mapping 1/1; protected Employee profile/contact 46/46; Release build | PENDING | [2026-10-03](docs/testing/employee/education-create-date-mapping/2026-10-03.md) |
+| `LOCK-EMP-BANK-005` | Employee Bank sensitive fields encrypted at rest | LOCKED | Unit 1/1; Local DB 1/1; Render DB 1/1; protected backend gates pass; Release build | API DEPLOYMENT PENDING | [2026-10-03](docs/testing/employee/bank-sensitive-field-encryption/2026-10-03.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -318,7 +320,7 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Releas
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~LocalityRefactorTests&FullyQualifiedName!~Four_country_postal_seed_is_idempotent_and_populates_locality_postal_code" --logger "console;verbosity=minimal"
 ```
 
-Expected locked baseline: 45/45 Employee contact/profile and 9/9 applicable
+Expected locked baseline: 46/46 Employee contact/profile and 9/9 applicable
 locality tests pass, with zero failed or skipped. The excluded historical
 postal-seed test is BLOCKED by its absent
 `database-scripts/SeedFourCountryPostalLocalities.sql` fixture and must never be
@@ -365,7 +367,7 @@ also pass `oxfmt --check` and ESLint.
 
 ### Acceptance state
 
-- Local backend Employee contact/profile gate: PASS, 45/45, including three
+- Local backend Employee contact/profile gate: PASS, 46/46, including three
   isolated HTTP bearer cases (401/401/200), with zero persistence dependencies.
 - Local locality contract gate: PASS, 9/9 applicable tests; one historical
   fixture-dependent case remains BLOCKED and excluded as documented.
@@ -380,6 +382,80 @@ also pass `oxfmt --check` and ESLint.
   PASS, 2/2 database probes; test graph rolled back with no retained account.
 - Running-product authenticated employee/browser acceptance: PENDING.
 - Deployed API/UI acceptance: PENDING.
+
+## LOCK-EMP-EDU-004: Employee Education create date and score-type mapping
+
+### Locked behavior
+
+- `POST /api/Employee/Education/create` retains its existing authenticated Employee permission pipeline and multipart FormData contract.
+- Nullable request `DateTime` start/end values map to `EmployeeEducation` nullable `DateOnly` values without changing the submitted calendar date.
+- The existing numeric-string score-type contract maps to the nullable integer persistence column. A missing, non-numeric or non-positive score type returns validation failure rather than an unexpected mapping exception.
+- Encoded EmployeeId handling, transaction boundaries, optional document upload, projection and repository behavior remain unchanged.
+
+### Protected areas
+
+- `axionpro.application/Mappings/MappingProfile.cs`, `CreateEducationRequestDTO -> EmployeeEducation` mapping.
+- `axionpro.application/Features/EmployeeCmd/EducationInfo/Handlers/CreateEducationInfoCommandHandler.cs`.
+- `axionpro.automationtests/Unit/EmployeeProfileCharacterizationTests.cs`, Education create mapping case.
+- `POST /api/Employee/Education/create` FormData contract.
+
+### Required backend gate
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~Education_create_mapping_accepts_the_form_contract" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "TestCategory=EmployeeContactRelation|FullyQualifiedName~EmployeeProfileCharacterizationTests" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+Expected baseline: focused mapping 1/1 and protected Employee profile/contact 46/46 pass with zero failed/skipped; Release build succeeds with zero errors.
+
+### Acceptance state
+
+- Local focused mapping: PASS, 1/1.
+- Local protected Employee profile/contact gate: PASS, 46/46.
+- Local Release build: PASS, zero errors; existing warnings remain.
+- Authenticated running-product create/read-back and persistence reconciliation: PENDING.
+- Deployed API/UI acceptance: PENDING.
+
+## LOCK-EMP-BANK-005: Employee Bank sensitive fields encrypted at rest
+
+### Locked behavior
+
+- Bank Create and Update encrypt `AccountNumber`, `IFSCCode` and non-empty `UPIId` with the existing `IEncryptionService` and authenticated Tenant encryption key before persistence.
+- Bank Get decrypts these values only inside the authenticated Tenant request before returning them over HTTPS, preserving the existing Angular mask/reveal and Edit contract.
+- Delete, verification and edit-status operations preserve ciphertext and retain the existing permission and soft-delete flows.
+- `EmployeeBankDetail` column capacities remain `AccountNumber varchar(128)`, `IFSCCode varchar(128)` and `UPIId varchar(512)` in EF, the schema reference and Local/Render PostgreSQL.
+- Existing valid plaintext rows are migrated once; rerunning the migration validates ciphertext and never double-encrypts it.
+
+### Protected areas
+
+- Bank Create/Get/Update handlers under `axionpro.application/Features/EmployeeCmd/BankInfo/Handlers`.
+- `ProjectionHelper.ToGetBankResponseDTOs`.
+- `EmployeeBankDetail` EF mapping and `database-scripts/EncryptEmployeeBankSensitiveFields.sql`.
+- `EmployeeBankEncryptionTests` and the Bank endpoints documented in `docs/UIdeveloperDoc/EMPLOYEE_PROFILE_CRUD.md`.
+
+### Required backend gates
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "TestCategory=EmployeeBankEncryption&TestCategory!=EmployeeBankEncryptionDatabase" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "TestCategory=EmployeeContactRelation|FullyQualifiedName~EmployeeProfileCharacterizationTests" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~LocalityRefactorTests&FullyQualifiedName!~Four_country_postal_seed_is_idempotent_and_populates_locality_postal_code" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "TestCategory=RoleTypeMapping" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+For an explicitly approved database target, set `AXIONPRO_BANK_DB_SETTINGS` to its settings file and run `TestCategory=EmployeeBankEncryptionDatabase`. The test widens the schema, migrates valid plaintext, validates existing ciphertext and commits atomically.
+
+Expected baseline: Bank unit 1/1, Employee profile/contact 46/46, locality 9/9, Tenant 14/14 and Role 9/9 pass with zero failed/skipped; Release build succeeds with zero errors. The protected Tenant rollback probe remains 2/2 for persistence changes.
+
+### Acceptance state
+
+- Bank unit/decryption projection: PASS, 1/1.
+- Local PostgreSQL schema/migration: PASS, 1/1; zero existing rows.
+- Render PostgreSQL schema/migration: PASS, 1/1; two existing rows encrypted and verified; idempotency rerun PASS.
+- Protected backend gates and Release build: PASS.
+- Corrected API deployment and authenticated HTTP CRUD/read-back: PENDING. The database migration alone is not deployed API acceptance.
 
 ## Adding the next lock
 
