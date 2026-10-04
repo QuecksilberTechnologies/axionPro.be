@@ -492,6 +492,41 @@ This version-workspace read returns exactly `versionId`; it does not substitute 
 version. Resolve Policy Definitions `View` permission IDs dynamically through the authenticated
 menu tree.
 
+### 39. GET `/versions/{versionId}/assignment-candidates`
+
+Query example (permission IDs are illustrative only):
+
+```json
+{
+  "moduleId": 103,
+  "operationId": 4,
+  "effectiveDate": "2027-01-01",
+  "employeeTypeId": 7,
+  "departmentId": 12,
+  "designationId": 31,
+  "search": "QT/2026",
+  "includeAssigned": true,
+  "pageNumber": 1,
+  "pageSize": 20
+}
+```
+
+The response includes policy/version identity, total records, encoded employee ID, employee
+code/name/type/department/designation, `isAssigned`, and eligible-population employee-type,
+department and designation filter options with counts. Only active employees who resolve to an
+Include applicability winner on `effectiveDate` are returned. Exclude wins an equal
+specificity/priority tie. The UI must send the encoded employee IDs to `POST /assignments`.
+
+### 40. GET `/versions/{versionId}/assignments/export`
+
+```json
+{ "moduleId": 103, "operationId": 11 }
+```
+
+Output is an unpaged `text/csv` download containing assignment ID, employee code/name,
+employee type, department, designation, source, effective dates, mandatory state and active
+state. Resolve the Policy Assignments Export operation dynamically.
+
 ## Common error samples
 
 ```json
@@ -508,7 +543,7 @@ menu tree.
 
 ## Current verification status
 
-- LOCAL CONTRACT: all 38 operations are documented. The exact-version route requires the updated
+- LOCAL CONTRACT: all 40 operations are documented. The exact-version and assignment picker/export routes require the updated
   backend deployment before deployed acceptance.
 - PASS: Policy Type CRUD/status; policy draft create/read/update; ordered
   submit/approve/publish; assignment/resolve; exception approval;

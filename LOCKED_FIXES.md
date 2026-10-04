@@ -103,10 +103,12 @@ Every entry must include:
 | Lock ID | Area | Status | Local baseline | Deployed status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | `LOCK-TENANT-REG-001` | Tenant registration transaction and actionable errors | LOCKED | Backend 14/14; PostgreSQL rollback 2/2; Angular 44/44 and production build | PENDING | [2026-10-01](docs/testing/tenant/registration-actionable-errors/2026-10-01.md) |
-| `LOCK-ROLE-TYPE-002` | Tenant role-type response mapping and API-backed DDL | LOCKED | Backend 9/9; protected tenant registration 14/14; Angular 69/69 and production build | PENDING | [2026-10-01](docs/testing/role/client-role-type-display/2026-10-01.md) |
+| `LOCK-ROLE-TYPE-002` | Original Admin/Employee/Manager/Client display labels | SUPERSEDED by `LOCK-ROLE-PERSONA-007` | Historical backend/UI baseline preserved | SUPERSEDED | [2026-10-01](docs/testing/role/client-role-type-display/2026-10-01.md) |
 | `LOCK-EMP-CONTACT-003` | Employee contact relations, initial row and location cascade | LOCKED | Backend 46/46 + contact DB 2/2; locality 9/9; protected tenant 14/14 + DB rollback 2/2; Angular 66/66; Role interceptor 9/9 + 69/69; production build | PENDING | [2026-10-01](docs/testing/employee/contact-relation-location/2026-10-01.md) |
 | `LOCK-EMP-EDU-004` | Employee Education create date and score-type mapping | LOCKED | Mapping 1/1; protected Employee profile/contact 46/46; Release build | PENDING | [2026-10-03](docs/testing/employee/education-create-date-mapping/2026-10-03.md) |
 | `LOCK-EMP-BANK-005` | Employee Bank sensitive fields encrypted at rest | LOCKED | Unit 1/1; Local DB 1/1; Render DB 1/1; protected backend gates pass; Release build | API DEPLOYMENT PENDING | [2026-10-03](docs/testing/employee/bank-sensitive-field-encryption/2026-10-03.md) |
+| `LOCK-POLICY-ASSIGN-006` | Applicability-safe employee assignment picker, bulk and export | LOCKED | Policy contract/schema 32/32; Release build | PENDING | [2026-10-03](docs/testing/policy/assignment-applicability-mapping/2026-10-03.md) |
+| `LOCK-ROLE-PERSONA-007` | Professional Tenant role-type personas and descriptions | LOCKED | Backend 9/9; protected tenant registration 14/14 | PENDING | [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -193,6 +195,10 @@ the user's explicit authorization.
   until independently executed and reconciled.
 
 ## LOCK-ROLE-TYPE-002: Tenant role-type response mapping and API-backed DDL
+
+Status: **SUPERSEDED on 2026-10-04 by `LOCK-ROLE-PERSONA-007`** with explicit
+user authorization to replace the four original display labels. Numeric values,
+permission behavior and the API-backed DDL architecture remain protected.
 
 ### Locked behavior
 
@@ -456,6 +462,53 @@ Expected baseline: Bank unit 1/1, Employee profile/contact 46/46, locality 9/9, 
 - Render PostgreSQL schema/migration: PASS, 1/1; two existing rows encrypted and verified; idempotency rerun PASS.
 - Protected backend gates and Release build: PASS.
 - Corrected API deployment and authenticated HTTP CRUD/read-back: PENDING. The database migration alone is not deployed API acceptance.
+
+## LOCK-POLICY-ASSIGN-006: Applicability-safe employee policy assignment
+
+### Locked behavior
+
+- Candidate rows are active tenant employees included by the selected Published version's
+  effective Applicability; Exclude wins an equal specificity/priority tie.
+- Rows expose encoded employee ID plus employee code/type/department/designation.
+- Direct and durable bulk assignment repeat the same applicability decision at write time.
+- Existing durable Policy Assignment import remains the single 100+ row workflow.
+- Mapping export uses the existing dynamic Policy Assignments permission pipeline.
+
+### Protected areas and gate
+
+- TenantPolicy assignment/candidate/export routes, GenericPolicy handlers/repository/permission
+  behavior, Policy Assignment bulk validation and the UI handoff.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~GenericPolicyApiContractTests|FullyQualifiedName~PolicyFrameworkSchemaTests|TestCategory=GenericPolicyRuleMetadata" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+Expected baseline: 32 passed, 0 failed/skipped; Release build zero errors. Local contract
+acceptance passes. Deployed authenticated candidate/bulk/export acceptance remains pending.
+
+## LOCK-ROLE-PERSONA-007: Professional Tenant role-type personas
+
+### Locked behavior
+
+- Persisted RoleType values remain stable: 1, 2, 3 and 4.
+- Their user-facing names are Tenant Administrator, Workforce User, People Manager and External User.
+- Each option returns its centralized, non-empty description from `AppConstants.cs`.
+- Role/list/login mappings resolve the same professional display names; unsupported values remain Unknown.
+- Registration Role names remain Super-Admin, Employee, Manager and Client, preserving existing data and seed behavior.
+- `GET /api/Role/type-options` keeps bearer authentication and its existing narrow no-ModuleId/OperationId lookup behavior. Other Role requests retain the permission pipeline.
+
+### Protected areas and gate
+
+- Tenant Role Types region in `AppConstants.cs`, Role mapping profile, options handler, permission behavior and controller route.
+- Persisted numeric RoleType values and registration Role names.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "TestCategory=RoleTypeMapping" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome" --logger "console;verbosity=minimal"
+```
+
+Expected: Role 9/9 and tenant registration 14/14 pass, with no failures or skips. Evidence: [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md). Deployed acceptance remains pending.
 
 ## Adding the next lock
 

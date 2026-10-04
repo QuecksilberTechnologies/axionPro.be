@@ -135,6 +135,7 @@ public sealed class GenericPolicyApiContractTests
             (typeof(PolicyDocumentsRequestDTO), nameof(PolicyDocumentsRequestDTO.PolicyVersionId)),
             (typeof(DeletePolicyDocumentRequestDTO), nameof(DeletePolicyDocumentRequestDTO.DocumentId)),
             (typeof(PolicyVersionAccessRequestDTO), nameof(PolicyVersionAccessRequestDTO.PolicyVersionId)),
+            (typeof(PolicyAssignmentCandidateRequestDTO), nameof(PolicyAssignmentCandidateRequestDTO.PolicyVersionId)),
             (typeof(UpdatePolicyApprovalStageRequestDTO), nameof(UpdatePolicyApprovalStageRequestDTO.Id)),
             (typeof(DeletePolicyApprovalStageRequestDTO), nameof(DeletePolicyApprovalStageRequestDTO.Id))
         };
@@ -185,6 +186,8 @@ public sealed class GenericPolicyApiContractTests
             Assert.That(routes, Does.Contain("POST:approval-stages"));
             Assert.That(routes, Does.Contain("GET:versions/{versionId:long}/approval-progress"));
             Assert.That(routes, Does.Contain("GET:versions/{versionId:long}/assignments"));
+            Assert.That(routes, Does.Contain("GET:versions/{versionId:long}/assignment-candidates"));
+            Assert.That(routes, Does.Contain("GET:versions/{versionId:long}/assignments/export"));
             Assert.That(routes, Does.Contain("GET:versions/{versionId:long}/exceptions"));
             Assert.That(routes, Does.Contain("GET:versions/{versionId:long}/acknowledgements"));
             Assert.That(routes, Does.Contain("POST:bulk/{target}/preview"));
@@ -305,7 +308,7 @@ public sealed class GenericPolicyApiContractTests
             .ToArray();
         Assert.Multiple(() =>
         {
-            Assert.That(methods, Has.Length.EqualTo(38));
+            Assert.That(methods, Has.Length.EqualTo(40));
             for (var number = 1; number <= methods.Length; number++)
             {
                 Assert.That(catalog, Does.Contain($"### {number}."), $"Missing documented endpoint number {number}");
@@ -365,6 +368,28 @@ public sealed class GenericPolicyApiContractTests
             Assert.That(source, Does.Contain("inactive.IsActive = true"));
             Assert.That(source, Does.Contain("context.PolicyAcknowledgements.AddRange"));
             Assert.That(source, Does.Contain("validEmployeeIds.Except(acknowledgementEmployeeIds)"));
+        });
+    }
+
+    [Test]
+    public void Assignment_picker_bulk_and_direct_mapping_enforce_the_same_applicability_boundary()
+    {
+        var repository = ReadRepositoryFile("axionpro.persistance", "Repositories", "GenericPolicyRepository.cs");
+        var bulk = ReadRepositoryFile("axionpro.persistance", "Repositories", "BulkImportRepository.Policy.cs");
+        var handler = ReadRepositoryFile("axionpro.application", "Features", "GenericPolicyCmd", "GenericPolicyHandlers.cs");
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeof(PolicyAssignmentCandidateResponseDTO)
+                .GetProperty(nameof(PolicyAssignmentCandidateResponseDTO.EmployeeCode)), Is.Not.Null);
+            Assert.That(typeof(PolicyAssignmentCandidateResponseDTO)
+                .GetProperty(nameof(PolicyAssignmentCandidateResponseDTO.DepartmentName)), Is.Not.Null);
+            Assert.That(typeof(PolicyAssignmentCandidateResponseDTO)
+                .GetProperty(nameof(PolicyAssignmentCandidateResponseDTO.DesignationName)), Is.Not.Null);
+            Assert.That(repository, Does.Contain("GetApplicabilityEligibleEmployeeIdsAsync("));
+            Assert.That(repository, Does.Contain("outside the selected policy version applicability"));
+            Assert.That(bulk, Does.Contain("outside the selected policy version applicability on EffectiveFrom"));
+            Assert.That(handler, Does.Contain("EmployeeCode,EmployeeName,EmployeeType,Department,Designation"));
+            Assert.That(handler, Does.Contain("idEncoderService.EncodeId_long("));
         });
     }
 

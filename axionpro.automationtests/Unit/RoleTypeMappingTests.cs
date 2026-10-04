@@ -38,10 +38,10 @@ public sealed class RoleTypeMappingTests
             configuration.AddProfile<MappingProfile>()).CreateMapper();
     }
 
-    [TestCase(1, "Super Admin")]
-    [TestCase(2, "Employee")]
-    [TestCase(3, "Manager")]
-    [TestCase(4, "Client")]
+    [TestCase(1, "Tenant Administrator")]
+    [TestCase(2, "Workforce User")]
+    [TestCase(3, "People Manager")]
+    [TestCase(4, "External User")]
     [TestCase(99, "Unknown")]
     public void Role_response_mappings_return_the_central_role_type_display_name(
         int roleType,
@@ -84,8 +84,25 @@ public sealed class RoleTypeMappingTests
             Assert.That(response.IsSucceeded, Is.True);
             Assert.That(response.Data.Select(option => option.Id), Is.EqualTo(new[] { 1, 2, 3, 4 }));
             Assert.That(response.Data.Select(option => option.Name),
-                Is.EqualTo(new[] { "Admin", "Employee", "Manager", "Client" }));
-            Assert.That(response.Data.Single(option => option.Id == 4).Name, Is.EqualTo("Client"));
+                Is.EqualTo(new[]
+                {
+                    "Tenant Administrator",
+                    "Workforce User",
+                    "People Manager",
+                    "External User"
+                }));
+            Assert.That(
+                response.Data.Select(option => option.Description),
+                Is.EqualTo(new[]
+                {
+                    "Full company workspace administration, including users, roles, settings, and tenant-level configuration.",
+                    "Employee self-service access to personal information, attendance, leave, documents, and assigned work features.",
+                    "Team management access for supervisors and managers, subject to assigned role permissions.",
+                    "Limited portal access for clients, consultants, vendors, and other external users, subject to assigned role permissions."
+                }));
+            Assert.That(
+                response.Data.Single(option => option.Id == 4).Name,
+                Is.EqualTo("External User"));
         });
     }
 

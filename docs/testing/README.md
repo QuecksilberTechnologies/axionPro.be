@@ -1,5 +1,10 @@
 # Scenario test reports
 
+- [Professional Role Type access-persona names — 2026-10-04](role/professional-access-personas/2026-10-04.md)
+
+- [Render policy types: nine missing categories and duplicate replay — 2026-10-03](policy/bulk-missing-types/2026-10-03.md)
+- [Render policy definitions: realistic Draft rules and Permanent applicability — 2026-10-03](policy/bulk-draft-definitions/2026-10-03.md)
+
 - [Render API-only restore — 2026-10-03](deployment/api-only-restore/2026-10-03.md)
 
 - [Employee Bank sensitive-field encryption — 2026-10-03](employee/bank-sensitive-field-encryption/2026-10-03.md)
@@ -9,6 +14,7 @@
 - [Employee monitoring Windows agent foundation — 2026-10-03](employee/monitoring-agent/2026-10-03.md)
 
 - [Unified attendance channels — 2026-10-03](policy/unified-attendance-channels/2026-10-03.md)
+- [Policy assignment applicability-safe mapping, bulk and export — 2026-10-03](policy/assignment-applicability-mapping/2026-10-03.md)
 
 - [Tenant demo end-to-end readiness — 2026-09-28](tenant/demo-e2e/2026-09-28.md)
 - [Tenant creation without implicit policy types — 2026-10-01](tenant/creation-policy-independence/2026-10-01.md)

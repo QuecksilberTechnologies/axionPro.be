@@ -583,7 +583,15 @@ public sealed class ExportPolicyAssignmentsQueryHandler(
     {
         var actor = await GetActorAsync();
         var rows = await repository.GetAssignmentExportAsync(actor.TenantId, request.DTO.PolicyVersionId, token);
-        static string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
+        static string Csv(string? value)
+        {
+            var safe = value ?? string.Empty;
+            if (safe.Length > 0 && "=+-@\t\r\n".Contains(safe[0]))
+            {
+                safe = "'" + safe;
+            }
+            return $"\"{safe.Replace("\"", "\"\"")}\"";
+        }
         var output = new System.Text.StringBuilder();
         output.AppendLine("AssignmentId,EmployeeCode,EmployeeName,EmployeeType,Department,Designation,AssignmentSource,EffectiveFrom,EffectiveTo,IsMandatory,IsActive");
         foreach (var row in rows)

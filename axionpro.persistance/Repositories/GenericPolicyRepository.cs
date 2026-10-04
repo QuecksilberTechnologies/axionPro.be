@@ -852,7 +852,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
                                        version.EffectiveTo
                                    }).FirstOrDefaultAsync(cancellationToken)
             ?? throw new ConflictException("Only a published policy version can be mapped to employees.");
-        var effectiveDate = dto.EffectiveDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var effectiveDate = dto.EffectiveDate ?? policyVersion.EffectiveFrom;
         if (effectiveDate < policyVersion.EffectiveFrom
             || policyVersion.EffectiveTo.HasValue && effectiveDate > policyVersion.EffectiveTo.Value)
         {
@@ -874,30 +874,42 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             .ToListAsync(cancellationToken);
         var assignedSet = assignedIds.ToHashSet();
 
-        var eligibleEmployees = await (from employee in context.Employees.AsNoTracking()
-                                       where eligibleIds.Contains(employee.Id)
-                                       join employeeType in context.EmployeeTypes.AsNoTracking()
-                                           on employee.EmployeeTypeId equals (int?)employeeType.Id into employeeTypeRows
-                                       from employeeType in employeeTypeRows.DefaultIfEmpty()
-                                       join department in context.Departments.AsNoTracking()
-                                           on employee.DepartmentId equals (int?)department.Id into departmentRows
-                                       from department in departmentRows.DefaultIfEmpty()
-                                       join designation in context.Designations.AsNoTracking()
-                                           on employee.DesignationId equals (int?)designation.Id into designationRows
-                                       from designation in designationRows.DefaultIfEmpty()
-                                       select new PolicyAssignmentCandidateDataDTO(
-                                           employee.Id,
-                                           employee.EmployementCode ?? string.Empty,
-                                           string.Join(" ", new[] { employee.FirstName, employee.MiddleName, employee.LastName }
-                                               .Where(name => !string.IsNullOrWhiteSpace(name))),
-                                           employee.EmployeeTypeId,
-                                           employeeType != null ? employeeType.TypeName : null,
-                                           employee.DepartmentId,
-                                           department != null ? department.DepartmentName : null,
-                                           employee.DesignationId,
-                                           designation != null ? designation.DesignationName : null,
-                                           assignedSet.Contains(employee.Id)))
-            .ToListAsync(cancellationToken);
+        var eligibleEmployeeRows = await (from employee in context.Employees.AsNoTracking()
+                                          where eligibleIds.Contains(employee.Id)
+                                          join employeeType in context.EmployeeTypes.AsNoTracking()
+                                              on employee.EmployeeTypeId equals (int?)employeeType.Id into employeeTypeRows
+                                          from employeeType in employeeTypeRows.DefaultIfEmpty()
+                                          join department in context.Departments.AsNoTracking()
+                                              on employee.DepartmentId equals (int?)department.Id into departmentRows
+                                          from department in departmentRows.DefaultIfEmpty()
+                                          join designation in context.Designations.AsNoTracking()
+                                              on employee.DesignationId equals (int?)designation.Id into designationRows
+                                          from designation in designationRows.DefaultIfEmpty()
+                                          select new
+                                          {
+                                              employee.Id,
+                                              employee.EmployementCode,
+                                              employee.FirstName,
+                                              employee.MiddleName,
+                                              employee.LastName,
+                                              employee.EmployeeTypeId,
+                                              EmployeeTypeName = employeeType != null ? employeeType.TypeName : null,
+                                              employee.DepartmentId,
+                                              DepartmentName = department != null ? department.DepartmentName : null,
+                                              employee.DesignationId,
+                                              DesignationName = designation != null ? designation.DesignationName : null
+                                          }).ToListAsync(cancellationToken);
+        var eligibleEmployees = eligibleEmployeeRows.Select(employee => new PolicyAssignmentCandidateDataDTO(
+            employee.Id,
+            employee.EmployementCode ?? string.Empty,
+            BuildEmployeeDisplayName(employee.FirstName, employee.MiddleName, employee.LastName) ?? "Unnamed employee",
+            employee.EmployeeTypeId,
+            employee.EmployeeTypeName,
+            employee.DepartmentId,
+            employee.DepartmentName,
+            employee.DesignationId,
+            employee.DesignationName,
+            assignedSet.Contains(employee.Id))).ToList();
 
         var employeeTypes = eligibleEmployees.Where(x => x.EmployeeTypeId.HasValue)
             .GroupBy(x => new { Id = x.EmployeeTypeId!.Value, x.EmployeeTypeName })
@@ -941,29 +953,42 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         CancellationToken cancellationToken)
     {
         await EnsureVersionAsync(tenantId, policyVersionId, cancellationToken);
-        return await (from assignment in context.PolicyAssignments.AsNoTracking()
-                      where assignment.TenantId == tenantId && assignment.PolicyVersionId == policyVersionId
-                      join employee in context.Employees.AsNoTracking() on assignment.EmployeeId equals employee.Id
-                      join employeeType in context.EmployeeTypes.AsNoTracking()
-                          on employee.EmployeeTypeId equals (int?)employeeType.Id into employeeTypes
-                      from employeeType in employeeTypes.DefaultIfEmpty()
-                      join department in context.Departments.AsNoTracking()
-                          on employee.DepartmentId equals (int?)department.Id into departments
-                      from department in departments.DefaultIfEmpty()
-                      join designation in context.Designations.AsNoTracking()
-                          on employee.DesignationId equals (int?)designation.Id into designations
-                      from designation in designations.DefaultIfEmpty()
-                      orderby department.DepartmentName, designation.DesignationName,
-                          employee.EmployementCode, employee.FirstName
-                      select new PolicyAssignmentExportRowDTO(assignment.Id, employee.Id,
-                          employee.EmployementCode ?? string.Empty,
-                          string.Join(" ", new[] { employee.FirstName, employee.MiddleName, employee.LastName }
-                              .Where(name => !string.IsNullOrWhiteSpace(name))),
-                          employeeType != null ? employeeType.TypeName : null,
-                          department != null ? department.DepartmentName : null,
-                          designation != null ? designation.DesignationName : null,
-                          assignment.AssignmentSource, assignment.EffectiveFrom, assignment.EffectiveTo,
-                          assignment.IsMandatory, assignment.IsActive)).ToListAsync(cancellationToken);
+        var rows = await (from assignment in context.PolicyAssignments.AsNoTracking()
+                          where assignment.TenantId == tenantId && assignment.PolicyVersionId == policyVersionId
+                          join employee in context.Employees.AsNoTracking() on assignment.EmployeeId equals employee.Id
+                          join employeeType in context.EmployeeTypes.AsNoTracking()
+                              on employee.EmployeeTypeId equals (int?)employeeType.Id into employeeTypes
+                          from employeeType in employeeTypes.DefaultIfEmpty()
+                          join department in context.Departments.AsNoTracking()
+                              on employee.DepartmentId equals (int?)department.Id into departments
+                          from department in departments.DefaultIfEmpty()
+                          join designation in context.Designations.AsNoTracking()
+                              on employee.DesignationId equals (int?)designation.Id into designations
+                          from designation in designations.DefaultIfEmpty()
+                          orderby department.DepartmentName, designation.DesignationName,
+                              employee.EmployementCode, employee.FirstName
+                          select new
+                          {
+                              assignment.Id,
+                              EmployeeId = employee.Id,
+                              employee.EmployementCode,
+                              employee.FirstName,
+                              employee.MiddleName,
+                              employee.LastName,
+                              EmployeeTypeName = employeeType != null ? employeeType.TypeName : null,
+                              DepartmentName = department != null ? department.DepartmentName : null,
+                              DesignationName = designation != null ? designation.DesignationName : null,
+                              assignment.AssignmentSource,
+                              assignment.EffectiveFrom,
+                              assignment.EffectiveTo,
+                              assignment.IsMandatory,
+                              assignment.IsActive
+                          }).ToListAsync(cancellationToken);
+        return rows.Select(row => new PolicyAssignmentExportRowDTO(row.Id, row.EmployeeId,
+            row.EmployementCode ?? string.Empty,
+            BuildEmployeeDisplayName(row.FirstName, row.MiddleName, row.LastName) ?? "Unnamed employee",
+            row.EmployeeTypeName, row.DepartmentName, row.DesignationName, row.AssignmentSource,
+            row.EffectiveFrom, row.EffectiveTo, row.IsMandatory, row.IsActive)).ToList();
     }
 
     public async Task<IReadOnlyList<PolicyExceptionResponseDTO>> GetExceptionsAsync(

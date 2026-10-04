@@ -1890,6 +1890,20 @@ The earlier mapper-only status above is superseded by this section.
 
 ### Tenant policy durable imports — implemented locally (2026-09-16)
 
+2026-10-03 live acceptance update: created twelve realistic Policy Definitions through the
+existing authenticated durable import UI. Preview passed 12/12; completion was 12 imported,
+0 skipped and 0 failed. Render read-only reconciliation confirms 12 Draft version-1 policies,
+28 metadata-backed rules and 12 Permanent EmployeeType applicability rows. No policy was
+published or assigned. Evidence: [draft definitions](testing/policy/bulk-draft-definitions/2026-10-03.md).
+
+2026-10-03 live acceptance update: through the signed-in Angular bulk UI and Render API,
+nine missing-category Policy Types were created with realistic names (9 imported, 0 failed).
+Identical replay preview detected all nine as existing; confirmed replay completed and
+read-only Render reconciliation showed twelve category-covered types and zero duplicate
+codes. No definitions/assignments or schema changes were made. This narrow scenario is
+COMPLETE; the broader durable policy import release acceptance remains WIP.
+Evidence: [bulk missing types](testing/policy/bulk-missing-types/2026-10-03.md).
+
 - Added Policy Type (master 12), Policy Definition (13), and Policy Assignment
   (14) to the existing durable job engine. No separate queue or permission model
   was introduced.
@@ -1916,4 +1930,18 @@ The earlier mapper-only status above is superseded by this section.
   -PolicyBulkOnly` discovers it; validate-only passed against Development config
   without changing the database.
 - Release publish passed and included both the policy migration and runner.
+
+### 2026-10-03 — Policy assignment applicability guard and popup/export contract
+
+- WIP: the existing Policy Assignment durable import remains the only bulk queue; no parallel
+  upload system was introduced. It supports 100+ rows through bounded worker batches.
+- Added the Map Policies candidate contract. It resolves the selected Published version's
+  effective Applicability and returns employee code, employee type, department and designation
+  plus eligible-population filter facets.
+- Direct and durable bulk assignment now repeat the same applicability check at write time.
+  Employees outside applicability are rejected and never inserted.
+- Added unpaged mapped-assignment CSV export under the existing Policy Assignments permission leaf.
+- Local automated verification is recorded at
+  `docs/testing/policy/assignment-applicability-mapping/2026-10-03.md`. Deployed authenticated
+  acceptance remains pending.
 

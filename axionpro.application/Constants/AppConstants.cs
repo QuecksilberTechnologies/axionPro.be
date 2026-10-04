@@ -575,20 +575,24 @@ namespace axionpro.application.Constants
         #region Tenant Role Types
 
         public static readonly string TenantAdminRoleName = "Super-Admin";
-        public static readonly string TenantAdminRoleDisplayName = "Super Admin";
-        public static readonly string TenantAdminRoleOptionName = "Admin";
+        public static readonly string TenantAdminRoleDisplayName = "Tenant Administrator";
+        public static readonly string TenantAdminRoleOptionName = "Tenant Administrator";
         public static readonly string TenantManagerRoleName = "Manager";
         public static readonly string TenantEmployeeRoleName = "Employee";
         public static readonly string TenantExternalRoleName = "Client";
+        public static readonly string TenantEmployeeRoleDisplayName = "Workforce User";
+        public static readonly string TenantManagerRoleDisplayName = "People Manager";
+        public static readonly string TenantExternalRoleDisplayName = "External User";
         public static readonly string UnknownRoleTypeDisplayName = "Unknown";
 
         public static readonly string TenantAdminRoleDescription =
-            "Full access to manage users, roles, settings, and system-level configurations.";
+            "Full company workspace administration, including users, roles, settings, and tenant-level configuration.";
         public static readonly string TenantEmployeeRoleDescription =
-            "Can manage team members, assign tasks, and oversee day-to-day operations.";
+            "Employee self-service access to personal information, attendance, leave, documents, and assigned work features.";
         public static readonly string TenantManagerRoleDescription =
-            "Limited access to perform assigned tasks and view only relevant information.";
-        public static readonly string TenantExternalRoleDescription = string.Empty;
+            "Team management access for supervisors and managers, subject to assigned role permissions.";
+        public static readonly string TenantExternalRoleDescription =
+            "Limited portal access for clients, consultants, vendors, and other external users, subject to assigned role permissions.";
 
         public static readonly int RoleTypeAdmin = 1;
         public static readonly int RoleTypeEmployee = 2;
@@ -601,9 +605,9 @@ namespace axionpro.application.Constants
         public static string GetRoleTypeDisplayName(int roleType) => roleType switch
         {
             var value when value == RoleTypeAdmin => TenantAdminRoleDisplayName,
-            var value when value == RoleTypeEmployee => TenantEmployeeRoleName,
-            var value when value == RoleTypeManager => TenantManagerRoleName,
-            var value when value == RoleTypeClient => TenantExternalRoleName,
+            var value when value == RoleTypeEmployee => TenantEmployeeRoleDisplayName,
+            var value when value == RoleTypeManager => TenantManagerRoleDisplayName,
+            var value when value == RoleTypeClient => TenantExternalRoleDisplayName,
             _ => UnknownRoleTypeDisplayName
         };
 

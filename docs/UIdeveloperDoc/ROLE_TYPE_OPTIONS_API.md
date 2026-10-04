@@ -4,9 +4,10 @@
 
 `GET /api/Role/type-options` is the single source for the Role Type dropdown on
 `/app/roles`. The Role list filter and the Add/Edit Role dialog use the same
-Angular `RolesApi.roleTypes` signal. The response includes Client (`id: 4`), so a
-Client role created during tenant registration is selectable and remains selected
-when edited.
+Angular `RolesApi.roleTypes` signal. The response publishes four professional
+access-persona labels while keeping persisted numeric values stable. Role names
+such as Sales Manager or Developer and employee Designations remain separate
+from this broad dashboard/access category.
 
 The old Angular `ROLE_TYPES` array was removed. Do not add a second hardcoded role
 type list in the UI.
@@ -48,30 +49,33 @@ polling parameters or cancellation commands.
   "data": [
     {
       "id": 1,
-      "name": "Admin",
-      "description": "Full access to manage users, roles, settings, and system-level configurations."
+      "name": "Tenant Administrator",
+      "description": "Full company workspace administration, including users, roles, settings, and tenant-level configuration."
     },
     {
       "id": 2,
-      "name": "Employee",
-      "description": "Can manage team members, assign tasks, and oversee day-to-day operations."
+      "name": "Workforce User",
+      "description": "Employee self-service access to personal information, attendance, leave, documents, and assigned work features."
     },
     {
       "id": 3,
-      "name": "Manager",
-      "description": "Limited access to perform assigned tasks and view only relevant information."
+      "name": "People Manager",
+      "description": "Team management access for supervisors and managers, subject to assigned role permissions."
     },
     {
       "id": 4,
-      "name": "Client",
-      "description": ""
+      "name": "External User",
+      "description": "Limited portal access for clients, consultants, vendors, and other external users, subject to assigned role permissions."
     }
   ],
   "errors": []
 }
 ```
 
-Persisted values are stable: Admin `1`, Employee `2`, Manager `3`, Client `4`.
+Persisted values are stable: Tenant Administrator `1`, Workforce User `2`,
+People Manager `3`, External User `4`. Existing database Role names such as
+`Super-Admin`, `Employee`, `Manager`, and `Client` are not renamed by this lookup
+change.
 Unsupported persisted values still display as `Unknown` in Role/login response
 mapping; they are not published as selectable options.
 
@@ -106,13 +110,11 @@ All authenticated tenants receive the same supported role-type catalogue.
 filter and normal dialog flow. `RoleDialog` also loads it when the shared signal is
 empty, covering direct dialog use. Add and Edit use the same API-backed options.
 
-## Verification status — 2026-10-01
+## Verification status — 2026-10-04
 
-- Backend Role type contract: 9 passed, 0 failed, 0 skipped.
+- Backend professional persona mapping: 9 passed, 0 failed, 0 skipped.
 - Protected tenant-registration regression: 14 passed, 0 failed, 0 skipped.
-- Angular Role API/dialog/route-resolution specs: 69 passed, 0 failed.
-- Angular production build: passed.
-- ESLint and formatter checks for the nine changed Angular files: passed.
+- Angular workspace was not changed or tested in this backend-only update.
 - Authenticated local HTTP and deployed verification: pending.
 
-Detailed evidence: [Role Client type display scenario](../testing/role/client-role-type-display/2026-10-01.md).
+Detailed evidence: [Professional role-type personas](../testing/role/professional-access-personas/2026-10-04.md).

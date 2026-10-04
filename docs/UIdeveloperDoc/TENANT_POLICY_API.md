@@ -1,5 +1,9 @@
 # Tenant Policy API handoff
 
+Live Policy Type bulk-create and duplicate-replay evidence (nine new types, twelve category coverage): [2026-10-03 report](../testing/policy/bulk-missing-types/2026-10-03.md). This is not acceptance of definition execution or assignment flows.
+
+Policy Definition draft import evidence (12 metadata-backed definitions, 28 rules and Permanent EmployeeType applicability): [2026-10-03 report](../testing/policy/bulk-draft-definitions/2026-10-03.md). All remain Draft until review and publication.
+
 Policy metadata is database-backed and is exposed through the authenticated
 `GET /api/TenantPolicy/lookups` endpoint. Use its categories, statuses, rule
 types, category-rule definitions, settings, options, dependencies and document
@@ -216,7 +220,7 @@ and delete disables the stage to preserve historical foreign keys.
   "moduleId": 103,
   "operationId": 11,
   "policyVersionId": 73,
-  "employeeIds": [201, 202],
+  "employeeIds": ["AB12CD34", "EF56GH78"],
   "effectiveFrom": "2027-01-01",
   "effectiveTo": null,
   "isMandatory": true
@@ -229,6 +233,31 @@ is reactivated instead of inserting a conflicting duplicate. Assignment also
 creates missing acknowledgement rows with Assigned status in the same transaction.
 Acknowledgement is allowed
 only for the authenticated employee and only when an active assignment exists.
+
+The Map Policies popup must load from:
+
+```http
+GET /api/TenantPolicy/versions/{versionId}/assignment-candidates
+    ?moduleId={assignmentsModuleId}&operationId={viewOperationId}
+    &effectiveDate=2027-01-01&departmentId=12&designationId=31
+    &employeeTypeId=7&search=QT%2F2026&includeAssigned=true&pageNumber=1&pageSize=20
+```
+
+It returns only applicability-eligible active employees. Every row includes employee code, name,
+employee type, department and designation, preventing duplicate-name ambiguity. The same response
+contains eligible employee-type/department/designation filter options with counts. Already mapped
+rows return `isAssigned=true`. Direct and bulk assignment repeat this applicability validation,
+so stale or tampered selections are rejected by the API.
+
+Export the complete mapped list through:
+
+```http
+GET /api/TenantPolicy/versions/{versionId}/assignments/export
+    ?moduleId={assignmentsModuleId}&operationId={exportOperationId}
+```
+
+This returns an unpaged `text/csv` file with employee code/name/type/department/designation,
+assignment source, effective dates and active state.
 
 ## Durable bulk import
 
@@ -267,7 +296,9 @@ MH-CASUAL-LEAVE,1,QT/2026/0201,2027-01-01,,true
 JSON arrays inside CSV cells use doubled CSV quotes. Definition import creates
 policy version 1 as Draft and never publishes automatically. Assignment import
 accepts only a Published version and creates a missing Assigned acknowledgement
-in the same transaction.
+in the same transaction. Assignment rows are also checked against the selected version's
+Applicability on CSV `EffectiveFrom`. The durable worker supports 100+ rows through bounded
+batches; the UI must preview, confirm, poll to a terminal state, then download the row report.
 
 ```json
 {
