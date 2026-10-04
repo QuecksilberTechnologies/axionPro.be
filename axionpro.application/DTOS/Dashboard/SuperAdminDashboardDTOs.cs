@@ -12,28 +12,6 @@ public sealed record StorageStatusDTO(decimal CapacityGigabytes, decimal UsedGig
 public sealed record HiringStageDTO(string Stage, int Count);
 public sealed record HiringPipelineDTO(int TotalApplicants, IReadOnlyList<HiringStageDTO> Stages);
 
-/// <summary>Describes the authenticated persona and the widgets its dashboard may request.</summary>
-public sealed record DashboardConfigurationDTO(
-    string RoleTypeCode,
-    string RoleTypeName,
-    IReadOnlyList<DashboardWidgetDefinitionDTO> Widgets);
-
-/// <summary>Describes one independently loadable dashboard widget.</summary>
-public sealed record DashboardWidgetDefinitionDTO(
-    string Code,
-    string Title,
-    int DisplayOrder,
-    bool IsPlaceholder);
-
-/// <summary>Provides a generic widget payload without exposing internal numeric role identifiers.</summary>
-public sealed record DashboardWidgetDTO(
-    string Code,
-    string Title,
-    bool IsPlaceholder,
-    string Source,
-    IReadOnlyList<DashboardMetricDTO> Metrics,
-    IReadOnlyList<DashboardWidgetItemDTO> Items);
-
 /// <summary>Represents one dashboard metric.</summary>
 public sealed record DashboardMetricDTO(string Code, string Label, decimal Value, string? Unit = null);
 
@@ -44,3 +22,72 @@ public sealed record DashboardWidgetItemDTO(
     string? Subtitle,
     string? Status,
     string? Date);
+
+public sealed record DashboardSectionDTO<T>(
+    T Data,
+    string Source,
+    bool IsPlaceholder,
+    IReadOnlyList<string>? PlaceholderFields = null);
+
+public sealed record DashboardMetricCollectionDTO(IReadOnlyList<DashboardMetricDTO> Metrics);
+
+public sealed record RecentExitedEmployeeDTO(
+    string EmployeeId,
+    string EmployeeName,
+    string? DepartmentName,
+    string? DesignationName,
+    DateTime DateOfExit);
+
+public sealed record NoticePeriodEmployeeDTO(
+    string Code,
+    string EmployeeName,
+    string? DepartmentName,
+    string? DesignationName,
+    DateOnly ExpectedLastWorkingDate,
+    int NoticeDaysRemaining,
+    string Status);
+
+public sealed record TenantAdministratorDashboardDTO(
+    DashboardSectionDTO<DashboardSummaryDTO> Summary,
+    DashboardSectionDTO<EmployeeOverviewDTO> EmployeeOverview,
+    DashboardSectionDTO<IReadOnlyList<DashboardLeaveDTO>> CurrentlyOnLeave,
+    DashboardSectionDTO<IReadOnlyList<NoticePeriodEmployeeDTO>> EmployeesOnNotice,
+    DashboardSectionDTO<IReadOnlyList<RecentExitedEmployeeDTO>> ExitedEmployees,
+    DashboardSectionDTO<LocationOverviewDTO> Locations,
+    DashboardSectionDTO<IReadOnlyList<DashboardEmployeeDTO>> UpcomingBirthdays,
+    DashboardSectionDTO<IReadOnlyList<DashboardEmployeeDTO>> RecentOnboarding,
+    DashboardSectionDTO<IReadOnlyList<DepartmentHeadcountDTO>> DepartmentHeadcount,
+    DashboardSectionDTO<StorageStatusDTO> StorageStatus,
+    DashboardSectionDTO<HiringPipelineDTO> HiringPipeline);
+
+public sealed record PeopleManagerDashboardDTO(
+    DashboardSectionDTO<DashboardMetricCollectionDTO> TeamSummary,
+    DashboardSectionDTO<DashboardMetricCollectionDTO> TeamAttendance,
+    DashboardSectionDTO<IReadOnlyList<NoticePeriodEmployeeDTO>> TeamMembersOnNotice,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> TeamLeave,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> TeamBirthdays,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> RecentTeamOnboarding);
+
+public sealed record WorkforceUserDashboardDTO(
+    DashboardSectionDTO<DashboardMetricCollectionDTO> MyProfile,
+    DashboardSectionDTO<DashboardMetricCollectionDTO> MyAttendance,
+    DashboardSectionDTO<DashboardMetricCollectionDTO> MyLeave,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> MyTasks,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> MyDocuments,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> Announcements);
+
+public sealed record ExternalUserDashboardDTO(
+    DashboardSectionDTO<DashboardMetricCollectionDTO> ClientSummary,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> OpenTickets,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> RecentActivity,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> ClientSiteEmployees,
+    DashboardSectionDTO<IReadOnlyList<DashboardWidgetItemDTO>> Documents);
+
+public sealed record DashboardDataDTO(
+    string RoleTypeCode,
+    string RoleTypeName,
+    DateTime GeneratedAtUtc,
+    TenantAdministratorDashboardDTO? TenantAdministrator,
+    PeopleManagerDashboardDTO? PeopleManager,
+    WorkforceUserDashboardDTO? WorkforceUser,
+    ExternalUserDashboardDTO? ExternalUser);

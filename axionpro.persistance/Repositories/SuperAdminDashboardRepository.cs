@@ -47,6 +47,64 @@ public sealed class SuperAdminDashboardRepository(
         return rows.Select(x => MapEmployee(x, x.Employee.DateOfOnBoarding)).ToList();
     }
 
+    public async Task<IReadOnlyList<DashboardEmployeeDTO>> GetRecentOnboardingAsync(
+        long tenantId,
+        DateTime fromDate,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        var rows = await BaseEmployeeQuery(tenantId)
+            .Where(x => x.Employee.DateOfOnBoarding.HasValue &&
+                x.Employee.DateOfOnBoarding.Value >= fromDate)
+            .OrderByDescending(x => x.Employee.DateOfOnBoarding)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+        return rows.Select(x => MapEmployee(x, x.Employee.DateOfOnBoarding)).ToList();
+    }
+
+    public async Task<IReadOnlyList<RecentExitedEmployeeDTO>> GetRecentExitedEmployeesAsync(
+        long tenantId,
+        DateTime fromDate,
+        DateTime throughDate,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        var rows = await (from employee in context.Employees.AsNoTracking()
+                          join department in context.Departments.AsNoTracking()
+                                  .Where(x => x.TenantId == tenantId && !x.IsSoftDeleted)
+                              on employee.DepartmentId equals (int?)department.Id into departments
+                          from department in departments.DefaultIfEmpty()
+                          join designation in context.Designations.AsNoTracking()
+                                  .Where(x => x.TenantId == tenantId && !x.IsSoftDeleted)
+                              on employee.DesignationId equals (int?)designation.Id into designations
+                          from designation in designations.DefaultIfEmpty()
+                          where employee.TenantId == tenantId &&
+                              !employee.IsSoftDeleted &&
+                              employee.DateOfExit.HasValue &&
+                              employee.DateOfExit.Value >= fromDate &&
+                              employee.DateOfExit.Value <= throughDate
+                          orderby employee.DateOfExit descending
+                          select new
+                          {
+                              employee.Id,
+                              employee.FirstName,
+                              employee.MiddleName,
+                              employee.LastName,
+                              DepartmentName = department == null ? null : department.DepartmentName,
+                              DesignationName = designation == null ? null : designation.DesignationName,
+                              DateOfExit = employee.DateOfExit!.Value
+                          })
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(row => new RecentExitedEmployeeDTO(
+            Encode(row.Id),
+            FullName(row.FirstName, row.MiddleName, row.LastName),
+            row.DepartmentName,
+            row.DesignationName,
+            row.DateOfExit)).ToList();
+    }
+
     public async Task<IReadOnlyList<DepartmentHeadcountDTO>> GetDepartmentHeadcountAsync(
         long tenantId,
         CancellationToken cancellationToken)

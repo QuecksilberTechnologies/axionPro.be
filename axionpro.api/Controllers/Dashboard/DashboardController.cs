@@ -7,32 +7,20 @@ using Microsoft.AspNetCore.Mvc;
 namespace axionpro.api.Controllers.Dashboard;
 
 /// <summary>
-/// Supplies independently loadable dashboard widgets through the existing permission pipeline.
+/// Supplies role-specific dashboard data through the existing permission pipeline.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public sealed class DashboardController(IMediator mediator, ILoggerService logger) : ControllerBase
 {
-    /// <summary>Returns the authenticated RoleType persona and its independently loadable widgets.</summary>
-    [HttpGet("Configuration")]
-    public async Task<IActionResult> Configuration(
+    /// <summary>Returns the complete dashboard data for the authenticated RoleType.</summary>
+    [HttpGet("Data")]
+    public async Task<IActionResult> Data(
         [FromQuery] PermissionRequestDTO permission,
         CancellationToken cancellationToken)
     {
         return Ok(await mediator.Send(
-            new GetDashboardConfigurationQuery(permission),
-            cancellationToken));
-    }
-
-    /// <summary>Returns one widget allowed for the authenticated RoleType persona.</summary>
-    [HttpGet("Widget/{widgetCode}")]
-    public async Task<IActionResult> Widget(
-        [FromRoute] string widgetCode,
-        [FromQuery] PermissionRequestDTO permission,
-        CancellationToken cancellationToken)
-    {
-        return Ok(await mediator.Send(
-            new GetDashboardWidgetQuery(permission, widgetCode),
+            new GetDashboardDataQuery(permission),
             cancellationToken));
     }
 
