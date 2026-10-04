@@ -13,14 +13,15 @@ namespace axionpro.api.Controllers.Dashboard;
 [Route("api/[controller]")]
 public sealed class DashboardController(IMediator mediator, ILoggerService logger) : ControllerBase
 {
-    /// <summary>Returns the complete dashboard data for the authenticated RoleType.</summary>
-    [HttpGet("Data")]
+    /// <summary>Returns the complete dashboard data for the requested authenticated RoleType code.</summary>
+    [HttpGet("{roleTypeCode}")]
     public async Task<IActionResult> Data(
+        [FromRoute] string roleTypeCode,
         [FromQuery] PermissionRequestDTO permission,
         CancellationToken cancellationToken)
     {
         return Ok(await mediator.Send(
-            new GetDashboardDataQuery(permission),
+            new GetDashboardDataQuery(roleTypeCode, permission),
             cancellationToken));
     }
 

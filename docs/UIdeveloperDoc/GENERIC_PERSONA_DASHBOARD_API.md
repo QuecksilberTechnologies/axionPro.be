@@ -2,7 +2,7 @@
 
 ## Behavior
 
-`GET /api/Dashboard/Data` returns one complete dashboard payload for the authenticated user's trusted RoleType. The UI does not send a RoleType code and cannot select another persona.
+`GET /api/Dashboard/{roleTypeCode}` returns one complete dashboard payload for the authenticated user's trusted RoleType. The UI sends the stable RoleType code in the route. The API validates it against the authenticated user's trusted RoleType and rejects a mismatch.
 
 `Bearer identity -> permission pipeline -> trusted RoleTypeId -> stable RoleTypeCode -> dashboard data`
 
@@ -13,7 +13,7 @@ Supported codes are `TENANT_ADMIN`, `PEOPLE_MANAGER`, `WORKFORCE_USER`, and `EXT
 The bearer token and Dashboard View permission identifiers are mandatory. Resolve `moduleId` and `operationId` through the existing authenticated menu/permission flow; numeric IDs must not be hardcoded.
 
 ```http
-GET /api/Dashboard/Data?moduleId=<dashboard-module>&operationId=<view-operation>
+GET /api/Dashboard/TENANT_ADMIN?moduleId=<dashboard-module>&operationId=<view-operation>
 Authorization: Bearer <token>
 ```
 

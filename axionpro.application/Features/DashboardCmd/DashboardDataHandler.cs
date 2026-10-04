@@ -19,7 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.DashboardCmd;
 
-public sealed record GetDashboardDataQuery(PermissionRequestDTO Permission)
+public sealed record GetDashboardDataQuery(
+    string RoleTypeCode,
+    PermissionRequestDTO Permission)
     : IRequest<ApiResponse<DashboardDataDTO>>;
 
 public sealed class GetDashboardDataHandler(
@@ -39,7 +41,11 @@ public sealed class GetDashboardDataHandler(
             cancellationToken);
         var context = await ValidateTenantDataAccessContextAsync();
         var roleTypeCode = ConstantValues.GetRoleTypeCode(context.RoleTypeId);
-        if (string.IsNullOrWhiteSpace(roleTypeCode))
+        if (string.IsNullOrWhiteSpace(roleTypeCode) ||
+            !string.Equals(
+                request.RoleTypeCode?.Trim(),
+                roleTypeCode,
+                StringComparison.OrdinalIgnoreCase))
         {
             throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }

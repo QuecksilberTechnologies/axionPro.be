@@ -19,7 +19,7 @@ public sealed class SuperAdminDashboardApiContractTests
 
         Assert.That(routes, Is.EquivalentTo(new[]
         {
-            "GET:Data",
+            "GET:{roleTypeCode}",
             "GET:SuperAdmin/Summary",
             "GET:SuperAdmin/EmployeeOverview",
             "GET:SuperAdmin/Birthdays",
@@ -61,6 +61,8 @@ public sealed class SuperAdminDashboardApiContractTests
         {
             Assert.That(source, Does.Contain("ValidateTenantPermissionAsync("));
             Assert.That(source, Does.Contain("request.Permission"));
+            Assert.That(source, Does.Contain("request.RoleTypeCode"));
+            Assert.That(source, Does.Contain("StringComparison.OrdinalIgnoreCase"));
             Assert.That(source, Does.Contain("GetRoleTypeCode(context.RoleTypeId)"));
             Assert.That(source, Does.Contain("RoleTypeManagerCode"));
             Assert.That(source, Does.Contain("RoleTypeEmployeeCode"));
