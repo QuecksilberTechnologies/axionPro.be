@@ -574,12 +574,12 @@ namespace axionpro.application.Constants
 
         #region Tenant Role Types
 
-        public static readonly string TenantAdminRoleName = "Super-Admin";
+        public static readonly string TenantAdminRoleName = "Tenant Administrator";
         public static readonly string TenantAdminRoleDisplayName = "Tenant Administrator";
         public static readonly string TenantAdminRoleOptionName = "Tenant Administrator";
-        public static readonly string TenantManagerRoleName = "Manager";
-        public static readonly string TenantEmployeeRoleName = "Employee";
-        public static readonly string TenantExternalRoleName = "Client";
+        public static readonly string TenantManagerRoleName = "People Manager";
+        public static readonly string TenantEmployeeRoleName = "Workforce Member";
+        public static readonly string TenantExternalRoleName = "External Collaborator";
         public static readonly string TenantEmployeeRoleDisplayName = "Workforce User";
         public static readonly string TenantManagerRoleDisplayName = "People Manager";
         public static readonly string TenantExternalRoleDisplayName = "External User";
@@ -593,6 +593,15 @@ namespace axionpro.application.Constants
             "Team management access for supervisors and managers, subject to assigned role permissions.";
         public static readonly string TenantExternalRoleDescription =
             "Limited portal access for clients, consultants, vendors, and other external users, subject to assigned role permissions.";
+
+        public static readonly string TenantAdminRoleRemark =
+            "Company workspace, users, roles and settings administration.";
+        public static readonly string TenantEmployeeRoleRemark =
+            "Employee self-service, attendance, leave, documents and assigned work.";
+        public static readonly string TenantManagerRoleRemark =
+            "Team and supervisor management according to assigned permissions.";
+        public static readonly string TenantExternalRoleRemark =
+            "Client, consultant, vendor and external portal access.";
 
         public static readonly int RoleTypeAdmin = 1;
         public static readonly int RoleTypeEmployee = 2;
@@ -610,6 +619,28 @@ namespace axionpro.application.Constants
             var value when value == RoleTypeClient => TenantExternalRoleDisplayName,
             _ => UnknownRoleTypeDisplayName
         };
+
+        /// <summary>
+        /// Resolves the default remark for a persisted Tenant role type.
+        /// </summary>
+        public static string GetRoleTypeRemark(int roleType) => roleType switch
+        {
+            var value when value == RoleTypeAdmin => TenantAdminRoleRemark,
+            var value when value == RoleTypeEmployee => TenantEmployeeRoleRemark,
+            var value when value == RoleTypeManager => TenantManagerRoleRemark,
+            var value when value == RoleTypeClient => TenantExternalRoleRemark,
+            _ => TenantAllRoleRemark
+        };
+
+        /// <summary>
+        /// Preserves a user-authored remark and upgrades the legacy shared default remark.
+        /// </summary>
+        public static string GetRoleRemarkForDisplay(int roleType, string? remark)
+        {
+            return string.IsNullOrWhiteSpace(remark) || remark == TenantAllRoleRemark
+                ? GetRoleTypeRemark(roleType)
+                : remark;
+        }
 
         public static readonly string TenantAllRoleRemark = "This is an auto-generated Admin account by AI for the initial setup of the tenant.";
 

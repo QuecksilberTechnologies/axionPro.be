@@ -485,6 +485,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                         TenantId = newTenantId,
                         RoleName = roleName,
                         RoleType = roleType,
+                        Remark = ConstantValues.GetRoleTypeRemark(roleType),
                         IsActive = true,
                         IsSoftDeleted = false,
                         IsSystemDefault = false,

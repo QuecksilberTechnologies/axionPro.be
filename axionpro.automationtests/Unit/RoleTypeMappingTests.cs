@@ -70,6 +70,57 @@ public sealed class RoleTypeMappingTests
         });
     }
 
+    [TestCase(1, "Tenant Administrator", "Company workspace, users, roles and settings administration.")]
+    [TestCase(2, "Workforce Member", "Employee self-service, attendance, leave, documents and assigned work.")]
+    [TestCase(3, "People Manager", "Team and supervisor management according to assigned permissions.")]
+    [TestCase(4, "External Collaborator", "Client, consultant, vendor and external portal access.")]
+    [TestCase(99, null, "This is an auto-generated Admin account by AI for the initial setup of the tenant.")]
+    public void Default_role_name_and_remark_are_resolved_from_the_stable_role_type(
+        int roleType,
+        string? expectedRoleName,
+        string expectedRemark)
+    {
+        var roleName = roleType switch
+        {
+            var value when value == ConstantValues.RoleTypeAdmin => ConstantValues.TenantAdminRoleName,
+            var value when value == ConstantValues.RoleTypeEmployee => ConstantValues.TenantEmployeeRoleName,
+            var value when value == ConstantValues.RoleTypeManager => ConstantValues.TenantManagerRoleName,
+            var value when value == ConstantValues.RoleTypeClient => ConstantValues.TenantExternalRoleName,
+            _ => null
+        };
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(roleName, Is.EqualTo(expectedRoleName));
+            Assert.That(ConstantValues.GetRoleTypeRemark(roleType), Is.EqualTo(expectedRemark));
+        });
+    }
+
+    [Test]
+    public void Role_response_replaces_only_the_legacy_shared_remark()
+    {
+        var legacyRole = new Role
+        {
+            RoleType = ConstantValues.RoleTypeClient,
+            Remark = ConstantValues.TenantAllRoleRemark
+        };
+        var customizedRole = new Role
+        {
+            RoleType = ConstantValues.RoleTypeClient,
+            Remark = "Customer portal reviewer"
+        };
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                _mapper.Map<GetRoleResponseDTO>(legacyRole).Remark,
+                Is.EqualTo(ConstantValues.TenantExternalRoleRemark));
+            Assert.That(
+                _mapper.Map<GetRoleResponseDTO>(customizedRole).Remark,
+                Is.EqualTo("Customer portal reviewer"));
+        });
+    }
+
     [Test]
     public async Task Role_type_options_publish_all_centralized_values_in_stable_order()
     {

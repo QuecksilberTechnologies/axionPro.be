@@ -848,7 +848,10 @@ namespace axionpro.application.Mappings
                 .ForMember(
                     destination => destination.RoleTypeName,
                     options => options.MapFrom(source => ConstantValues.GetRoleTypeDisplayName(source.RoleType)))
-                .ForMember(destination => destination.Remark, options => options.MapFrom(source => source.Remark))
+                .ForMember(
+                    destination => destination.Remark,
+                    options => options.MapFrom(source =>
+                        ConstantValues.GetRoleRemarkForDisplay(source.RoleType, source.Remark)))
                 .ReverseMap()
                 .ForMember(destination => destination.Id, options => options.MapFrom(source => source.Id))
                 .ForMember(destination => destination.RoleType, options => options.MapFrom(source => source.RoleType))

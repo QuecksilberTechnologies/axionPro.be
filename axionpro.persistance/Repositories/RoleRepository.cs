@@ -227,7 +227,9 @@ public class RoleRepository : IRoleRepository
                     IsSystemDefault = false,
                     IsActive = true,
                     IsSoftDeleted = false,
-                    Remark = dto.Remark ?? ConstantValues.TenantAllRoleRemark,
+                    Remark = string.IsNullOrWhiteSpace(dto.Remark)
+                        ? ConstantValues.GetRoleTypeRemark(dto.RoleType)
+                        : dto.Remark,
                     AddedById = dto.TenantId ?? 0,
                     AddedDateTime = DateTime.UtcNow
                 });

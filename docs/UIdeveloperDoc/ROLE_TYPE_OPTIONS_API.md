@@ -73,11 +73,24 @@ polling parameters or cancellation commands.
 ```
 
 Persisted values are stable: Tenant Administrator `1`, Workforce User `2`,
-People Manager `3`, External User `4`. Existing database Role names such as
-`Super-Admin`, `Employee`, `Manager`, and `Client` are not renamed by this lookup
-change.
+People Manager `3`, External User `4`. Default Role names are Tenant Administrator,
+Workforce Member, People Manager and External Collaborator. Role names remain
+separate from their broader Role Type persona.
 Unsupported persisted values still display as `Unknown` in Role/login response
 mapping; they are not published as selectable options.
+
+The Role list returns these default remarks for the generated roles:
+
+| Role type | Default role name | Default remark |
+| --- | --- | --- |
+| Tenant Administrator | Tenant Administrator | Company workspace, users, roles and settings administration. |
+| Workforce User | Workforce Member | Employee self-service, attendance, leave, documents and assigned work. |
+| People Manager | People Manager | Team and supervisor management according to assigned permissions. |
+| External User | External Collaborator | Client, consultant, vendor and external portal access. |
+
+New tenants persist the matching Role name and remark. For an existing row that
+still contains the exact legacy shared generated remark, the Role response returns
+the matching professional remark. A customized Role remark is preserved unchanged.
 
 ## Error handling
 
@@ -112,8 +125,9 @@ empty, covering direct dialog use. Add and Edit use the same API-backed options.
 
 ## Verification status — 2026-10-04
 
-- Backend professional persona mapping: 9 passed, 0 failed, 0 skipped.
+- Backend professional persona, name and remark mapping: 15 passed, 0 failed, 0 skipped.
 - Protected tenant-registration regression: 14 passed, 0 failed, 0 skipped.
+- Local and Render data migration: 16 default rows updated in each database; zero legacy default names and zero orphan UserRole references.
 - Angular workspace was not changed or tested in this backend-only update.
 - Authenticated local HTTP and deployed verification: pending.
 

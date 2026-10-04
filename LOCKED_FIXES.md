@@ -108,7 +108,7 @@ Every entry must include:
 | `LOCK-EMP-EDU-004` | Employee Education create date and score-type mapping | LOCKED | Mapping 1/1; protected Employee profile/contact 46/46; Release build | PENDING | [2026-10-03](docs/testing/employee/education-create-date-mapping/2026-10-03.md) |
 | `LOCK-EMP-BANK-005` | Employee Bank sensitive fields encrypted at rest | LOCKED | Unit 1/1; Local DB 1/1; Render DB 1/1; protected backend gates pass; Release build | API DEPLOYMENT PENDING | [2026-10-03](docs/testing/employee/bank-sensitive-field-encryption/2026-10-03.md) |
 | `LOCK-POLICY-ASSIGN-006` | Applicability-safe employee assignment picker, bulk and export | LOCKED | Policy contract/schema 32/32; Release build | PENDING | [2026-10-03](docs/testing/policy/assignment-applicability-mapping/2026-10-03.md) |
-| `LOCK-ROLE-PERSONA-007` | Professional Tenant role-type personas and descriptions | LOCKED | Backend 9/9; protected tenant registration 14/14 | PENDING | [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md) |
+| `LOCK-ROLE-PERSONA-007` | Professional Tenant role names, role-type personas and remarks | LOCKED | Backend 15/15; protected tenant registration 14/14; Local/Render data verified | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -494,8 +494,10 @@ acceptance passes. Deployed authenticated candidate/bulk/export acceptance remai
 - Persisted RoleType values remain stable: 1, 2, 3 and 4.
 - Their user-facing names are Tenant Administrator, Workforce User, People Manager and External User.
 - Each option returns its centralized, non-empty description from `AppConstants.cs`.
+- Default Role names are Tenant Administrator, Workforce Member, People Manager and External Collaborator.
+- Default Role remarks are resolved by stable RoleType. New tenant roles persist the specific remark, while a legacy shared generated remark is upgraded in API responses without replacing a user-authored remark.
 - Role/list/login mappings resolve the same professional display names; unsupported values remain Unknown.
-- Registration Role names remain Super-Admin, Employee, Manager and Client, preserving existing data and seed behavior.
+- Role IDs, UserRole foreign keys and persisted RoleType values remain unchanged during the default-name migration.
 - `GET /api/Role/type-options` keeps bearer authentication and its existing narrow no-ModuleId/OperationId lookup behavior. Other Role requests retain the permission pipeline.
 
 ### Protected areas and gate
@@ -508,7 +510,7 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Releas
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome" --logger "console;verbosity=minimal"
 ```
 
-Expected: Role 9/9 and tenant registration 14/14 pass, with no failures or skips. Evidence: [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md). Deployed acceptance remains pending.
+Expected: Role 15/15 and tenant registration 14/14 pass, with no failures or skips. Local and Render contain no legacy default names and no orphan UserRole references. Evidence: [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md). API deployment acceptance remains pending.
 
 ## Adding the next lock
 
