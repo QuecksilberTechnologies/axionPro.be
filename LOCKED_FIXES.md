@@ -109,7 +109,7 @@ Every entry must include:
 | `LOCK-EMP-BANK-005` | Employee Bank sensitive fields encrypted at rest | LOCKED | Unit 1/1; Local DB 1/1; Render DB 1/1; protected backend gates pass; Release build | API DEPLOYMENT PENDING | [2026-10-03](docs/testing/employee/bank-sensitive-field-encryption/2026-10-03.md) |
 | `LOCK-POLICY-ASSIGN-006` | Applicability-safe employee assignment picker, bulk and export | LOCKED | Policy contract/schema 32/32; Release build | PENDING | [2026-10-03](docs/testing/policy/assignment-applicability-mapping/2026-10-03.md) |
 | `LOCK-ROLE-PERSONA-007` | Professional Tenant role names, role-type personas and remarks | LOCKED | Backend 15/15; protected tenant registration 14/14; Local/Render data verified | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md) |
-| `LOCK-TENANT-LOCATION-008` | Initial TenantLocation creation and Host synchronization | LOCKED | Creation/update 15/15; PostgreSQL rollback 2/2; Role 15/15 | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/tenant/initial-location-lifecycle/2026-10-04.md) |
+| `LOCK-TENANT-LOCATION-008` | Initial TenantLocation creation and Host synchronization | LOCKED | Creation/update 15/15; PostgreSQL rollback 2/2; Role 20/20 | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/tenant/initial-location-lifecycle/2026-10-04.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -342,7 +342,7 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Releas
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "TestCategory=RoleTypeMapping" --logger "console;verbosity=minimal"
 ```
 
-Expected baselines: Tenant 14/14 and Role 9/9 pass. For entity/repository/schema
+Expected baselines: Tenant 14/14 and Role 20/20 pass. For entity/repository/schema
 changes, run the LOCK-TENANT-REG-001 real-database rollback probe; expected 2/2
 pass with no retained test tenant.
 
@@ -511,7 +511,7 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Releas
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome" --logger "console;verbosity=minimal"
 ```
 
-Expected: Role 15/15 and tenant registration 14/14 pass, with no failures or skips. Local and Render contain no legacy default names and no orphan UserRole references. Evidence: [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md). API deployment acceptance remains pending.
+Expected: Role 20/20 and tenant registration 14/14 pass, with no failures or skips. Local and Render contain no legacy default names and no orphan UserRole references. Evidence: [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md) and [stable role-type code](docs/testing/role/role-type-stable-code/2026-10-04.md). API deployment acceptance remains pending.
 
 ## LOCK-TENANT-LOCATION-008: Initial TenantLocation lifecycle
 

@@ -615,6 +615,23 @@ namespace axionpro.application.Constants
         public static readonly int RoleTypeManager = 3;
         public static readonly int RoleTypeClient = 4;
 
+        public const string RoleTypeAdminCode = "TENANT_ADMIN";
+        public const string RoleTypeEmployeeCode = "WORKFORCE_USER";
+        public const string RoleTypeManagerCode = "PEOPLE_MANAGER";
+        public const string RoleTypeClientCode = "EXTERNAL_USER";
+
+        /// <summary>
+        /// Resolves the stable code for a persisted Tenant role type.
+        /// </summary>
+        public static string GetRoleTypeCode(int roleType) => roleType switch
+        {
+            var value when value == RoleTypeAdmin => RoleTypeAdminCode,
+            var value when value == RoleTypeEmployee => RoleTypeEmployeeCode,
+            var value when value == RoleTypeManager => RoleTypeManagerCode,
+            var value when value == RoleTypeClient => RoleTypeClientCode,
+            _ => string.Empty
+        };
+
         /// <summary>
         /// Resolves the stable display name for a persisted Tenant role type.
         /// </summary>

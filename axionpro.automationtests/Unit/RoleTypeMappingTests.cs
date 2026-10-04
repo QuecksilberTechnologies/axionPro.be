@@ -134,6 +134,14 @@ public sealed class RoleTypeMappingTests
         {
             Assert.That(response.IsSucceeded, Is.True);
             Assert.That(response.Data.Select(option => option.Id), Is.EqualTo(new[] { 1, 2, 3, 4 }));
+            Assert.That(response.Data.Select(option => option.Code),
+                Is.EqualTo(new[]
+                {
+                    "TENANT_ADMIN",
+                    "WORKFORCE_USER",
+                    "PEOPLE_MANAGER",
+                    "EXTERNAL_USER"
+                }));
             Assert.That(response.Data.Select(option => option.Name),
                 Is.EqualTo(new[]
                 {
@@ -155,6 +163,18 @@ public sealed class RoleTypeMappingTests
                 response.Data.Single(option => option.Id == 4).Name,
                 Is.EqualTo("External User"));
         });
+    }
+
+    [TestCase(1, "TENANT_ADMIN")]
+    [TestCase(2, "WORKFORCE_USER")]
+    [TestCase(3, "PEOPLE_MANAGER")]
+    [TestCase(4, "EXTERNAL_USER")]
+    [TestCase(99, "")]
+    public void Role_type_code_is_resolved_from_the_stable_numeric_value(
+        int roleType,
+        string expectedCode)
+    {
+        Assert.That(ConstantValues.GetRoleTypeCode(roleType), Is.EqualTo(expectedCode));
     }
 
     [Test]

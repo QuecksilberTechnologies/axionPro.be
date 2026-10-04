@@ -13,6 +13,29 @@ namespace axionpro.api.Controllers.Dashboard;
 [Route("api/[controller]")]
 public sealed class DashboardController(IMediator mediator, ILoggerService logger) : ControllerBase
 {
+    /// <summary>Returns the authenticated RoleType persona and its independently loadable widgets.</summary>
+    [HttpGet("Configuration")]
+    public async Task<IActionResult> Configuration(
+        [FromQuery] PermissionRequestDTO permission,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await mediator.Send(
+            new GetDashboardConfigurationQuery(permission),
+            cancellationToken));
+    }
+
+    /// <summary>Returns one widget allowed for the authenticated RoleType persona.</summary>
+    [HttpGet("Widget/{widgetCode}")]
+    public async Task<IActionResult> Widget(
+        [FromRoute] string widgetCode,
+        [FromQuery] PermissionRequestDTO permission,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await mediator.Send(
+            new GetDashboardWidgetQuery(permission, widgetCode),
+            cancellationToken));
+    }
+
     /// <summary>Returns Tenant Super-Admin dashboard totals.</summary>
     [HttpGet("SuperAdmin/Summary")]
     public async Task<IActionResult> Summary(

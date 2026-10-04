@@ -168,7 +168,7 @@ namespace axionpro.api.Controllers.Role
         /// <para>API endpoint purpose: supplies Role create, edit and filter controls from backend constants.</para>
         /// <para>Authentication: bearer authentication is required. ModuleId and OperationId are not accepted for this constant-backed lookup.</para>
         /// <para>Handler flow: GetRoleTypeOptionsQuery is processed by GetRoleTypeOptionsQueryHandler without a database write or tenant-data read.</para>
-        /// <para>Response DTO: Id (int), Name (string), Description (string).</para>
+        /// <para>Response DTO: Id (int), Code (stable string), Name (string), Description (string).</para>
         /// <para>Angular function: RolesApi.getRoleTypeOptions.</para>
         /// <para>Integrated UI page: /app/roles.</para>
         /// <para>Angular components: RolesList and RoleDialog.</para>

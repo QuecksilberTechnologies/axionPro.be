@@ -11,3 +11,36 @@ public sealed record StorageCategoryDTO(string Name, decimal UsedGigabytes);
 public sealed record StorageStatusDTO(decimal CapacityGigabytes, decimal UsedGigabytes, IReadOnlyList<StorageCategoryDTO> Categories);
 public sealed record HiringStageDTO(string Stage, int Count);
 public sealed record HiringPipelineDTO(int TotalApplicants, IReadOnlyList<HiringStageDTO> Stages);
+
+/// <summary>Describes the authenticated persona and the widgets its dashboard may request.</summary>
+public sealed record DashboardConfigurationDTO(
+    string RoleTypeCode,
+    string RoleTypeName,
+    IReadOnlyList<DashboardWidgetDefinitionDTO> Widgets);
+
+/// <summary>Describes one independently loadable dashboard widget.</summary>
+public sealed record DashboardWidgetDefinitionDTO(
+    string Code,
+    string Title,
+    int DisplayOrder,
+    bool IsPlaceholder);
+
+/// <summary>Provides a generic widget payload without exposing internal numeric role identifiers.</summary>
+public sealed record DashboardWidgetDTO(
+    string Code,
+    string Title,
+    bool IsPlaceholder,
+    string Source,
+    IReadOnlyList<DashboardMetricDTO> Metrics,
+    IReadOnlyList<DashboardWidgetItemDTO> Items);
+
+/// <summary>Represents one dashboard metric.</summary>
+public sealed record DashboardMetricDTO(string Code, string Label, decimal Value, string? Unit = null);
+
+/// <summary>Represents one lightweight dashboard list item.</summary>
+public sealed record DashboardWidgetItemDTO(
+    string Code,
+    string Title,
+    string? Subtitle,
+    string? Status,
+    string? Date);

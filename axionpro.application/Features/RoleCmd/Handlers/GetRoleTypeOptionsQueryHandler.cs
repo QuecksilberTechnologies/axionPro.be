@@ -46,24 +46,28 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 new()
                 {
                     Id = ConstantValues.RoleTypeAdmin,
+                    Code = ConstantValues.RoleTypeAdminCode,
                     Name = ConstantValues.TenantAdminRoleOptionName,
                     Description = ConstantValues.TenantAdminRoleDescription
                 },
                 new()
                 {
                     Id = ConstantValues.RoleTypeEmployee,
+                    Code = ConstantValues.RoleTypeEmployeeCode,
                     Name = ConstantValues.TenantEmployeeRoleDisplayName,
                     Description = ConstantValues.TenantEmployeeRoleDescription
                 },
                 new()
                 {
                     Id = ConstantValues.RoleTypeManager,
+                    Code = ConstantValues.RoleTypeManagerCode,
                     Name = ConstantValues.TenantManagerRoleDisplayName,
                     Description = ConstantValues.TenantManagerRoleDescription
                 },
                 new()
                 {
                     Id = ConstantValues.RoleTypeClient,
+                    Code = ConstantValues.RoleTypeClientCode,
                     Name = ConstantValues.TenantExternalRoleDisplayName,
                     Description = ConstantValues.TenantExternalRoleDescription
                 }

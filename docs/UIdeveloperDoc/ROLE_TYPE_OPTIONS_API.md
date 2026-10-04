@@ -9,6 +9,10 @@ access-persona labels while keeping persisted numeric values stable. Role names
 such as Sales Manager or Developer and employee Designations remain separate
 from this broad dashboard/access category.
 
+Each option also exposes a stable `code`. UI business comparisons and future
+API routing should use this code instead of the display name. The numeric `id`
+remains the value persisted by the existing Role create/update contract.
+
 The old Angular `ROLE_TYPES` array was removed. Do not add a second hardcoded role
 type list in the UI.
 
@@ -49,21 +53,25 @@ polling parameters or cancellation commands.
   "data": [
     {
       "id": 1,
+      "code": "TENANT_ADMIN",
       "name": "Tenant Administrator",
       "description": "Full company workspace administration, including users, roles, settings, and tenant-level configuration."
     },
     {
       "id": 2,
+      "code": "WORKFORCE_USER",
       "name": "Workforce User",
       "description": "Employee self-service access to personal information, attendance, leave, documents, and assigned work features."
     },
     {
       "id": 3,
+      "code": "PEOPLE_MANAGER",
       "name": "People Manager",
       "description": "Team management access for supervisors and managers, subject to assigned role permissions."
     },
     {
       "id": 4,
+      "code": "EXTERNAL_USER",
       "name": "External User",
       "description": "Limited portal access for clients, consultants, vendors, and other external users, subject to assigned role permissions."
     }
@@ -76,6 +84,9 @@ Persisted values are stable: Tenant Administrator `1`, Workforce User `2`,
 People Manager `3`, External User `4`. Default Role names are Tenant Administrator,
 Workforce Member, People Manager and External Collaborator. Role names remain
 separate from their broader Role Type persona.
+
+Stable option codes are `TENANT_ADMIN`, `WORKFORCE_USER`, `PEOPLE_MANAGER` and
+`EXTERNAL_USER`. Codes are constants-backed and do not depend on database IDs.
 Unsupported persisted values still display as `Unknown` in Role/login response
 mapping; they are not published as selectable options.
 
@@ -125,7 +136,7 @@ empty, covering direct dialog use. Add and Edit use the same API-backed options.
 
 ## Verification status — 2026-10-04
 
-- Backend professional persona, name and remark mapping: 15 passed, 0 failed, 0 skipped.
+- Backend professional persona, stable code, name and remark mapping: 20 passed, 0 failed, 0 skipped.
 - Protected tenant-registration regression: 14 passed, 0 failed, 0 skipped.
 - Local and Render data migration: 16 default rows updated in each database; zero legacy default names and zero orphan UserRole references.
 - Angular workspace was not changed or tested in this backend-only update.

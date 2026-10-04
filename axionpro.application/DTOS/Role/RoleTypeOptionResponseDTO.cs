@@ -15,6 +15,9 @@ namespace axionpro.application.DTOS.Role
         /// <summary>Gets or sets the persisted numeric role type.</summary>
         public int Id { get; set; }
 
+        /// <summary>Gets or sets the stable role-type code used across environments.</summary>
+        public string Code { get; set; } = string.Empty;
+
         /// <summary>Gets or sets the user-facing option name.</summary>
         public string Name { get; set; } = string.Empty;
 

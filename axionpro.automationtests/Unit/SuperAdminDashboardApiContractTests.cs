@@ -10,7 +10,7 @@ namespace axionpro.automationtests.Unit;
 public sealed class SuperAdminDashboardApiContractTests
 {
     [Test]
-    public void Dashboard_controller_exposes_independent_super_admin_widget_routes()
+    public void Dashboard_controller_exposes_legacy_and_generic_widget_routes()
     {
         var routes = typeof(DashboardController).GetMethods(BindingFlags.Instance | BindingFlags.Public)
             .SelectMany(method => method.GetCustomAttributes<HttpMethodAttribute>())
@@ -19,6 +19,8 @@ public sealed class SuperAdminDashboardApiContractTests
 
         Assert.That(routes, Is.EquivalentTo(new[]
         {
+            "GET:Configuration",
+            "GET:Widget/{widgetCode}",
             "GET:SuperAdmin/Summary",
             "GET:SuperAdmin/EmployeeOverview",
             "GET:SuperAdmin/Birthdays",
@@ -29,6 +31,43 @@ public sealed class SuperAdminDashboardApiContractTests
             "GET:SuperAdmin/Storage",
             "GET:SuperAdmin/HiringPipeline"
         }));
+    }
+
+    [Test]
+    public void Generic_dashboard_contract_exposes_persona_and_placeholder_metadata()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeof(DashboardConfigurationDTO).GetProperty(nameof(DashboardConfigurationDTO.RoleTypeCode)), Is.Not.Null);
+            Assert.That(typeof(DashboardConfigurationDTO).GetProperty(nameof(DashboardConfigurationDTO.Widgets)), Is.Not.Null);
+            Assert.That(typeof(DashboardWidgetDTO).GetProperty(nameof(DashboardWidgetDTO.IsPlaceholder)), Is.Not.Null);
+            Assert.That(typeof(DashboardWidgetDTO).GetProperty(nameof(DashboardWidgetDTO.Source)), Is.Not.Null);
+            Assert.That(typeof(DashboardWidgetDTO).GetProperty(nameof(DashboardWidgetDTO.Metrics)), Is.Not.Null);
+            Assert.That(typeof(DashboardWidgetDTO).GetProperty(nameof(DashboardWidgetDTO.Items)), Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public void Generic_dashboard_uses_trusted_role_context_and_non_blocking_async_calls()
+    {
+        var source = File.ReadAllText(Path.Combine(
+            FindRoot(),
+            "axionpro.application",
+            "Features",
+            "DashboardCmd",
+            "PersonaDashboardHandlers.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(source, Does.Contain("ValidateTenantPermissionAsync(permission, cancellationToken)"));
+            Assert.That(source, Does.Contain("GetRoleTypeCode(context.RoleTypeId)"));
+            Assert.That(source, Does.Contain("RoleTypeManagerCode"));
+            Assert.That(source, Does.Contain("RoleTypeEmployeeCode"));
+            Assert.That(source, Does.Contain("RoleTypeClientCode"));
+            Assert.That(source, Does.Contain("TEMPORARY_STATIC"));
+            Assert.That(source, Does.Not.Contain(".Result"));
+            Assert.That(source, Does.Not.Contain(".Wait()"));
+        });
     }
 
     [Test]
