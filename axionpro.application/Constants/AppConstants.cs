@@ -572,6 +572,13 @@ namespace axionpro.application.Constants
 
         #endregion
 
+        #region Tenant Location Defaults
+
+        public static readonly string InitialTenantLocationCode = "PRIMARY";
+        public static readonly string InitialTenantLocationTimeZoneId = "UTC";
+
+        #endregion
+
         #region Tenant Role Types
 
         public static readonly string TenantAdminRoleName = "Tenant Administrator";

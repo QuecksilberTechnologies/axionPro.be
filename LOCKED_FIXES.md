@@ -109,6 +109,7 @@ Every entry must include:
 | `LOCK-EMP-BANK-005` | Employee Bank sensitive fields encrypted at rest | LOCKED | Unit 1/1; Local DB 1/1; Render DB 1/1; protected backend gates pass; Release build | API DEPLOYMENT PENDING | [2026-10-03](docs/testing/employee/bank-sensitive-field-encryption/2026-10-03.md) |
 | `LOCK-POLICY-ASSIGN-006` | Applicability-safe employee assignment picker, bulk and export | LOCKED | Policy contract/schema 32/32; Release build | PENDING | [2026-10-03](docs/testing/policy/assignment-applicability-mapping/2026-10-03.md) |
 | `LOCK-ROLE-PERSONA-007` | Professional Tenant role names, role-type personas and remarks | LOCKED | Backend 15/15; protected tenant registration 14/14; Local/Render data verified | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md) |
+| `LOCK-TENANT-LOCATION-008` | Initial TenantLocation creation and Host synchronization | LOCKED | Creation/update 15/15; PostgreSQL rollback 2/2; Role 15/15 | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/tenant/initial-location-lifecycle/2026-10-04.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -511,6 +512,31 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Releas
 ```
 
 Expected: Role 15/15 and tenant registration 14/14 pass, with no failures or skips. Local and Render contain no legacy default names and no orphan UserRole references. Evidence: [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md). API deployment acceptance remains pending.
+
+## LOCK-TENANT-LOCATION-008: Initial TenantLocation lifecycle
+
+### Locked behavior
+
+- Self registration creates one minimum valid initial `TenantLocation` in the same transaction as the `Tenant`.
+- The self-registration location belongs to the new Tenant and uses the requested Tenant country. Required technical fields use centralized defaults: code `PRIMARY`, the company name, Head Office type and UTC time zone. Optional address and subordinate geography remain empty.
+- Host onboarding creates the initial location from the supplied `InitialLocation` values in the same transaction as the Tenant.
+- The Host aggregate update synchronizes the UI-selected location. An omitted location country inherits the final Tenant country; changing country clears incompatible state, district and locality values unless replacements are supplied.
+- The simple Host update synchronizes the canonical active location (Head Office first, then the oldest row). It creates a minimum valid row for a legacy Tenant that has none, changes its country with the Tenant, clears subordinate geography on a country change and updates only a generated company-based location name.
+- Tenant creation rollback includes `TenantLocation`; no partial Tenant or location remains when a later onboarding stage fails.
+- Existing authorization and permission middleware remain authoritative for Host routes. Self registration remains anonymous as before.
+
+### Protected areas and gate
+
+- Tenant registration handler, Host tenant update handlers, Tenant configuration repository canonical-location lookup, centralized initial-location constants and Tenant controller contracts.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome|FullyQualifiedName~HostApiRegressionTests.Host_tenant_update_synchronizes_the_canonical_location" --logger "console;verbosity=minimal"
+$env:AXIONPRO_HOST_DB_SETTINGS="<authorized local settings file>"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_real_database_rollback_probe" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "TestCategory=RoleTypeMapping" --logger "console;verbosity=minimal"
+```
+
+Expected: Tenant creation and Host update 15/15, PostgreSQL rollback 2/2 and Role mapping 15/15 pass, with zero failures or skips. Evidence: [2026-10-04](docs/testing/tenant/initial-location-lifecycle/2026-10-04.md). Corrected API deployment and live authenticated reconciliation remain pending.
 
 ## Adding the next lock
 

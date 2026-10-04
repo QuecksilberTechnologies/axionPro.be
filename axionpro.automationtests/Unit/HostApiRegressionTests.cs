@@ -234,6 +234,7 @@ public sealed class HostApiRegressionTests
     {
         var calls = new List<string>();
         var departments = new Dictionary<string, int>();
+        TenantLocation? stagedInitialLocation = null;
         var saveChangesCalls = 0;
         var requestCancellation = scenario == "cancelled"
             ? new CancellationToken(canceled: true)
@@ -264,6 +265,8 @@ public sealed class HostApiRegressionTests
             if (method.Name == "GetAllSubscribedModuleAsync" && scenario == "plan-access-failure")
                 throw new InvalidOperationException("Simulated plan-module failure");
             if (method.Name == "AddTenantAsync") ((Tenant)args![0]!).Id = 501;
+            if (method.Name == "AddAsync" && args?[0] is TenantLocation tenantLocation)
+                stagedInitialLocation = tenantLocation;
             if (method.Name == "AddEmployeeAggregateAsync") ((Employee)args![0]!).Id = 50000001;
             if (method.Name == "AutoCreateDepartmentSeedAsync")
                 foreach (var d in (IEnumerable<Department>)args![0]!) departments[d.DepartmentName] = departments.Count + 1;
@@ -336,6 +339,18 @@ public sealed class HostApiRegressionTests
             Assert.That(calls, Does.Not.Contain("AutoCreatePolicyTypesAsync"));
             Assert.That(calls.IndexOf("SendTemplatedEmailUsingHostConfigAsync"), Is.GreaterThan(calls.IndexOf("CommitTransactionAsync")));
             Assert.That(result.Data.EmailSent, Is.EqualTo(scenario != "email-failure"));
+            Assert.That(stagedInitialLocation, Is.Not.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(stagedInitialLocation!.TenantId, Is.EqualTo(501));
+                Assert.That(stagedInitialLocation.CountryId, Is.EqualTo(1));
+                Assert.That(
+                    stagedInitialLocation.LocationCode,
+                    Is.EqualTo(host ? "HQ" : ConstantValues.InitialTenantLocationCode));
+                Assert.That(
+                    stagedInitialLocation.TimeZoneId,
+                    Is.EqualTo(host ? "Asia/Kolkata" : ConstantValues.InitialTenantLocationTimeZoneId));
+            });
         }
 
         if (scenario == "save-failure")
@@ -369,6 +384,88 @@ public sealed class HostApiRegressionTests
             Assert.That(result.ErrorCode, Is.EqualTo(AppConstants.ErrorCodes.TenantRegistrationFailed));
             Assert.That(result.Message, Does.Contain("cancelled before it completed"));
         }
+    }
+
+    [Test]
+    public async Task Host_tenant_update_synchronizes_the_canonical_location()
+    {
+        var tenant = new Tenant
+        {
+            Id = 71,
+            TenantIndustryId = 9,
+            CompanyName = "Original Company",
+            TenantCode = "ORIGINAL",
+            CompanyEmailDomain = "example.test",
+            TenantEmail = "admin@example.test",
+            CountryId = 1,
+            IsActive = true
+        };
+        var location = new TenantLocation
+        {
+            Id = 19,
+            TenantId = tenant.Id,
+            LocationCode = ConstantValues.InitialTenantLocationCode,
+            LocationName = tenant.CompanyName,
+            LocationType = (short)TenantLocationType.HeadOffice,
+            CountryId = 1,
+            StateId = 10,
+            DistrictId = 20,
+            LocalityId = 30,
+            TimeZoneId = ConstantValues.InitialTenantLocationTimeZoneId,
+            IsHeadOffice = true,
+            IsActive = true
+        };
+        var tenantRepository = CreateProxy<ITenantRepository>((method, _) => method.Name switch
+        {
+            nameof(ITenantRepository.GetHostManagedTenantByIdAsync) => Task.FromResult<Tenant?>(tenant),
+            nameof(ITenantRepository.StageHostManagedUpdateAsync) => Task.CompletedTask,
+            _ => throw new NotSupportedException($"Unexpected Tenant repository call: {method.Name}.")
+        });
+        var locationRepository = CreateProxy<ITenantLocationRepository>((method, _) => method.Name switch
+        {
+            nameof(ITenantLocationRepository.GetInitialForUpdateAsync) => Task.FromResult<TenantLocation?>(location),
+            _ => throw new NotSupportedException($"Unexpected TenantLocation repository call: {method.Name}.")
+        });
+        var unitOfWork = CreateProxy<IUnitOfWork>((method, _) => method.Name switch
+        {
+            "get_TenantRepository" => tenantRepository,
+            "get_TenantLocationRepository" => locationRepository,
+            nameof(IUnitOfWork.SaveChangesAsync) => Task.FromResult(2),
+            _ => throw new NotSupportedException($"Unexpected UnitOfWork call: {method.Name}.")
+        });
+        var encoder = CreateProxy<IIdEncoderService>((method, _) => method.Name switch
+        {
+            nameof(IIdEncoderService.DecodeId_long) => tenant.Id,
+            nameof(IIdEncoderService.EncodeId_long) => "encoded-tenant",
+            _ => throw new NotSupportedException($"Unexpected encoder call: {method.Name}.")
+        });
+        var handler = new UpdateHostManagedTenantCommandHandler(
+            unitOfWork,
+            CreateHostCommonRequestService(),
+            encoder);
+
+        var result = await handler.Handle(
+            new UpdateHostManagedTenantCommand(
+                "encoded-tenant",
+                new UpdateHostManagedTenantRequestDTO
+                {
+                    CompanyName = "Renamed Company",
+                    CountryId = 2
+                },
+                new PermissionRequestDTO()),
+            CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSucceeded, Is.True);
+            Assert.That(location.CountryId, Is.EqualTo(2));
+            Assert.That(location.StateId, Is.Null);
+            Assert.That(location.DistrictId, Is.Null);
+            Assert.That(location.LocalityId, Is.Null);
+            Assert.That(location.LocationName, Is.EqualTo("Renamed Company"));
+            Assert.That(location.UpdatedById, Is.EqualTo(1));
+            Assert.That(location.UpdatedDateTime, Is.Not.Null);
+        });
     }
 
     private sealed class RegistrationDbException(string sqlState)

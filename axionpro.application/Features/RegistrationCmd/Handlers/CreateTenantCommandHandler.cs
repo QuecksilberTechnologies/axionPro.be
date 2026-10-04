@@ -203,45 +203,58 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
                 _logger.LogInformation("Tenant created successfully with TenantId: {TenantId}", newTenantId);
 
-                if (onboardingRequest is not null)
+                failureStage = "saving the initial tenant location";
+                var location = onboardingRequest?.InitialLocation;
+                if (location is not null &&
+                    (!Enum.IsDefined((TenantLocationType)location.LocationType) ||
+                     string.IsNullOrWhiteSpace(location.LocationCode) ||
+                     string.IsNullOrWhiteSpace(location.TimeZoneId)))
                 {
-                    failureStage = "saving the initial tenant location";
-                    var location = onboardingRequest.InitialLocation;
-                    if (location.LocationType is < 1 or > 4 ||
-                        string.IsNullOrWhiteSpace(location.LocationCode) ||
-                        string.IsNullOrWhiteSpace(location.TimeZoneId))
-                    {
-                        await SafeRollbackAsync();
-                        return Fail("A valid initial Tenant location is required.");
-                    }
-
-                    await _unitOfWork.TenantLocationRepository.AddAsync(new TenantLocation
-                    {
-                        TenantId = newTenantId,
-                        LocationCode = location.LocationCode.Trim(),
-                        LocationName = string.IsNullOrWhiteSpace(location.LocationName) ? tenantEntity.CompanyName : location.LocationName.Trim(),
-                        LocationType = location.LocationType,
-                        CountryId = dto.CountryId,
-                        StateId = location.StateId,
-                        DistrictId = location.DistrictId,
-                        LocalityId = location.LocalityId,
-                        Address = location.Address,
-                        Landmark = location.Landmark,
-                        PostalCode = location.PostalCode,
-                        Latitude = location.Latitude,
-                        Longitude = location.Longitude,
-                        GeoFenceRadiusMeters = location.GeoFenceRadiusMeters,
-                        TimeZoneId = location.TimeZoneId.Trim(),
-                        IsHeadOffice = location.LocationType == 1,
-                        IsGeoFenceEnabled = location.IsGeoFenceEnabled,
-                        IsAttendanceAllowed = location.IsAttendanceAllowed,
-                        IsBiometricEnabled = location.IsBiometricEnabled,
-                        IsActive = true,
-                        IsSoftDeleted = false,
-                        AddedById = newTenantId,
-                        AddedDateTime = DateTime.UtcNow
-                    }, cancellationToken);
+                    await SafeRollbackAsync();
+                    return Fail("A valid initial Tenant location is required.");
                 }
+
+                var initialLocation = new TenantLocation
+                {
+                    TenantId = newTenantId,
+                    LocationCode = location?.LocationCode.Trim() ?? ConstantValues.InitialTenantLocationCode,
+                    LocationName = string.IsNullOrWhiteSpace(location?.LocationName)
+                        ? tenantEntity.CompanyName
+                        : location.LocationName.Trim(),
+                    LocationType = location?.LocationType ?? (short)TenantLocationType.HeadOffice,
+                    CountryId = dto.CountryId,
+                    StateId = location?.StateId,
+                    DistrictId = location?.DistrictId,
+                    LocalityId = location?.LocalityId,
+                    Address = location?.Address,
+                    Landmark = location?.Landmark,
+                    PostalCode = location?.PostalCode,
+                    Latitude = location?.Latitude,
+                    Longitude = location?.Longitude,
+                    GeoFenceRadiusMeters = location?.GeoFenceRadiusMeters,
+                    TimeZoneId = location?.TimeZoneId.Trim() ?? ConstantValues.InitialTenantLocationTimeZoneId,
+                    IsHeadOffice = location is null || location.LocationType == (short)TenantLocationType.HeadOffice,
+                    IsGeoFenceEnabled = location?.IsGeoFenceEnabled ?? false,
+                    IsAttendanceAllowed = location?.IsAttendanceAllowed ?? false,
+                    IsBiometricEnabled = location?.IsBiometricEnabled ?? false,
+                    IsActive = true,
+                    IsSoftDeleted = false,
+                    AddedById = newTenantId,
+                    AddedDateTime = DateTime.UtcNow
+                };
+
+                if (!await _unitOfWork.TenantLocationRepository.IsValidGeographyAsync(
+                        initialLocation.CountryId,
+                        initialLocation.StateId,
+                        initialLocation.DistrictId,
+                        initialLocation.LocalityId,
+                        cancellationToken))
+                {
+                    await SafeRollbackAsync();
+                    return Fail("The initial Tenant location geography is invalid.");
+                }
+
+                await _unitOfWork.TenantLocationRepository.AddAsync(initialLocation, cancellationToken);
 
                 // =====================================================
                 // STEP 6 : Create tenant subscription

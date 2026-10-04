@@ -163,6 +163,8 @@ public sealed class UpdateHostManagedTenantCommandHandler
         var dto = request.RequestDTO;
         var submittedEmail = dto.TenantEmail?.Trim();
         var submittedCode = dto.TenantCode?.Trim();
+        var originalCompanyName = tenant.CompanyName;
+        var countryChanged = dto.CountryId > 0 && tenant.CountryId != dto.CountryId;
 
         if (!string.IsNullOrWhiteSpace(submittedEmail) &&
             !string.Equals(submittedEmail, tenant.TenantEmail, StringComparison.OrdinalIgnoreCase) &&
@@ -233,6 +235,12 @@ public sealed class UpdateHostManagedTenantCommandHandler
         tenant.UpdatedDateTime = DateTime.UtcNow;
 
         await _unitOfWork.TenantRepository.StageHostManagedUpdateAsync(tenant, cancellationToken);
+        await SynchronizeInitialLocationAsync(
+            tenant,
+            originalCompanyName,
+            countryChanged,
+            hostContext.HostUserId,
+            cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<HostTenantResponseDTO>.Success(
@@ -243,6 +251,64 @@ public sealed class UpdateHostManagedTenantCommandHandler
     #endregion
 
     #region Helpers
+
+    /// <summary>
+    /// Keeps the canonical initial location aligned with Host-managed Tenant changes.
+    /// Legacy Tenants without a location receive the same minimum valid initial row as self-registration.
+    /// </summary>
+    private async Task SynchronizeInitialLocationAsync(
+        Tenant tenant,
+        string originalCompanyName,
+        bool countryChanged,
+        long actorId,
+        CancellationToken cancellationToken)
+    {
+        var location = await _unitOfWork.TenantLocationRepository
+            .GetInitialForUpdateAsync(tenant.Id, cancellationToken);
+
+        if (location is null)
+        {
+            await _unitOfWork.TenantLocationRepository.AddAsync(new TenantLocation
+            {
+                TenantId = tenant.Id,
+                LocationCode = ConstantValues.InitialTenantLocationCode,
+                LocationName = tenant.CompanyName,
+                LocationType = (short)TenantLocationType.HeadOffice,
+                CountryId = tenant.CountryId,
+                TimeZoneId = ConstantValues.InitialTenantLocationTimeZoneId,
+                IsHeadOffice = true,
+                IsAttendanceAllowed = false,
+                IsActive = true,
+                IsSoftDeleted = false,
+                AddedById = actorId,
+                AddedDateTime = DateTime.UtcNow
+            }, cancellationToken);
+            return;
+        }
+
+        var changed = false;
+        if (countryChanged)
+        {
+            location.CountryId = tenant.CountryId;
+            location.StateId = null;
+            location.DistrictId = null;
+            location.LocalityId = null;
+            changed = true;
+        }
+
+        if (!string.Equals(originalCompanyName, tenant.CompanyName, StringComparison.Ordinal) &&
+            string.Equals(location.LocationName, originalCompanyName, StringComparison.Ordinal))
+        {
+            location.LocationName = tenant.CompanyName;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            location.UpdatedById = actorId;
+            location.UpdatedDateTime = DateTime.UtcNow;
+        }
+    }
 
     /// <summary>
     /// Maps a persisted Tenant to the established client response model.

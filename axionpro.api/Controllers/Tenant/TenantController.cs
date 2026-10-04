@@ -99,7 +99,7 @@ public class TenantController : ControllerBase
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
     /// <para>API endpoint purpose: creates tenant.</para>
-    /// <para>Handler flow: CreateTenantCommand is processed by CreateTenantCommandHandler; operation(s): GetEmployeeIdByUserLogin, GetNonDeletedSubscriptionPlanByIdAsync, AddTenantAsync, SaveChangesAsync, AddAsync.</para>
+    /// <para>Handler flow: CreateTenantCommand creates the Tenant and a minimum valid initial TenantLocation in the same transaction, then completes subscription, security, role and administrator setup.</para>
     /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantCreateResponseDTO: Success (bool), EmailSent (bool?), Message (string)</para>
     /// <para>Angular function(s): TenantsApi.registerTenant (app/core/services/tenants-api.ts:105).</para>
     /// <para>Angular purpose: creates tenant.</para>
@@ -127,7 +127,7 @@ public class TenantController : ControllerBase
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
     /// <para>API endpoint purpose: updates new tenant.</para>
-    /// <para>Handler flow: UpdateNewTenantCommand is processed by UpdateNewTenantCommandHandler; operation(s): GetHostManagedTenantByIdAsync, GetTenantProfileForUpdateAsync, GetForUpdateAsync, GetActivePatternForUpdateAsync, GetActiveEmailConfigAsync.</para>
+    /// <para>Handler flow: UpdateNewTenantCommand updates the Tenant aggregate and the UI-selected TenantLocation in the same transaction; a Tenant country change is inherited when the selected location omits CountryId.</para>
     /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); HostTenantResponseDTO: Id (string), CompanyName (string), TenantCode (string?), CompanyEmailDomain (string), TenantEmail (string), ContactPersonName (string?), ContactNumber (string?), CountryId (int), IsVerified (bool), IsActive (bool)</para>
     /// <para>Angular function(s): TenantsApi.updateTenantByHost (app/core/services/tenants-api.ts:169).</para>
     /// <para>Angular purpose: updates tenant by host.</para>
@@ -207,7 +207,7 @@ public class TenantController : ControllerBase
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
     /// <para>API endpoint purpose: creates new tenant.</para>
-    /// <para>Handler flow: CreateNewTenantCommand is processed by CreateNewTenantCommandHandler.</para>
+    /// <para>Handler flow: CreateNewTenantCommand bridges to the transactional creation handler, which persists the supplied full InitialLocation with the Tenant.</para>
     /// <para>Response DTO property analysis: NewTenantCreationRequestDTO contains tenant, profile, location, and employee-code pattern data. SMTP configuration is intentionally excluded; the welcome email uses the active Host default configuration. ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); TenantCreateResponseDTO: Success (bool), EmailSent (bool?), Message (string)</para>
     /// <para>Angular function(s): TenantsApi.createTenantByHost (app/core/services/tenants-api.ts:117).</para>
     /// <para>Angular purpose: creates tenant by host.</para>
@@ -279,7 +279,7 @@ public class TenantController : ControllerBase
         /// <remarks>
         /// <para>Angular usage status: Not-Used-In-Angular.</para>
         /// <para>API endpoint purpose: updates host managed tenant.</para>
-        /// <para>Handler flow: UpdateHostManagedTenantCommand is processed by UpdateHostManagedTenantCommandHandler; operation(s): GetHostManagedTenantByIdAsync, SaveChangesAsync.</para>
+        /// <para>Handler flow: UpdateHostManagedTenantCommand updates the Tenant and synchronizes its canonical initial TenantLocation country and generated company-based name in the same SaveChanges transaction.</para>
         /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); HostTenantResponseDTO: Id (string), CompanyName (string), TenantCode (string?), CompanyEmailDomain (string), TenantEmail (string), ContactPersonName (string?), ContactNumber (string?), CountryId (int), IsVerified (bool), IsActive (bool)</para>
         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
         /// <para>Backend endpoint: PUT /api/tenant/{}.</para>
@@ -362,7 +362,7 @@ public class TenantController : ControllerBase
     /// <remarks>
     /// <para>Angular usage status: Used-In-Angular.</para>
     /// <para>API endpoint purpose: updates host managed tenant.</para>
-    /// <para>Handler flow: UpdateHostManagedTenantCommand is processed by UpdateHostManagedTenantCommandHandler; operation(s): GetHostManagedTenantByIdAsync, SaveChangesAsync.</para>
+    /// <para>Handler flow: UpdateHostManagedTenantCommand updates the Tenant and synchronizes its canonical initial TenantLocation country and generated company-based name in the same SaveChanges transaction.</para>
     /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); HostTenantResponseDTO: Id (string), CompanyName (string), TenantCode (string?), CompanyEmailDomain (string), TenantEmail (string), ContactPersonName (string?), ContactNumber (string?), CountryId (int), IsVerified (bool), IsActive (bool)</para>
     /// <para>Angular function(s): TenantsApi.updateTenant (app/core/services/tenants-api.ts:177).</para>
     /// <para>Angular purpose: updates tenant.</para>

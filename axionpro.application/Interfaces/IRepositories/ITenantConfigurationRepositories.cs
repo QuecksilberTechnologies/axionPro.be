@@ -19,6 +19,8 @@ public interface ITenantLocationRepository
     Task<TenantLocation?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a tracked non-soft-deleted Tenant location for a state change.</summary>
     Task<TenantLocation?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
+    /// <summary>Gets the tracked canonical initial location, preferring the head office and then the oldest row.</summary>
+    Task<TenantLocation?> GetInitialForUpdateAsync(long tenantId, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged Tenant-location result.</summary>
     Task<PagedResponseDTO<TenantLocation>> GetPagedAsync(long tenantId, TenantLocationFilterRequestDTO filter, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged Host-visible Tenant-location result.</summary>

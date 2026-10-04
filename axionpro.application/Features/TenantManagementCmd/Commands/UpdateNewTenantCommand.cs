@@ -135,6 +135,7 @@ public sealed class UpdateNewTenantCommandHandler
                 dto.SelectedLocation!,
                 selectedLocation,
                 tenantId,
+                tenant.CountryId,
                 cancellationToken);
             var employeeCodePatternChanged = ApplyEmployeeCodePattern(dto.EmployeeCodePattern!, employeeCodePattern);
             var emailConfigurationChanged = ApplyEmailConfiguration(dto.EmailConfiguration!, emailConfiguration, out var emailConfigurationUpdate);
@@ -261,6 +262,7 @@ public sealed class UpdateNewTenantCommandHandler
         NewTenantSelectedLocationUpdateRequestDTO dto,
         TenantLocation location,
         long tenantId,
+        int tenantCountryId,
         CancellationToken cancellationToken)
     {
         if (dto.LocationType.HasValue && !Enum.IsDefined(dto.LocationType.Value))
@@ -276,11 +278,12 @@ public sealed class UpdateNewTenantCommandHandler
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
         }
 
-        var finalCountryId = dto.CountryId ?? location.CountryId;
-        var finalStateId = dto.StateId ?? location.StateId;
-        var finalDistrictId = dto.DistrictId ?? location.DistrictId;
-        var finalLocalityId = dto.LocalityId ?? location.LocalityId;
-        if ((dto.CountryId.HasValue || dto.StateId.HasValue || dto.DistrictId.HasValue || dto.LocalityId.HasValue) &&
+        var finalCountryId = dto.CountryId ?? tenantCountryId;
+        var countryChanged = finalCountryId != location.CountryId;
+        var finalStateId = countryChanged ? dto.StateId : dto.StateId ?? location.StateId;
+        var finalDistrictId = countryChanged ? dto.DistrictId : dto.DistrictId ?? location.DistrictId;
+        var finalLocalityId = countryChanged ? dto.LocalityId : dto.LocalityId ?? location.LocalityId;
+        if ((countryChanged || dto.StateId.HasValue || dto.DistrictId.HasValue || dto.LocalityId.HasValue) &&
             !await _unitOfWork.TenantLocationRepository.IsValidGeographyAsync(
                 finalCountryId,
                 finalStateId,
@@ -306,10 +309,10 @@ public sealed class UpdateNewTenantCommandHandler
         if (locationCode is not null) changed |= AssignValue(locationCode, location.LocationCode, value => location.LocationCode = value);
         if (locationName is not null) changed |= AssignValue(locationName, location.LocationName, value => location.LocationName = value);
         if (dto.LocationType.HasValue && location.LocationType != (short)dto.LocationType.Value) { location.LocationType = (short)dto.LocationType.Value; changed = true; }
-        if (dto.CountryId.HasValue && location.CountryId != dto.CountryId.Value) { location.CountryId = dto.CountryId.Value; changed = true; }
-        if (dto.StateId.HasValue && location.StateId != dto.StateId) { location.StateId = dto.StateId; changed = true; }
-        if (dto.DistrictId.HasValue && location.DistrictId != dto.DistrictId) { location.DistrictId = dto.DistrictId; changed = true; }
-        if (dto.LocalityId.HasValue && location.LocalityId != dto.LocalityId) { location.LocalityId = dto.LocalityId; changed = true; }
+        if (location.CountryId != finalCountryId) { location.CountryId = finalCountryId; changed = true; }
+        if (location.StateId != finalStateId) { location.StateId = finalStateId; changed = true; }
+        if (location.DistrictId != finalDistrictId) { location.DistrictId = finalDistrictId; changed = true; }
+        if (location.LocalityId != finalLocalityId) { location.LocalityId = finalLocalityId; changed = true; }
         if (dto.Address is not null) changed |= AssignValue(dto.Address.Trim(), location.Address, value => location.Address = value);
         if (dto.Landmark is not null) changed |= AssignValue(dto.Landmark.Trim(), location.Landmark, value => location.Landmark = value);
         if (dto.PostalCode is not null) changed |= AssignValue(dto.PostalCode.Trim(), location.PostalCode, value => location.PostalCode = value);

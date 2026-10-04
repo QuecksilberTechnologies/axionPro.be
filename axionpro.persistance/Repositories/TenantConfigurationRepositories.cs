@@ -50,6 +50,15 @@ public sealed class TenantLocationRepository : TenantConfigurationRepositoryBase
         Context.TenantLocations.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
+    public Task<TenantLocation?> GetInitialForUpdateAsync(long tenantId, CancellationToken cancellationToken) =>
+        Context.TenantLocations
+            .Where(x => x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted)
+            .OrderByDescending(x => x.IsHeadOffice)
+            .ThenBy(x => x.AddedDateTime)
+            .ThenBy(x => x.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    /// <inheritdoc />
     public async Task<PagedResponseDTO<TenantLocation>> GetPagedAsync(long tenantId, TenantLocationFilterRequestDTO filter, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
