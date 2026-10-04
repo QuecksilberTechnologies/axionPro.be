@@ -78,7 +78,7 @@ public sealed class EmployeeMonitoringController(IMediator mediator, ILoggerServ
         [FromForm] DateTime capturedAtUtc,
         [FromForm] int monitorNumber,
         [FromForm] string? checksumSha256,
-        [FromForm] IFormFile screenshot,
+        IFormFile screenshot,
         CancellationToken cancellationToken)
     {
         await using var content = screenshot.OpenReadStream();
