@@ -112,6 +112,7 @@ public sealed class GetSuperAdminOnboardingHandler(
         var tenantId = await ValidateAsync(request.Permission, cancellationToken);
         var employees = await repository.GetRecentOnboardingAsync(
             tenantId,
+            DateTime.UtcNow.Date.AddDays(-30),
             Math.Clamp(request.Limit, 1, 50),
             cancellationToken);
         return ApiResponse<IReadOnlyList<DashboardEmployeeDTO>>.Success(employees);

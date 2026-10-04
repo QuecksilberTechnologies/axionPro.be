@@ -17,7 +17,7 @@ GET /api/Dashboard/TENANT_ADMIN?moduleId=<dashboard-module>&operationId=<view-op
 Authorization: Bearer <token>
 ```
 
-There is no request body. This is a read-only endpoint.
+There is no request body. This is a read-only endpoint. Swagger exposes the complete `DashboardDataDTOApiResponse` schema for HTTP 200.
 
 ## Response
 

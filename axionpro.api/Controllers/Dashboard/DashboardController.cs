@@ -1,6 +1,8 @@
 using axionpro.application.DTOs.BaseDTO;
+using axionpro.application.DTOS.Dashboard;
 using axionpro.application.Features.DashboardCmd;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +17,7 @@ public sealed class DashboardController(IMediator mediator, ILoggerService logge
 {
     /// <summary>Returns the complete dashboard data for the requested authenticated RoleType code.</summary>
     [HttpGet("{roleTypeCode}")]
+    [ProducesResponseType(typeof(ApiResponse<DashboardDataDTO>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Data(
         [FromRoute] string roleTypeCode,
         [FromQuery] PermissionRequestDTO permission,

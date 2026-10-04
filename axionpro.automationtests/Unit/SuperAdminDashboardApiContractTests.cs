@@ -1,6 +1,8 @@
 using System.Reflection;
 using axionpro.api.Controllers.Dashboard;
 using axionpro.application.DTOS.Dashboard;
+using axionpro.application.Wrappers;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using NUnit.Framework;
 
@@ -35,8 +37,13 @@ public sealed class SuperAdminDashboardApiContractTests
     [Test]
     public void Generic_dashboard_contract_exposes_one_role_specific_data_envelope()
     {
+        var action = typeof(DashboardController).GetMethod(nameof(DashboardController.Data));
+        var successResponse = action?.GetCustomAttributes<ProducesResponseTypeAttribute>()
+            .SingleOrDefault(attribute => attribute.StatusCode == 200);
+
         Assert.Multiple(() =>
         {
+            Assert.That(successResponse?.Type, Is.EqualTo(typeof(ApiResponse<DashboardDataDTO>)));
             Assert.That(typeof(DashboardDataDTO).GetProperty(nameof(DashboardDataDTO.RoleTypeCode)), Is.Not.Null);
             Assert.That(typeof(DashboardDataDTO).GetProperty(nameof(DashboardDataDTO.TenantAdministrator)), Is.Not.Null);
             Assert.That(typeof(DashboardDataDTO).GetProperty(nameof(DashboardDataDTO.PeopleManager)), Is.Not.Null);
@@ -73,6 +80,19 @@ public sealed class SuperAdminDashboardApiContractTests
             Assert.That(source, Does.Not.Contain(".Result"));
             Assert.That(source, Does.Not.Contain(".Wait()"));
         });
+    }
+
+    [Test]
+    public void Legacy_onboarding_uses_the_same_thirty_day_window()
+    {
+        var source = File.ReadAllText(Path.Combine(
+            FindRoot(),
+            "axionpro.application",
+            "Features",
+            "DashboardCmd",
+            "SuperAdminDashboardHandlers.cs"));
+
+        Assert.That(source, Does.Contain("DateTime.UtcNow.Date.AddDays(-30)"));
     }
 
     [Test]
