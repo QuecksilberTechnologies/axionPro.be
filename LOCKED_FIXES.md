@@ -110,6 +110,8 @@ Every entry must include:
 | `LOCK-POLICY-ASSIGN-006` | Applicability-safe employee assignment picker, bulk and export | LOCKED | Policy contract/schema 32/32; Release build | PENDING | [2026-10-03](docs/testing/policy/assignment-applicability-mapping/2026-10-03.md) |
 | `LOCK-ROLE-PERSONA-007` | Professional Tenant role names, role-type personas and remarks | LOCKED | Backend 15/15; protected tenant registration 14/14; Local/Render data verified | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md) |
 | `LOCK-TENANT-LOCATION-008` | Initial TenantLocation creation and Host synchronization | LOCKED | Creation/update 15/15; PostgreSQL rollback 2/2; Role 20/20 | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/tenant/initial-location-lifecycle/2026-10-04.md) |
+| `LOCK-POLICY-DOWNLOAD-009` | Policy Assignment Download module-operation mapping | LOCKED | Policy contract/schema 33/33; Release build; Local/Render mapping verified | DATA APPLIED; API DEPLOYMENT NOT REQUIRED | [2026-10-07](docs/testing/policy/assignment-download-operation/2026-10-07.md) |
+| `LOCK-POLICY-PUBLISH-010` | Policy document, approval fingerprint, clone and archive integrity | LOCKED | Policy contract/schema 37/37; Release build; Angular production build; Local/Render schema verified | API/UI DEPLOYMENT PENDING | [2026-10-07](docs/testing/policy/publication-integrity/2026-10-07.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -537,6 +539,51 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Releas
 ```
 
 Expected: Tenant creation and Host update 15/15, PostgreSQL rollback 2/2 and Role mapping 15/15 pass, with zero failures or skips. Evidence: [2026-10-04](docs/testing/tenant/initial-location-lifecycle/2026-10-04.md). Corrected API deployment and live authenticated reconciliation remain pending.
+
+## LOCK-POLICY-DOWNLOAD-009: Policy Assignment Download mapping
+
+### Locked behavior
+
+- `TENANT_POLICY_ASSIGNMENTS` reuses the established `Download` operation.
+- Exactly one active and operational catalogue mapping exists with priority `60`.
+- Both focused and consolidated production seeds contain the idempotent mapping row.
+- Role grants continue through the existing permission pipeline; this catalogue mapping does not bypass it.
+
+### Protected areas and gate
+
+- `Module`, `Operation`, and `ModuleOperationMapping` catalogue rows for Policy Assignments.
+- `SeedTenantPolicyModules.sql`, consolidated production module-operation seed, and policy schema contracts.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~GenericPolicyApiContractTests|FullyQualifiedName~PolicyFrameworkSchemaTests|TestCategory=GenericPolicyRuleMetadata" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+Expected: policy contract/schema 33/33 and Release build pass with zero errors. Local and Render each retain exactly one active and operational mapping. Evidence: [2026-10-07](docs/testing/policy/assignment-download-operation/2026-10-07.md).
+
+## LOCK-POLICY-PUBLISH-010: Policy publication integrity
+
+### Locked behavior
+
+- The Policy list action is labelled `Manage version`; the route remains the exact version view.
+- Documents can be added or removed only while a version is Draft or Rejected.
+- Submit and Publish require at least one active employee-visible document whose stable type code is `POLICY_DOCUMENT`.
+- Approval stores a SHA-256 content fingerprint covering policy/version fields, rules, applicability, Attendance configuration and active document checksum metadata. Publish recomputes it and rejects changed or unapproved content.
+- Published and Archived versions remain immutable.
+- Clone creates the next Draft and copies rules, applicability and Attendance configuration. It does not copy documents, assignments, acknowledgements, exceptions or approval history.
+- Archive preserves assignment rows. Assignment reads expose `IsEffective=false` and `StateReason=VERSION_ARCHIVED` for active rows belonging to an Archived version.
+
+### Protected areas and gate
+
+- Generic Policy entities, EF mapping, repository lifecycle/document/assignment methods, Policy DTOs and `AddPolicyPublicationIntegrity.sql`.
+- Angular Policy Definitions action copy and Policy Version document/assignment state.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~GenericPolicyApiContractTests|FullyQualifiedName~PolicyFrameworkSchemaTests|TestCategory=GenericPolicyRuleMetadata" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+Expected: 37 passed, zero failed/skipped; Release build zero errors. Angular changed-file format and production build must pass when Angular work is authorized. Local and Render schemas must each have the two checksum columns, two check constraints and zero null approval-history checksums. Deployed authenticated lifecycle and storage verification remains pending. Evidence: [2026-10-07](docs/testing/policy/publication-integrity/2026-10-07.md).
 
 ## Adding the next lock
 

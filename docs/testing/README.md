@@ -15,6 +15,7 @@
 
 - [Unified attendance channels — 2026-10-03](policy/unified-attendance-channels/2026-10-03.md)
 - [Policy assignment applicability-safe mapping, bulk and export — 2026-10-03](policy/assignment-applicability-mapping/2026-10-03.md)
+- [Policy assignment Download operation mapping — 2026-10-07](policy/assignment-download-operation/2026-10-07.md)
 
 - [Tenant demo end-to-end readiness — 2026-09-28](tenant/demo-e2e/2026-09-28.md)
 - [Tenant creation without implicit policy types — 2026-10-01](tenant/creation-policy-independence/2026-10-01.md)
@@ -155,3 +156,4 @@ saving evidence. Documentation-only work does not require repeating passed tests
 # Policy generic rule metadata
 
 - [2026-10-02 — code-driven rule schema, Angular authoring and Render metadata migration](policy/generic-rule-metadata/2026-10-02.md)
+- [2026-10-07 - publication integrity, clone lifecycle and archived assignment state](policy/publication-integrity/2026-10-07.md)

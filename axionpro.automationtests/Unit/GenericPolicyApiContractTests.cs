@@ -347,6 +347,78 @@ public sealed class GenericPolicyApiContractTests
     }
 
     [Test]
+    public void Publication_requires_employee_visible_policy_document_and_approved_content_fingerprint()
+    {
+        var source = ReadRepositoryFile(
+            "axionpro.persistance",
+            "Repositories",
+            "GenericPolicyRepository.cs");
+        Assert.Multiple(() =>
+        {
+            Assert.That(source, Does.Contain("action is \"SUBMIT\" or \"PUBLISH\""));
+            Assert.That(source, Does.Contain("documentType.DocumentTypeCode == \"POLICY_DOCUMENT\""));
+            Assert.That(source, Does.Contain("document.IsEmployeeVisible"));
+            Assert.That(source, Does.Contain("ComputeVersionContentChecksumAsync("));
+            Assert.That(source, Does.Contain("version.ApprovedContentChecksumSha256"));
+            Assert.That(source, Does.Contain("Documents can be changed only on draft or rejected versions."));
+            Assert.That(typeof(PolicyVersion)
+                .GetProperty(nameof(PolicyVersion.ApprovedContentChecksumSha256)), Is.Not.Null);
+            Assert.That(typeof(PolicyApprovalHistory)
+                .GetProperty(nameof(PolicyApprovalHistory.ContentChecksumSha256)), Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public void Clone_creates_a_draft_copy_of_rules_scopes_and_attendance_without_evidence_records()
+    {
+        var source = ReadRepositoryFile(
+            "axionpro.persistance",
+            "Repositories",
+            "GenericPolicyRepository.cs");
+        var cloneStart = source.IndexOf("public async Task<PolicyDetailResponseDTO> CloneVersionAsync", StringComparison.Ordinal);
+        var transitionStart = source.IndexOf("public async Task<PolicyDetailResponseDTO> TransitionAsync", cloneStart, StringComparison.Ordinal);
+        var clone = source[cloneStart..transitionStart];
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(clone, Does.Contain("PolicyStatusId = statusIds.Draft"));
+            Assert.That(clone, Does.Contain("context.PolicyRules.AddRange"));
+            Assert.That(clone, Does.Contain("context.PolicyApplicabilities.AddRange"));
+            Assert.That(clone, Does.Contain("context.AttendancePolicyVersionConfigurations.Add"));
+            Assert.That(clone, Does.Not.Contain("context.PolicyDocuments.Add"));
+            Assert.That(clone, Does.Not.Contain("context.PolicyAssignments.Add"));
+            Assert.That(clone, Does.Not.Contain("context.PolicyAcknowledgements.Add"));
+            Assert.That(clone, Does.Not.Contain("context.PolicyApprovalHistories.Add"));
+        });
+    }
+
+    [Test]
+    public void Archived_version_preserves_assignment_rows_but_reports_them_as_ineffective()
+    {
+        var source = ReadRepositoryFile(
+            "axionpro.persistance",
+            "Repositories",
+            "GenericPolicyRepository.cs");
+        var handler = ReadRepositoryFile(
+            "axionpro.application",
+            "Features",
+            "GenericPolicyCmd",
+            "GenericPolicyHandlers.cs");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeof(PolicyAssignmentResponseDTO)
+                .GetProperty(nameof(PolicyAssignmentResponseDTO.IsEffective)), Is.Not.Null);
+            Assert.That(typeof(PolicyAssignmentResponseDTO)
+                .GetProperty(nameof(PolicyAssignmentResponseDTO.StateReason)), Is.Not.Null);
+            Assert.That(source, Does.Contain("\"VERSION_ARCHIVED\""));
+            Assert.That(source, Does.Contain("version.IsCurrent = false"));
+            Assert.That(source, Does.Not.Contain("RemoveRange(context.PolicyAssignments"));
+            Assert.That(handler, Does.Contain("IsActive,IsEffective,StateReason"));
+        });
+    }
+
+    [Test]
     public void Repository_enforces_tenant_scope_on_employee_sensitive_operations()
     {
         var source = ReadRepositoryFile("axionpro.persistance", "Repositories", "GenericPolicyRepository.cs");

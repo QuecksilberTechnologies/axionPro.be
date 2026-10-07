@@ -129,6 +129,7 @@ public sealed class PolicyVersion
     public int RuleSchemaVersion { get; set; }
     public long? ApprovedById { get; set; }
     public DateTime? ApprovedDateTime { get; set; }
+    public string? ApprovedContentChecksumSha256 { get; set; }
     public long? PublishedById { get; set; }
     public DateTime? PublishedDateTime { get; set; }
     public bool IsCurrent { get; set; }
@@ -295,6 +296,7 @@ public sealed class PolicyApprovalHistory
     public DateTime ActionDateTime { get; set; }
     public string? Comments { get; set; }
     public int SequenceNumber { get; set; }
+    public string ContentChecksumSha256 { get; set; } = null!;
 }
 
 public sealed class PolicyAcknowledgement

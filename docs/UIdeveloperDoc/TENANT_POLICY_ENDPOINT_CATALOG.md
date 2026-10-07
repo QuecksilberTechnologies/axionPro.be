@@ -162,6 +162,9 @@ Output: updated Policy detail; message `Policy draft updated successfully.`
 Output: cloned Policy detail with next version in Draft; message
 `Policy version cloned as draft.`
 
+Clone copies rules, applicability and Attendance execution configuration. It does
+not copy documents, assignments, acknowledgements, exceptions or approval history.
+
 ### 11. POST `/versions/{versionId}/transition`
 
 ```json
@@ -170,6 +173,11 @@ Output: cloned Policy detail with next version in Draft; message
 
 Allowed action values: `SUBMIT`, `APPROVE`, `REJECT`, `PUBLISH`, `ARCHIVE`.
 Output: updated Policy detail; message `Policy lifecycle action completed successfully.`
+
+`SUBMIT` and `PUBLISH` require an active employee-visible document whose lookup
+type code is `POLICY_DOCUMENT`. Documents are mutable only in Draft and Rejected.
+Approval fingerprints the version data and document checksums. `PUBLISH` returns
+HTTP 409 if current content does not match the final approved fingerprint.
 
 ### 12. GET `/resolve`
 
@@ -210,7 +218,11 @@ Output: updated Policy detail; message `Policy lifecycle action completed succes
 ```
 
 ```json
-{ "isSucceeded": true, "message": "Policy assignments retrieved successfully.", "data": [{ "id": 301, "policyVersionId": 73, "employeeId": 201, "assignmentSource": 1, "effectiveFrom": "2027-01-01", "effectiveTo": null, "isMandatory": true, "isActive": true }], "errors": [] }
+{ "isSucceeded": true, "message": "Policy assignments retrieved successfully.", "data": [{ "id": 301, "policyVersionId": 73, "employeeId": 201, "assignmentSource": 1, "effectiveFrom": "2027-01-01", "effectiveTo": null, "isMandatory": true, "isActive": true, "isEffective": false, "stateReason": "VERSION_ARCHIVED" }], "errors": [] }
+
+`isActive` preserves the assignment-row state. An Archived version returns
+`isEffective=false` and `stateReason=VERSION_ARCHIVED` without deleting or
+rewriting assignment history.
 ```
 
 ### 16. POST `/exceptions`
@@ -279,6 +291,9 @@ languageCode=en
 isEmployeeVisible=true
 file=<PDF, DOC or DOCX; 1 byte–10 MB>
 ```
+
+Upload and delete are accepted only for Draft or Rejected versions. After Submit,
+the document manifest is frozen so approval and publication refer to exact bytes.
 
 ```json
 { "isSucceeded": true, "message": "Policy document uploaded successfully.", "data": { "id": 601, "policyVersionId": 73, "documentTypeId": 1, "title": "Maharashtra Leave Policy", "originalFileName": "leave-policy.pdf", "contentType": "application/pdf", "fileSizeBytes": 248320, "languageCode": "en", "isEmployeeVisible": true, "url": "https://temporary-object-url" }, "errors": [] }
@@ -525,7 +540,8 @@ specificity/priority tie. The UI must send the encoded employee IDs to `POST /as
 
 Output is an unpaged `text/csv` download containing assignment ID, employee code/name,
 employee type, department, designation, source, effective dates, mandatory state and active
-state. Resolve the Policy Assignments Export operation dynamically.
+state. It also contains `IsEffective` and `StateReason`, including
+`VERSION_ARCHIVED`. Resolve the Policy Assignments Export operation dynamically.
 
 ## Common error samples
 

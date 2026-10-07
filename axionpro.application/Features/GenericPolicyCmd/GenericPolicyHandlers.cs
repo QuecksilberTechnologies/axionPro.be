@@ -593,7 +593,7 @@ public sealed class ExportPolicyAssignmentsQueryHandler(
             return $"\"{safe.Replace("\"", "\"\"")}\"";
         }
         var output = new System.Text.StringBuilder();
-        output.AppendLine("AssignmentId,EmployeeCode,EmployeeName,EmployeeType,Department,Designation,AssignmentSource,EffectiveFrom,EffectiveTo,IsMandatory,IsActive");
+        output.AppendLine("AssignmentId,EmployeeCode,EmployeeName,EmployeeType,Department,Designation,AssignmentSource,EffectiveFrom,EffectiveTo,IsMandatory,IsActive,IsEffective,StateReason");
         foreach (var row in rows)
         {
             output.Append(row.AssignmentId).Append(',').Append(Csv(row.EmployeeCode)).Append(',')
@@ -601,7 +601,8 @@ public sealed class ExportPolicyAssignmentsQueryHandler(
                 .Append(Csv(row.DepartmentName)).Append(',').Append(Csv(row.DesignationName)).Append(',')
                 .Append(row.AssignmentSource).Append(',').Append(row.EffectiveFrom.ToString("yyyy-MM-dd")).Append(',')
                 .Append(row.EffectiveTo?.ToString("yyyy-MM-dd") ?? string.Empty).Append(',')
-                .Append(row.IsMandatory).Append(',').Append(row.IsActive).AppendLine();
+                .Append(row.IsMandatory).Append(',').Append(row.IsActive).Append(',')
+                .Append(row.IsEffective).Append(',').Append(Csv(row.StateReason)).AppendLine();
         }
         return ApiResponse<string>.Success(output.ToString(), "Policy assignments exported successfully.");
     }

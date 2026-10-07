@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Policy;
@@ -289,6 +291,11 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             ?? throw new NotFoundException("Policy version was not found.");
         var action = dto.Action.Trim().ToUpperInvariant();
 
+        if (action is "SUBMIT" or "PUBLISH")
+        {
+            await EnsureRequiredPolicyDocumentAsync(tenantId, version.Id, cancellationToken);
+        }
+
         if (version.PolicyStatusId == statusIds.UnderReview && action is "APPROVE" or "REJECT")
         {
             return await RecordApprovalDecisionAsync(tenantId, actorId, version, action, dto.Comments, statusIds, cancellationToken);
@@ -309,6 +316,18 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         version.UpdatedDateTime = DateTime.UtcNow;
         if (target == statusIds.Published)
         {
+            var currentContentChecksum = await ComputeVersionContentChecksumAsync(
+                tenantId,
+                version.Id,
+                cancellationToken);
+            if (string.IsNullOrWhiteSpace(version.ApprovedContentChecksumSha256)
+                || !string.Equals(version.ApprovedContentChecksumSha256, currentContentChecksum,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ConflictException(
+                    "The approved policy content no longer matches this version. Submit it for approval again before publishing.");
+            }
+
             var categoryId = await GetPolicyCategoryIdAsync(tenantId, version.PolicyId, cancellationToken);
             var categoryCode = categoryId.HasValue
                 ? await context.PolicyCategories.AsNoTracking()
@@ -377,6 +396,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             {
                 version.ApprovedById = actorId;
                 version.ApprovedDateTime = DateTime.UtcNow;
+                version.ApprovedContentChecksumSha256 = await ComputeVersionContentChecksumAsync(
+                    tenantId,
+                    version.Id,
+                    cancellationToken);
             }
             AddAudit(tenantId, actorId, version.PolicyId, version.Id, "PolicyVersion", version.Id, action, null,
                 JsonSerializer.Serialize(new { version.PolicyStatusId, Comments = comments }));
@@ -417,6 +440,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         }
 
         var nextSequence = history.Select(x => x.SequenceNumber).DefaultIfEmpty(0).Max() + 1;
+        var contentChecksum = await ComputeVersionContentChecksumAsync(
+            tenantId,
+            version.Id,
+            cancellationToken);
         context.PolicyApprovalHistories.Add(new PolicyApprovalHistory
         {
             TenantId = tenantId,
@@ -426,7 +453,8 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             ActionById = actorId,
             ActionDateTime = DateTime.UtcNow,
             Comments = comments?.Trim(),
-            SequenceNumber = nextSequence
+            SequenceNumber = nextSequence,
+            ContentChecksumSha256 = contentChecksum
         });
 
         if (action == "REJECT")
@@ -444,6 +472,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
                 version.PolicyStatusId = statusIds.Approved;
                 version.ApprovedById = actorId;
                 version.ApprovedDateTime = DateTime.UtcNow;
+                version.ApprovedContentChecksumSha256 = contentChecksum;
             }
         }
         version.UpdatedById = actorId;
@@ -673,7 +702,8 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
     {
         var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         var version = await context.PolicyVersions.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.PolicyVersionId && x.TenantId == tenantId, cancellationToken) ?? throw new NotFoundException("Policy version was not found.");
-        if (version.PolicyStatusId == statusIds.Published || version.PolicyStatusId == statusIds.Archived) throw new ConflictException("Documents cannot be changed on published or archived versions.");
+        if (version.PolicyStatusId != statusIds.Draft && version.PolicyStatusId != statusIds.Rejected)
+            throw new ConflictException("Documents can be changed only on draft or rejected versions.");
         if (!await context.PolicyDocumentTypes.AnyAsync(x => x.Id == dto.PolicyDocumentTypeId && x.IsActive, cancellationToken)) throw new ValidationErrorException("PolicyDocumentTypeId is invalid.");
         var entity = new PolicyDocument { TenantId = tenantId, PolicyVersionId = dto.PolicyVersionId, PolicyDocumentTypeId = dto.PolicyDocumentTypeId, DocumentTitle = dto.DocumentTitle.Trim(), OriginalFileName = Path.GetFileName(dto.File.FileName), StorageProvider = "S3", ObjectKey = objectKey, ContentType = dto.File.ContentType, FileSizeBytes = dto.File.Length, ChecksumSha256 = checksum, LanguageCode = dto.LanguageCode?.Trim(), IsEmployeeVisible = dto.IsEmployeeVisible, IsActive = true, AddedById = actorId, AddedDateTime = DateTime.UtcNow };
         context.PolicyDocuments.Add(entity);
@@ -696,7 +726,8 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         var entity = await context.PolicyDocuments.FirstOrDefaultAsync(x => x.Id == documentId && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken) ?? throw new NotFoundException("Policy document was not found.");
         var version = await context.PolicyVersions.FirstAsync(x => x.Id == entity.PolicyVersionId && x.TenantId == tenantId, cancellationToken);
-        if (version.PolicyStatusId == statusIds.Published || version.PolicyStatusId == statusIds.Archived) throw new ConflictException("Documents cannot be changed on published or archived versions.");
+        if (version.PolicyStatusId != statusIds.Draft && version.PolicyStatusId != statusIds.Rejected)
+            throw new ConflictException("Documents can be changed only on draft or rejected versions.");
         entity.IsActive = false; entity.IsSoftDeleted = true; entity.SoftDeletedById = actorId; entity.SoftDeletedDateTime = DateTime.UtcNow;
         AddAudit(tenantId, actorId, version.PolicyId, version.Id, "PolicyDocument", entity.Id, "DELETE", JsonSerializer.Serialize(new { entity.DocumentTitle, entity.ObjectKey }), null);
         await context.SaveChangesAsync(cancellationToken); return entity.ObjectKey;
@@ -822,11 +853,18 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         CancellationToken cancellationToken)
     {
         await EnsureVersionAsync(tenantId, policyVersionId, cancellationToken);
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
+        var isArchived = await context.PolicyVersions.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.Id == policyVersionId)
+            .Select(x => x.PolicyStatusId == statusIds.Archived)
+            .SingleAsync(cancellationToken);
         return await context.PolicyAssignments.AsNoTracking()
             .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId)
             .OrderByDescending(x => x.AssignedDateTime)
             .Select(x => new PolicyAssignmentResponseDTO(x.Id, x.PolicyVersionId, x.EmployeeId,
-                x.AssignmentSource, x.EffectiveFrom, x.EffectiveTo, x.IsMandatory, x.IsActive))
+                x.AssignmentSource, x.EffectiveFrom, x.EffectiveTo, x.IsMandatory, x.IsActive,
+                x.IsActive && !isArchived,
+                isArchived && x.IsActive ? "VERSION_ARCHIVED" : x.IsActive ? null : "ASSIGNMENT_REMOVED"))
             .ToListAsync(cancellationToken);
     }
 
@@ -953,6 +991,11 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         CancellationToken cancellationToken)
     {
         await EnsureVersionAsync(tenantId, policyVersionId, cancellationToken);
+        var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
+        var isArchived = await context.PolicyVersions.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.Id == policyVersionId)
+            .Select(x => x.PolicyStatusId == statusIds.Archived)
+            .SingleAsync(cancellationToken);
         var rows = await (from assignment in context.PolicyAssignments.AsNoTracking()
                           where assignment.TenantId == tenantId && assignment.PolicyVersionId == policyVersionId
                           join employee in context.Employees.AsNoTracking() on assignment.EmployeeId equals employee.Id
@@ -988,7 +1031,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             row.EmployementCode ?? string.Empty,
             BuildEmployeeDisplayName(row.FirstName, row.MiddleName, row.LastName) ?? "Unnamed employee",
             row.EmployeeTypeName, row.DepartmentName, row.DesignationName, row.AssignmentSource,
-            row.EffectiveFrom, row.EffectiveTo, row.IsMandatory, row.IsActive)).ToList();
+            row.EffectiveFrom, row.EffectiveTo, row.IsMandatory, row.IsActive,
+            row.IsActive && !isArchived,
+            isArchived && row.IsActive ? "VERSION_ARCHIVED" : row.IsActive ? null : "ASSIGNMENT_REMOVED"))
+            .ToList();
     }
 
     public async Task<IReadOnlyList<PolicyExceptionResponseDTO>> GetExceptionsAsync(
@@ -1327,6 +1373,130 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         if (rules.GroupBy(x => x.RuleOrder).Any(group => group.Count() > 1)) throw new ValidationErrorException("RuleOrder must be unique within a policy version.");
         foreach (var scope in scopes) ValidateDates(scope.EffectiveFrom, scope.EffectiveTo);
     }
+
+    private async Task EnsureRequiredPolicyDocumentAsync(
+        long tenantId,
+        long policyVersionId,
+        CancellationToken cancellationToken)
+    {
+        var hasEmployeeVisiblePolicyDocument = await (
+            from document in context.PolicyDocuments.AsNoTracking()
+            join documentType in context.PolicyDocumentTypes.AsNoTracking()
+                on document.PolicyDocumentTypeId equals documentType.Id
+            where document.TenantId == tenantId
+                && document.PolicyVersionId == policyVersionId
+                && document.IsActive
+                && !document.IsSoftDeleted
+                && document.IsEmployeeVisible
+                && documentType.IsActive
+                && documentType.DocumentTypeCode == "POLICY_DOCUMENT"
+            select document.Id).AnyAsync(cancellationToken);
+
+        if (!hasEmployeeVisiblePolicyDocument)
+        {
+            throw new ConflictException(
+                "An active employee-visible Policy Document is required before review or publication.");
+        }
+    }
+
+    private async Task<string> ComputeVersionContentChecksumAsync(
+        long tenantId,
+        long policyVersionId,
+        CancellationToken cancellationToken)
+    {
+        var version = await context.PolicyVersions.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.Id == policyVersionId)
+            .Select(x => new
+            {
+                x.PolicyId,
+                x.VersionNumber,
+                x.EffectiveFrom,
+                x.EffectiveTo,
+                x.ChangeSummary,
+                x.RuleSchemaVersion,
+                x.Policy.PolicyCode,
+                x.Policy.PolicyName,
+                x.Policy.Summary,
+                x.Policy.PolicyTypeId,
+                x.Policy.OwnerDepartmentId,
+                x.Policy.DefaultCurrencyCode
+            })
+            .SingleAsync(cancellationToken);
+        var rules = await context.PolicyRules.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId && x.IsActive)
+            .OrderBy(x => x.RuleOrder)
+            .ThenBy(x => x.Id)
+            .Select(x => new { x.PolicyRuleTypeId, x.RuleName, x.RuleOrder, x.RuleConfiguration })
+            .ToListAsync(cancellationToken);
+        var applicability = await context.PolicyApplicabilities.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId && x.IsActive)
+            .OrderBy(x => x.Priority)
+            .ThenBy(x => x.Id)
+            .Select(x => new
+            {
+                x.ApplicabilityMode,
+                x.CountryId,
+                x.StateId,
+                x.DistrictId,
+                x.LocalityId,
+                x.TenantLocationId,
+                x.EmployeeTypeId,
+                x.DepartmentId,
+                x.DesignationId,
+                x.EmployeeId,
+                x.GenderId,
+                x.WorkArrangementType,
+                x.EmploymentStatus,
+                x.MinimumServiceDays,
+                x.Priority,
+                x.EffectiveFrom,
+                x.EffectiveTo
+            })
+            .ToListAsync(cancellationToken);
+        var attendance = await context.AttendancePolicyVersionConfigurations.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId)
+            .Select(x => new
+            {
+                x.AttendanceLocationScope,
+                x.AllowBiometric,
+                x.AllowMobile,
+                x.AllowWeb,
+                x.AllowManualAttendance,
+                x.AllowWorkFromHome,
+                x.RequireGeoFenceForOffice,
+                x.RequireGpsForRemote,
+                x.AllowOutsideLocationWithApproval
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+        var documents = await context.PolicyDocuments.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId
+                && x.IsActive && !x.IsSoftDeleted)
+            .OrderBy(x => x.PolicyDocumentTypeId)
+            .ThenBy(x => x.DocumentTitle)
+            .ThenBy(x => x.Id)
+            .Select(x => new
+            {
+                x.PolicyDocumentTypeId,
+                x.DocumentTitle,
+                x.OriginalFileName,
+                x.ContentType,
+                x.FileSizeBytes,
+                x.ChecksumSha256,
+                x.LanguageCode,
+                x.IsEmployeeVisible
+            })
+            .ToListAsync(cancellationToken);
+        var canonicalJson = JsonSerializer.Serialize(new
+        {
+            Version = version,
+            Rules = rules,
+            Applicability = applicability,
+            Attendance = attendance,
+            Documents = documents
+        });
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonicalJson)));
+    }
+
     private async Task<string> GetCategoryCodeAsync(int id, CancellationToken token)
     {
         var categoryCode = await context.PolicyCategories.AsNoTracking()

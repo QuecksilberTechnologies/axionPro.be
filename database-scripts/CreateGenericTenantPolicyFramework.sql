@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS axionpro."PolicyVersion"
     "RuleSchemaVersion" integer NOT NULL DEFAULT 1,
     "ApprovedById" bigint,
     "ApprovedDateTime" timestamptz,
+    "ApprovedContentChecksumSha256" varchar(64),
     "PublishedById" bigint,
     "PublishedDateTime" timestamptz,
     "IsCurrent" boolean NOT NULL DEFAULT false,
@@ -269,6 +270,7 @@ CREATE TABLE IF NOT EXISTS axionpro."PolicyApprovalHistory"
     "ActionDateTime" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "Comments" varchar(1000),
     "SequenceNumber" integer NOT NULL,
+    "ContentChecksumSha256" varchar(64) NOT NULL,
     CONSTRAINT "UQ_PolicyApprovalHistory_Version_Sequence" UNIQUE ("PolicyVersionId", "SequenceNumber")
 );
 

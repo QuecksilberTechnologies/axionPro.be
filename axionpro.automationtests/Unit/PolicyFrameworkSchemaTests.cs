@@ -95,6 +95,43 @@ public sealed class PolicyFrameworkSchemaTests
         });
     }
 
+    [Test]
+    public void Policy_assignment_module_maps_the_existing_download_operation()
+    {
+        var expected = "('TENANT_POLICY_ASSIGNMENTS','Download',13,60)";
+        var focusedSeed = ReadRepositoryFile(
+            "database-scripts",
+            "complete seed data",
+            "SeedTenantPolicyModules.sql");
+        var productionSeed = ReadRepositoryFile(
+            "database-scripts",
+            "complete seed data",
+            "AxionPro_New_Production_Module_Operation_Seed.sql");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(focusedSeed, Does.Contain(expected));
+            Assert.That(productionSeed, Does.Contain(expected));
+        });
+    }
+
+    [Test]
+    public void Publication_integrity_migration_is_idempotent_and_preserves_historical_approvals()
+    {
+        var migration = ReadRepositoryFile("database-scripts", "AddPolicyPublicationIntegrity.sql");
+        var baseline = ReadRepositoryFile("database-scripts", "CreateGenericTenantPolicyFramework.sql");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(migration, Does.Contain("ADD COLUMN IF NOT EXISTS \"ApprovedContentChecksumSha256\""));
+            Assert.That(migration, Does.Contain("ADD COLUMN IF NOT EXISTS \"ContentChecksumSha256\""));
+            Assert.That(migration, Does.Contain("repeat('0', 64)"));
+            Assert.That(migration, Does.Contain("ALTER COLUMN \"ContentChecksumSha256\" SET NOT NULL"));
+            Assert.That(baseline, Does.Contain("\"ApprovedContentChecksumSha256\" varchar(64)"));
+            Assert.That(baseline, Does.Contain("\"ContentChecksumSha256\" varchar(64) NOT NULL"));
+        });
+    }
+
     private static string ReadRepositoryFile(params string[] parts)
     {
         var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);

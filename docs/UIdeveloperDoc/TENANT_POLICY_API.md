@@ -1,6 +1,12 @@
 # Tenant Policy API handoff
 
+## Policy Assignment download permission
+
+`TENANT_POLICY_ASSIGNMENTS` includes the active `Download` module-operation mapping. Resolve its current numeric `ModuleId` and `OperationId` through the authenticated menu/permission response; do not hardcode database IDs. The catalogue reuses the existing `Download` operation row used by other modules.
+
 Live Policy Type bulk-create and duplicate-replay evidence (nine new types, twelve category coverage): [2026-10-03 report](../testing/policy/bulk-missing-types/2026-10-03.md). This is not acceptance of definition execution or assignment flows.
+
+Publication-integrity, clone and archived-assignment verification: [2026-10-07 report](../testing/policy/publication-integrity/2026-10-07.md).
 
 Policy Definition draft import evidence (12 metadata-backed definitions, 28 rules and Permanent EmployeeType applicability): [2026-10-03 report](../testing/policy/bulk-draft-definitions/2026-10-03.md). All remain Draft until review and publication.
 
@@ -47,7 +53,7 @@ resolved for that exact leaf. `SUBMIT` uses Policy Definitions; `APPROVE`,
 | GET | `/api/TenantPolicy/{id}` | View | Policy, selected version, rules and applicability |
 | POST | `/api/TenantPolicy` | Add | Create policy and version 1 draft atomically |
 | PUT | `/api/TenantPolicy/{policyId}/versions/{versionId}` | Update | Replace editable draft rules and applicability atomically |
-| POST | `/api/TenantPolicy/{policyId}/versions/clone` | Add | Clone an existing version into the next draft |
+| POST | `/api/TenantPolicy/{policyId}/versions/clone` | Add | Clone rules, applicability and attendance configuration into the next Draft; evidence records are not copied |
 | POST | `/api/TenantPolicy/versions/{versionId}/transition` | Submit/Approve/Reject/Publish/Archive | Lifecycle transition |
 | GET | `/api/TenantPolicy/resolve` | View | Preview effective published policies for one employee |
 | POST | `/api/TenantPolicy/assignments` | Assign | Idempotently assign a published version to employees |
@@ -64,7 +70,7 @@ resolved for that exact leaf. `SUBMIT` uses Policy Definitions; `APPROVE`,
 | PUT | `/api/TenantPolicy/approval-stages/{id}` | Update | Update an approval stage |
 | DELETE | `/api/TenantPolicy/approval-stages/{id}` | Delete | Disable an approval stage |
 | GET | `/api/TenantPolicy/versions/{versionId}/approval-progress` | View | Counts and completion for mandatory stages |
-| GET | `/api/TenantPolicy/versions/{versionId}/assignments` | View | List active and removed assignments |
+| GET | `/api/TenantPolicy/versions/{versionId}/assignments` | View | List preserved assignment rows with persisted and effective state |
 | GET | `/api/TenantPolicy/versions/{versionId}/exceptions` | View | List policy exceptions and decisions |
 | GET | `/api/TenantPolicy/versions/{versionId}/acknowledgements` | View | List assigned/viewed/acknowledged evidence |
 | POST | `/api/TenantPolicy/bulk/{target}/preview` | Import | Upload CSV/XLSX and create an unconfirmed draft |
@@ -257,7 +263,7 @@ GET /api/TenantPolicy/versions/{versionId}/assignments/export
 ```
 
 This returns an unpaged `text/csv` file with employee code/name/type/department/designation,
-assignment source, effective dates and active state.
+assignment source, effective dates, persisted active state, effective state and state reason.
 
 ## Durable bulk import
 
@@ -333,8 +339,19 @@ Document upload uses multipart/form-data fields `moduleId`, `operationId`,
 `policyVersionId`, `policyDocumentTypeId`, `documentTitle`, `languageCode`,
 `isEmployeeVisible`, and `file`. Maximum size is 10 MB and allowed extensions are
 PDF, DOC, and DOCX. The API calculates SHA-256, stores the object, persists only
-the object key, and returns a temporary URL. Published/archived version documents
-are immutable.
+the object key, and returns a temporary URL. Documents can be added or removed
+only while the version is Draft or Rejected. Submit and Publish require at least
+one active, employee-visible document with type code `POLICY_DOCUMENT`.
+
+Review freezes documents. Each approval records a SHA-256 fingerprint covering
+the policy/version fields, rules, applicability, attendance configuration and
+document checksum manifest. Publish recomputes that fingerprint and rejects the
+transition if it differs from the final approved fingerprint. Published and
+archived versions remain immutable.
+
+Assignment responses expose both `isActive` and `isEffective`. `isActive` is the
+preserved row state. When the version is Archived, `isEffective=false` and
+`stateReason=VERSION_ARCHIVED`; no assignment history is deleted.
 
 Local implementation includes every endpoint group listed above, including
 approval-stage administration, progress and durable CSV/XLSX policy bulk upload.

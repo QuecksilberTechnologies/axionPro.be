@@ -151,10 +151,10 @@ public sealed class TenantPolicyController(IMediator mediator) : ControllerBase
 
     /// <summary>Clones an existing Policy Version into the next editable Draft.</summary>
     /// <remarks>
-    /// Use this to revise an immutable Published version. Rules and applicability are copied into
-    /// the next version number with the supplied effective date and change summary. The clone is
-    /// Draft and must follow Submit, Approve and Publish again. Requires Policy Definitions Add
-    /// permission.
+    /// Use this to revise an immutable Published version. Rules, applicability and Attendance
+    /// configuration are copied into the next Draft. Documents, assignments, acknowledgements,
+    /// exceptions and approval history remain with the source version. The Draft must follow
+    /// Submit, Approve and Publish again. Requires Policy Definitions Add permission.
     /// </remarks>
     /// <param name="policyId">Policy identity that owns the source version.</param>
     /// <param name="dto">Source version, new effective date, change summary and permission IDs.</param>
@@ -172,7 +172,9 @@ public sealed class TenantPolicyController(IMediator mediator) : ControllerBase
     /// Published, and Published to Archived. SUBMIT uses Policy Definitions Submit permission;
     /// every other action uses its matching Policy Approvals operation. Mandatory approval stages
     /// run in order, enforce approver roles and minimum approval counts, and prevent the same
-    /// employee approving one stage twice. Invalid transitions return Conflict.
+    /// employee approving one stage twice. Submit and Publish require an employee-visible Policy
+    /// Document. Approval fingerprints the version and document checksums; Publish rejects content
+    /// that differs from the final approval. Invalid transitions return Conflict.
     /// </remarks>
     /// <param name="versionId">Policy Version being transitioned.</param>
     /// <param name="dto">Action, optional comments and dynamically resolved permission IDs.</param>
@@ -259,8 +261,8 @@ public sealed class TenantPolicyController(IMediator mediator) : ControllerBase
     /// Send multipart/form-data with policyVersionId, policyDocumentTypeId, documentTitle,
     /// languageCode, isEmployeeVisible, file, moduleId and operationId. File size must be from one
     /// byte through 10 MB. The API calculates SHA-256, stores the object and persists its key.
-    /// Published and Archived version documents are immutable. Requires Policy Definitions Upload
-    /// permission.
+    /// Documents can change only while the version is Draft or Rejected. Review, Published and
+    /// Archived versions are immutable. Requires Policy Definitions Upload permission.
     /// </remarks>
     [HttpPost("documents")]
     [Consumes("multipart/form-data")]
@@ -380,7 +382,9 @@ public sealed class TenantPolicyController(IMediator mediator) : ControllerBase
     /// <remarks>
     /// Use this after manual assignment, removal or assignment import to verify persistence and to
     /// obtain assignment IDs for removal. The response includes employee, source, effective dates,
-    /// mandatory flag and active state. Requires Policy Assignments View permission.
+    /// mandatory flag, persisted active state, effective state and state reason. An Archived
+    /// version preserves rows but reports active rows as ineffective. Requires Policy Assignments
+    /// View permission.
     /// </remarks>
     /// <param name="versionId">Published Policy Version whose assignments are requested.</param>
     /// <param name="dto">Dynamic Policy Assignments View permission IDs.</param>

@@ -100,6 +100,7 @@ public partial class WorkforceDbContext
             entity.Property(e => e.EffectiveTo).HasColumnType("date");
             entity.Property(e => e.ChangeSummary).HasMaxLength(1000);
             entity.HasIndex(e => new { e.PolicyId, e.VersionNumber }).IsUnique();
+            entity.Property(e => e.ApprovedContentChecksumSha256).HasMaxLength(64);
             entity.HasOne(e => e.Policy).WithMany(e => e.PolicyVersions)
                 .HasForeignKey(e => e.PolicyId).OnDelete(DeleteBehavior.Cascade);
         });
@@ -170,6 +171,7 @@ public partial class WorkforceDbContext
             entity.ToTable("PolicyApprovalHistory", "axionpro");
             entity.Property(e => e.Comments).HasMaxLength(1000);
             entity.HasIndex(e => new { e.PolicyVersionId, e.SequenceNumber }).IsUnique();
+            entity.Property(e => e.ContentChecksumSha256).HasMaxLength(64).IsRequired();
         });
 
         modelBuilder.Entity<PolicyAcknowledgement>(entity =>
