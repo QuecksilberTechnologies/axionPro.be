@@ -1,5 +1,7 @@
 # UI developer documents
 
+- [Policy exact Draft version edit verification](../testing/policy/draft-version-edit/2026-10-08.md)
+
 - [Employee Monitoring Agent API](EMPLOYEE_MONITORING_AGENT_API.md) — Tenant policy,
   one-time PC-agent enrollment, heartbeat/disconnect status and offline screenshot synchronization.
 
