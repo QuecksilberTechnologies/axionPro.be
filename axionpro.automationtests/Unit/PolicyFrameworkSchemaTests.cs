@@ -147,6 +147,9 @@ public sealed class PolicyFrameworkSchemaTests
             Assert.That(sql, Does.Contain("Earned Leave"));
             Assert.That(sql, Does.Contain("Maternity Leave"));
             Assert.That(sql, Does.Contain("Paternity Leave"));
+            Assert.That(sql, Does.Contain("Menstrual Leave"));
+            Assert.That(sql, Does.Contain("Bereavement Leave"));
+            Assert.That(sql, Does.Contain("Birthday Leave"));
         });
     }
 

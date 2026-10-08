@@ -43,7 +43,10 @@ CROSS JOIN (VALUES
     ('Earned Leave', 'Service-earned leave that can accrue periodically and may carry forward.'),
     ('Sick Leave', 'Health-related leave governed by eligibility and evidence rules.'),
     ('Maternity Leave', 'Statutory maternity leave governed by employee eligibility.'),
-    ('Paternity Leave', 'Paternity leave governed by employee eligibility.')
+    ('Paternity Leave', 'Paternity leave governed by employee eligibility.'),
+    ('Menstrual Leave', 'Health-related leave for eligible employees experiencing menstrual health needs, governed by tenant policy and applicable law.'),
+    ('Bereavement Leave', 'Compassionate leave following the death of an eligible family member or dependent.'),
+    ('Birthday Leave', 'Optional paid leave granted on or around an eligible employee''s birthday under tenant policy.')
 ) AS seed("LeaveName", "Description")
 CROSS JOIN LATERAL (
     SELECT employee."Id" AS "EmployeeId"
