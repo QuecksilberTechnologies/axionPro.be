@@ -168,3 +168,13 @@ responsibilities unchanged.
 6. Confirm that regulatory packs are reviewed/admin-maintained data and are never
    automatically inferred as legal advice.
 
+## Legacy retirement completion — 2026-10-08
+
+The generic lifecycle is now the sole policy implementation in runtime source.
+The user authorized hard deletion of the former insurance, leave-policy,
+sandwich-rule, policy-type-document and allowance-mapping implementations.
+Their 17 tables and the obsolete `EMP_INSURANCE` module were removed from Local
+and Render. Verification retained all eight generic policy modules and the full
+generic policy table set. See
+`docs/testing/policy/retired-legacy-hard-delete/2026-10-08.md`.
+

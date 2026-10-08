@@ -16,7 +16,6 @@ using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Employee.Type;
-using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity;
 using System.Collections.Generic;
@@ -58,9 +57,6 @@ public interface IBaseEmployeeRepository
         long userEmployeeId,
         bool isVerified,
         CancellationToken ct);
-
-    Task<GetLeaveBalanceToEmployeeResponseDTO> UpdateLeaveBalanceToEmployee(
-        UpdateLeaveBalanceToEmployeeRequestDTO updateLeaveBalanceTo);
 
     Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(long tenantId, long employeeId, GetBaseEmployeeRequestDTO dto);
 

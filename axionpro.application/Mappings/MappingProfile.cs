@@ -16,14 +16,12 @@ using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Gender;
 using axionpro.application.DTOs.Leave;
-using axionpro.application.DTOs.Leave.LeaveRule;
 using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.ModuleOperation;
 using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.Holiday;
-using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Role;
 using axionpro.application.DTOs.SubscriptionModule;
@@ -45,13 +43,10 @@ using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Gender;
 using axionpro.application.DTOS.Host;
-using axionpro.application.DTOS.InsurancePoliciesMapping;
-using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Location;
 using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.DTOS.Module.SubModule;
-using axionpro.application.DTOS.PolicyTypeDocument;
 using axionpro.application.DTOS.Role;
 using axionpro.application.DTOS.SubscriptionModule;
 
@@ -791,22 +786,9 @@ namespace axionpro.application.Mappings
 
             CreateMap<domain.Entity.Operation, UpdateOperationRequestDTO>();
             // Create
-            CreateMap<CreateInsurancePolicyRequestDTO, InsurancePolicy>();
-            CreateMap<PolicyTypeInsuranceMapping, CreatePolicyTypeInsuranceMappingRequetDTO>().ReverseMap();
-            CreateMap<GetPolicyTypeInsuranceMappingResponseDTO, PolicyTypeInsuranceMapping>().ReverseMap();
-            CreateMap<GetPolicyTypeResponseDTO, PolicyType>().ReverseMap();
-            CreateMap<GetPolicyTypeDocumentResponseDTO, PolicyTypeDocument>().ReverseMap();
            
 
             // Get
-            CreateMap<InsurancePolicy, GetInsurancePolicyResponseDTO>()
-                .ForMember(d => d.PolicyTypeName,
-                    opt => opt.MapFrom(s => s.PolicyType.PolicyName))
-                .ForMember(d => d.CountryName,
-                    opt => opt.MapFrom(s => s.Country.CountryName));
-
-
-
             CreateMap<CreateClientTypeDTO, ClientType>();
             CreateMap<ClientType, GetClientTypeDTO>();
             CreateMap<UpdateClientTypeDTO, ClientType>();  // ✅ Yeh likhna hoga!
@@ -815,18 +797,10 @@ namespace axionpro.application.Mappings
             CreateMap<UpdateTravelModeDTO, TravelMode>();
             CreateMap<CreateLeaveTypeRequestDTO, LeaveType>();
 
-            CreateMap<GetPolicyLeaveTypeMappingRequestDTO, PolicyLeaveTypeMapping>().ReverseMap();
-            CreateMap<GetLeaveTypeWithPolicyMappingResponseDTO, PolicyLeaveTypeMapping>().ReverseMap();
-
-
-            // CreateMap<UpdatePolicyLeaveTypeMappingRequestDTO, PolicyLeaveTypeMapping>().ReverseMap();               
             CreateMap<LeaveType, GetLeaveTypResponseDTO>();
             CreateMap<UpdateLeaveTypeRequestDTO, LeaveType>();  // ✅ Yeh likhna hoga!
 
 
-            CreateMap<GetLeaveRuleResponseDTO, LeaveRule>().ReverseMap();
-            CreateMap<CreateLeaveRuleDTORequest, LeaveRule>().ReverseMap();
-            CreateMap<UpdateLeaveRuleRequestDTO, LeaveRule>().ReverseMap();
             CreateMap<Role, GetSingleRoleResponseDTO>().ReverseMap();
             CreateMap<Role, GetTicketTypeResponseDTO>().ReverseMap();
 

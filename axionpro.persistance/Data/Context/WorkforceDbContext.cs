@@ -38,18 +38,13 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<EmployeeContact> EmployeeContacts { get; set; }
         public virtual DbSet<District> Districts { get; set; }
-        public virtual DbSet<AccommodationAllowancePolicyByDesignation> AccommodationAllowancePolicyByDesignations { get; set; }
         public DbSet<EmployeeCountResponseStatsSp> EmployeeCountResponseStatsSp { get; set; }
-        public virtual DbSet<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; }
 
-        public virtual DbSet<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; }
         public virtual DbSet<Asset> Assets { get; set; }
 
-        public virtual DbSet<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; }
         public virtual DbSet<AssetAssignment> AssetAssignments { get; set; }
 
         public virtual DbSet<AssetCategory> AssetCategories { get; set; }
-        public virtual DbSet<UnStructuredPolicyTypeMappingWithEmployeeType> UnStructuredPolicyTypeMappingWithEmployeeTypes { get; set; }
 
         public virtual DbSet<AssetImage> AssetImages { get; set; }
 
@@ -83,7 +78,6 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<DataViewStructure> DataViewStructures { get; set; }
 
-        public virtual DbSet<DayCombination> DayCombinations { get; set; }
 
         public virtual DbSet<Department> Departments { get; set; }
 
@@ -169,13 +163,9 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<EmployeeImage> EmployeeImages { get; set; }
 
      //   public virtual DbSet<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; }
-        public virtual DbSet<PolicyTypeDocument> PolicyTypeDocuments { get; set; }
-        public virtual DbSet<InsurancePolicyDocument> InsurancePolicyDocuments { get; set; }
 
 
-        public virtual DbSet<EmployeeLeaveBalance> EmployeeLeaveBalances { get; set; }
 
-        public virtual DbSet<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMappings { get; set; }
 
         public virtual DbSet<EmployeeManagerMapping> EmployeeManagerMappings { get; set; }
 
@@ -196,21 +186,16 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<HostUser> HostUsers { get; set; }
 
-        public virtual DbSet<InsurancePolicy> InsurancePolicies { get; set; }
         public virtual DbSet<LeaveRequest> LeaveRequests { get; set; }
 
-        public virtual DbSet<LeaveRule> LeaveRules { get; set; }
 
-        public virtual DbSet<LeaveSandwichRule> SandwitchRules { get; set; }
 
-        public virtual DbSet<LeaveSandwichRuleMapping> LeaveSandwichRuleMappings { get; set; }
         public virtual DbSet<LeaveType> LeaveTypes { get; set; }
 
         //public virtual DbSet<License> Licenses { get; set; }
 
         public virtual DbSet<LoginCredential> LoginCredentials { get; set; }
 
-        public virtual DbSet<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignations { get; set; }
 
         public virtual DbSet<Module> Modules { get; set; }
 
@@ -224,7 +209,6 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<PlanModuleMapping> PlanModuleMappings { get; set; }
 
-        public virtual DbSet<PolicyLeaveTypeMapping> PolicyLeaveTypeMappings { get; set; }
         public virtual DbSet<EmployeeIdentity> EmployeeIdentities { get; set; }
 
         public virtual DbSet<PolicyType> PolicyTypes { get; set; }
@@ -309,7 +293,6 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<TicketType> TicketTypes { get; set; }
 
-        public virtual DbSet<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignations { get; set; }
 
         public virtual DbSet<TravelMode> TravelModes { get; set; }
 
@@ -379,39 +362,6 @@ namespace axionpro.persistance.Data.Context
             entity.Property(job => job.InputHash).HasMaxLength(64);
         });
 
-        modelBuilder.Entity<AccommodationAllowancePolicyByDesignation>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Accoumnd__3214EC071BDF4022");
-
-            entity.ToTable("AccommodationAllowancePolicyByDesignation", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.FixedStayAllowance)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsMetro).HasDefaultValue(false);
-            entity.Property(e => e.IsSoftDelete).HasDefaultValue(false);
-            entity.Property(e => e.MetroBonus)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.MinDaysRequired).HasDefaultValue(0);
-
-            entity.HasOne(d => d.Designation).WithMany(p => p.AccommodationAllowancePolicyByDesignation)
-                .HasForeignKey(d => d.DesignationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Accoumnda__Desig__11158940");
-
-            entity.HasOne(d => d.EmployeeType).WithMany(p => p.AccommodationAllowancePolicyByDesignation)
-                .HasForeignKey(d => d.EmployeeTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Accoumnda__Emplo__1209AD79");
-
-            entity.HasOne(d => d.PolicyType).WithMany(p => p.AccommodationAllowancePolicyByDesignation)
-                .HasForeignKey(d => d.PolicyTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Accoumnda__Polic__12FDD1B2");
-        });
 
             modelBuilder.Entity<GetEmployeeCodePatternResponseDTO>(entity =>
             {
@@ -854,21 +804,6 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.Remark).HasMaxLength(150);
         });
 
-        modelBuilder.Entity<DayCombination>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__DayCombi__3214EC070D2CF976");
-
-            entity.ToTable("DayCombination", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.CombinationName).HasMaxLength(100);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Remark).HasMaxLength(250);
-
-            entity.HasOne(d => d.Tenant).WithMany(p => p.DayCombination)
-                .HasForeignKey(d => d.TenantId)
-                .HasConstraintName("FK_DayCombination_Tenant");
-        });
 
         modelBuilder.Entity<Department>(entity =>
         {
@@ -1464,58 +1399,7 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_EmployeeImages_Employee");
         });
 
-        modelBuilder.Entity<EmployeeLeaveBalance>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07B6CC8062");
 
-            entity.ToTable("EmployeeLeaveBalance", "axionpro");
-
-            entity.Property(e => e.Availed).HasPrecision(5, 2);
-            entity.Property(e => e.CarryForwarded).HasPrecision(5, 2);
-            entity.Property(e => e.CurrentBalance)
-                .HasPrecision(5, 2)
-                .HasComputedColumnSql("(\"OpeningBalance\" - \"Availed\")", true);
-            entity.Property(e => e.Encashed).HasPrecision(5, 2);
-            entity.Property(e => e.LeavesOnHold)
-                .HasPrecision(5, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.OpeningBalance).HasPrecision(5, 2);
-
-            entity.HasOne(d => d.EmployeeLeavePolicyMapping).WithMany(p => p.EmployeeLeaveBalance)
-                .HasForeignKey(d => d.EmployeeLeavePolicyMappingId)
-                .HasConstraintName("FK_EmployeeLeaveBalance_EmployeeLeavePolicyMapping");
-
-            entity.HasOne(d => d.Tenant).WithMany(p => p.EmployeeLeaveBalance)
-                .HasForeignKey(d => d.TenantId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_EmployeeLeaveBalance_Tenant");
-        });
-
-        modelBuilder.Entity<EmployeeLeavePolicyMapping>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07305828A7");
-
-            entity.ToTable("EmployeeLeavePolicyMapping", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Remark).HasMaxLength(250);
-
-            entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeLeavePolicyMapping)
-                .HasForeignKey(d => d.EmployeeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__EmployeeL__Emplo__73D00A73");
-
-            entity.HasOne(d => d.PolicyLeaveTypeMapping).WithMany(p => p.EmployeeLeavePolicyMapping)
-                .HasForeignKey(d => d.PolicyLeaveTypeMappingId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__EmployeeL__Leave__74C42EAC");
-
-            entity.HasOne(d => d.Tenant).WithMany(p => p.EmployeeLeavePolicyMapping)
-                .HasForeignKey(d => d.TenantId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__EmployeeL__Tenan__72DBE63A");
-        });
 
         modelBuilder.Entity<EmployeeManagerMapping>(entity =>
         {
@@ -1590,53 +1474,7 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_EmployeePersonalDetail_Employee");
         });
 
-        modelBuilder.Entity<EmployeePolicyDependentMapping>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("EmployeePolicyDependentMapping_pkey");
 
-            entity.ToTable("EmployeePolicyDependentMapping", "axionpro");
-
-            entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsCovered).HasDefaultValue(true);
-
-            entity.HasOne(d => d.Dependent).WithMany(p => p.EmployeePolicyDependentMapping)
-                .HasForeignKey(d => d.DependentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EPD_Dependent");
-
-            entity.HasOne(d => d.EmployeePolicyEnrollment).WithMany(p => p.EmployeePolicyDependentMapping)
-                .HasForeignKey(d => d.EmployeePolicyEnrollmentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EPD_Enrollment");
-        });
-
-        modelBuilder.Entity<EmployeePolicyEnrollment>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("EmployeePolicyEnrollment_pkey");
-
-            entity.ToTable("EmployeePolicyEnrollment", "axionpro");
-
-            entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-            entity.HasOne(d => d.Employee).WithMany(p => p.EmployeePolicyEnrollment)
-                .HasForeignKey(d => d.EmployeeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EmployeePolicyEnrollment_Employee");
-
-            entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.EmployeePolicyEnrollment)
-                .HasForeignKey(d => d.InsurancePolicyId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EmployeePolicyEnrollment_InsurancePolicy");
-
-            entity.HasOne(d => d.PolicyType).WithMany(p => p.EmployeePolicyEnrollment)
-                .HasForeignKey(d => d.PolicyTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EmployeePolicyEnrollment_PolicyType");
-        });
 
         modelBuilder.Entity<EmployeeStatutoryAccount>(entity =>
         {
@@ -1900,50 +1738,7 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_IdentityDocument_Category");
         });
 
-        modelBuilder.Entity<InsurancePolicy>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PolicyMa__3214EC07A7865FF0");
 
-            entity.ToTable("InsurancePolicy", "axionpro");
-
-            entity.Property(e => e.AgentContactNumber).HasMaxLength(20);
-            entity.Property(e => e.AgentName).HasMaxLength(150);
-            entity.Property(e => e.AgentOfficeNumber).HasMaxLength(20);
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.EmployeeAllowed).HasDefaultValue(true);
-            entity.Property(e => e.InsurancePolicyName).HasMaxLength(200);
-            entity.Property(e => e.InsurancePolicyNumber).HasMaxLength(100);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.ProviderName).HasMaxLength(100);
-            entity.Property(e => e.Remark).HasMaxLength(500);
-
-            entity.HasOne(d => d.Country).WithMany(p => p.InsurancePolicy)
-                .HasForeignKey(d => d.CountryId)
-                .HasConstraintName("FK_InsurancePolicy_Country");
-
-            entity.HasOne(d => d.PolicyType).WithMany(p => p.InsurancePolicy)
-                .HasForeignKey(d => d.PolicyTypeId)
-                .HasConstraintName("FK_InsurancePolicy_PolicyType");
-        });
-
-        modelBuilder.Entity<InsurancePolicyDocument>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Insuranc__3214EC07B3D0A432");
-
-            entity.ToTable("InsurancePolicyDocument", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.DocumentType).HasMaxLength(20);
-            entity.Property(e => e.FileName).HasMaxLength(200);
-            entity.Property(e => e.FilePath).HasMaxLength(500);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.LanguageCode).HasMaxLength(10);
-
-            entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.InsurancePolicyDocument)
-                .HasForeignKey(d => d.InsurancePolicyId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_InsurancePolicyDocument_InsurancePolicy");
-        });
 
         modelBuilder.Entity<LeaveRequest>(entity =>
         {
@@ -1963,11 +1758,6 @@ namespace axionpro.persistance.Data.Context
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__LeaveRequ__Emplo__05EEBAAE");
 
-            entity.HasOne(d => d.LeavePolicy).WithMany(p => p.LeaveRequest)
-                .HasForeignKey(d => d.LeavePolicyId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__LeaveRequ__Leave__07D70320");
-
             entity.HasOne(d => d.LeaveType).WithMany(p => p.LeaveRequest)
                 .HasForeignKey(d => d.LeaveTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -1979,65 +1769,8 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK__LeaveRequ__Tenan__04FA9675");
         });
 
-        modelBuilder.Entity<LeaveRule>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__LeaveRul__3214EC07C443E6FB");
 
-            entity.ToTable("LeaveRule", "axionpro");
 
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsHalfDayAllowed).HasDefaultValue(true);
-            entity.Property(e => e.Remark).HasMaxLength(500);
-
-            entity.HasOne(d => d.PolicyLeaveType).WithMany(p => p.LeaveRule)
-                .HasForeignKey(d => d.PolicyLeaveTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_LeaveRule_PolicyLeaveType");
-
-            entity.HasOne(d => d.Tenant).WithMany(p => p.LeaveRule)
-                .HasForeignKey(d => d.TenantId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_LeaveRule_Tenant");
-        });
-
-        modelBuilder.Entity<LeaveSandwichRule>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__LeaveSan__3214EC0757F4038B");
-
-            entity.ToTable("LeaveSandwichRule", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Remark).HasMaxLength(250);
-            entity.Property(e => e.RuleName).HasMaxLength(100);
-        });
-
-        modelBuilder.Entity<LeaveSandwichRuleMapping>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__LeaveSan__3214EC07EB5FE9CE");
-
-            entity.ToTable("LeaveSandwichRuleMapping", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Remark).HasMaxLength(250);
-
-            entity.HasOne(d => d.DayCombination).WithMany(p => p.LeaveSandwichRuleMapping)
-                .HasForeignKey(d => d.DayCombinationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_DayCombination");
-
-            entity.HasOne(d => d.LeaveRule).WithMany(p => p.LeaveSandwichRuleMapping)
-                .HasForeignKey(d => d.LeaveRuleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_LeaveRule");
-
-            entity.HasOne(d => d.LeaveSandwichRule).WithMany(p => p.LeaveSandwichRuleMapping)
-                .HasForeignKey(d => d.LeaveSandwichRuleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SandwichRule");
-        });
 
         modelBuilder.Entity<LeaveType>(entity =>
         {
@@ -2094,48 +1827,6 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_LoginCredential_Employee");
         });
 
-        modelBuilder.Entity<MealAllowancePolicyByDesignation>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__MealAllo__3214EC07BB4E4E52");
-
-            entity.ToTable("MealAllowancePolicyByDesignation", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.BreakfastAllowance)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.DinnerAllowance)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.FixedFoodAllowance)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsMetro).HasDefaultValue(false);
-            entity.Property(e => e.IsSoftDelete).HasDefaultValue(false);
-            entity.Property(e => e.LunchAllowance)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.MetroBonus)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.MinDaysRequired).HasDefaultValue(0);
-
-            entity.HasOne(d => d.Designation).WithMany(p => p.MealAllowancePolicyByDesignation)
-                .HasForeignKey(d => d.DesignationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__MealAllow__Desig__39237A9A");
-
-            entity.HasOne(d => d.EmployeeType).WithMany(p => p.MealAllowancePolicyByDesignation)
-                .HasForeignKey(d => d.EmployeeTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__MealAllow__Emplo__3A179ED3");
-
-            entity.HasOne(d => d.PolicyType).WithMany(p => p.MealAllowancePolicyByDesignation)
-                .HasForeignKey(d => d.PolicyTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__MealAllow__Polic__3B0BC30C");
-        });
 
         modelBuilder.Entity<Module>(entity =>
         {
@@ -2279,21 +1970,6 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_PMM_SubscriptionPlan");
         });
 
-        modelBuilder.Entity<PolicyLeaveTypeMapping>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__LeavePol__3214EC07A76146FC");
-
-            entity.ToTable("PolicyLeaveTypeMapping", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.ProofDocumentType).HasMaxLength(100);
-            entity.Property(e => e.Remark).HasMaxLength(250);
-
-            entity.HasOne(d => d.ApplicableGender).WithMany(p => p.PolicyLeaveTypeMapping)
-                .HasForeignKey(d => d.ApplicableGenderId)
-                .HasConstraintName("FK_PolicyLeaveTypeMapping_Gender");
-        });
 
         modelBuilder.Entity<PolicyType>(entity =>
         {
@@ -2310,43 +1986,7 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_PolicyType_Tenant");
         });
 
-        modelBuilder.Entity<PolicyTypeDocument>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__CompanyP__3214EC07BADB592E");
 
-            entity.ToTable("PolicyTypeDocument", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.DocumentTitle).HasMaxLength(200);
-            entity.Property(e => e.FileName).HasMaxLength(200);
-            entity.Property(e => e.FilePath).HasMaxLength(500);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-            entity.HasOne(d => d.PolicyType).WithMany(p => p.PolicyTypeDocument)
-                .HasForeignKey(d => d.PolicyTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_CompanyPolicyDocument_PolicyType");
-        });
-
-        modelBuilder.Entity<PolicyTypeInsuranceMapping>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PolicyTy__3214EC07E433096D");
-
-            entity.ToTable("PolicyTypeInsuranceMapping", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-            entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.PolicyTypeInsuranceMapping)
-                .HasForeignKey(d => d.InsurancePolicyId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PTIM_InsurancePolicy");
-
-            entity.HasOne(d => d.PolicyType).WithMany(p => p.PolicyTypeInsuranceMapping)
-                .HasForeignKey(d => d.PolicyTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PTIM_PolicyType");
-        });
 
             modelBuilder.Entity<RefreshToken>(entity =>
             {
@@ -3069,43 +2709,6 @@ namespace axionpro.persistance.Data.Context
                     .HasConstraintName("FK_TicketType_Header");
             });
 
-            modelBuilder.Entity<TravelAllowancePolicyByDesignation>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__TravelAl__3214EC072DD6C86A");
-
-            entity.ToTable("TravelAllowancePolicyByDesignation", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.AdvanceAllowed).HasDefaultValue(false);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsMetro).HasDefaultValue(false);
-            entity.Property(e => e.IsSoftDelete).HasDefaultValue(false);
-            entity.Property(e => e.MaxAdvanceAmount)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.MetroBonus)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(0.00m);
-            entity.Property(e => e.ReimbursementPerKm)
-                .HasPrecision(10, 2)
-                .HasColumnName("ReimbursementPerKM");
-            entity.Property(e => e.TravelClass).HasMaxLength(50);
-
-            entity.HasOne(d => d.Designation).WithMany(p => p.TravelAllowancePolicyByDesignation)
-                .HasForeignKey(d => d.DesignationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TravelAll__Desig__4959E263");
-
-            entity.HasOne(d => d.EmployeeType).WithMany(p => p.TravelAllowancePolicyByDesignation)
-                .HasForeignKey(d => d.EmployeeTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TravelAll__Emplo__4A4E069C");
-
-            entity.HasOne(d => d.PolicyType).WithMany(p => p.TravelAllowancePolicyByDesignation)
-                .HasForeignKey(d => d.PolicyTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TravelAll__Polic__4B422AD5");
-        });
 
         modelBuilder.Entity<TravelMode>(entity =>
         {
@@ -3119,23 +2722,6 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.TravelModeName).HasMaxLength(255);
         });
 
-        modelBuilder.Entity<UnStructuredPolicyTypeMappingWithEmployeeType>(entity =>
-        {
-            entity.ToTable("UnStructuredPolicyTypeMappingWithEmployeeType", "axionpro");
-
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-            entity.HasOne(d => d.EmployeeType).WithMany(p => p.UnStructuredPolicyTypeMappingWithEmployeeType)
-                .HasForeignKey(d => d.EmployeeTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_UnStructuredPolicyTypeMappingWithEmployeeType_EmployeeType");
-
-            entity.HasOne(d => d.PolicyType).WithMany(p => p.UnStructuredPolicyTypeMappingWithEmployeeType)
-                .HasForeignKey(d => d.PolicyTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_UnStructuredPolicyTypeMappingWithEmployeeType_PolicyType");
-        });
 
         modelBuilder.Entity<UserAttendanceSetting>(entity =>
         {
@@ -3615,25 +3201,13 @@ namespace axionpro.persistance.Data.Context
             // These legacy objects were retired from the production schema.
             // Keep their source contracts temporarily for dependent-code retirement,
             // but exclude them from EF so startup and active features match the DB.
-            modelBuilder.Ignore<AccommodationAllowancePolicyByDesignation>();
             modelBuilder.Ignore<BasicMenu>();
             modelBuilder.Ignore<Candidate>();
             modelBuilder.Ignore<CandidateCategorySkill>();
             modelBuilder.Ignore<EmployeeDeviceAccessWindow>();
-            modelBuilder.Ignore<InsurancePolicy>();
-            modelBuilder.Ignore<InsurancePolicyDocument>();
-            modelBuilder.Ignore<LeaveRule>();
-            modelBuilder.Ignore<LeaveSandwichRule>();
-            modelBuilder.Ignore<LeaveSandwichRuleMapping>();
-            modelBuilder.Ignore<MealAllowancePolicyByDesignation>();
-            modelBuilder.Ignore<PolicyLeaveTypeMapping>();
-            modelBuilder.Ignore<PolicyTypeDocument>();
-            modelBuilder.Ignore<PolicyTypeInsuranceMapping>();
             modelBuilder.Ignore<ServiceProvider>();
             modelBuilder.Ignore<TenantEmployeeSectionDefault>();
-            modelBuilder.Ignore<TravelAllowancePolicyByDesignation>();
             modelBuilder.Ignore<TravelMode>();
-            modelBuilder.Ignore<UnStructuredPolicyTypeMappingWithEmployeeType>();
             modelBuilder.Ignore<WorkflowStage>();
             modelBuilder.Ignore<WorkstationType>();
 

@@ -791,58 +791,6 @@ WHERE NOT EXISTS
     WHERE "ModuleCode" = 'EMP_EXPERIENCE'
 );
 
--- Backup Module Id 13: EMP_INSURANCE
-INSERT INTO axionpro."Module"
-(
-    "TenantId",
-    "ModuleCode",
-    "ModuleName",
-    "DisplayName",
-    "URLPath",
-    "ParentModuleId",
-    "IsLeafNode",
-    "IsModuleDisplayInUI",
-    "IsCommonMenu",
-    "IsActive",
-    "ImageIconWeb",
-    "ImageIconMobile",
-    "ItemPriority",
-    "Remark",
-    "AddedById",
-    "AddedDateTime",
-    "UpdatedById",
-    "UpdatedDateTime",
-    "ModuleScope",
-    "PageName"
-)
-SELECT
-    NULL,
-    'EMP_INSURANCE',
-    'Employee-Insurance',
-    'Employee Insurance',
-    '/profile/insurance-info',
-    (SELECT "Id" FROM axionpro."Module" WHERE "ModuleCode" = 'EMP_MGMT'),
-    TRUE,
-    TRUE,
-    FALSE,
-    TRUE,
-    NULL,
-    NULL,
-    0,
-    NULL,
-    NULL,
-    '2026-08-31 09:58:18.302026+00',
-    16,
-    '2026-09-01 20:49:56.840212+00',
-    1,
-    'emp-insurance'
-WHERE NOT EXISTS
-(
-    SELECT 1
-    FROM axionpro."Module"
-    WHERE "ModuleCode" = 'EMP_INSURANCE'
-);
-
 -- Backup Module Id 14: EMP_IDENTITY
 INSERT INTO axionpro."Module"
 (

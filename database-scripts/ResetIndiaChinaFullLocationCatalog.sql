@@ -8449,7 +8449,7 @@ BEGIN
     -- location-master reset. Tenant cleanup must succeed first.
     FOREACH v_reference_table IN ARRAY ARRAY[
         'Tenant', 'Employee', 'TenantLocation', 'EmployeeTaxProfile',
-        'InsurancePolicy', 'SalaryComponentMaster', 'TaxRule', 'TaxSlab'
+        'SalaryComponentMaster', 'TaxRule', 'TaxSlab'
     ]
     LOOP
         EXECUTE format('SELECT COUNT(*) FROM axionpro.%I', v_reference_table) INTO v_count;
@@ -8476,7 +8476,7 @@ BEGIN
               'District', 'State', 'District', 'ComplianceRule',
               'CountryIdentityRule', 'CountryStatutoryRule', 'StatutoryType',
               'TaxSystemMaster', 'TaxRegimeMaster', 'TenantLocation', 'Employee',
-              'EmployeeTaxProfile', 'InsurancePolicy', 'SalaryComponentMaster',
+              'EmployeeTaxProfile', 'SalaryComponentMaster',
               'TaxRule', 'TaxSlab'
           )
     LOOP

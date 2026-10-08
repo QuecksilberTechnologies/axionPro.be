@@ -57,7 +57,7 @@ internal class GetAllClientTypeQueryHandler : IRequestHandler<GetClientTypeQuery
        // private readonly IClientRepository _clienttypeRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<GetAllLeaveRuleQueryHandler> _logger;
+        private readonly ILogger<GetAllClientTypeQueryHandler> _logger;
 
 #endregion
 
@@ -69,7 +69,7 @@ internal class GetAllClientTypeQueryHandler : IRequestHandler<GetClientTypeQuery
 
 
 
-        public GetAllClientTypeQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllLeaveRuleQueryHandler> logger)      
+        public GetAllClientTypeQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllClientTypeQueryHandler> logger)
         {
            
             _mapper = mapper;

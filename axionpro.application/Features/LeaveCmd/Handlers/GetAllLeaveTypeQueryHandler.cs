@@ -54,25 +54,25 @@ namespace axionpro.application.Features.LeaveCmd.Handlers
     /// <summary>
     /// Handles the read-only request to retrieve all leave types.
     /// </summary>
-    public class GetAllLeaveRuleQueryHandler : IRequestHandler<GetAllLeaveTypeQuery, ApiResponse<List<GetLeaveTypResponseDTO>>>
+    public class GetAllLeaveTypeQueryHandler : IRequestHandler<GetAllLeaveTypeQuery, ApiResponse<List<GetLeaveTypResponseDTO>>>
     {
         #region Fields
 
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<GetAllLeaveRuleQueryHandler> _logger;
+        private readonly ILogger<GetAllLeaveTypeQueryHandler> _logger;
 
         #endregion
 
         #region Constructor
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetAllLeaveRuleQueryHandler"/> class.
+        /// Initializes a new instance of the <see cref="GetAllLeaveTypeQueryHandler"/> class.
         /// </summary>
         /// <param name="mapper">The mapper used to convert leave-type data.</param>
         /// <param name="unitOfWork">The unit of work used to retrieve leave types.</param>
         /// <param name="logger">The logger used to record query results.</param>
-        public GetAllLeaveRuleQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllLeaveRuleQueryHandler> logger)
+        public GetAllLeaveTypeQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllLeaveTypeQueryHandler> logger)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;

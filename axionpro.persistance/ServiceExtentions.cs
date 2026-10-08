@@ -99,7 +99,6 @@ namespace axionpro.persistance
             services.AddScoped<IBaseEmployeeRepository, BaseEmployeeRepository>();
  
             services.AddScoped<IUserLoginReopsitory, UserLoginReopsitory>();
-            services.AddScoped<IUnStructuredEmployeePolicyTypeMappingRepository, UnStructuredEmployeePolicyTypeMappingRepository>();
             services.AddScoped<ILeaveRepository, LeaveRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
@@ -134,21 +133,15 @@ namespace axionpro.persistance
           
             services.AddScoped<ICommonServiceSyncRepository, CommonServiceSyncRepository>();
             services.AddScoped<ITenantIndustryRepository, TenantIndustryRepository>();
-            services.AddScoped<IPolicyTypeRepository, PolicyTypeRepository>();
             services.AddScoped<IGenericPolicyRepository, GenericPolicyRepository>();
             services.AddScoped<ISuperAdminDashboardRepository, SuperAdminDashboardRepository>();
             services.AddScoped<IGenderRepository, GenderRepository>();
-            services.AddScoped<ISandwitchRuleRepository, SandwitchRuleRepository>();
-            services.AddScoped<ILeaveRuleRepository, LeaveRuleRepository>();
             services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
             services.AddScoped<IWorkflowStagesRepository, WorkflowStageRepository>();
              services.AddScoped<IReportingTypeRepository, ReportingTypeRepository>();
              services.AddScoped<ITicketClassificationRepository, TicketClassificationRepository>();
              services.AddScoped<ITicketHeaderRepository, TicketHeaderRepository>();
              services.AddScoped<ITenantEmployeeCodePatternRepository, TenantEmployeeCodePatternRepository>();
-             services.AddScoped<IInsuranceRepository, InsuranceRepository>();
-             services.AddScoped<IPolicyTypeInsuranceMappingRepository, PolicyTypeInsuranceMappingRepository>();
-             services.AddScoped<IPolicyTypeDocumentRepository, PolicyTypeDocumentRepository>();
              services.AddScoped<ITicketGenrationRepository, TicketGenrationRepository>();
              services.AddScoped<ITicketThreadRepository, TicketThreadRepository>();
              services.AddScoped<IThreadMessageRepository, ThreadMessageRepository>();
@@ -179,7 +172,6 @@ namespace axionpro.persistance
             services.AddScoped<IEmployeeEducationRepository, EmployeeEducationRepository>();
             services.AddScoped<IBaseEmployeeRepository, BaseEmployeeRepository>();
             services.AddScoped<IEmployeeDependentRepository, EmployeeDependentRepository>();
-            services.AddScoped<IEmployeeLeaveRepository, EmployeeLeaveRepository>();
             services.AddScoped<TenantEncryptionKeyRepository, TenantEncryptionKeyRepository>();
             services.AddScoped<IEmployeeCompletionRepository, EmployeeCompletionRepository>();           
 

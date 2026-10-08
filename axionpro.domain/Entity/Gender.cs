@@ -11,7 +11,6 @@ public partial class Gender
 
     public virtual ICollection<Employee> Employee { get; set; } = new List<Employee>();
 
-    public virtual ICollection<PolicyLeaveTypeMapping> PolicyLeaveTypeMapping { get; set; } = new List<PolicyLeaveTypeMapping>();
 
     public virtual ICollection<Tenant> Tenant { get; set; } = new List<Tenant>();
 }

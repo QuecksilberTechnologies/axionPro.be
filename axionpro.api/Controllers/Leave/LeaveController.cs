@@ -63,7 +63,7 @@ namespace axionpro.api.Controllers.Leave
                 /// <remarks>
                 /// <para>Angular usage status: Not-Used-In-Angular.</para>
                 /// <para>API endpoint purpose: retrieves all leave type.</para>
-                /// <para>Handler flow: GetAllLeaveTypeQuery is processed by GetAllLeaveRuleQueryHandler; operation(s): GetAllLeaveAsync.</para>
+                /// <para>Handler flow: GetAllLeaveTypeQuery is processed by GetAllLeaveTypeQueryHandler; operation(s): GetAllLeaveAsync.</para>
                 /// <para>Response DTO property analysis: ApiResponse: IsSucceeded (bool), Message (string), Data (T), Errors (List&lt;string&gt;), ErrorCode (string?), PageNumber (int?), PageSize (int?), TotalRecords (int?), TotalPages (int?), IsPrimaryMarked (bool?), HasAllDocUploaded (bool?), CompletionPercentage (double?); GetLeaveTypResponseDTO: Id (int), LeaveName (string), Description (string?), IsActive (bool), AddedById (long?), UpdatedById (long?)</para>
                 /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
                 /// <para>Backend endpoint: GET /api/leave/get.</para>

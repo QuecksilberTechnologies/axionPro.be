@@ -9,7 +9,6 @@ using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Compliances.ComplianceRule;
 using axionpro.application.Exceptions;
-using axionpro.application.Features.PolicyTypeCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;

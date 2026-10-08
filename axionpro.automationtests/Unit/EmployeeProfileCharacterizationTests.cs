@@ -388,11 +388,11 @@ public sealed class EmployeeProfileCharacterizationTests
     /// Verifies the current shared section enum has only the original eight sections.
     /// </summary>
     [Test]
-    public void Tab_info_type_keeps_the_current_eight_section_contract()
+    public void Tab_info_type_keeps_the_current_seven_section_contract()
     {
         Assert.That(Enum.GetNames<TabInfoType>(), Is.EqualTo(new[]
         {
-            "Employee", "Bank", "Contact", "Experience", "Identity", "Education", "Dependent", "Insurance"
+            "Employee", "Bank", "Contact", "Experience", "Identity", "Education", "Dependent"
         }));
     }
 
@@ -401,7 +401,7 @@ public sealed class EmployeeProfileCharacterizationTests
     {
         var names = new[]
         {
-            "Overview", "Bank", "Contact", "Experience", "Insurance", "Identity", "Education",
+            "Overview", "Bank", "Contact", "Experience", "Identity", "Education",
             "Dependent", "Work Locations", "Devices", "Work Arrangement", "Work Pattern", "Overrides"
         };
         var sections = EmployeeProfileCompletionCalculator.ApplyVerificationContract(
@@ -413,7 +413,7 @@ public sealed class EmployeeProfileCharacterizationTests
                 .Select(section => section.TabInfoType), Is.EqualTo(new int?[] { 1, 2, 3, 4, 5, 6, 7 }));
             Assert.That(sections.Where(section => !section.CanUpdateVerificationStatus)
                 .Select(section => section.SectionName), Is.EqualTo(new[]
-                { "Insurance", "Work Locations", "Devices", "Work Arrangement", "Work Pattern", "Overrides" }));
+                { "Work Locations", "Devices", "Work Arrangement", "Work Pattern", "Overrides" }));
             Assert.That(sections.Where(section => !section.CanUpdateVerificationStatus)
                 .All(section => section.TabInfoType is null), Is.True);
         });
@@ -427,7 +427,6 @@ public sealed class EmployeeProfileCharacterizationTests
     [TestCase(typeof(EducationController), "POST:create", "GET:get", "POST:update-education", "DELETE:delete")]
     [TestCase(typeof(ExperienceController), "POST:create", "GET:get", "POST:update", "DELETE:delete", "DELETE:delete-doc")]
     [TestCase(typeof(DependentController), "POST:create", "GET:get", "GET:get-in-detail", "POST:update", "DELETE:delete")]
-    [TestCase(typeof(InsuranceController), "POST:employee-insurance-enroll", "GET:get-all-enroll", "DELETE:delete")]
     [TestCase(typeof(SensitiveController), "POST:Create", "GET:get", "DELETE:delete")]
     public void Legacy_profile_controller_keeps_its_current_route_surface(
         Type controllerType,

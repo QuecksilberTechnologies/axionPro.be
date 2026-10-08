@@ -54,14 +54,7 @@ public class UnitOfWork : IUnitOfWork
     private IHostRolePermissionRepository _hostRolePermissionRepository;
 
     private IEmployeeManagerMappingRepository? _employeeManagerMappingRepository    ;
-    private IEmployeeDependentInsuranceMappingRepository? _employeeDependentInsuranceMappingRepository;
-    private IEmployeePolicyEnrollmentRepository? _employeePolicyEnrollmentRepository;
     private IForgotPasswordOtpRepository? _forgotPasswordOtpRepository;
-    private ISandwitchRuleRepository? _sandwitchRuleRepository;
-    private ILeaveRuleRepository? _leaveRuleRepository;
-    private IInsuranceRepository? _insuranceRepository;
-    private IPolicyTypeRepository? _policyTypeRepository;
-    private IPolicyTypeDocumentRepository? _companyPolicyDocumentRepository;
     private ITenantEmailConfigRepository? _tenantEmailConfigRepository;
     private IDefaultEmailConfigRepository? _defaultEmailConfigRepository;
     private IHolidayRepository? _holidayRepository;
@@ -86,7 +79,6 @@ public class UnitOfWork : IUnitOfWork
     private IEmployeeIdentityRepository? _employeeIdentityRepository;
     private IEmployeeInsuranceRepository? _employeeInsuranceRepository;
     private IEmployeeDependentRepository? _employeeDependentRepository;
-    private IPolicyTypeInsuranceMappingRepository? _policyTypeInsuranceMappingRepository;
     private IWorkflowStagesRepository? _workflowStagesRepository;
     private ITenantRepository? _tenantRepository;
     private IUserRoleRepository? _userRoleRepository;
@@ -99,11 +91,9 @@ public class UnitOfWork : IUnitOfWork
     private ICandidateRegistrationRepository? _candidateRegistrationRepository;
     private ICandidateCategorySkillRepository? _candidateCategorySkillRepository;
     private ILocationRepository? _locationRepository;
-    private IEmployeeLeaveRepository? _employeeLeaveRepository;
     private IAssetRepository? _assetRepository;
     private IRefreshTokenRepository? _refreshTokenRepository;
     private IStoreProcedureRepository? _commonRepository;
-    private IUnStructuredEmployeePolicyTypeMappingRepository? _unStructuredEmployeePolicyTypeMappingRepository;
     private IUserLoginReopsitory? _userLoginRepository;
     private IEmailTemplateRepository? _emailTemplateRepository;
     private ITenantEmailTemplateRepository? _tenantEmailTemplateRepository;
@@ -158,9 +148,6 @@ public class UnitOfWork : IUnitOfWork
     }
 
    
-    public IUnStructuredEmployeePolicyTypeMappingRepository UnStructuredEmployeePolicyTypeMappingRepository =>
-        _unStructuredEmployeePolicyTypeMappingRepository ??= new UnStructuredEmployeePolicyTypeMappingRepository(_context, 
-            _loggerFactory.CreateLogger<UnStructuredEmployeePolicyTypeMappingRepository>(), _mapper);
     public IUserLoginReopsitory UserLoginRepository =>
         _userLoginRepository ??= new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper, _passwordService, _config);
     //public ICompilanceRuleRepository CompilanceRuleRepository =>
@@ -224,18 +211,6 @@ public class UnitOfWork : IUnitOfWork
             _loggerFactory.CreateLogger<EmployeeIdentityRepository>(),
             _passwordService,
             _encriptionService);
-    public IEmployeeDependentInsuranceMappingRepository EmployeeDependentInsuranceMappingRepository =>
-        _employeeDependentInsuranceMappingRepository ??= new EmployeeDependentInsuranceMappingRepository(
-            _context,
-            _mapper,
-            _loggerFactory.CreateLogger<EmployeeDependentInsuranceMappingRepository>()
-            );
-    public IEmployeePolicyEnrollmentRepository EmployeePolicyEnrollmentRepository =>
-        _employeePolicyEnrollmentRepository ??= new EmployeePolicyEnrollmentRepository(
-            _context,
-            _mapper,
-            _loggerFactory.CreateLogger<EmployeePolicyEnrollmentRepository>()
-            );
     public IEmployeeManagerMappingRepository EmployeeManagerMappingRepository =>
         _employeeManagerMappingRepository ??= new EmployeeManagerMappingRepository(
             _context,
@@ -245,21 +220,6 @@ public class UnitOfWork : IUnitOfWork
 
     
 
-    public IPolicyTypeRepository PolicyTypeRepository =>
-        _policyTypeRepository ??= new PolicyTypeRepository(
-            _context,
-            _mapper,
-            _loggerFactory.CreateLogger<PolicyTypeRepository>(),
-            _passwordService,
-            _encriptionService);
-
-    public IPolicyTypeDocumentRepository PolicyTypeDocumentRepository =>
-        _companyPolicyDocumentRepository ??= new PolicyTypeDocumentRepository(
-            _context,
-            _loggerFactory.CreateLogger<PolicyTypeDocumentRepository>(),
-            _mapper,
-            _encriptionService);
-
     public IEmployeeBankRepository EmployeeBankRepository =>
         _employeeBankRepository ??= new EmployeeBankRepository(
             _context,
@@ -268,13 +228,6 @@ public class UnitOfWork : IUnitOfWork
             _passwordService,
             _encriptionService, _fileStorageService);
 
-    public IEmployeeLeaveRepository EmployeeLeaveRepository =>
-        _employeeLeaveRepository ??= new EmployeeLeaveRepository(
-            _context,
-            _mapper,
-            _loggerFactory.CreateLogger<EmployeeLeaveRepository>(),
-            _passwordService,
-            _encriptionService);
     public IHostUserRepository HostUserRepository =>
         _hostUserRepository ??= new HostUserRepository(
             _context,
@@ -293,19 +246,6 @@ public class UnitOfWork : IUnitOfWork
         _hostRolePermissionRepository ??= new HostRolePermissionRepository (
             _context);
 
-    public IPolicyTypeInsuranceMappingRepository PolicyTypeInsuranceMappingRepository =>
-        _policyTypeInsuranceMappingRepository ??= new PolicyTypeInsuranceMappingRepository(
-            _context,
-            _mapper,
-            _loggerFactory.CreateLogger<PolicyTypeInsuranceMappingRepository>(),
-            _passwordService,
-            _encriptionService);
-
-    public IInsuranceRepository InsuranceRepository =>
-        _insuranceRepository ??= new InsuranceRepository(
-            _context,
-            _loggerFactory.CreateLogger<InsuranceRepository>());
-
    
 
     public IGenderRepository GenderRepository =>
@@ -322,9 +262,6 @@ public class UnitOfWork : IUnitOfWork
 
     public IForgotPasswordOtpRepository ForgotPasswordOtpRepository =>
         _forgotPasswordOtpRepository ??= new ForgotPasswordOtpRepository(_context, _loggerFactory.CreateLogger<ForgotPasswordOtpRepository>());
-
-    public ILeaveRuleRepository LeaveRuleRepository =>
-        _leaveRuleRepository ??= new LeaveRuleRepository(_context, _loggerFactory.CreateLogger<LeaveRuleRepository>());
 
     public IPlanModuleMappingRepository PlanModuleMappingRepository =>
         _planModuleMappingRepository ??= new PlanModuleMappingRepository(_context, _loggerFactory.CreateLogger<PlanModuleMappingRepository>());
@@ -440,9 +377,6 @@ public class UnitOfWork : IUnitOfWork
 
     public ITicketHeaderRepository TicketHeaderRepository =>
         _ticketHeaderRepository ??= new TicketHeaderRepository(_context, _loggerFactory.CreateLogger<TicketHeaderRepository>(), _mapper);
-
-    public ISandwitchRuleRepository SandwitchRuleRepository =>
-        _sandwitchRuleRepository ??= new SandwitchRuleRepository(_mapper, _context, _loggerFactory.CreateLogger<SandwitchRuleRepository>());
 
     public IEmployeeDependentRepository EmployeeDependentRepository => 
         _employeeDependentRepository ??= new EmployeeDependentRepository(

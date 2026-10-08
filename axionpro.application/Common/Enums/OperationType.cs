@@ -50,7 +50,6 @@ namespace axionpro.application.Common.Enums
         Identity = 5,
         Education = 6,
         Dependent = 7,
-        Insurance = 8,
        
     }
   

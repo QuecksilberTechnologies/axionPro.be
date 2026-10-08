@@ -92,6 +92,22 @@ No endpoint was removed based only on an empty table. API source inspection
 cannot prove that an external client never calls an endpoint; telemetry or an
 explicit retirement list is required.
 
+## Superseding policy cleanup — 2026-10-08
+
+The user explicitly authorized permanent retirement of the superseded policy
+implementations after the generic policy framework became authoritative. The
+legacy insurance, leave-policy mapping/rule/sandwich, policy-type document and
+allowance mapping source was removed. Their 17 tables and the obsolete
+`EMP_INSURANCE` module were hard deleted from both Local and Render. Direct
+post-checks returned zero retired tables and zero retired modules while all
+eight generic policy modules remained. The executable cleanup is
+`database-scripts/HardDeleteRetiredLegacyPolicyArtifacts.sql`; detailed evidence
+is in `docs/testing/policy/retired-legacy-hard-delete/2026-10-08.md`.
+
+This decision supersedes the earlier retention and accommodation-rename plan in
+this document. `PolicyType` remains because it is part of the live generic
+framework; the retired policy-type mapping and document tables do not.
+
 ## Verification
 
 - Solution build passed with 0 errors; existing warnings remain.

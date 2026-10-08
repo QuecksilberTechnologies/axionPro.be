@@ -57,5 +57,4 @@ public partial class EmployeeDependent
 
     public virtual Employee? Employee { get; set; }
 
-    public virtual ICollection<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; } = new List<EmployeePolicyDependentMapping>();
 }

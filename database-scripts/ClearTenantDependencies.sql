@@ -349,22 +349,6 @@ BEGIN
           (SELECT "Id" FROM axionpro."EmployeeExperience"
            WHERE "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee));
 
-    DELETE FROM axionpro."EmployeePolicyDependentMapping"
-    WHERE "TenantId" = v_tenant_id
-       OR "DependentId" IN
-          (SELECT "Id" FROM axionpro."EmployeeDependent"
-           WHERE "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee))
-       OR "EmployeePolicyEnrollmentId" IN
-          (SELECT "Id" FROM axionpro."EmployeePolicyEnrollment"
-           WHERE "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee));
-
-    DELETE FROM axionpro."EmployeeLeaveBalance"
-    WHERE "TenantId" = v_tenant_id
-       OR "EmployeeLeavePolicyMappingId" IN
-          (SELECT "Id" FROM axionpro."EmployeeLeavePolicyMapping"
-           WHERE "TenantId" = v_tenant_id
-              OR "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee));
-
     DELETE FROM axionpro."EmployeeWorkModeOverrideRequest"
     WHERE "TenantId" = v_tenant_id
        OR "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee)
@@ -417,59 +401,6 @@ BEGIN
           (SELECT "Id" FROM axionpro."SalaryComponentMaster" WHERE "TenantId" = v_tenant_id)
        OR "DependsOnComponentId" IN
           (SELECT "Id" FROM axionpro."SalaryComponentMaster" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."InsurancePolicyDocument"
-    WHERE "TenantId" = v_tenant_id
-       OR "InsurancePolicyId" IN
-          (SELECT "Id" FROM axionpro."InsurancePolicy" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."PolicyTypeInsuranceMapping"
-    WHERE "TenantId" = v_tenant_id
-       OR "PolicyTypeId" IN (SELECT "Id" FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id)
-       OR "InsurancePolicyId" IN
-          (SELECT "Id" FROM axionpro."InsurancePolicy" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."PolicyTypeDocument"
-    WHERE "TenantId" = v_tenant_id
-       OR "PolicyTypeId" IN (SELECT "Id" FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."UnStructuredPolicyTypeMappingWithEmployeeType"
-    WHERE "TenantId" = v_tenant_id
-       OR "PolicyTypeId" IN (SELECT "Id" FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."AccommodationAllowancePolicyByDesignation"
-    WHERE "DesignationId" IN (SELECT "Id" FROM axionpro."Designation" WHERE "TenantId" = v_tenant_id)
-       OR "PolicyTypeId" IN (SELECT "Id" FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."MealAllowancePolicyByDesignation"
-    WHERE "DesignationId" IN (SELECT "Id" FROM axionpro."Designation" WHERE "TenantId" = v_tenant_id)
-       OR "PolicyTypeId" IN (SELECT "Id" FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."TravelAllowancePolicyByDesignation"
-    WHERE "DesignationId" IN (SELECT "Id" FROM axionpro."Designation" WHERE "TenantId" = v_tenant_id)
-       OR "PolicyTypeId" IN (SELECT "Id" FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."LeaveSandwichRuleMapping"
-    WHERE "TenantId" = v_tenant_id
-       OR "LeaveSandwichRuleId" IN
-          (SELECT "Id" FROM axionpro."LeaveSandwichRule" WHERE "TenantId" = v_tenant_id)
-       OR "DayCombinationId" IN
-          (SELECT "Id" FROM axionpro."DayCombination" WHERE "TenantId" = v_tenant_id)
-       OR "LeaveRuleId" IN
-          (SELECT "Id" FROM axionpro."LeaveRule" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."EmployeePolicyEnrollment"
-    WHERE "TenantId" = v_tenant_id
-       OR "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee)
-       OR "PolicyTypeId" IN (SELECT "Id" FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id)
-       OR "InsurancePolicyId" IN
-          (SELECT "Id" FROM axionpro."InsurancePolicy" WHERE "TenantId" = v_tenant_id);
-
-    DELETE FROM axionpro."EmployeeLeavePolicyMapping"
-    WHERE "TenantId" = v_tenant_id
-       OR "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee)
-       OR "PolicyLeaveTypeMappingId" IN
-          (SELECT "Id" FROM axionpro."PolicyLeaveTypeMapping" WHERE "TenantId" = v_tenant_id);
 
     DELETE FROM axionpro."EmployeeManagerMapping"
     WHERE "TenantId" = v_tenant_id
@@ -566,9 +497,7 @@ BEGIN
     DELETE FROM axionpro."LeaveRequest"
     WHERE "TenantId" = v_tenant_id
        OR "EmployeeId" IN (SELECT "Id" FROM pg_temp.tenant_cleanup_employee)
-       OR "LeaveTypeId" IN (SELECT "Id" FROM axionpro."LeaveType" WHERE "TenantId" = v_tenant_id)
-       OR "LeavePolicyId" IN
-          (SELECT "Id" FROM axionpro."PolicyLeaveTypeMapping" WHERE "TenantId" = v_tenant_id);
+       OR "LeaveTypeId" IN (SELECT "Id" FROM axionpro."LeaveType" WHERE "TenantId" = v_tenant_id);
 
     DELETE FROM axionpro."RefreshToken"
     WHERE "LoginCredentialId" IN
@@ -607,18 +536,13 @@ BEGIN
     DELETE FROM axionpro."AssetStatus" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."AssetCategory" WHERE "TenantId" = v_tenant_id;
 
-    DELETE FROM axionpro."LeaveSandwichRule" WHERE "TenantId" = v_tenant_id;
-    DELETE FROM axionpro."LeaveRule" WHERE "TenantId" = v_tenant_id;
-    DELETE FROM axionpro."PolicyLeaveTypeMapping" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."LeaveType" WHERE "TenantId" = v_tenant_id;
-    DELETE FROM axionpro."DayCombination" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."Holiday" WHERE "TenantId" = v_tenant_id;
 
     DELETE FROM axionpro."PayrollRun" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."SalaryStructure" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."SalaryComponentMaster" WHERE "TenantId" = v_tenant_id;
 
-    DELETE FROM axionpro."InsurancePolicy" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."AttendancePolicy" WHERE "TenantId" = v_tenant_id;
     DELETE FROM axionpro."PolicyType" WHERE "TenantId" = v_tenant_id;
 
@@ -686,7 +610,7 @@ BEGIN
         FOR v_dependency IN
             SELECT unnest(ARRAY[
                 'Tenant', 'Employee', 'TenantLocation', 'ComplianceRule',
-                'EmployeeTaxProfile', 'InsurancePolicy', 'SalaryComponentMaster',
+                'EmployeeTaxProfile', 'SalaryComponentMaster',
                 'TaxRule', 'TaxSlab'
             ]) AS table_name
         LOOP
@@ -719,7 +643,7 @@ BEGIN
                   'City', 'State', 'District', 'CountryIdentityRule',
                   'CountryStatutoryRule', 'StatutoryType', 'TaxSystemMaster',
                   'TaxRegimeMaster', 'TenantLocation', 'ComplianceRule',
-                  'Employee', 'EmployeeTaxProfile', 'InsurancePolicy',
+                  'Employee', 'EmployeeTaxProfile',
                   'SalaryComponentMaster', 'TaxRule', 'TaxSlab'
               )
         LOOP

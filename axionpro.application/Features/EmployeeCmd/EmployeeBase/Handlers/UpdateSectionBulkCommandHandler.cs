@@ -118,8 +118,7 @@ public class UpdateSectionBulkCommandHandler
                     throw new ValidationErrorException("No section selected.");
 
                 if (request.DTO.Sections.Any(section =>
-                        !Enum.IsDefined(typeof(TabInfoType), section.TabInfoType) ||
-                        section.TabInfoType == (int)TabInfoType.Insurance))
+                        !Enum.IsDefined(typeof(TabInfoType), section.TabInfoType)))
                     throw new ValidationErrorException("Unsupported verification section.");
 
                 if (request.DTO.Sections.Select(section => section.TabInfoType).Distinct().Count() != request.DTO.Sections.Count)

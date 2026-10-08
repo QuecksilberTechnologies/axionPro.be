@@ -31,7 +31,6 @@ public partial class Designation
 
     public long? SoftDeletedById { get; set; }
 
-    public virtual ICollection<AccommodationAllowancePolicyByDesignation> AccommodationAllowancePolicyByDesignation { get; set; } = new List<AccommodationAllowancePolicyByDesignation>();
 
     public virtual Department? Department { get; set; }
 
@@ -39,9 +38,7 @@ public partial class Designation
 
     public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMapping { get; set; } = new List<EmployeeManagerMapping>();
 
-    public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignation { get; set; } = new List<MealAllowancePolicyByDesignation>();
 
     public virtual Tenant Tenant { get; set; } = null!;
 
-    public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignation { get; set; } = new List<TravelAllowancePolicyByDesignation>();
 }

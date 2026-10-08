@@ -14,7 +14,6 @@ using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
-using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Extentions;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -1888,17 +1887,6 @@ namespace axionpro.persistance.Repositories
                     })
                     .ToListAsync();
 
-                var insuranceRows = await _context.EmployeePolicyEnrollment
-                    .AsNoTracking()
-                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-                    .Select(x => new
-                    {
-                        x.PolicyTypeId,
-                        x.InsurancePolicyId,
-                        x.StartDate,
-                        x.EndDate
-                    })
-                    .ToListAsync();
                 bool hasWorkLocation = await _context.EmployeeLocationAssignments
                     .AsNoTracking()
                     .AnyAsync(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
@@ -1976,14 +1964,6 @@ namespace axionpro.persistance.Repositories
                         bankSection,
                         contactSection,
                         experienceSection,
-                        EmployeeProfileCompletionCalculator.CreateSection(
-                            "Insurance",
-                            insuranceRows.Select(x =>
-                                EmployeeProfileCompletionCalculator.CalculateInsuranceRow(
-                                    x.PolicyTypeId,
-                                    x.InsurancePolicyId,
-                                    x.StartDate,
-                                    x.EndDate)).ToArray()),
                         identitySection,
                         educationSection,
                         dependentSection,
@@ -2098,73 +2078,6 @@ namespace axionpro.persistance.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
-
-        public async Task<GetLeaveBalanceToEmployeeResponseDTO> UpdateLeaveBalanceToEmployee(UpdateLeaveBalanceToEmployeeRequestDTO dto)
-        {
-            try
-            {
-                //  Validation
-                if (dto == null)
-                    throw new ArgumentNullException(nameof(dto), "Request data cannot be null.");
-
-                if (dto.Id <= 0)
-                    throw new ArgumentException("Invalid Leave Balance Id provided.");
-
-                //  Fetch existing record
-                var existingBalance = await _context.EmployeeLeaveBalances
-                    .FirstOrDefaultAsync(e => e.Id == dto.Id
-                                           && e.TenantId == dto.TenantId);
-
-                if (existingBalance == null)
-                    throw new Exception("Employee Leave Balance record not found.");
-
-                //  Update fields
-                existingBalance.LeaveYear = dto.LeaveYear;
-                existingBalance.OpeningBalance = dto.OpeningBalance;
-                existingBalance.Availed = dto.Availed;
-                existingBalance.CurrentBalance = dto.CurrentBalance;
-                existingBalance.CarryForwarded = dto.CarryForwarded;
-                existingBalance.Encashed = dto.Encashed;
-                existingBalance.LeavesOnHold = dto.LeavesOnHold;
-                existingBalance.IsAllBalanceOnHold = dto.IsAllBalanceOnHold;
-                existingBalance.UpdatedDateTime = DateTime.UtcNow;
-                existingBalance.UpdatedById = dto.EmployeeId;
-
-
-
-                //  Save changes
-                await _context.SaveChangesAsync();
-
-                //  Map to Response DTO
-                var response = new GetLeaveBalanceToEmployeeResponseDTO
-                {
-                    Id = existingBalance.Id,
-                    TenantId = existingBalance.TenantId,
-                    EmployeeLeavePolicyMappingId = existingBalance.EmployeeLeavePolicyMappingId,
-                    LeaveYear = existingBalance.LeaveYear,
-                    OpeningBalance = existingBalance.OpeningBalance,
-                    Availed = existingBalance.Availed,
-                    CurrentBalance = existingBalance.CurrentBalance,
-                    CarryForwarded = existingBalance.CarryForwarded,
-                    Encashed = existingBalance.Encashed,
-                    LeavesOnHold = existingBalance.LeavesOnHold,
-                    IsAllBalanceOnHold = existingBalance.IsAllBalanceOnHold,
-                    IsActive = existingBalance.IsActive,
-                    AddedById = existingBalance.AddedById,
-                    AddedDateTime = existingBalance.AddedDateTime,
-                    UpdatedById = existingBalance.UpdatedById,
-                    UpdatedDateTime = existingBalance.UpdatedDateTime
-                };
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"❌ Error while updating employee leave balance: {ex.Message}");
-            }
-        }
-
-
 
         #region Employee-Base-info
 

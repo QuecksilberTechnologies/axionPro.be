@@ -103,7 +103,6 @@ public partial class Employee
 
     public virtual ICollection<EmployeeImage> EmployeeImage { get; set; } = new List<EmployeeImage>();
 
-    public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMapping { get; set; } = new List<EmployeeLeavePolicyMapping>();
 
     public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappingEmployee { get; set; } = new List<EmployeeManagerMapping>();
 
@@ -111,7 +110,6 @@ public partial class Employee
 
     public virtual ICollection<EmployeePersonalDetail> EmployeePersonalDetail { get; set; } = new List<EmployeePersonalDetail>();
 
-    public virtual ICollection<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; } = new List<EmployeePolicyEnrollment>();
 
     public virtual ICollection<EmployeeSalary> EmployeeSalary { get; set; } = new List<EmployeeSalary>();
 

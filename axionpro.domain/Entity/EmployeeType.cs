@@ -32,7 +32,6 @@ public partial class EmployeeType
 
     public DateTime? SoftDeletedDateTime { get; set; }
 
-    public virtual ICollection<AccommodationAllowancePolicyByDesignation> AccommodationAllowancePolicyByDesignation { get; set; } = new List<AccommodationAllowancePolicyByDesignation>();
 
     public virtual ICollection<Employee> Employee { get; set; } = new List<Employee>();
 
@@ -42,9 +41,4 @@ public partial class EmployeeType
 
     public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistoryOldEmployeeType { get; set; } = new List<EmployeesChangedTypeHistory>();
 
-    public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignation { get; set; } = new List<MealAllowancePolicyByDesignation>();
-
-    public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignation { get; set; } = new List<TravelAllowancePolicyByDesignation>();
-
-    public virtual ICollection<UnStructuredPolicyTypeMappingWithEmployeeType> UnStructuredPolicyTypeMappingWithEmployeeType { get; set; } = new List<UnStructuredPolicyTypeMappingWithEmployeeType>();
 }

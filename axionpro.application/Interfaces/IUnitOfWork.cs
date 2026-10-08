@@ -17,17 +17,10 @@ namespace axionpro.application.Interfaces
     public interface IUnitOfWork : IDisposable
     {
         IModuleRepository ModuleRepository { get; }
-        IEmployeeLeaveRepository EmployeeLeaveRepository { get; }
         ITenantEmailConfigRepository TenantEmailConfigRepository { get; }
         IDefaultEmailConfigRepository DefaultEmailConfigRepository { get; }
         ITenantEmployeeCodePatternRepository TenantEmployeeCodePatternRepository { get; }
-        IInsuranceRepository InsuranceRepository { get; }
-        IPolicyTypeInsuranceMappingRepository PolicyTypeInsuranceMappingRepository { get; }
-        IPolicyTypeRepository PolicyTypeRepository { get; }
-        IPolicyTypeDocumentRepository PolicyTypeDocumentRepository { get; }
         IPermissionRepository PermissionRepository { get; }
-        IEmployeePolicyEnrollmentRepository EmployeePolicyEnrollmentRepository { get; }
-        IEmployeeDependentInsuranceMappingRepository EmployeeDependentInsuranceMappingRepository { get; }
         ITicketThreadRepository TicketThreadRepository { get; }
         ITicketHistoryRepository TicketHistoryRepository { get; }
         IThreadMessageRepository ThreadMessageRepository { get; }
@@ -43,7 +36,6 @@ namespace axionpro.application.Interfaces
         ITicketAttachmentRepository TicketAttachmentRepository { get; }
         IUserLoginReopsitory UserLoginRepository { get; }
         IForgotPasswordOtpRepository ForgotPasswordOtpRepository { get; }
-        ISandwitchRuleRepository SandwitchRuleRepository { get; }
         ITenantModuleConfigurationRepository TenantModuleConfigurationRepository { get; }
         ITenantParentModuleRepository TenantParentModuleRepository { get; }
         ITenantEncryptionKeyRepository TenantEncryptionKeyRepository { get; }
@@ -86,10 +78,8 @@ namespace axionpro.application.Interfaces
         ICategoryRepository CategoryRepository { get; }
         IRoleRepository RoleRepository { get; }
         ILeaveRepository LeaveRepository { get; }
-        ILeaveRuleRepository LeaveRuleRepository { get; }
         IGenderRepository GenderRepository { get; }
         IEmployeeTypeBasicMenuRepository EmployeeTypeBasicMenuRepository { get; }
-        IUnStructuredEmployeePolicyTypeMappingRepository UnStructuredEmployeePolicyTypeMappingRepository { get; }
         IUserRolesPermissionOnModuleRepository UserRolesPermissionOnModuleRepository { get; }
          ITicketGenrationRepository TicketGenrationRepository { get; }
 

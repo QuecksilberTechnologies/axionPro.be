@@ -41,21 +41,7 @@ public partial class PolicyType
 
     public string? DefaultCurrencyCode { get; set; }
 
-    public virtual ICollection<AccommodationAllowancePolicyByDesignation> AccommodationAllowancePolicyByDesignation { get; set; } = new List<AccommodationAllowancePolicyByDesignation>();
-
-    public virtual ICollection<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; } = new List<EmployeePolicyEnrollment>();
-
-    public virtual ICollection<InsurancePolicy> InsurancePolicy { get; set; } = new List<InsurancePolicy>();
-
-    public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignation { get; set; } = new List<MealAllowancePolicyByDesignation>();
-
-    public virtual ICollection<PolicyTypeDocument> PolicyTypeDocument { get; set; } = new List<PolicyTypeDocument>();
-
-    public virtual ICollection<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMapping { get; set; } = new List<PolicyTypeInsuranceMapping>();
 
     public virtual Tenant? Tenant { get; set; }
 
-    public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignation { get; set; } = new List<TravelAllowancePolicyByDesignation>();
-
-    public virtual ICollection<UnStructuredPolicyTypeMappingWithEmployeeType> UnStructuredPolicyTypeMappingWithEmployeeType { get; set; } = new List<UnStructuredPolicyTypeMappingWithEmployeeType>();
 }

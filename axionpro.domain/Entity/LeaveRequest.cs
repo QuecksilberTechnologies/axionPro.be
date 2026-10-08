@@ -33,8 +33,6 @@ public partial class LeaveRequest
 
     public DateTime? ApprovedDate { get; set; }
 
-    public long LeavePolicyId { get; set; }
-
     public bool? IsSandwich { get; set; }
 
     public long CreatedById { get; set; }
@@ -53,7 +51,6 @@ public partial class LeaveRequest
 
     public virtual Employee Employee { get; set; } = null!;
 
-    public virtual PolicyLeaveTypeMapping LeavePolicy { get; set; } = null!;
 
     public virtual LeaveType LeaveType { get; set; } = null!;
 

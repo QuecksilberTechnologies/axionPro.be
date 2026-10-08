@@ -83,51 +83,6 @@ public sealed class EmployeeTypeRepository(WorkforceDbContext context, IMapper m
             return true;
         }
 
-        if (await context.UnStructuredPolicyTypeMappingWithEmployeeTypes.AsNoTracking().AnyAsync(mapping =>
-                mapping.TenantId == tenantId &&
-                mapping.EmployeeTypeId == employeeTypeId &&
-                !mapping.IsSoftDeleted,
-                cancellationToken))
-        {
-            return true;
-        }
-
-        if (await context.PolicyLeaveTypeMappings.AsNoTracking().AnyAsync(mapping =>
-                mapping.TenantId == tenantId &&
-                mapping.EmployeeTypeId == employeeTypeId &&
-                mapping.IsSoftDeleted != true,
-                cancellationToken))
-        {
-            return true;
-        }
-
-        if (await context.AccommodationAllowancePolicyByDesignations.AsNoTracking().AnyAsync(mapping =>
-                mapping.EmployeeTypeId == employeeTypeId &&
-                mapping.Designation.TenantId == tenantId &&
-                mapping.IsSoftDelete != true,
-                cancellationToken))
-        {
-            return true;
-        }
-
-        if (await context.MealAllowancePolicyByDesignations.AsNoTracking().AnyAsync(mapping =>
-                mapping.EmployeeTypeId == employeeTypeId &&
-                mapping.Designation.TenantId == tenantId &&
-                mapping.IsSoftDelete != true,
-                cancellationToken))
-        {
-            return true;
-        }
-
-        if (await context.TravelAllowancePolicyByDesignations.AsNoTracking().AnyAsync(mapping =>
-                mapping.EmployeeTypeId == employeeTypeId &&
-                mapping.Designation.TenantId == tenantId &&
-                mapping.IsSoftDelete != true,
-                cancellationToken))
-        {
-            return true;
-        }
-
         // EmployeeTypeBasicMenu has no soft-delete state. Preserving an existing mapping
         // is required for a future EmployeeType restore, so every row blocks deletion.
         return await context.EmployeeTypeBasicMenus.AsNoTracking().AnyAsync(mapping =>

@@ -25,7 +25,6 @@ public partial class Country
 
     public virtual ICollection<EmployeeTaxProfile> EmployeeTaxProfile { get; set; } = new List<EmployeeTaxProfile>();
 
-    public virtual ICollection<InsurancePolicy> InsurancePolicy { get; set; } = new List<InsurancePolicy>();
 
     public virtual ICollection<SalaryComponentMaster> SalaryComponentMaster { get; set; } = new List<SalaryComponentMaster>();
 

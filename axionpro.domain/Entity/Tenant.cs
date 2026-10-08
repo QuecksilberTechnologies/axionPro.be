@@ -49,7 +49,6 @@ public partial class Tenant
 
     public virtual ICollection<ComplianceRule> ComplianceRule { get; set; } = new List<ComplianceRule>();
 
-    public virtual ICollection<DayCombination> DayCombination { get; set; } = new List<DayCombination>();
 
     public virtual ICollection<Department> Department { get; set; } = new List<Department>();
 
@@ -59,9 +58,6 @@ public partial class Tenant
 
     public virtual ICollection<EmployeeCodePattern> EmployeeCodePattern { get; set; } = new List<EmployeeCodePattern>();
 
-    public virtual ICollection<EmployeeLeaveBalance> EmployeeLeaveBalance { get; set; } = new List<EmployeeLeaveBalance>();
-
-    public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMapping { get; set; } = new List<EmployeeLeavePolicyMapping>();
 
     public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMapping { get; set; } = new List<EmployeeManagerMapping>();
 
@@ -69,7 +65,6 @@ public partial class Tenant
 
     public virtual ICollection<LeaveRequest> LeaveRequest { get; set; } = new List<LeaveRequest>();
 
-    public virtual ICollection<LeaveRule> LeaveRule { get; set; } = new List<LeaveRule>();
 
     public virtual ICollection<LeaveType> LeaveType { get; set; } = new List<LeaveType>();
 

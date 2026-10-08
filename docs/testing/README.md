@@ -157,3 +157,4 @@ saving evidence. Documentation-only work does not require repeating passed tests
 
 - [2026-10-02 — code-driven rule schema, Angular authoring and Render metadata migration](policy/generic-rule-metadata/2026-10-02.md)
 - [2026-10-07 - publication integrity, clone lifecycle and archived assignment state](policy/publication-integrity/2026-10-07.md)
+- [2026-10-08 - retired legacy policy API, model, table and module hard delete](policy/retired-legacy-hard-delete/2026-10-08.md)
