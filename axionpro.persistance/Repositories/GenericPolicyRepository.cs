@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Policy;
 using axionpro.application.Exceptions;
@@ -1730,6 +1731,51 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
                 }
                 ValidateSettingValue(definition, value, options);
             }
+
+            ValidateAccrualCalculation(ruleDefinitions, root);
+        }
+    }
+
+    private static void ValidateAccrualCalculation(
+        IReadOnlyCollection<PolicyRuleSettingDefinition> definitions,
+        JsonElement configuration)
+    {
+        var settingCodes = definitions
+            .Select(x => x.SettingCode)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (!settingCodes.Contains("annualEntitlement")
+            || !settingCodes.Contains("frequency")
+            || !settingCodes.Contains("amountPerCycle"))
+        {
+            return;
+        }
+
+        if (!configuration.TryGetProperty("annualEntitlement", out var annualElement)
+            || !annualElement.TryGetDecimal(out var annualEntitlement)
+            || !configuration.TryGetProperty("frequency", out var frequencyElement)
+            || frequencyElement.ValueKind != JsonValueKind.String
+            || !configuration.TryGetProperty("amountPerCycle", out var amountElement)
+            || !amountElement.TryGetDecimal(out var suppliedAmount))
+        {
+            return;
+        }
+
+        decimal expectedAmount;
+        try
+        {
+            expectedAmount = PolicyAccrualCalculationHelper.CalculateAmountPerCycle(
+                annualEntitlement,
+                frequencyElement.GetString() ?? string.Empty);
+        }
+        catch (ArgumentException exception)
+        {
+            throw new ValidationErrorException(exception.Message);
+        }
+
+        if (suppliedAmount != expectedAmount)
+        {
+            throw new ValidationErrorException(
+                $"Rule setting 'amountPerCycle' must equal {expectedAmount} for the selected annual entitlement and accrual frequency.");
         }
     }
 

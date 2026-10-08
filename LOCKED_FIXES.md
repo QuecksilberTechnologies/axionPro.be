@@ -114,6 +114,7 @@ Every entry must include:
 | `LOCK-POLICY-PUBLISH-010` | Policy document, approval fingerprint, clone and archive integrity | LOCKED | Policy contract/schema 37/37; Release build; Angular production build; Local/Render schema verified | API/UI DEPLOYMENT PENDING | [2026-10-07](docs/testing/policy/publication-integrity/2026-10-07.md) |
 | `LOCK-POLICY-LEAVE-011` | Leave Type targeting across policy versions, rules and applicability | LOCKED | Policy contract/schema 40/40; Angular 7/7 and production build; Local/Render schema and 8-type seed verified | DB APPLIED; API/UI DEPLOYMENT PENDING; S3 CREDENTIAL BLOCKED | [2026-10-08](docs/testing/policy/leave-type-targeting/2026-10-08.md) |
 | `LOCK-POLICY-DRAFT-EDIT-012` | Policy list Draft row opens its exact version in Edit | LOCKED | Angular 8/8; production build; localhost Draft-v2 browser verification | UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/draft-version-edit/2026-10-08.md) |
+| `LOCK-POLICY-ACCRUAL-013` | Leave annual entitlement and derived accrual-cycle amount | LOCKED | Backend 47/47; Angular 27/27; Release and production builds; Local/Render metadata verified | DB APPLIED; API/UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/annual-entitlement-accrual/2026-10-08.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -630,6 +631,38 @@ bun run build -- --configuration production
 
 Expected: at least 8 passed with zero failed/skipped and production build succeeds. Evidence:
 [2026-10-08](docs/testing/policy/draft-version-edit/2026-10-08.md).
+
+## LOCK-POLICY-ACCRUAL-013: Leave annual entitlement calculation
+
+### Locked behavior
+
+- Each Leave Accrual rule stores a required positive `annualEntitlement` as its authoritative yearly total.
+- MONTHLY, QUARTERLY and YEARLY derive `amountPerCycle` using 12, 4 and 1 cycle respectively,
+  rounded to six decimal places away from zero.
+- Angular recalculates the amount when entitlement or frequency changes and renders it read-only.
+- Create and Draft-update APIs independently recompute the amount and reject a conflicting value.
+- The consuming leave ledger must credit the remaining balance in the final cycle so rounding never
+  changes the exact annual entitlement.
+- Leave rule targeting, Published immutability and the existing permission pipeline remain unchanged.
+
+### Protected areas and gate
+
+- Accrual setting rows in `AddGenericPolicyRuleMetadata.sql`.
+- `PolicyAccrualCalculationHelper` and Generic Policy save validation.
+- Angular Policy Definition rule settings and shared numeric input read-only support.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~GenericPolicyApiContractTests|FullyQualifiedName~PolicyFrameworkSchemaTests|TestCategory=GenericPolicyRuleMetadata" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+bun run test -- --include src/app/features/tenant-policies/policy-definitions/policy-definition-form/policy-definition-form.spec.ts --include src/app/features/tenant-policies/policy-definitions/policy-definition-form/rule-settings.spec.ts
+bun run build -- --configuration production
+```
+
+Expected: backend at least 47 passed with zero failed/skipped; Angular at least 27 passed with zero
+failed/skipped; both builds succeed. Local and Render each expose one active required
+`annualEntitlement` Accrual definition before `amountPerCycle`.
+
+Evidence: [2026-10-08](docs/testing/policy/annual-entitlement-accrual/2026-10-08.md).
 
 ## Adding the next lock
 

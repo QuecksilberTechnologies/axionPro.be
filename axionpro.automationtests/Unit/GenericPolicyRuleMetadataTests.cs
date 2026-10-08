@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using axionpro.application.Common.Helpers;
 using NUnit.Framework;
 
 namespace axionpro.automationtests.Unit;
@@ -106,6 +107,48 @@ public sealed class GenericPolicyRuleMetadataTests
         var controller = Read("axionpro.api", "Controllers", "Policies", "TenantPolicyController.cs");
         Assert.That(controller, Does.Contain("[HttpPost(\"assignments\")]"));
         Assert.That(controller, Does.Contain("[HttpDelete(\"assignments/{assignmentId:long}\")]"));
+    }
+
+    [TestCase(12, "MONTHLY", 1)]
+    [TestCase(18, "MONTHLY", 1.5)]
+    [TestCase(20, "MONTHLY", 1.666667)]
+    [TestCase(20, "QUARTERLY", 5)]
+    [TestCase(20, "YEARLY", 20)]
+    public void Accrual_amount_is_derived_from_the_authoritative_annual_entitlement(
+        decimal annualEntitlement,
+        string frequencyCode,
+        decimal expectedAmount)
+    {
+        Assert.That(
+            PolicyAccrualCalculationHelper.CalculateAmountPerCycle(annualEntitlement, frequencyCode),
+            Is.EqualTo(expectedAmount));
+    }
+
+    [Test]
+    public void Accrual_metadata_requires_annual_entitlement_before_the_derived_cycle_amount()
+    {
+        var sql = Read("database-scripts", "AddGenericPolicyRuleMetadata.sql");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sql, Does.Contain("('ACCRUAL','annualEntitlement','Annual entitlement','DECIMAL',true"));
+            Assert.That(sql.IndexOf("'annualEntitlement'", StringComparison.Ordinal),
+                Is.LessThan(sql.IndexOf("'amountPerCycle'", StringComparison.Ordinal)));
+            Assert.That(sql, Does.Contain("The final cycle uses the remaining balance"));
+        });
+    }
+
+    [Test]
+    public void Save_validation_recomputes_and_rejects_a_conflicting_accrual_amount()
+    {
+        var repository = Read("axionpro.persistance", "Repositories", "GenericPolicyRepository.cs");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(repository, Does.Contain("ValidateAccrualCalculation(ruleDefinitions, root)"));
+            Assert.That(repository, Does.Contain("PolicyAccrualCalculationHelper.CalculateAmountPerCycle"));
+            Assert.That(repository, Does.Contain("must equal {expectedAmount}"));
+        });
     }
 
     private static string Read(params string[] parts) => File.ReadAllText(Path.Combine(new[] { Root }.Concat(parts).ToArray()));

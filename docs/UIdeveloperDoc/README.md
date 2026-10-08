@@ -88,3 +88,6 @@ Scenario test evidence is organized by module, scenario and date under
 there using the [scenario template](../testing/SCENARIO_TEMPLATE.md), with exact
 local/live status, inputs, expected/actual results and outstanding checks.
 Current Employee example: [China/USA identity options](../testing/employee/country-identity/2026-09-13.md).
+# Tenant Policy accrual calculation
+
+- [Leave annual entitlement and derived accrual amount](GENERIC_POLICY_RULE_METADATA.md#save-validation)

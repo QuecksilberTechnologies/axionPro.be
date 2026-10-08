@@ -41,6 +41,24 @@ Numeric IDs remain only as internal foreign-key values in create/update payloads
 5. JSON values match BOOLEAN/INTEGER/DECIMAL/STRING/CODE datatypes;
 6. numeric ranges and enumerated options are valid.
 
+For the Leave `ACCRUAL` rule, `annualEntitlement` is the authoritative yearly total.
+`amountPerCycle` is derived as `annualEntitlement / cycleCount`, where MONTHLY = 12,
+QUARTERLY = 4 and YEARLY = 1. The Angular field is read-only and recalculates whenever either
+input changes. The API independently recomputes the value to six decimal places and rejects a
+different client-supplied value. A leave ledger must credit the remaining entitlement in the final
+cycle, so rounding never changes the exact annual total.
+
+Example `ruleConfiguration` values:
+
+```json
+{
+  "annualEntitlement": 20,
+  "frequency": "MONTHLY",
+  "amountPerCycle": 1.666667,
+  "prorateNewJoiner": true
+}
+```
+
 The persisted `PolicyRule.RuleConfiguration` remains JSONB-compatible JSON. This preserves existing
 versions while making new authoring deterministic. Module adapters, such as the typed Attendance
 configuration, remain responsible for performing domain calculations.
@@ -114,7 +132,7 @@ corresponding module regression tests pass.
 
 ## Deployment status
 
-- Backend source/build: passed locally.
-- Angular production build: passed locally.
-- Render PostgreSQL: four additive metadata tables created and seeded; orphan verification passed.
+- Backend source/build: annual-entitlement post-change verification is recorded in the linked test report.
+- Angular production build: annual-entitlement post-change verification is recorded in the linked test report.
+- Local and Render PostgreSQL: Accrual annual-entitlement metadata applied and reconciled.
 - Render API deployment of the updated backend: not performed by this database migration.
