@@ -402,7 +402,8 @@ public sealed class UploadPolicyDocumentCommandHandler(IGenericPolicyRepository 
         if (extension is not (".pdf" or ".doc" or ".docx")) throw new ValidationErrorException("Only PDF, DOC and DOCX policy documents are allowed.");
         string checksum;
         await using (var stream = file.OpenReadStream()) checksum = Convert.ToHexString(await System.Security.Cryptography.SHA256.HashDataAsync(stream, token)).ToLowerInvariant();
-        var storedName = $"{Guid.NewGuid():N}{extension}";
+        // FileStorageService appends the validated source extension to this generated name.
+        var storedName = $"{Guid.NewGuid():N}";
         var key = await fileStorageService.UploadFileAsync(file, $"tenant-{actor.TenantId}/policies/{request.DTO.PolicyVersionId}", storedName);
         try
         {

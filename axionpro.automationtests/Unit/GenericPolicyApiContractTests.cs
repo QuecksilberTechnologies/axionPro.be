@@ -187,6 +187,23 @@ public sealed class GenericPolicyApiContractTests
     }
 
     [Test]
+    public void Policy_document_handler_passes_an_extension_free_generated_name_to_storage()
+    {
+        var handler = ReadRepositoryFile(
+            "axionpro.application",
+            "Features",
+            "GenericPolicyCmd",
+            "GenericPolicyHandlers.cs");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(handler, Does.Contain("var storedName = $\"{Guid.NewGuid():N}\";"));
+            Assert.That(handler, Does.Not.Contain("var storedName = $\"{Guid.NewGuid():N}{extension}\";"));
+            Assert.That(handler, Does.Contain("fileStorageService.UploadFileAsync(file"));
+        });
+    }
+
+    [Test]
     public void Controller_exposes_policy_crud_lifecycle_resolution_assignment_exception_and_acknowledgement_routes()
     {
         var routes = typeof(TenantPolicyController).GetMethods(BindingFlags.Instance | BindingFlags.Public)
