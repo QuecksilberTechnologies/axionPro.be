@@ -225,6 +225,9 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<PolicyVersion> PolicyVersions { get; set; }
         public virtual DbSet<AttendancePolicyVersionConfiguration> AttendancePolicyVersionConfigurations { get; set; }
         public virtual DbSet<PolicyRule> PolicyRules { get; set; }
+        public virtual DbSet<PolicyVersionLeaveType> PolicyVersionLeaveTypes { get; set; }
+        public virtual DbSet<PolicyRuleLeaveType> PolicyRuleLeaveTypes { get; set; }
+        public virtual DbSet<PolicyApplicabilityLeaveType> PolicyApplicabilityLeaveTypes { get; set; }
         public virtual DbSet<PolicyApplicability> PolicyApplicabilities { get; set; }
         public virtual DbSet<PolicyAssignment> PolicyAssignments { get; set; }
         public virtual DbSet<PolicyException> PolicyExceptions { get; set; }

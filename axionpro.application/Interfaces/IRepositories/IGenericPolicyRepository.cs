@@ -10,6 +10,7 @@ public interface IGenericPolicyRepository
     Task<IReadOnlyList<PolicyLookupResponseDTO>> GetRuleTypesAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<PolicyRuleDefinitionResponseDTO>> GetRuleDefinitionsAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<PolicyLookupResponseDTO>> GetDocumentTypesAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<PolicyLeaveTypeResponseDTO>> GetLeaveTypesAsync(long tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<PolicyTypeResponseDTO>> GetPolicyTypesAsync(long tenantId, bool isActive, CancellationToken cancellationToken);
     Task<PolicyTypeResponseDTO> CreatePolicyTypeAsync(long tenantId, long actorId, CreateGenericPolicyTypeRequestDTO dto, CancellationToken cancellationToken);
     Task<PolicyTypeResponseDTO> UpdatePolicyTypeAsync(long tenantId, long actorId, UpdateGenericPolicyTypeRequestDTO dto, CancellationToken cancellationToken);

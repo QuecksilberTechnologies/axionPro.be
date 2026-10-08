@@ -1,5 +1,8 @@
 # Tenant Policy API handoff
 
+Leave-category policy versions use normalized covered Leave Types and per-rule/per-applicability
+targeting. See [TENANT_POLICY_LEAVE_TYPE_TARGETING.md](TENANT_POLICY_LEAVE_TYPE_TARGETING.md).
+
 ## Policy Assignment download permission
 
 `TENANT_POLICY_ASSIGNMENTS` includes the active `Download` module-operation mapping. Resolve its current numeric `ModuleId` and `OperationId` through the authenticated menu/permission response; do not hardcode database IDs. The catalogue reuses the existing `Download` operation row used by other modules.

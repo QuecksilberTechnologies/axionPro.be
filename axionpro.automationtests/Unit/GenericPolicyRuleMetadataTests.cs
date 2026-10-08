@@ -62,6 +62,8 @@ public sealed class GenericPolicyRuleMetadataTests
         Assert.That(sql, Does.Contain("\"Placeholder\"=EXCLUDED.\"Placeholder\""));
         Assert.That(sql, Does.Contain("\"AllowMultiple\" boolean NOT NULL DEFAULT false"));
         Assert.That(sql, Does.Contain("ATTENDANCE_CHANNEL"));
+        Assert.That(sql, Does.Contain("mapping.\"CategoryCode\" = 'LEAVE'"));
+        Assert.That(sql, Does.Contain("\"AllowMultiple\"=EXCLUDED.\"AllowMultiple\""));
     }
 
     [Test]

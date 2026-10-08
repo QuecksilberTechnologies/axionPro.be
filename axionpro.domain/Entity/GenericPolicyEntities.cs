@@ -181,6 +181,36 @@ public sealed class PolicyRule
     public DateTime? UpdatedDateTime { get; set; }
 }
 
+/// <summary>Declares a leave component covered by one immutable policy version.</summary>
+public sealed class PolicyVersionLeaveType
+{
+    public long Id { get; set; }
+    public long TenantId { get; set; }
+    public long PolicyVersionId { get; set; }
+    public int LeaveTypeId { get; set; }
+    public bool IsActive { get; set; }
+    public long AddedById { get; set; }
+    public DateTime AddedDateTime { get; set; }
+}
+
+/// <summary>Targets one policy rule at one covered leave component.</summary>
+public sealed class PolicyRuleLeaveType
+{
+    public long Id { get; set; }
+    public long TenantId { get; set; }
+    public long PolicyRuleId { get; set; }
+    public int LeaveTypeId { get; set; }
+}
+
+/// <summary>Targets one applicability condition at one covered leave component.</summary>
+public sealed class PolicyApplicabilityLeaveType
+{
+    public long Id { get; set; }
+    public long TenantId { get; set; }
+    public long PolicyApplicabilityId { get; set; }
+    public int LeaveTypeId { get; set; }
+}
+
 public sealed class PolicyApplicability
 {
     public long Id { get; set; }

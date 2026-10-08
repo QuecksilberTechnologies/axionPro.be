@@ -112,6 +112,7 @@ Every entry must include:
 | `LOCK-TENANT-LOCATION-008` | Initial TenantLocation creation and Host synchronization | LOCKED | Creation/update 15/15; PostgreSQL rollback 2/2; Role 20/20 | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/tenant/initial-location-lifecycle/2026-10-04.md) |
 | `LOCK-POLICY-DOWNLOAD-009` | Policy Assignment Download module-operation mapping | LOCKED | Policy contract/schema 33/33; Release build; Local/Render mapping verified | DATA APPLIED; API DEPLOYMENT NOT REQUIRED | [2026-10-07](docs/testing/policy/assignment-download-operation/2026-10-07.md) |
 | `LOCK-POLICY-PUBLISH-010` | Policy document, approval fingerprint, clone and archive integrity | LOCKED | Policy contract/schema 37/37; Release build; Angular production build; Local/Render schema verified | API/UI DEPLOYMENT PENDING | [2026-10-07](docs/testing/policy/publication-integrity/2026-10-07.md) |
+| `LOCK-POLICY-LEAVE-011` | Leave Type targeting across policy versions, rules and applicability | LOCKED | Policy contract/schema 39/39; Angular 7/7 and production build; Local/Render schema and seed verified | DB APPLIED; API/UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/leave-type-targeting/2026-10-08.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -584,6 +585,30 @@ dotnet build .\AxionPro.sln -c Release --no-restore --nologo
 ```
 
 Expected: 37 passed, zero failed/skipped; Release build zero errors. Angular changed-file format and production build must pass when Angular work is authorized. Local and Render schemas must each have the two checksum columns, two check constraints and zero null approval-history checksums. Deployed authenticated lifecycle and storage verification remains pending. Evidence: [2026-10-07](docs/testing/policy/publication-integrity/2026-10-07.md).
+
+## LOCK-POLICY-LEAVE-011: Leave Type targeting
+
+### Locked behavior
+
+- A Leave-category policy version selects active tenant Leave Types through `PolicyVersionLeaveType`.
+- Every Leave rule and applicability row targets one or more selected Leave Types through normalized mappings.
+- Non-Leave policies reject Leave Type targets; tenant ownership and active-state validation are mandatory.
+- Leave-category rule types allow multiple rows so each leave component can have independent entitlement, accrual, carry-forward, limit and approval behavior.
+- Clone preserves all Leave Type mappings, Draft replacement rewrites them transactionally, and approval fingerprints include them.
+- Resolve accepts optional `LeaveTypeId` and returns only the covered version, matching applicability and targeted rules.
+
+### Protected areas and gate
+
+- Generic Policy entities, DTOs, repository, EF configuration and lookup handler.
+- `AddPolicyLeaveTypeTargeting.sql`, `CreateGenericTenantPolicyFramework.sql` and Leave rule metadata.
+- Angular Policy Definition model, contract, schema and form controls.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~GenericPolicyApiContractTests|FullyQualifiedName~PolicyFrameworkSchemaTests|TestCategory=GenericPolicyRuleMetadata" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+Expected: at least 39 passed with zero failed/skipped and Release build zero errors. When Angular is authorized, the focused Policy Definition tests and production build must pass. Local and Render must each expose all three mapping tables, all three unique constraints, five active seeded Leave Types and seven active Leave-category mappings with `AllowMultiple=true`. Evidence: [2026-10-08](docs/testing/policy/leave-type-targeting/2026-10-08.md).
 
 ## Adding the next lock
 

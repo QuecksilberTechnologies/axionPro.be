@@ -65,6 +65,7 @@ public class CreatePolicyRequestDTO : PermissionRequestDTO
     [MaxLength(1000)] public string? ChangeSummary { get; set; }
     public List<PolicyRuleInputDTO> Rules { get; set; } = new();
     public List<PolicyApplicabilityInputDTO> Applicability { get; set; } = new();
+    public List<int> LeaveTypeIds { get; set; } = new();
     public AttendancePolicyVersionConfigurationDTO? AttendanceConfiguration { get; set; }
 }
 
@@ -93,6 +94,7 @@ public sealed class PolicyRuleInputDTO
     [Required, MaxLength(150)] public string RuleName { get; set; } = null!;
     [Range(1, int.MaxValue)] public int RuleOrder { get; set; }
     [Required] public string RuleConfiguration { get; set; } = "{}";
+    public List<int> LeaveTypeIds { get; set; } = new();
 }
 
 public sealed class PolicyApplicabilityInputDTO
@@ -117,6 +119,7 @@ public sealed class PolicyApplicabilityInputDTO
     public int Priority { get; set; } = 100;
     public DateOnly EffectiveFrom { get; set; }
     public DateOnly? EffectiveTo { get; set; }
+    public List<int> LeaveTypeIds { get; set; } = new();
 }
 
 public sealed class ClonePolicyVersionRequestDTO : PermissionRequestDTO
@@ -139,6 +142,7 @@ public sealed class ResolveEmployeePoliciesRequestDTO : PermissionRequestDTO
     /// <summary>Globally salted encoded employee identifier returned by the Employee APIs.</summary>
     [Required] public string EmployeeId { get; set; } = string.Empty;
     public DateOnly? EffectiveDate { get; set; }
+    public int? LeaveTypeId { get; set; }
 }
 
 public sealed class AssignPolicyRequestDTO : PermissionRequestDTO
@@ -266,21 +270,26 @@ public sealed record PolicyRuleDefinitionResponseDTO(string CategoryCode, string
 public sealed record PolicyTypeResponseDTO(int Id, string Code, string Name, string? Description,
     int? CategoryId, string CategoryCode, string? CurrencyCode, bool IsActive);
 public sealed record PolicySummaryResponseDTO(long Id, string Code, string Name, int PolicyTypeId, bool IsActive, long? CurrentVersionId, int? VersionNumber, string? Status);
-public sealed record PolicyRuleResponseDTO(long Id, int RuleTypeId, string Name, int Order, string Configuration);
+public sealed record PolicyLeaveTypeResponseDTO(int Id, string Name);
+public sealed record PolicyRuleResponseDTO(long Id, int RuleTypeId, string Name, int Order, string Configuration,
+    IReadOnlyList<int> LeaveTypeIds);
 public sealed record PolicyApplicabilityResponseDTO(long Id, short Mode, int Priority,
     int? CountryId, int? StateId, int? DistrictId, int? LocalityId, long? TenantLocationId,
     int? EmployeeTypeId, int? DepartmentId, int? DesignationId, long? EmployeeId,
     int? GenderId, short? WorkArrangementType, short? EmploymentStatus,
-    int? MinimumServiceDays, DateOnly EffectiveFrom, DateOnly? EffectiveTo);
+    int? MinimumServiceDays, DateOnly EffectiveFrom, DateOnly? EffectiveTo,
+    IReadOnlyList<int> LeaveTypeIds);
 public sealed record PolicyDetailResponseDTO(long Id, string Code, string Name, string? Summary,
     int PolicyTypeId, int? OwnerDepartmentId, string? DefaultCurrencyCode,
     long VersionId, int VersionNumber, short StatusId, string Status,
     DateOnly EffectiveFrom, DateOnly? EffectiveTo, string? ChangeSummary,
     IReadOnlyList<PolicyRuleResponseDTO> Rules,
     IReadOnlyList<PolicyApplicabilityResponseDTO> Applicability,
-    AttendancePolicyVersionConfigurationDTO? AttendanceConfiguration);
+    AttendancePolicyVersionConfigurationDTO? AttendanceConfiguration,
+    IReadOnlyList<PolicyLeaveTypeResponseDTO> LeaveTypes);
 public sealed record PolicyAssignmentResultDTO(int Inserted, int Existing);
-public sealed record ResolvedPolicyRuleResponseDTO(string RuleTypeCode, string RuleName, int Order, string Configuration);
+public sealed record ResolvedPolicyRuleResponseDTO(string RuleTypeCode, string RuleName, int Order, string Configuration,
+    IReadOnlyList<int> LeaveTypeIds);
 public sealed record ResolvedPolicyExceptionResponseDTO(long Id, short ExceptionType, string OverrideConfiguration, string Reason);
 public sealed record ResolvedPolicyResponseDTO(long PolicyId, long PolicyVersionId, string PolicyCode, string PolicyName, int Priority, string ResolutionSource,
     IReadOnlyList<ResolvedPolicyRuleResponseDTO> Rules,

@@ -132,6 +132,24 @@ public sealed class PolicyFrameworkSchemaTests
         });
     }
 
+    [Test]
+    public void Leave_type_targeting_migration_is_normalized_idempotent_and_seeded()
+    {
+        var sql = ReadRepositoryFile("database-scripts", "AddPolicyLeaveTypeTargeting.sql");
+        Assert.Multiple(() =>
+        {
+            Assert.That(sql, Does.Contain("CREATE TABLE IF NOT EXISTS axionpro.\"PolicyVersionLeaveType\""));
+            Assert.That(sql, Does.Contain("CREATE TABLE IF NOT EXISTS axionpro.\"PolicyRuleLeaveType\""));
+            Assert.That(sql, Does.Contain("CREATE TABLE IF NOT EXISTS axionpro.\"PolicyApplicabilityLeaveType\""));
+            Assert.That(sql, Does.Contain("ON DELETE CASCADE"));
+            Assert.That(sql, Does.Contain("ON DELETE RESTRICT"));
+            Assert.That(sql, Does.Contain("Casual Leave"));
+            Assert.That(sql, Does.Contain("Earned Leave"));
+            Assert.That(sql, Does.Contain("Maternity Leave"));
+            Assert.That(sql, Does.Contain("Paternity Leave"));
+        });
+    }
+
     private static string ReadRepositoryFile(params string[] parts)
     {
         var directory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);

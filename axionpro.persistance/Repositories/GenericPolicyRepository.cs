@@ -25,6 +25,13 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         await context.PolicyRuleTypes.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.RuleTypeName)
             .Select(x => new PolicyLookupResponseDTO(x.Id, x.RuleTypeCode, x.RuleTypeName, x.Description)).ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<PolicyLeaveTypeResponseDTO>> GetLeaveTypesAsync(long tenantId, CancellationToken cancellationToken) =>
+        await context.LeaveTypes.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.IsActive == true && x.IsSoftDeleted != true)
+            .OrderBy(x => x.LeaveName)
+            .Select(x => new PolicyLeaveTypeResponseDTO(x.Id, x.LeaveName))
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<PolicyRuleDefinitionResponseDTO>> GetRuleDefinitionsAsync(CancellationToken cancellationToken)
     {
         var mappings = await (
@@ -199,6 +206,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo);
         ValidateRulesAndScopes(dto.Rules, dto.Applicability);
+        await ValidateLeaveTargetsAsync(tenantId, dto.PolicyTypeId, dto.LeaveTypeIds, dto.Rules, dto.Applicability, cancellationToken);
         await ValidatePolicyRulesAsync(tenantId, dto.PolicyTypeId, dto.Rules, cancellationToken);
         await ValidateScopeReferencesAsync(tenantId, dto.Applicability, cancellationToken);
         await ValidatePolicyReferencesAsync(tenantId, dto.OwnerDepartmentId, dto.Rules, cancellationToken);
@@ -218,8 +226,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         context.PolicyVersions.Add(version);
         await context.SaveChangesAsync(cancellationToken);
         await UpsertAttendanceConfigurationAsync(tenantId, actorId, version.Id, dto.AttendanceConfiguration, now, cancellationToken);
-        AddRulesAndApplicability(tenantId, actorId, version.Id, dto.Rules, dto.Applicability, now);
+        var added = AddRulesAndApplicability(tenantId, actorId, version.Id, dto.Rules, dto.Applicability, now);
         AddAudit(tenantId, actorId, policy.Id, version.Id, "Policy", policy.Id, "CREATE", null, JsonSerializer.Serialize(new { policy.PolicyCode, policy.PolicyName }));
+        await context.SaveChangesAsync(cancellationToken);
+        AddLeaveTargetMappings(tenantId, actorId, version.Id, dto.LeaveTypeIds, added);
         await context.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return await GetDetailAsync(tenantId, policy.Id, version.Id, cancellationToken);
@@ -230,6 +240,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var statusIds = await GetPolicyStatusIdsAsync(cancellationToken);
         ValidateDates(dto.EffectiveFrom, dto.EffectiveTo);
         ValidateRulesAndScopes(dto.Rules, dto.Applicability);
+        await ValidateLeaveTargetsAsync(tenantId, dto.PolicyTypeId, dto.LeaveTypeIds, dto.Rules, dto.Applicability, cancellationToken);
         await ValidatePolicyRulesAsync(tenantId, dto.PolicyTypeId, dto.Rules, cancellationToken);
         await ValidateScopeReferencesAsync(tenantId, dto.Applicability, cancellationToken);
         await ValidatePolicyReferencesAsync(tenantId, dto.OwnerDepartmentId, dto.Rules, cancellationToken);
@@ -245,9 +256,12 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         version.EffectiveFrom = dto.EffectiveFrom; version.EffectiveTo = dto.EffectiveTo; version.ChangeSummary = dto.ChangeSummary?.Trim(); version.UpdatedById = actorId; version.UpdatedDateTime = DateTime.UtcNow; version.PolicyStatusId = statusIds.Draft;
         context.PolicyRules.RemoveRange(context.PolicyRules.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
         context.PolicyApplicabilities.RemoveRange(context.PolicyApplicabilities.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
+        context.PolicyVersionLeaveTypes.RemoveRange(context.PolicyVersionLeaveTypes.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
         await UpsertAttendanceConfigurationAsync(tenantId, actorId, version.Id, dto.AttendanceConfiguration, DateTime.UtcNow, cancellationToken);
-        AddRulesAndApplicability(tenantId, actorId, version.Id, dto.Rules, dto.Applicability, DateTime.UtcNow);
+        var added = AddRulesAndApplicability(tenantId, actorId, version.Id, dto.Rules, dto.Applicability, DateTime.UtcNow);
         AddAudit(tenantId, actorId, policy.Id, version.Id, "PolicyVersion", version.Id, "UPDATE_DRAFT", null, null);
+        await context.SaveChangesAsync(cancellationToken);
+        AddLeaveTargetMappings(tenantId, actorId, version.Id, dto.LeaveTypeIds, added);
         await context.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return await GetDetailAsync(tenantId, policy.Id, version.Id, cancellationToken);
@@ -267,8 +281,10 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var scopes = await context.PolicyApplicabilities.AsNoTracking().Where(x => x.PolicyVersionId == source.Id).ToListAsync(cancellationToken);
         var attendanceConfiguration = await context.AttendancePolicyVersionConfigurations.AsNoTracking()
             .FirstOrDefaultAsync(x => x.PolicyVersionId == source.Id && x.TenantId == tenantId, cancellationToken);
-        context.PolicyRules.AddRange(rules.Select(x => new PolicyRule { TenantId = tenantId, PolicyVersionId = version.Id, PolicyRuleTypeId = x.PolicyRuleTypeId, RuleName = x.RuleName, RuleOrder = x.RuleOrder, RuleConfiguration = x.RuleConfiguration, IsActive = x.IsActive, AddedById = actorId, AddedDateTime = DateTime.UtcNow }));
-        context.PolicyApplicabilities.AddRange(scopes.Select(x => CloneScope(x, version.Id, actorId)));
+        var clonedRules = rules.Select(x => new PolicyRule { TenantId = tenantId, PolicyVersionId = version.Id, PolicyRuleTypeId = x.PolicyRuleTypeId, RuleName = x.RuleName, RuleOrder = x.RuleOrder, RuleConfiguration = x.RuleConfiguration, IsActive = x.IsActive, AddedById = actorId, AddedDateTime = DateTime.UtcNow }).ToList();
+        var clonedScopes = scopes.Select(x => CloneScope(x, version.Id, actorId)).ToList();
+        context.PolicyRules.AddRange(clonedRules);
+        context.PolicyApplicabilities.AddRange(clonedScopes);
         if (attendanceConfiguration != null)
         {
             context.AttendancePolicyVersionConfigurations.Add(MapAttendanceConfiguration(
@@ -279,7 +295,15 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
                 DateTime.UtcNow));
         }
         AddAudit(tenantId, actorId, policy.Id, version.Id, "PolicyVersion", version.Id, "CLONE", null, JsonSerializer.Serialize(new { SourceVersionId = source.Id }));
-        await context.SaveChangesAsync(cancellationToken); await transaction.CommitAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        var sourceVersionLeaveTypes = await context.PolicyVersionLeaveTypes.AsNoTracking().Where(x => x.PolicyVersionId == source.Id && x.IsActive).ToListAsync(cancellationToken);
+        context.PolicyVersionLeaveTypes.AddRange(sourceVersionLeaveTypes.Select(x => new PolicyVersionLeaveType { TenantId = tenantId, PolicyVersionId = version.Id, LeaveTypeId = x.LeaveTypeId, IsActive = true, AddedById = actorId, AddedDateTime = DateTime.UtcNow }));
+        var sourceRuleLinks = await context.PolicyRuleLeaveTypes.AsNoTracking().Where(x => rules.Select(rule => rule.Id).Contains(x.PolicyRuleId)).ToListAsync(cancellationToken);
+        context.PolicyRuleLeaveTypes.AddRange(rules.Zip(clonedRules).SelectMany(pair => sourceRuleLinks.Where(x => x.PolicyRuleId == pair.First.Id).Select(x => new PolicyRuleLeaveType { TenantId = tenantId, PolicyRuleId = pair.Second.Id, LeaveTypeId = x.LeaveTypeId })));
+        var sourceScopeLinks = await context.PolicyApplicabilityLeaveTypes.AsNoTracking().Where(x => scopes.Select(scope => scope.Id).Contains(x.PolicyApplicabilityId)).ToListAsync(cancellationToken);
+        context.PolicyApplicabilityLeaveTypes.AddRange(scopes.Zip(clonedScopes).SelectMany(pair => sourceScopeLinks.Where(x => x.PolicyApplicabilityId == pair.First.Id).Select(x => new PolicyApplicabilityLeaveType { TenantId = tenantId, PolicyApplicabilityId = pair.Second.Id, LeaveTypeId = x.LeaveTypeId })));
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
         return await GetDetailAsync(tenantId, policy.Id, version.Id, cancellationToken);
     }
 
@@ -620,15 +644,42 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var date = dto.EffectiveDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var versions = await (from v in context.PolicyVersions.AsNoTracking() join p in context.Policies.AsNoTracking() on v.PolicyId equals p.Id where v.TenantId == tenantId && v.PolicyStatusId == statusIds.Published && v.IsCurrent && v.IsActive && p.IsActive && !p.IsSoftDeleted && v.EffectiveFrom <= date && (v.EffectiveTo == null || v.EffectiveTo >= date) select new { Version = v, Policy = p }).ToListAsync(cancellationToken);
         var ids = versions.Select(x => x.Version.Id).ToArray();
+        if (dto.LeaveTypeId.HasValue && !await context.LeaveTypes.AsNoTracking().AnyAsync(
+            x => x.Id == dto.LeaveTypeId && x.TenantId == tenantId && x.IsActive == true && x.IsSoftDeleted != true,
+            cancellationToken))
+        {
+            throw new ValidationErrorException("LeaveTypeId is invalid for this tenant.");
+        }
+        if (dto.LeaveTypeId.HasValue)
+        {
+            var coveredVersionIds = await context.PolicyVersionLeaveTypes.AsNoTracking()
+                .Where(x => x.TenantId == tenantId && x.LeaveTypeId == dto.LeaveTypeId && x.IsActive)
+                .Select(x => x.PolicyVersionId).ToListAsync(cancellationToken);
+            versions.RemoveAll(x => !coveredVersionIds.Contains(x.Version.Id));
+        }
         var resolvedRules = await (from rule in context.PolicyRules.AsNoTracking()
                                    join ruleType in context.PolicyRuleTypes.AsNoTracking() on rule.PolicyRuleTypeId equals ruleType.Id
                                    where ids.Contains(rule.PolicyVersionId) && rule.IsActive && ruleType.IsActive
                                    orderby rule.RuleOrder
-                                   select new { PolicyVersionId = rule.PolicyVersionId, ruleType.RuleTypeCode, rule.RuleName, rule.RuleOrder, rule.RuleConfiguration })
+                                   select new { RuleId = rule.Id, PolicyVersionId = rule.PolicyVersionId, ruleType.RuleTypeCode, rule.RuleName, rule.RuleOrder, rule.RuleConfiguration })
             .ToListAsync(cancellationToken);
+        var resolvedRuleIds = resolvedRules.Select(x => x.RuleId).ToArray();
+        var resolvedRuleLinks = await context.PolicyRuleLeaveTypes.AsNoTracking()
+            .Where(x => resolvedRuleIds.Contains(x.PolicyRuleId)).ToListAsync(cancellationToken);
         var rulesByVersion = resolvedRules.GroupBy(x => x.PolicyVersionId).ToDictionary(x => x.Key,
-            x => (IReadOnlyList<ResolvedPolicyRuleResponseDTO>)x.Select(y => new ResolvedPolicyRuleResponseDTO(y.RuleTypeCode, y.RuleName, y.RuleOrder, y.RuleConfiguration)).ToList());
+            x => (IReadOnlyList<ResolvedPolicyRuleResponseDTO>)x
+                .Where(y => !dto.LeaveTypeId.HasValue || resolvedRuleLinks.Any(link => link.PolicyRuleId == y.RuleId && link.LeaveTypeId == dto.LeaveTypeId))
+                .Select(y => new ResolvedPolicyRuleResponseDTO(y.RuleTypeCode, y.RuleName, y.RuleOrder, y.RuleConfiguration,
+                    resolvedRuleLinks.Where(link => link.PolicyRuleId == y.RuleId).Select(link => link.LeaveTypeId).ToList())).ToList());
         var scopes = await context.PolicyApplicabilities.AsNoTracking().Where(x => x.TenantId == tenantId && ids.Contains(x.PolicyVersionId) && x.IsActive && x.EffectiveFrom <= date && (x.EffectiveTo == null || x.EffectiveTo >= date)).ToListAsync(cancellationToken);
+        if (dto.LeaveTypeId.HasValue)
+        {
+            var scopeIds = scopes.Select(x => x.Id).ToArray();
+            var matchingScopeIds = await context.PolicyApplicabilityLeaveTypes.AsNoTracking()
+                .Where(x => scopeIds.Contains(x.PolicyApplicabilityId) && x.LeaveTypeId == dto.LeaveTypeId)
+                .Select(x => x.PolicyApplicabilityId).ToListAsync(cancellationToken);
+            scopes = scopes.Where(x => matchingScopeIds.Contains(x.Id)).ToList();
+        }
         var manual = await context.PolicyAssignments.AsNoTracking().Where(x => x.TenantId == tenantId && x.EmployeeId == employee.Id && ids.Contains(x.PolicyVersionId) && x.IsActive && x.EffectiveFrom <= date && (x.EffectiveTo == null || x.EffectiveTo >= date)).Select(x => x.PolicyVersionId).ToListAsync(cancellationToken);
         var exceptions = await context.PolicyExceptions.AsNoTracking()
             .Where(x => x.TenantId == tenantId && x.EmployeeId == employee.Id
@@ -1177,16 +1228,28 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var version = versionId.HasValue ? await versionQuery.FirstOrDefaultAsync(x => x.Id == versionId, cancellationToken) : await versionQuery.OrderByDescending(x => x.IsCurrent).ThenByDescending(x => x.VersionNumber).FirstOrDefaultAsync(cancellationToken);
         if (version == null) throw new NotFoundException("Policy version was not found.");
         var status = await context.PolicyStatuses.AsNoTracking().Where(x => x.Id == version.PolicyStatusId).Select(x => x.StatusName).FirstAsync(cancellationToken);
-        var rules = await context.PolicyRules.AsNoTracking().Where(x => x.PolicyVersionId == version.Id && x.IsActive).OrderBy(x => x.RuleOrder).Select(x => new PolicyRuleResponseDTO(x.Id, x.PolicyRuleTypeId, x.RuleName, x.RuleOrder, x.RuleConfiguration)).ToListAsync(cancellationToken);
-        var scopes = await context.PolicyApplicabilities.AsNoTracking()
+        var ruleEntities = await context.PolicyRules.AsNoTracking().Where(x => x.PolicyVersionId == version.Id && x.IsActive).OrderBy(x => x.RuleOrder).ToListAsync(cancellationToken);
+        var ruleIds = ruleEntities.Select(x => x.Id).ToArray();
+        var ruleLeaveTypes = await context.PolicyRuleLeaveTypes.AsNoTracking().Where(x => ruleIds.Contains(x.PolicyRuleId)).ToListAsync(cancellationToken);
+        var rules = ruleEntities.Select(x => new PolicyRuleResponseDTO(x.Id, x.PolicyRuleTypeId, x.RuleName, x.RuleOrder, x.RuleConfiguration,
+            ruleLeaveTypes.Where(link => link.PolicyRuleId == x.Id).Select(link => link.LeaveTypeId).ToList())).ToList();
+        var scopeEntities = await context.PolicyApplicabilities.AsNoTracking()
             .Where(x => x.PolicyVersionId == version.Id && x.IsActive)
             .OrderBy(x => x.Priority)
-            .Select(x => new PolicyApplicabilityResponseDTO(x.Id, x.ApplicabilityMode, x.Priority,
+            .ToListAsync(cancellationToken);
+        var scopeIds = scopeEntities.Select(x => x.Id).ToArray();
+        var scopeLeaveTypes = await context.PolicyApplicabilityLeaveTypes.AsNoTracking().Where(x => scopeIds.Contains(x.PolicyApplicabilityId)).ToListAsync(cancellationToken);
+        var scopes = scopeEntities.Select(x => new PolicyApplicabilityResponseDTO(x.Id, x.ApplicabilityMode, x.Priority,
                 x.CountryId, x.StateId, x.DistrictId, x.LocalityId, x.TenantLocationId,
                 x.EmployeeTypeId, x.DepartmentId, x.DesignationId, x.EmployeeId, x.GenderId,
                 x.WorkArrangementType, x.EmploymentStatus, x.MinimumServiceDays,
-                x.EffectiveFrom, x.EffectiveTo))
-            .ToListAsync(cancellationToken);
+                x.EffectiveFrom, x.EffectiveTo,
+                scopeLeaveTypes.Where(link => link.PolicyApplicabilityId == x.Id).Select(link => link.LeaveTypeId).ToList())).ToList();
+        var leaveTypes = await (from link in context.PolicyVersionLeaveTypes.AsNoTracking()
+                                join leaveType in context.LeaveTypes.AsNoTracking() on link.LeaveTypeId equals leaveType.Id
+                                where link.PolicyVersionId == version.Id && link.TenantId == tenantId && link.IsActive
+                                orderby leaveType.LeaveName
+                                select new PolicyLeaveTypeResponseDTO(leaveType.Id, leaveType.LeaveName)).ToListAsync(cancellationToken);
         var attendanceConfiguration = await context.AttendancePolicyVersionConfigurations.AsNoTracking()
             .Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId)
             .Select(x => new AttendancePolicyVersionConfigurationDTO
@@ -1206,7 +1269,7 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             policy.Summary, policy.PolicyTypeId, policy.OwnerDepartmentId,
             policy.DefaultCurrencyCode, version.Id, version.VersionNumber,
             version.PolicyStatusId, status, version.EffectiveFrom, version.EffectiveTo,
-            version.ChangeSummary, rules, scopes, attendanceConfiguration);
+            version.ChangeSummary, rules, scopes, attendanceConfiguration, leaveTypes);
     }
 
     private async Task ValidateAttendanceConfigurationAsync(
@@ -1312,10 +1375,30 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         AllowOutsideLocationWithApproval = entity.AllowOutsideLocationWithApproval
     };
 
-    private void AddRulesAndApplicability(long tenantId, long actorId, long versionId, IEnumerable<PolicyRuleInputDTO> rules, IEnumerable<PolicyApplicabilityInputDTO> scopes, DateTime now)
+    private (IReadOnlyList<(PolicyRule Entity, PolicyRuleInputDTO Input)> Rules,
+        IReadOnlyList<(PolicyApplicability Entity, PolicyApplicabilityInputDTO Input)> Scopes)
+        AddRulesAndApplicability(long tenantId, long actorId, long versionId,
+            IEnumerable<PolicyRuleInputDTO> rules, IEnumerable<PolicyApplicabilityInputDTO> scopes, DateTime now)
     {
-        context.PolicyRules.AddRange(rules.Select(x => new PolicyRule { TenantId = tenantId, PolicyVersionId = versionId, PolicyRuleTypeId = x.PolicyRuleTypeId, RuleName = x.RuleName.Trim(), RuleOrder = x.RuleOrder, RuleConfiguration = x.RuleConfiguration, IsActive = true, AddedById = actorId, AddedDateTime = now }));
-        context.PolicyApplicabilities.AddRange(scopes.Select(x => new PolicyApplicability { TenantId = tenantId, PolicyVersionId = versionId, ApplicabilityMode = x.ApplicabilityMode, CountryId = x.CountryId, StateId = x.StateId, DistrictId = x.DistrictId, LocalityId = x.LocalityId, TenantLocationId = x.TenantLocationId, EmployeeTypeId = x.EmployeeTypeId, DepartmentId = x.DepartmentId, DesignationId = x.DesignationId, EmployeeId = x.ResolvedEmployeeId ?? x.EmployeeId, GenderId = x.GenderId, WorkArrangementType = x.WorkArrangementType, EmploymentStatus = x.EmploymentStatus, MinimumServiceDays = x.MinimumServiceDays, Priority = x.Priority, EffectiveFrom = x.EffectiveFrom, EffectiveTo = x.EffectiveTo, IsActive = true, AddedById = actorId, AddedDateTime = now }));
+        var addedRules = rules.Select(input => (Entity: new PolicyRule { TenantId = tenantId, PolicyVersionId = versionId, PolicyRuleTypeId = input.PolicyRuleTypeId, RuleName = input.RuleName.Trim(), RuleOrder = input.RuleOrder, RuleConfiguration = input.RuleConfiguration, IsActive = true, AddedById = actorId, AddedDateTime = now }, Input: input)).ToList();
+        var addedScopes = scopes.Select(input => (Entity: new PolicyApplicability { TenantId = tenantId, PolicyVersionId = versionId, ApplicabilityMode = input.ApplicabilityMode, CountryId = input.CountryId, StateId = input.StateId, DistrictId = input.DistrictId, LocalityId = input.LocalityId, TenantLocationId = input.TenantLocationId, EmployeeTypeId = input.EmployeeTypeId, DepartmentId = input.DepartmentId, DesignationId = input.DesignationId, EmployeeId = input.ResolvedEmployeeId ?? input.EmployeeId, GenderId = input.GenderId, WorkArrangementType = input.WorkArrangementType, EmploymentStatus = input.EmploymentStatus, MinimumServiceDays = input.MinimumServiceDays, Priority = input.Priority, EffectiveFrom = input.EffectiveFrom, EffectiveTo = input.EffectiveTo, IsActive = true, AddedById = actorId, AddedDateTime = now }, Input: input)).ToList();
+        context.PolicyRules.AddRange(addedRules.Select(x => x.Entity));
+        context.PolicyApplicabilities.AddRange(addedScopes.Select(x => x.Entity));
+        return (addedRules, addedScopes);
+    }
+
+    private void AddLeaveTargetMappings(long tenantId, long actorId, long versionId,
+        IReadOnlyCollection<int> leaveTypeIds,
+        (IReadOnlyList<(PolicyRule Entity, PolicyRuleInputDTO Input)> Rules,
+            IReadOnlyList<(PolicyApplicability Entity, PolicyApplicabilityInputDTO Input)> Scopes) added)
+    {
+        var now = DateTime.UtcNow;
+        context.PolicyVersionLeaveTypes.AddRange(leaveTypeIds.Distinct().Select(leaveTypeId =>
+            new PolicyVersionLeaveType { TenantId = tenantId, PolicyVersionId = versionId, LeaveTypeId = leaveTypeId, IsActive = true, AddedById = actorId, AddedDateTime = now }));
+        context.PolicyRuleLeaveTypes.AddRange(added.Rules.SelectMany(item => item.Input.LeaveTypeIds.Distinct().Select(leaveTypeId =>
+            new PolicyRuleLeaveType { TenantId = tenantId, PolicyRuleId = item.Entity.Id, LeaveTypeId = leaveTypeId })));
+        context.PolicyApplicabilityLeaveTypes.AddRange(added.Scopes.SelectMany(item => item.Input.LeaveTypeIds.Distinct().Select(leaveTypeId =>
+            new PolicyApplicabilityLeaveType { TenantId = tenantId, PolicyApplicabilityId = item.Entity.Id, LeaveTypeId = leaveTypeId })));
     }
 
     private void AddAudit(long tenantId, long actorId, long policyId, long? versionId,
@@ -1468,6 +1551,29 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
                 x.AllowOutsideLocationWithApproval
             })
             .SingleOrDefaultAsync(cancellationToken);
+        var versionLeaveTypes = await context.PolicyVersionLeaveTypes.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId && x.IsActive)
+            .OrderBy(x => x.LeaveTypeId)
+            .Select(x => x.LeaveTypeId)
+            .ToListAsync(cancellationToken);
+        var checksumRuleIds = await context.PolicyRules.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId && x.IsActive)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+        var ruleLeaveTypes = await context.PolicyRuleLeaveTypes.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && checksumRuleIds.Contains(x.PolicyRuleId))
+            .OrderBy(x => x.PolicyRuleId).ThenBy(x => x.LeaveTypeId)
+            .Select(x => new { x.PolicyRuleId, x.LeaveTypeId })
+            .ToListAsync(cancellationToken);
+        var checksumScopeIds = await context.PolicyApplicabilities.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId && x.IsActive)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+        var applicabilityLeaveTypes = await context.PolicyApplicabilityLeaveTypes.AsNoTracking()
+            .Where(x => x.TenantId == tenantId && checksumScopeIds.Contains(x.PolicyApplicabilityId))
+            .OrderBy(x => x.PolicyApplicabilityId).ThenBy(x => x.LeaveTypeId)
+            .Select(x => new { x.PolicyApplicabilityId, x.LeaveTypeId })
+            .ToListAsync(cancellationToken);
         var documents = await context.PolicyDocuments.AsNoTracking()
             .Where(x => x.TenantId == tenantId && x.PolicyVersionId == policyVersionId
                 && x.IsActive && !x.IsSoftDeleted)
@@ -1492,6 +1598,9 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             Rules = rules,
             Applicability = applicability,
             Attendance = attendance,
+            VersionLeaveTypes = versionLeaveTypes,
+            RuleLeaveTypes = ruleLeaveTypes,
+            ApplicabilityLeaveTypes = applicabilityLeaveTypes,
             Documents = documents
         });
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonicalJson)));
@@ -1621,6 +1730,59 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
                 }
                 ValidateSettingValue(definition, value, options);
             }
+        }
+    }
+
+    private async Task ValidateLeaveTargetsAsync(
+        long tenantId,
+        int policyTypeId,
+        IReadOnlyCollection<int> leaveTypeIds,
+        IReadOnlyCollection<PolicyRuleInputDTO> rules,
+        IReadOnlyCollection<PolicyApplicabilityInputDTO> applicability,
+        CancellationToken cancellationToken)
+    {
+        var categoryCode = await (from policyType in context.PolicyTypes.AsNoTracking()
+                                  join category in context.PolicyCategories.AsNoTracking()
+                                      on policyType.PolicyCategoryId equals category.Id
+                                  where policyType.Id == policyTypeId && policyType.TenantId == tenantId
+                                      && policyType.IsActive == true && policyType.IsSoftDelete != true
+                                  select category.CategoryCode)
+            .FirstOrDefaultAsync(cancellationToken);
+        var isLeavePolicy = string.Equals(categoryCode, "LEAVE", StringComparison.OrdinalIgnoreCase);
+        var distinctIds = leaveTypeIds.Where(id => id > 0).Distinct().ToArray();
+
+        if (!isLeavePolicy)
+        {
+            if (distinctIds.Length > 0 || rules.Any(x => x.LeaveTypeIds.Count > 0)
+                || applicability.Any(x => x.LeaveTypeIds.Count > 0))
+            {
+                throw new ValidationErrorException("Leave type targets are allowed only for a Leave policy.");
+            }
+            return;
+        }
+
+        if (distinctIds.Length == 0)
+        {
+            throw new ValidationErrorException("Select at least one covered Leave Type for a Leave policy.");
+        }
+        var validCount = await context.LeaveTypes.AsNoTracking().CountAsync(
+            x => distinctIds.Contains(x.Id) && x.TenantId == tenantId && x.IsActive == true
+                && x.IsSoftDeleted != true,
+            cancellationToken);
+        if (validCount != distinctIds.Length)
+        {
+            throw new ValidationErrorException("One or more LeaveTypeId values are invalid for this tenant.");
+        }
+        var selected = distinctIds.ToHashSet();
+        if (rules.Any(rule => rule.LeaveTypeIds.Count == 0
+            || rule.LeaveTypeIds.Any(id => !selected.Contains(id))))
+        {
+            throw new ValidationErrorException("Every Leave rule must target one or more covered Leave Types.");
+        }
+        if (applicability.Any(scope => scope.LeaveTypeIds.Count == 0
+            || scope.LeaveTypeIds.Any(id => !selected.Contains(id))))
+        {
+            throw new ValidationErrorException("Every Leave applicability row must target one or more covered Leave Types.");
         }
     }
 

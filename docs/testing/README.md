@@ -1,5 +1,7 @@
 # Scenario test reports
 
+- [Policy leave-type targeting — 2026-10-08](policy/leave-type-targeting/2026-10-08.md)
+
 - [Professional Role Type access-persona names — 2026-10-04](role/professional-access-personas/2026-10-04.md)
 
 - [Render policy types: nine missing categories and duplicate replay — 2026-10-03](policy/bulk-missing-types/2026-10-03.md)

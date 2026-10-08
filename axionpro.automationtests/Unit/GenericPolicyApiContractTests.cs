@@ -157,12 +157,32 @@ public sealed class GenericPolicyApiContractTests
     {
         var options = new DbContextOptionsBuilder<WorkforceDbContext>().UseNpgsql("Host=localhost;Database=model_only;Username=x;Password=x").Options;
         using var context = new WorkforceDbContext(options);
-        var expected = new[] { typeof(PolicyCategory), typeof(PolicyStatus), typeof(PolicyRuleType), typeof(PolicyDocumentType), typeof(PolicyType), typeof(Policy), typeof(PolicyVersion), typeof(PolicyRule), typeof(PolicyApplicability), typeof(PolicyAssignment), typeof(PolicyException), typeof(PolicyDocument), typeof(PolicyApprovalStage), typeof(PolicyApprovalHistory), typeof(PolicyAcknowledgement), typeof(PolicyChangeAudit) };
+        var expected = new[] { typeof(PolicyCategory), typeof(PolicyStatus), typeof(PolicyRuleType), typeof(PolicyDocumentType), typeof(PolicyType), typeof(Policy), typeof(PolicyVersion), typeof(PolicyRule), typeof(PolicyVersionLeaveType), typeof(PolicyRuleLeaveType), typeof(PolicyApplicability), typeof(PolicyApplicabilityLeaveType), typeof(PolicyAssignment), typeof(PolicyException), typeof(PolicyDocument), typeof(PolicyApprovalStage), typeof(PolicyApprovalHistory), typeof(PolicyAcknowledgement), typeof(PolicyChangeAudit) };
         Assert.Multiple(() =>
         {
             foreach (var type in expected) Assert.That(context.Model.FindEntityType(type), Is.Not.Null, type.Name);
             Assert.That(context.Model.FindEntityType(typeof(PolicyRule))!.FindProperty(nameof(PolicyRule.RuleConfiguration))!.GetColumnType(), Is.EqualTo("jsonb"));
             Assert.That(context.Model.FindEntityType(typeof(PolicyException))!.FindProperty(nameof(PolicyException.OverrideConfiguration))!.GetColumnType(), Is.EqualTo("jsonb"));
+        });
+    }
+
+    [Test]
+    public void Leave_policy_contract_targets_versions_rules_and_applicability_by_leave_type()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeof(CreatePolicyRequestDTO).GetProperty(nameof(CreatePolicyRequestDTO.LeaveTypeIds)), Is.Not.Null);
+            Assert.That(typeof(PolicyRuleInputDTO).GetProperty(nameof(PolicyRuleInputDTO.LeaveTypeIds)), Is.Not.Null);
+            Assert.That(typeof(PolicyApplicabilityInputDTO).GetProperty(nameof(PolicyApplicabilityInputDTO.LeaveTypeIds)), Is.Not.Null);
+            Assert.That(typeof(ResolveEmployeePoliciesRequestDTO).GetProperty(nameof(ResolveEmployeePoliciesRequestDTO.LeaveTypeId)), Is.Not.Null);
+            Assert.That(typeof(PolicyDetailResponseDTO).GetProperty(nameof(PolicyDetailResponseDTO.LeaveTypes)), Is.Not.Null);
+        });
+        var repository = ReadRepositoryFile("axionpro.persistance", "Repositories", "GenericPolicyRepository.cs");
+        Assert.Multiple(() =>
+        {
+            Assert.That(repository, Does.Contain("Every Leave rule must target one or more covered Leave Types."));
+            Assert.That(repository, Does.Contain("Every Leave applicability row must target one or more covered Leave Types."));
+            Assert.That(repository, Does.Contain("VersionLeaveTypes = versionLeaveTypes"));
         });
     }
 

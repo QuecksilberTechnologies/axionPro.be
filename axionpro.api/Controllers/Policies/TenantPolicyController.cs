@@ -22,7 +22,7 @@ public sealed class TenantPolicyController(IMediator mediator) : ControllerBase
     /// <remarks>
     /// Use this endpoint when opening the Policy Type or Policy Editor screen. It returns policy
     /// categories, lifecycle statuses, rule types, document types and enum-backed Attendance
-    /// location scopes for dropdowns. Send the
+    /// location scopes and tenant Leave Types for dropdowns. Send the
     /// dynamically resolved Policy Types module ID and View operation ID; do not hard-code the
     /// numeric examples from the UI handoff. This endpoint reads data only and creates no policy.
     /// </remarks>
@@ -123,7 +123,9 @@ public sealed class TenantPolicyController(IMediator mediator) : ControllerBase
     /// <summary>Creates a Policy and its Version 1 Draft in one transaction.</summary>
     /// <remarks>
     /// This is the main starting point for a new policy. It atomically saves policy identity,
-    /// effective dates, rules and applicability. ruleConfiguration values must be JSON-object
+    /// effective dates, rules and applicability. Leave-category policies also require covered
+    /// leaveTypeIds, and each rule/applicability row must target one or more of those IDs.
+    /// ruleConfiguration values must be JSON-object
     /// strings; dates use yyyy-MM-dd; applicabilityMode is 1 Include or 2 Exclude. Preserve the
     /// returned policy ID and version ID. The result remains Draft and must later be submitted,
     /// approved and published. Requires Policy Definitions Add permission.

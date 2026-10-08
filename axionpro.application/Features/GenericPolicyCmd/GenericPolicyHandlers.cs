@@ -71,7 +71,7 @@ public sealed class GetPolicyLookupsQueryHandler(IGenericPolicyRepository reposi
 {
     public async Task<ApiResponse<object>> Handle(GetPolicyLookupsQuery request, CancellationToken token)
     {
-        await GetActorAsync();
+        var actor = await GetActorAsync();
         var data = new
         {
             categories = await Repository.GetCategoriesAsync(token),
@@ -79,6 +79,7 @@ public sealed class GetPolicyLookupsQueryHandler(IGenericPolicyRepository reposi
             ruleTypes = await Repository.GetRuleTypesAsync(token),
             ruleDefinitions = await Repository.GetRuleDefinitionsAsync(token),
             documentTypes = await Repository.GetDocumentTypesAsync(token),
+            leaveTypes = await Repository.GetLeaveTypesAsync(actor.TenantId, token),
             // Attendance Policy forms consume these enum-derived values instead of duplicating
             // numeric enum mappings in the UI. Adding a domain enum member automatically publishes it.
             attendanceLocationScopes = Enum.GetValues<AttendanceLocationScope>()

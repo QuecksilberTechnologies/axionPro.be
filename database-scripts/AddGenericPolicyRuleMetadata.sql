@@ -78,12 +78,12 @@ WITH mapping("CategoryCode", "RuleTypeCode", "DisplayOrder") AS (VALUES
  ('CUSTOM','CUSTOM',10)
 )
 INSERT INTO axionpro."PolicyCategoryRuleType" ("PolicyCategoryId","PolicyRuleTypeId","IsRequired","AllowMultiple","DisplayOrder","IsActive")
-SELECT category."Id", rule_type."Id", false, false, mapping."DisplayOrder", true
+SELECT category."Id", rule_type."Id", false, mapping."CategoryCode" = 'LEAVE', mapping."DisplayOrder", true
 FROM mapping
 JOIN axionpro."PolicyCategory" category ON category."CategoryCode" = mapping."CategoryCode"
 JOIN axionpro."PolicyRuleType" rule_type ON rule_type."RuleTypeCode" = mapping."RuleTypeCode"
 ON CONFLICT ("PolicyCategoryId","PolicyRuleTypeId") DO UPDATE
-SET "DisplayOrder"=EXCLUDED."DisplayOrder", "IsActive"=true;
+SET "AllowMultiple"=EXCLUDED."AllowMultiple", "DisplayOrder"=EXCLUDED."DisplayOrder", "IsActive"=true;
 
 WITH setting("RuleTypeCode","SettingCode","DisplayName","DataTypeCode","IsRequired","DefaultValueJson","MinimumValue","MaximumValue","DisplayOrder","Placeholder","HelpText") AS (VALUES
  ('ATTENDANCE_CHANNEL','channelCode','Attendance channel','CODE',true,'"WEB"'::jsonb,NULL,NULL,10,'e.g. WEB','Primary channel allowed for attendance capture.'),

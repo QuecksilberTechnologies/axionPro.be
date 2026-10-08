@@ -123,6 +123,30 @@ public partial class WorkforceDbContext
             entity.HasIndex(e => new { e.PolicyVersionId, e.RuleOrder }).IsUnique();
         });
 
+        modelBuilder.Entity<PolicyVersionLeaveType>(entity =>
+        {
+            entity.ToTable("PolicyVersionLeaveType", "axionpro");
+            entity.HasIndex(e => new { e.PolicyVersionId, e.LeaveTypeId }).IsUnique();
+            entity.HasOne<PolicyVersion>().WithMany().HasForeignKey(e => e.PolicyVersionId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<LeaveType>().WithMany().HasForeignKey(e => e.LeaveTypeId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PolicyRuleLeaveType>(entity =>
+        {
+            entity.ToTable("PolicyRuleLeaveType", "axionpro");
+            entity.HasIndex(e => new { e.PolicyRuleId, e.LeaveTypeId }).IsUnique();
+            entity.HasOne<PolicyRule>().WithMany().HasForeignKey(e => e.PolicyRuleId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<LeaveType>().WithMany().HasForeignKey(e => e.LeaveTypeId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PolicyApplicabilityLeaveType>(entity =>
+        {
+            entity.ToTable("PolicyApplicabilityLeaveType", "axionpro");
+            entity.HasIndex(e => new { e.PolicyApplicabilityId, e.LeaveTypeId }).IsUnique();
+            entity.HasOne<PolicyApplicability>().WithMany().HasForeignKey(e => e.PolicyApplicabilityId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<LeaveType>().WithMany().HasForeignKey(e => e.LeaveTypeId).OnDelete(DeleteBehavior.Restrict);
+        });
+
         modelBuilder.Entity<PolicyApplicability>(entity =>
         {
             entity.ToTable("PolicyApplicability", "axionpro");
