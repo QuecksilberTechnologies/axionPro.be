@@ -1,5 +1,7 @@
 # Scenario test reports
 
+- [Render seed workbook export and transactional restore verification — 2026-10-09](seed-data/render-seed-workbook/2026-10-09.md)
+
 - [Policy Draft replacement save — 2026-10-09](policy/draft-replacement-save/2026-10-09.md)
 - [Policy name uniqueness and version guidance — 2026-10-09](policy/policy-name-uniqueness/2026-10-09.md)
 
