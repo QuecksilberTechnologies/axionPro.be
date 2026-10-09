@@ -217,10 +217,19 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
             throw new ValidationErrorException("PolicyTypeId is not active for this tenant.");
         if (await context.Policies.AnyAsync(x => x.TenantId == tenantId && x.PolicyCode == code && !x.IsSoftDeleted, cancellationToken))
             throw new ConflictException("Policy code already exists for this tenant.");
+        var name = dto.PolicyName.Trim();
+        var normalizedName = name.ToUpper();
+        if (await context.Policies.AnyAsync(x => x.TenantId == tenantId
+            && x.PolicyName.Trim().ToUpper() == normalizedName
+            && !x.IsSoftDeleted, cancellationToken))
+        {
+            throw new ConflictException(
+                $"A policy named '{name}' already exists. Open the existing policy and create its next version instead.");
+        }
 
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         var now = DateTime.UtcNow;
-        var policy = new Policy { TenantId = tenantId, PolicyTypeId = dto.PolicyTypeId, PolicyCode = code, PolicyName = dto.PolicyName.Trim(), Summary = dto.Summary?.Trim(), OwnerDepartmentId = dto.OwnerDepartmentId, DefaultCurrencyCode = NormalizeCurrency(dto.DefaultCurrencyCode), IsActive = true, AddedById = actorId, AddedDateTime = now };
+        var policy = new Policy { TenantId = tenantId, PolicyTypeId = dto.PolicyTypeId, PolicyCode = code, PolicyName = name, Summary = dto.Summary?.Trim(), OwnerDepartmentId = dto.OwnerDepartmentId, DefaultCurrencyCode = NormalizeCurrency(dto.DefaultCurrencyCode), IsActive = true, AddedById = actorId, AddedDateTime = now };
         context.Policies.Add(policy);
         await context.SaveChangesAsync(cancellationToken);
         var version = new PolicyVersion { TenantId = tenantId, PolicyId = policy.Id, VersionNumber = 1, PolicyStatusId = statusIds.Draft, EffectiveFrom = dto.EffectiveFrom, EffectiveTo = dto.EffectiveTo, ChangeSummary = dto.ChangeSummary?.Trim(), RuleSchemaVersion = 1, IsActive = true, AddedById = actorId, AddedDateTime = now };
@@ -252,13 +261,30 @@ public sealed class GenericPolicyRepository(WorkforceDbContext context) : IGener
         var code = NormalizeCode(dto.PolicyCode);
         if (!await context.PolicyTypes.AnyAsync(x => x.Id == dto.PolicyTypeId && x.TenantId == tenantId && x.IsActive == true && x.IsSoftDelete != true, cancellationToken)) throw new ValidationErrorException("PolicyTypeId is not active for this tenant.");
         if (await context.Policies.AnyAsync(x => x.Id != policy.Id && x.TenantId == tenantId && x.PolicyCode == code && !x.IsSoftDeleted, cancellationToken)) throw new ConflictException("Policy code already exists for this tenant.");
+        var name = dto.PolicyName.Trim();
+        var normalizedName = name.ToUpper();
+        if (await context.Policies.AnyAsync(x => x.Id != policy.Id
+            && x.TenantId == tenantId
+            && x.PolicyName.Trim().ToUpper() == normalizedName
+            && !x.IsSoftDeleted, cancellationToken))
+        {
+            throw new ConflictException(
+                $"A policy named '{name}' already exists. Open the existing policy and create its next version instead.");
+        }
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-        policy.PolicyTypeId = dto.PolicyTypeId; policy.PolicyCode = code; policy.PolicyName = dto.PolicyName.Trim(); policy.Summary = dto.Summary?.Trim(); policy.OwnerDepartmentId = dto.OwnerDepartmentId; policy.DefaultCurrencyCode = NormalizeCurrency(dto.DefaultCurrencyCode); policy.UpdatedById = actorId; policy.UpdatedDateTime = DateTime.UtcNow;
+        policy.PolicyTypeId = dto.PolicyTypeId; policy.PolicyCode = code; policy.PolicyName = name; policy.Summary = dto.Summary?.Trim(); policy.OwnerDepartmentId = dto.OwnerDepartmentId; policy.DefaultCurrencyCode = NormalizeCurrency(dto.DefaultCurrencyCode); policy.UpdatedById = actorId; policy.UpdatedDateTime = DateTime.UtcNow;
         version.EffectiveFrom = dto.EffectiveFrom; version.EffectiveTo = dto.EffectiveTo; version.ChangeSummary = dto.ChangeSummary?.Trim(); version.UpdatedById = actorId; version.UpdatedDateTime = DateTime.UtcNow; version.PolicyStatusId = statusIds.Draft;
         context.PolicyRules.RemoveRange(context.PolicyRules.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
         context.PolicyApplicabilities.RemoveRange(context.PolicyApplicabilities.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
         context.PolicyVersionLeaveTypes.RemoveRange(context.PolicyVersionLeaveTypes.Where(x => x.PolicyVersionId == version.Id && x.TenantId == tenantId));
         await UpsertAttendanceConfigurationAsync(tenantId, actorId, version.Id, dto.AttendanceConfiguration, DateTime.UtcNow, cancellationToken);
+
+        // Flush the old version graph before inserting its replacement. PolicyRule and
+        // PolicyVersionLeaveType have version-scoped unique keys, so batching deletes and
+        // inserts in one SaveChanges can attempt the inserts before PostgreSQL has released
+        // the existing keys. The surrounding transaction keeps this replacement atomic.
+        await context.SaveChangesAsync(cancellationToken);
+
         var added = AddRulesAndApplicability(tenantId, actorId, version.Id, dto.Rules, dto.Applicability, DateTime.UtcNow);
         AddAudit(tenantId, actorId, policy.Id, version.Id, "PolicyVersion", version.Id, "UPDATE_DRAFT", null, null);
         await context.SaveChangesAsync(cancellationToken);

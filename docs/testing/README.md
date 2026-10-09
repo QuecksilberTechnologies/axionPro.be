@@ -1,5 +1,8 @@
 # Scenario test reports
 
+- [Policy Draft replacement save — 2026-10-09](policy/draft-replacement-save/2026-10-09.md)
+- [Policy name uniqueness and version guidance — 2026-10-09](policy/policy-name-uniqueness/2026-10-09.md)
+
 - [Policy leave-type targeting — 2026-10-08](policy/leave-type-targeting/2026-10-08.md)
 
 - [Professional Role Type access-persona names — 2026-10-04](role/professional-access-personas/2026-10-04.md)

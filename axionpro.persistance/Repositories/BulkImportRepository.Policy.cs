@@ -176,6 +176,17 @@ public sealed partial class BulkImportRepository
             row.HostRecordId = existing.Id;
             row.Status = BulkImportRowStatus.Existing;
         }
+        var name = row.Values["PolicyName"].Trim();
+        var normalizedName = name.ToUpper();
+        var existingByName = await context.Policies.AsNoTracking().FirstOrDefaultAsync(
+            x => x.TenantId == tenantId
+                && x.PolicyName.Trim().ToUpper() == normalizedName
+                && !x.IsSoftDeleted, token);
+        if (existingByName != null && existingByName.Id != existing?.Id)
+        {
+            row.Errors.Add(
+                $"A policy named '{name}' already exists. Use its existing PolicyCode and create the next version instead.");
+        }
     }
 
     private async Task ValidatePolicyImportReferencesAsync(

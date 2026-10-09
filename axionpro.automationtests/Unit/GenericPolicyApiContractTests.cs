@@ -187,6 +187,28 @@ public sealed class GenericPolicyApiContractTests
     }
 
     [Test]
+    public void Policy_identity_rejects_duplicate_tenant_name_and_preserves_per_policy_versioning()
+    {
+        var repository = ReadRepositoryFile(
+            "axionpro.persistance",
+            "Repositories",
+            "GenericPolicyRepository.cs");
+        var migration = ReadRepositoryFile(
+            "database-scripts",
+            "EnforceTenantPolicyUniqueName.sql");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(repository,
+                Does.Contain("A policy named '{name}' already exists. Open the existing policy and create its next version instead."));
+            Assert.That(repository, Does.Contain("x.PolicyName.Trim().ToUpper() == normalizedName"));
+            Assert.That(migration, Does.Contain("UX_Policy_Tenant_NormalizedName"));
+            Assert.That(migration, Does.Contain("lower(btrim(\"PolicyName\"))"));
+            Assert.That(migration, Does.Contain("GROUP BY \"TenantId\", lower(btrim(\"PolicyName\"))"));
+        });
+    }
+
+    [Test]
     public void Policy_document_handler_passes_an_extension_free_generated_name_to_storage()
     {
         var handler = ReadRepositoryFile(
@@ -380,6 +402,31 @@ public sealed class GenericPolicyApiContractTests
             Assert.That(source, Does.Contain("AppConstants.PolicyStatusCodes.Draft"));
             Assert.That(source, Does.Not.Contain("private const short Draft = 1"));
             Assert.That(source, Does.Contain("Only a published policy version can be assigned."));
+        });
+    }
+
+    [Test]
+    public void Draft_update_flushes_removed_version_graph_before_inserting_replacement_rows()
+    {
+        var source = ReadRepositoryFile("axionpro.persistance", "Repositories", "GenericPolicyRepository.cs");
+        var updateStart = source.IndexOf(
+            "public async Task<PolicyDetailResponseDTO> UpdateDraftAsync",
+            StringComparison.Ordinal);
+        var cloneStart = source.IndexOf(
+            "public async Task<PolicyDetailResponseDTO> CloneVersionAsync",
+            updateStart,
+            StringComparison.Ordinal);
+        var update = source[updateStart..cloneStart];
+        var removeRules = update.IndexOf("context.PolicyRules.RemoveRange", StringComparison.Ordinal);
+        var deleteFlush = update.IndexOf("await context.SaveChangesAsync(cancellationToken);", removeRules, StringComparison.Ordinal);
+        var addRules = update.IndexOf("AddRulesAndApplicability", deleteFlush, StringComparison.Ordinal);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(removeRules, Is.GreaterThanOrEqualTo(0));
+            Assert.That(deleteFlush, Is.GreaterThan(removeRules));
+            Assert.That(addRules, Is.GreaterThan(deleteFlush));
+            Assert.That(update, Does.Contain("await using var transaction"));
         });
     }
 

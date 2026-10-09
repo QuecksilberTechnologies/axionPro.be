@@ -115,6 +115,8 @@ Every entry must include:
 | `LOCK-POLICY-LEAVE-011` | Leave Type targeting across policy versions, rules and applicability | LOCKED | Policy contract/schema 40/40; Angular 7/7 and production build; Local/Render schema and 8-type seed verified | DB APPLIED; API/UI DEPLOYMENT PENDING; S3 CREDENTIAL BLOCKED | [2026-10-08](docs/testing/policy/leave-type-targeting/2026-10-08.md) |
 | `LOCK-POLICY-DRAFT-EDIT-012` | Policy list Draft row opens its exact version in Edit | LOCKED | Angular 8/8; production build; localhost Draft-v2 browser verification | UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/draft-version-edit/2026-10-08.md) |
 | `LOCK-POLICY-ACCRUAL-013` | Leave annual entitlement and derived accrual-cycle amount | LOCKED | Backend 47/47; Angular 27/27; Release and production builds; Local/Render metadata verified | DB APPLIED; API/UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/annual-entitlement-accrual/2026-10-08.md) |
+| `LOCK-POLICY-IDENTITY-014` | Tenant policy-name uniqueness and version guidance | LOCKED | Backend 48/48; Release build; Local unique index verified | API/RENDER DB DEPLOYMENT PENDING | [2026-10-09](docs/testing/policy/policy-name-uniqueness/2026-10-09.md) |
+| `LOCK-POLICY-DRAFT-SAVE-015` | Atomic replacement of Draft policy rules and targets | LOCKED | Backend 49/49; Release build | API DEPLOYMENT PENDING | [2026-10-09](docs/testing/policy/draft-replacement-save/2026-10-09.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -663,6 +665,60 @@ failed/skipped; both builds succeed. Local and Render each expose one active req
 `annualEntitlement` Accrual definition before `amountPerCycle`.
 
 Evidence: [2026-10-08](docs/testing/policy/annual-entitlement-accrual/2026-10-08.md).
+
+## LOCK-POLICY-IDENTITY-014: Tenant policy-name uniqueness
+
+### Locked behavior
+
+- One Policy identity owns its versions; `(PolicyId, VersionNumber)` remains unique.
+- Active, non-deleted Policy names are unique per tenant after trimming and case normalization.
+- Create and Draft update reject a duplicate name with an actionable Conflict that directs the
+  user to open the existing Policy and create its next version.
+- Policy Definition bulk preview reports a different-code/same-name conflict before confirmation.
+- The database migration refuses to create its unique index while historical duplicates exist;
+  it never guesses which Policy identities should be merged.
+
+### Protected areas and gate
+
+- Generic Policy create/update repository methods, Policy Definition bulk preview, and
+  `EnforceTenantPolicyUniqueName.sql`.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~GenericPolicyApiContractTests|FullyQualifiedName~PolicyFrameworkSchemaTests|TestCategory=GenericPolicyRuleMetadata" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+Expected: at least 48 passed with zero failures/skips and Release build with zero errors. Local
+PostgreSQL exposes `UX_Policy_Tenant_NormalizedName`. Render API and database deployment remain
+pending. Evidence: [2026-10-09](docs/testing/policy/policy-name-uniqueness/2026-10-09.md).
+
+## LOCK-POLICY-DRAFT-SAVE-015: Atomic Draft replacement save
+
+### Locked behavior
+
+- Updating a Draft or Rejected policy version removes its previous rules, applicability rows and
+  version Leave Type mappings before inserting the replacement graph.
+- The delete flush and replacement inserts remain inside one database transaction, so a later
+  validation or persistence failure rolls the whole edit back.
+- Version-scoped unique keys such as `(PolicyVersionId, RuleOrder)` and
+  `(PolicyVersionId, LeaveTypeId)` cannot collide with rows from the graph being replaced.
+- Published and Archived immutability, Leave Type targeting, annual entitlement calculation and
+  the existing permission pipeline remain unchanged.
+
+### Protected areas and gate
+
+- `GenericPolicyRepository.UpdateDraftAsync` replacement ordering.
+- Generic Policy contract, schema and rule metadata tests.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~GenericPolicyApiContractTests|FullyQualifiedName~PolicyFrameworkSchemaTests|TestCategory=GenericPolicyRuleMetadata" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+Expected: at least 49 passed with zero failed/skipped and Release build with zero errors.
+Evidence: [2026-10-09](docs/testing/policy/draft-replacement-save/2026-10-09.md).
+Local source/build verification passes. The authenticated Render save remains pending until the
+corrected API build is deployed.
 
 ## Adding the next lock
 

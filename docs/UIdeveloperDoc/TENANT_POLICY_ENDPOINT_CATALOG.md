@@ -148,10 +148,24 @@ Output sample:
 Output: the complete Policy detail object shown for endpoint 7; message
 `Policy draft created successfully.`
 
+Policy identity rules:
+
+- `policyCode` must be unique inside the authenticated tenant.
+- The trimmed `policyName` is also case-insensitively unique inside the tenant.
+- A duplicate name returns Conflict with: `A policy named '<name>' already exists. Open the existing policy and create its next version instead.`
+- The UI must show this API message and direct the user to the existing Policy. A revision of an
+  existing Policy must use `POST /{policyId}/versions/clone`; it must not create another Policy
+  identity with version 1.
+
 ### 9. PUT `/{policyId}/versions/{versionId}`
 
 Input: same fields as endpoint 8. Path supplies both IDs; body IDs are ignored.
 Output: updated Policy detail; message `Policy draft updated successfully.`
+Changing the name to another active Policy's name returns the same duplicate-name Conflict used by
+endpoint 8.
+The server replaces the Draft rules, applicability and Leave Type target graph atomically. A
+successful response means the complete submitted graph was persisted; a failure rolls the edit
+back and keeps the prior Draft graph. Clients should submit the full current Draft model.
 
 ### 10. POST `/{policyId}/versions/clone`
 
