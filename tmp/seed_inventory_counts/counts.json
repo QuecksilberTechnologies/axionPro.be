@@ -1,0 +1,270 @@
+{
+  "AssetCategory": {
+    "Local": 0,
+    "Render": 0
+  },
+  "AssetStatus": {
+    "Local": 0,
+    "Render": 0
+  },
+  "AssetType": {
+    "Local": 0,
+    "Render": 0
+  },
+  "AssignmentStatus": {
+    "Local": 0,
+    "Render": 0
+  },
+  "AttendanceDeviceType": {
+    "Local": 4,
+    "Render": 4
+  },
+  "AttendancePolicyVersionConfiguration": {
+    "Local": 0,
+    "Render": 0
+  },
+  "BillingTaxRule": {
+    "Local": 1,
+    "Render": 1
+  },
+  "Category": {
+    "Local": 0,
+    "Render": 0
+  },
+  "ClientType": {
+    "Local": 12,
+    "Render": 12
+  },
+  "ComplianceRule": {
+    "Local": 0,
+    "Render": 0
+  },
+  "ComplianceTypeMaster": {
+    "Local": 1018,
+    "Render": 27
+  },
+  "Country": {
+    "Local": 249,
+    "Render": 4
+  },
+  "CountryIdentityRule": {
+    "Local": 260,
+    "Render": 10
+  },
+  "CountryStatutoryRule": {
+    "Local": 0,
+    "Render": 0
+  },
+  "DataViewStructure": {
+    "Local": 2,
+    "Render": 2
+  },
+  "DefaultEmailConfig": {
+    "Local": 2,
+    "Render": 2
+  },
+  "Department": {
+    "Local": 4,
+    "Render": 4
+  },
+  "Designation": {
+    "Local": 3,
+    "Render": 3
+  },
+  "District": {
+    "Local": 13007,
+    "Render": 9305
+  },
+  "EmailTemplate": {
+    "Local": 5,
+    "Render": 5
+  },
+  "EmployeeType": {
+    "Local": 7,
+    "Render": 9
+  },
+  "EmployeeTypeBasicMenu": {
+    "Local": 0,
+    "Render": 0
+  },
+  "Gender": {
+    "Local": 3,
+    "Render": 3
+  },
+  "Holiday": {
+    "Local": 31,
+    "Render": 31
+  },
+  "HostBillingConfiguration": {
+    "Local": 1,
+    "Render": 1
+  },
+  "HostRole": {
+    "Local": 1,
+    "Render": 1
+  },
+  "HostRoleModuleAndPermission": {
+    "Local": 110,
+    "Render": 110
+  },
+  "HostUser": {
+    "Local": 2,
+    "Render": 2
+  },
+  "IdentityCategory": {
+    "Local": 4,
+    "Render": 4
+  },
+  "IdentityCategoryDocument": {
+    "Local": 12,
+    "Render": 12
+  },
+  "LeaveType": {
+    "Local": 8,
+    "Render": 8
+  },
+  "Locality": {
+    "Local": 252306,
+    "Render": 187520
+  },
+  "LocalityType": {
+    "Local": 4,
+    "Render": 4
+  },
+  "Module": {
+    "Local": 89,
+    "Render": 89
+  },
+  "ModuleOperationMapping": {
+    "Local": 326,
+    "Render": 326
+  },
+  "Operation": {
+    "Local": 27,
+    "Render": 27
+  },
+  "PageTypeEnum": {
+    "Local": 5,
+    "Render": 5
+  },
+  "PaymentGateway": {
+    "Local": 1,
+    "Render": 1
+  },
+  "PlanModuleMapping": {
+    "Local": 135,
+    "Render": 180
+  },
+  "PolicyCategory": {
+    "Local": 12,
+    "Render": 12
+  },
+  "PolicyCategoryRuleType": {
+    "Local": 40,
+    "Render": 40
+  },
+  "PolicyDocumentType": {
+    "Local": 5,
+    "Render": 5
+  },
+  "PolicyRuleSettingDefinition": {
+    "Local": 29,
+    "Render": 29
+  },
+  "PolicyRuleSettingDependency": {
+    "Local": 5,
+    "Render": 5
+  },
+  "PolicyRuleSettingOption": {
+    "Local": 10,
+    "Render": 10
+  },
+  "PolicyRuleType": {
+    "Local": 13,
+    "Render": 13
+  },
+  "PolicyStatus": {
+    "Local": 7,
+    "Render": 7
+  },
+  "ReportingType": {
+    "Local": 0,
+    "Render": 0
+  },
+  "RequestType": {
+    "Local": 0,
+    "Render": 0
+  },
+  "RoleModuleAndPermission": {
+    "Local": 211,
+    "Render": 211
+  },
+  "SalaryComponentMaster": {
+    "Local": 0,
+    "Render": 0
+  },
+  "State": {
+    "Local": 3874,
+    "Render": 88
+  },
+  "StatutoryType": {
+    "Local": 22,
+    "Render": 11
+  },
+  "SubscriptionPlan": {
+    "Local": 15,
+    "Render": 15
+  },
+  "TaxRegimeMaster": {
+    "Local": 0,
+    "Render": 0
+  },
+  "TaxRule": {
+    "Local": 0,
+    "Render": 0
+  },
+  "TaxSlab": {
+    "Local": 0,
+    "Render": 0
+  },
+  "TaxSystemMaster": {
+    "Local": 0,
+    "Render": 0
+  },
+  "TenantEmailTemplate": {
+    "Local": 0,
+    "Render": 5
+  },
+  "TenantEnabledModule": {
+    "Local": 54,
+    "Render": 54
+  },
+  "TenantEnabledOperation": {
+    "Local": 211,
+    "Render": 211
+  },
+  "TenantIndustry": {
+    "Local": 5,
+    "Render": 5
+  },
+  "TenantLocation": {
+    "Local": 1,
+    "Render": 1
+  },
+  "TenderStatus": {
+    "Local": 5,
+    "Render": 5
+  },
+  "TicketClassification": {
+    "Local": 0,
+    "Render": 0
+  },
+  "TicketType": {
+    "Local": 0,
+    "Render": 0
+  },
+  "WorkDocumentType": {
+    "Local": 0,
+    "Render": 0
+  }
+}
