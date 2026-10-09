@@ -115,7 +115,7 @@ Every entry must include:
 | `LOCK-POLICY-LEAVE-011` | Leave Type targeting across policy versions, rules and applicability | LOCKED | Policy contract/schema 40/40; Angular 7/7 and production build; Local/Render schema and 8-type seed verified | DB APPLIED; API/UI DEPLOYMENT PENDING; S3 CREDENTIAL BLOCKED | [2026-10-08](docs/testing/policy/leave-type-targeting/2026-10-08.md) |
 | `LOCK-POLICY-DRAFT-EDIT-012` | Policy list Draft row opens its exact version in Edit | LOCKED | Angular 8/8; production build; localhost Draft-v2 browser verification | UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/draft-version-edit/2026-10-08.md) |
 | `LOCK-POLICY-ACCRUAL-013` | Leave annual entitlement and derived accrual-cycle amount | LOCKED | Backend 47/47; Angular 27/27; Release and production builds; Local/Render metadata verified | DB APPLIED; API/UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/annual-entitlement-accrual/2026-10-08.md) |
-| `LOCK-POLICY-IDENTITY-014` | Tenant policy-name uniqueness and version guidance | LOCKED | Backend 48/48; Release build; Local unique index verified | API/RENDER DB DEPLOYMENT PENDING | [2026-10-09](docs/testing/policy/policy-name-uniqueness/2026-10-09.md) |
+| `LOCK-POLICY-IDENTITY-014` | Tenant policy-name uniqueness and version guidance | LOCKED | Backend 48/48; Release build; Local/Render unique index verified | DB APPLIED; API DEPLOYMENT PENDING | [2026-10-09](docs/testing/policy/policy-name-uniqueness/2026-10-09.md) |
 | `LOCK-POLICY-DRAFT-SAVE-015` | Atomic replacement of Draft policy rules and targets | LOCKED | Backend 49/49; Release build | API DEPLOYMENT PENDING | [2026-10-09](docs/testing/policy/draft-replacement-save/2026-10-09.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
@@ -689,8 +689,9 @@ dotnet build .\AxionPro.sln -c Release --no-restore --nologo
 ```
 
 Expected: at least 48 passed with zero failures/skips and Release build with zero errors. Local
-PostgreSQL exposes `UX_Policy_Tenant_NormalizedName`. Render API and database deployment remain
-pending. Evidence: [2026-10-09](docs/testing/policy/policy-name-uniqueness/2026-10-09.md).
+Local and Render PostgreSQL expose `UX_Policy_Tenant_NormalizedName`. The corrected Render API
+deployment remains pending. Evidence:
+[2026-10-09](docs/testing/policy/policy-name-uniqueness/2026-10-09.md).
 
 ## LOCK-POLICY-DRAFT-SAVE-015: Atomic Draft replacement save
 
