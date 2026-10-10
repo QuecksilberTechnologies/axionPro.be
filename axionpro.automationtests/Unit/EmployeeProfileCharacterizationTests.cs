@@ -119,10 +119,10 @@ public sealed class EmployeeProfileCharacterizationTests
     }
 
     /// <summary>
-    /// Locks the current primary Bank requirement: otherwise a complete row is capped at 99 percent.
+    /// Locks the primary Bank requirement: a section without a primary account is incomplete.
     /// </summary>
     [Test]
-    public void Bank_without_a_primary_account_is_capped_at_ninety_nine_percent()
+    public void Bank_without_a_primary_account_is_zero_percent()
     {
         var result = new[]
         {
@@ -141,11 +141,75 @@ public sealed class EmployeeProfileCharacterizationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(result.CompletionPercent, Is.EqualTo(99));
+            Assert.That(result.CompletionPercent, Is.EqualTo(0));
             Assert.That(result.IsInfoVerified, Is.True);
             Assert.That(result.IsEditAllowed, Is.False,
                 "The approved verification lock overrides stale stored edit flags without changing completion.");
         });
+    }
+
+    [Test]
+    public void Bank_with_multiple_rows_uses_the_average_after_primary_validation()
+    {
+        var result = new[]
+        {
+            new GetBankResponseDTO
+            {
+                BankName = "Primary Bank",
+                BranchName = "Main",
+                IFSCCode = "TEST0001",
+                AccountNumber = "1234",
+                AccountType = "Savings",
+                IsPrimaryAccount = true,
+                HasChequeDocUploaded = true,
+                FileName = "cheque.pdf",
+                FilePath = "employees/cheque.pdf"
+            },
+            new GetBankResponseDTO
+            {
+                BankName = "Secondary Bank",
+                AccountNumber = "5678",
+                AccountType = "Savings",
+                IsPrimaryAccount = false
+            }
+        }.CalculateBankCompletionDTO();
+
+        Assert.That(result.CompletionPercent, Is.EqualTo(84));
+    }
+
+    [TestCase(null, false, true, false, 0)]
+    [TestCase("PAN123", false, true, true, 50)]
+    [TestCase("PAN123", true, true, true, 100)]
+    [TestCase("PASS123", false, false, true, 50)]
+    [TestCase(null, false, false, false, 0)]
+    public void Identity_completion_uses_country_mandatory_and_uploaded_document_rules(
+        string? identityValue,
+        bool hasIdentityUploaded,
+        bool isMandatory,
+        bool hasSavedRecord,
+        double expected)
+    {
+        var result = EmployeeProfileCompletionCalculator.CalculateIdentityRow(
+            identityValue,
+            hasIdentityUploaded,
+            isMandatory,
+            hasSavedRecord);
+
+        Assert.That(result, Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void Overall_completion_is_the_same_average_exposed_to_list_and_profile_status()
+    {
+        var result = EmployeeProfileCompletionCalculator.CalculateOverallCompletion(
+            new[]
+            {
+                new CompletionSectionDTO { CompletionPercent = 100 },
+                new CompletionSectionDTO { CompletionPercent = 50 },
+                new CompletionSectionDTO { CompletionPercent = 0 }
+            });
+
+        Assert.That(result, Is.EqualTo(50));
     }
 
     /// <summary>
@@ -466,13 +530,27 @@ public sealed class EmployeeProfileCharacterizationTests
     }
 
     [Test]
-    public void Identity_projection_calculates_each_catalogue_row_completion_from_saved_value()
+    public void Identity_projection_calculates_each_catalogue_row_from_value_and_document()
     {
         var source = new[]
         {
-            new GetEmployeeIdentitySp { IdentityValue = "ABC123" },
-            new GetEmployeeIdentitySp { IdentityValue = "   " },
-            new GetEmployeeIdentitySp { IdentityValue = null }
+            new GetEmployeeIdentitySp
+            {
+                EmployeeIdentityId = 1,
+                IdentityValue = "ABC123",
+                HasIdentityUploaded = true
+            },
+            new GetEmployeeIdentitySp
+            {
+                EmployeeIdentityId = 2,
+                IdentityValue = "   ",
+                HasIdentityUploaded = false
+            },
+            new GetEmployeeIdentitySp
+            {
+                IdentityValue = null,
+                IsMandatory = true
+            }
         };
 
         var result = ProjectionHelper

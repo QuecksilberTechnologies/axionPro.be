@@ -40,6 +40,14 @@ Legacy `countryNationalityId` is retained but persisted Employee.CountryId contr
 
 `GET /api/Employee/get-all-percentage` returns its section list in `data` and the overall rounded mean in `completionPercentage`. `data` contains all 13 non-transactional Employee profile/configuration tabs; empty tabs are 0 percent with `isSectionCreate=false`.
 
+The Employee list reuses this same overall section mean instead of reporting
+Overview-only completion. Bank is incomplete until a Primary row exists and
+then averages all saved rows. Identity applicability comes from the employee's
+active country rules: mandatory catalogue rows always participate, optional
+rows participate after creation, and each participating row requires both the
+identity value and uploaded document. These rules are backend-owned; no field or
+country list is hardcoded in the UI.
+
 ```json
 {
   "isSucceeded": true,

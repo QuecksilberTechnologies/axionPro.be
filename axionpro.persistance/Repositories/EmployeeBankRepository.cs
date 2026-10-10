@@ -99,7 +99,8 @@ namespace axionpro.persistance.Repositories
           IsEditAllowed = bank.IsEditAllowed,
           IsActive = bank.IsActive,
           HasChequeDocUploaded = bank.HasChequeDocUploaded,
-          FilePath = bank.FilePath
+          FilePath = bank.FilePath,
+          FileName = bank.FileName
             })
       .ToListAsync();
 
@@ -159,7 +160,7 @@ namespace axionpro.persistance.Repositories
                     TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
 
                     //  IMPORTANT (same as GetInfo)
-                    CompletionPercentage = uiAverageCompletion,
+                    CompletionPercentage = finalCompletionPercentage,
                     HasUploadedAll = hasUploadedAllDocs
                 };
             }
@@ -397,7 +398,8 @@ namespace axionpro.persistance.Repositories
                         IsEditAllowed = x.IsEditAllowed,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
                         //  Correct FilePath handling
-                        FilePath =  x.FilePath ,
+                        FilePath =  x.FilePath,
+                        FileName = x.FileName,
                         UPIId = x.Upiid   }).ToListAsync();
 
                 // =========================================================
@@ -464,8 +466,8 @@ namespace axionpro.persistance.Repositories
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
 
-                    //  UI ko yeh dikhao (progress bar)
-                    CompletionPercentage = uiAverageCompletion,
+                    //  UI ko business-rule validated progress dikhao.
+                    CompletionPercentage = finalCompletionPercentage,
 
                     HasUploadedAll = hasUploadedAllDocs
                 };

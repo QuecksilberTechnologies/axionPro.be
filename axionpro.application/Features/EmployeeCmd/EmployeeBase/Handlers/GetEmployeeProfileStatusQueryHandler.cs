@@ -7,6 +7,7 @@
 
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
@@ -136,9 +137,8 @@ public class GetEmployeeProfileStatusQueryHandler
                         : "No profile completion data found."
                 );
 
-            response.CompletionPercentage = result.Count == 0
-                ? 0
-                : Math.Round(result.Average(section => section.CompletionPercent ?? 0), 0);
+            response.CompletionPercentage =
+                EmployeeProfileCompletionCalculator.CalculateOverallCompletion(result);
 
             return response;
         }

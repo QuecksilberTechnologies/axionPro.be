@@ -29,8 +29,23 @@ OperationId values dynamically.
 `EmployeeProfileCompletionCalculator` owns row and section percentage rules.
 Legacy helper entry points delegate to it. Verification and edit workflow flags
 never add percentage. Section percentage is the rounded mean of its row values;
-empty sections are zero. Bank and Contact remain capped at 99 when rows exist but
-no primary row exists.
+empty sections are zero. Bank is zero until a Primary account exists. Once the
+Primary requirement is satisfied, all saved Bank rows contribute through their
+average; the Primary row also requires the cancelled-cheque upload already
+enforced by Bank create/update validation. Contact retains its existing primary
+rule.
+
+Identity completion is country-driven through active `CountryIdentityRule`
+records. A mandatory country rule participates even when the employee has not
+created a row. An optional rule participates only after a saved identity exists.
+Every participating identity row requires both its identity value and uploaded
+document, with equal weight. No country or identity-document name is hardcoded
+in the calculator.
+
+`GET /api/Employee/get-all`, `GET /api/Employee/get-all-percentage`, individual
+Bank reads and Identity reads use the same backend-owned calculation. The
+existing response properties are unchanged, so the UI only renders the corrected
+percentages and does not need a contract change.
 
 The profile summary and individual tab APIs now use the same central rules for
 Overview, Bank, Contact, Experience, Insurance, Identity, Education and

@@ -104,8 +104,8 @@ Every entry must include:
 | --- | --- | --- | --- | --- | --- |
 | `LOCK-TENANT-REG-001` | Tenant registration transaction and actionable errors | LOCKED | Backend 14/14; PostgreSQL rollback 2/2; Angular 44/44 and production build | PENDING | [2026-10-01](docs/testing/tenant/registration-actionable-errors/2026-10-01.md) |
 | `LOCK-ROLE-TYPE-002` | Original Admin/Employee/Manager/Client display labels | SUPERSEDED by `LOCK-ROLE-PERSONA-007` | Historical backend/UI baseline preserved | SUPERSEDED | [2026-10-01](docs/testing/role/client-role-type-display/2026-10-01.md) |
-| `LOCK-EMP-CONTACT-003` | Employee contact relations, initial row and location cascade | LOCKED | Backend 46/46 + contact DB 2/2; locality 9/9; protected tenant 14/14 + DB rollback 2/2; Angular 66/66; Role interceptor 9/9 + 69/69; production build | PENDING | [2026-10-01](docs/testing/employee/contact-relation-location/2026-10-01.md) |
-| `LOCK-EMP-EDU-004` | Employee Education create date and score-type mapping | LOCKED | Mapping 1/1; protected Employee profile/contact 46/46; Release build | PENDING | [2026-10-03](docs/testing/employee/education-create-date-mapping/2026-10-03.md) |
+| `LOCK-EMP-CONTACT-003` | Employee contact relations, initial row and location cascade | LOCKED | Backend 52/52 current combined gate + contact DB 2/2; locality 9/9; protected tenant 14/14 + DB rollback 2/2; Angular 66/66; Role 20/20 current backend + 69/69 UI; production build | PENDING | [2026-10-01](docs/testing/employee/contact-relation-location/2026-10-01.md) |
+| `LOCK-EMP-EDU-004` | Employee Education create date and score-type mapping | LOCKED | Mapping 1/1; protected Employee profile/contact 52/52; Release build | PENDING | [2026-10-03](docs/testing/employee/education-create-date-mapping/2026-10-03.md) |
 | `LOCK-EMP-BANK-005` | Employee Bank sensitive fields encrypted at rest | LOCKED | Unit 1/1; Local DB 1/1; Render DB 1/1; protected backend gates pass; Release build | API DEPLOYMENT PENDING | [2026-10-03](docs/testing/employee/bank-sensitive-field-encryption/2026-10-03.md) |
 | `LOCK-POLICY-ASSIGN-006` | Applicability-safe employee assignment picker, bulk and export | LOCKED | Policy contract/schema 32/32; Release build | PENDING | [2026-10-03](docs/testing/policy/assignment-applicability-mapping/2026-10-03.md) |
 | `LOCK-ROLE-PERSONA-007` | Professional Tenant role names, role-type personas and remarks | LOCKED | Backend 15/15; protected tenant registration 14/14; Local/Render data verified | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/role/professional-access-personas/2026-10-04.md) |
@@ -117,6 +117,7 @@ Every entry must include:
 | `LOCK-POLICY-ACCRUAL-013` | Leave annual entitlement and derived accrual-cycle amount | LOCKED | Backend 47/47; Angular 27/27; Release and production builds; Local/Render metadata verified | DB APPLIED; API/UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/annual-entitlement-accrual/2026-10-08.md) |
 | `LOCK-POLICY-IDENTITY-014` | Tenant policy-name uniqueness and version guidance | LOCKED | Backend 48/48; Release build; Local/Render unique index verified | DB APPLIED; API DEPLOYMENT PENDING | [2026-10-09](docs/testing/policy/policy-name-uniqueness/2026-10-09.md) |
 | `LOCK-POLICY-DRAFT-SAVE-015` | Atomic replacement of Draft policy rules and targets | LOCKED | Backend 49/49; Release build | API DEPLOYMENT PENDING | [2026-10-09](docs/testing/policy/draft-replacement-save/2026-10-09.md) |
+| `LOCK-EMP-PROFILE-COMPLETION-016` | Mandatory-aware Employee profile completion consistency | LOCKED | Employee/contact 52/52; Bank 1/1; locality 9/9; tenant 14/14 + DB rollback 2/2; Role 20/20; Release build | API DEPLOYMENT PENDING | [2026-10-10](docs/testing/employee/profile-completion-consistency/2026-10-10.md) |
 
 ## LOCK-TENANT-REG-001: Tenant registration transaction and actionable errors
 
@@ -334,7 +335,7 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Releas
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~LocalityRefactorTests&FullyQualifiedName!~Four_country_postal_seed_is_idempotent_and_populates_locality_postal_code" --logger "console;verbosity=minimal"
 ```
 
-Expected locked baseline: 46/46 Employee contact/profile and 9/9 applicable
+Expected current baseline: 52/52 Employee contact/profile and 9/9 applicable
 locality tests pass, with zero failed or skipped. The excluded historical
 postal-seed test is BLOCKED by its absent
 `database-scripts/SeedFourCountryPostalLocalities.sql` fixture and must never be
@@ -381,7 +382,7 @@ also pass `oxfmt --check` and ESLint.
 
 ### Acceptance state
 
-- Local backend Employee contact/profile gate: PASS, 46/46, including three
+- Local backend Employee contact/profile gate: PASS, 52/52, including three
   isolated HTTP bearer cases (401/401/200), with zero persistence dependencies.
 - Local locality contract gate: PASS, 9/9 applicable tests; one historical
   fixture-dependent case remains BLOCKED and excluded as documented.
@@ -421,12 +422,12 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Releas
 dotnet build .\AxionPro.sln -c Release --no-restore --nologo
 ```
 
-Expected baseline: focused mapping 1/1 and protected Employee profile/contact 46/46 pass with zero failed/skipped; Release build succeeds with zero errors.
+Expected baseline: focused mapping 1/1 and protected Employee profile/contact 52/52 pass with zero failed/skipped; Release build succeeds with zero errors.
 
 ### Acceptance state
 
 - Local focused mapping: PASS, 1/1.
-- Local protected Employee profile/contact gate: PASS, 46/46.
+- Local protected Employee profile/contact gate: PASS, 52/52.
 - Local Release build: PASS, zero errors; existing warnings remain.
 - Authenticated running-product create/read-back and persistence reconciliation: PENDING.
 - Deployed API/UI acceptance: PENDING.
@@ -455,13 +456,15 @@ dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Releas
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "TestCategory=EmployeeContactRelation|FullyQualifiedName~EmployeeProfileCharacterizationTests" --logger "console;verbosity=minimal"
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~LocalityRefactorTests&FullyQualifiedName!~Four_country_postal_seed_is_idempotent_and_populates_locality_postal_code" --logger "console;verbosity=minimal"
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome" --logger "console;verbosity=minimal"
+$env:AXIONPRO_HOST_DB_SETTINGS=(Resolve-Path '.\axionpro.api\appsettings.Development.json').Path
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_real_database_rollback_probe" --logger "console;verbosity=minimal"
 dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "TestCategory=RoleTypeMapping" --logger "console;verbosity=minimal"
 dotnet build .\AxionPro.sln -c Release --no-restore --nologo
 ```
 
 For an explicitly approved database target, set `AXIONPRO_BANK_DB_SETTINGS` to its settings file and run `TestCategory=EmployeeBankEncryptionDatabase`. The test widens the schema, migrates valid plaintext, validates existing ciphertext and commits atomically.
 
-Expected baseline: Bank unit 1/1, Employee profile/contact 46/46, locality 9/9, Tenant 14/14 and Role 9/9 pass with zero failed/skipped; Release build succeeds with zero errors. The protected Tenant rollback probe remains 2/2 for persistence changes.
+Expected baseline: Bank unit 1/1, Employee profile/contact 52/52, locality 9/9, Tenant 14/14 and Role 20/20 pass with zero failed/skipped; Release build succeeds with zero errors. The protected Tenant rollback probe remains 2/2 for persistence changes.
 
 ### Acceptance state
 
@@ -720,6 +723,46 @@ Expected: at least 49 passed with zero failed/skipped and Release build with zer
 Evidence: [2026-10-09](docs/testing/policy/draft-replacement-save/2026-10-09.md).
 Local source/build verification passes. The authenticated Render save remains pending until the
 corrected API build is deployed.
+
+## LOCK-EMP-PROFILE-COMPLETION-016: Mandatory-aware profile completion consistency
+
+### Locked behavior
+
+- Employee list completion uses the same rounded mean of profile/configuration sections as `GET /api/Employee/get-all-percentage`; it is not Overview-only.
+- An empty supported section is zero percent.
+- A Bank section with saved rows but no Primary account is zero percent. Once a Primary exists, every saved Bank row contributes to the section average, and the Primary row requires its cancelled-cheque upload and file metadata.
+- Identity applicability comes from active `CountryIdentityRule` rows for the employee's persisted country; country names and document names are not hardcoded.
+- A mandatory Identity rule participates even without a saved row. An optional rule participates after an identity is saved. Every participating Identity row requires both a non-blank value and an uploaded document.
+- Verification/edit flags remain workflow metadata and never add completion percentage.
+- Existing Employee authentication, data-access checks, permission pipeline, encoded IDs, CRUD contracts and Bank encryption remain unchanged.
+
+### Protected areas and gate
+
+- `EmployeeProfileCompletionCalculator`, Identity projection and profile-status handler.
+- Employee list/profile completion query in `BaseEmployeeRepository`.
+- Bank list completion in `EmployeeBankRepository`.
+- `EmployeeProfileCharacterizationTests` and related protected Employee/Bank gates.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "TestCategory=EmployeeContactRelation|FullyQualifiedName~EmployeeProfileCharacterizationTests" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "TestCategory=EmployeeBankEncryption&TestCategory!=EmployeeBankEncryptionDatabase" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~LocalityRefactorTests&FullyQualifiedName!~Four_country_postal_seed_is_idempotent_and_populates_locality_postal_code" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "FullyQualifiedName~HostApiRegressionTests.Tenant_creation_awaits_dependencies_and_preserves_transaction_outcome" --logger "console;verbosity=minimal"
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-build --filter "TestCategory=RoleTypeMapping" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+Expected: Employee/contact 52/52, Bank 1/1, locality 9/9, tenant 14/14, PostgreSQL rollback 2/2 and Role 20/20 pass with zero failures/skips; Release build succeeds with zero errors. The historical Employee/contact count was 46 before the legacy Insurance test case was removed in committed change `a09acbe3`; the immediately preceding active baseline was 45/45 and seven completion cases were added by this lock.
+
+### Acceptance state
+
+- Local focused and protected tests: PASS with the counts above.
+- Local PostgreSQL tenant rollback probe: PASS, 2/2; transactions rolled back.
+- Local Release build: PASS, zero errors; existing dependency/compiler warnings remain.
+- Database data/schema changes: NOT REQUIRED and not performed.
+- Authenticated running-product and deployed API/browser reconciliation: PENDING.
+
+Evidence: [2026-10-10](docs/testing/employee/profile-completion-consistency/2026-10-10.md).
 
 ## Adding the next lock
 

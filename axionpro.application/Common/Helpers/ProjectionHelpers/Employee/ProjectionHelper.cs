@@ -183,7 +183,10 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
                 IsActive = e.IsActive,
                 CompletionPercentage = EmployeeProfileCompletionCalculator.CalculateIdentityRow(
-                    e.IdentityValue)
+                    e.IdentityValue,
+                    e.HasIdentityUploaded == true,
+                    e.IsMandatory,
+                    e.EmployeeIdentityId.HasValue)
             }).ToList();
         }
 

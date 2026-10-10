@@ -15,6 +15,12 @@ namespace axionpro.application.Common.Helpers.PercentageHelper;
 /// </summary>
 public static class EmployeeProfileCompletionCalculator
 {
+    public static double CalculateOverallCompletion(
+        IReadOnlyCollection<CompletionSectionDTO> sections) =>
+        sections.Count == 0
+            ? 0
+            : Math.Round(sections.Average(section => section.CompletionPercent ?? 0), 0);
+
     public static double CalculateRowPercentage(params bool[] requiredFields)
     {
         if (requiredFields.Length == 0)
@@ -98,8 +104,19 @@ public static class EmployeeProfileCompletionCalculator
             experience.EndDate.HasValue);
     }
 
-    public static double CalculateIdentityRow(string? identityValue) =>
-        CalculateRowPercentage(!string.IsNullOrWhiteSpace(identityValue));
+    public static double CalculateIdentityRow(
+        string? identityValue,
+        bool hasIdentityUploaded,
+        bool isMandatory,
+        bool hasSavedRecord)
+    {
+        if (!isMandatory && !hasSavedRecord)
+            return 0;
+
+        return CalculateRowPercentage(
+            !string.IsNullOrWhiteSpace(identityValue),
+            hasIdentityUploaded);
+    }
 
     public static double CalculateInsuranceRow(
         int policyTypeId,
@@ -145,7 +162,7 @@ public static class EmployeeProfileCompletionCalculator
             rows.Select(row => row.IsEditAllowed).ToArray());
 
         if (rows.Count > 0 && rows.All(row => !row.IsPrimaryAccount))
-            section.CompletionPercent = Math.Min(section.CompletionPercent ?? 0, 99);
+            section.CompletionPercent = 0;
 
         return section;
     }
@@ -170,6 +187,16 @@ public static class EmployeeProfileCompletionCalculator
             rows.Select(CalculateEducationRow).ToArray(),
             rows.Select(row => row.IsInfoVerified).ToArray(),
             rows.Select(row => row.IsEditAllowed).ToArray());
+
+    public static CompletionSectionDTO CreateIdentitySection(
+        IReadOnlyCollection<double> applicableRowPercentages,
+        IReadOnlyCollection<bool?> verificationStates,
+        IReadOnlyCollection<bool?> editStates) =>
+        CreateSection(
+            "Identity",
+            applicableRowPercentages,
+            verificationStates,
+            editStates);
 
     public static CompletionSectionDTO CreateSection(
         string sectionName,

@@ -1460,6 +1460,16 @@ namespace axionpro.persistance.Repositories
                     };
                 }).ToList();
 
+                foreach (var employeeResult in result)
+                {
+                    if (!long.TryParse(employeeResult.EmployeeId, out long resultEmployeeId))
+                        continue;
+
+                    var completionSections = await GetEmployeeCompletionAsync(resultEmployeeId);
+                    employeeResult.CompletionPercentage =
+                        EmployeeProfileCompletionCalculator.CalculateOverallCompletion(completionSections);
+                }
+
                 return new PagedResponseDTO<GetAllEmployeeInfoResponseDTO>
                 {
                     Data = result,
@@ -1832,6 +1842,7 @@ namespace axionpro.persistance.Repositories
                         x.DesignationId,
                         x.DepartmentId,
                         x.OfficialEmail,
+                        x.CountryId,
                         x.IsInfoVerified,
                         x.IsEditAllowed
                     })
@@ -1860,16 +1871,30 @@ namespace axionpro.persistance.Repositories
                     })
                     .ToListAsync();
 
-                var identityRows = await _context.EmployeeIdentities
-                    .AsNoTracking()
-                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-                    .Select(x => new
+                int employeeCountryId = employee?.CountryId ?? 0;
+                var identityRows = await (
+                    from rule in _context.CountryIdentityRules.AsNoTracking()
+                    join identity in _context.EmployeeIdentities
+                            .AsNoTracking()
+                            .Where(x =>
+                                x.EmployeeId == employeeId &&
+                                x.IsActive &&
+                                !x.IsSoftDeleted)
+                        on rule.IdentityCategoryDocumentId equals identity.IdentityCategoryDocumentId
+                        into savedIdentities
+                    from identity in savedIdentities.DefaultIfEmpty()
+                    where rule.CountryId == employeeCountryId &&
+                          rule.IsActive &&
+                          rule.IdentityCategoryDocument.IsActive &&
+                          rule.IdentityCategoryDocument.IdentityCategory.IsActive
+                    select new
                     {
-                        x.IdentityCategoryDocumentId,
-                        x.IdentityValue,
-                        x.HasIdentityUploaded,
-                        x.IsInfoVerified,
-                        x.IsEditAllowed
+                        rule.IsMandatory,
+                        HasSavedRecord = identity != null,
+                        IdentityValue = identity == null ? null : identity.IdentityValue,
+                        HasIdentityUploaded = identity != null && identity.HasIdentityUploaded,
+                        IsInfoVerified = identity == null ? null : (bool?)identity.IsInfoVerified,
+                        IsEditAllowed = identity == null ? null : (bool?)identity.IsEditAllowed
                     })
                     .ToListAsync();
 
@@ -1941,12 +1966,17 @@ namespace axionpro.persistance.Repositories
                         x.EndDate.HasValue)).ToArray(),
                     experienceRows.Select(x => x.IsInfoVerified).ToArray(),
                     experienceRows.Select(x => x.IsEditAllowed).ToArray());
-                var identitySection = EmployeeProfileCompletionCalculator.CreateSection(
-                    "Identity",
-                    identityRows.Select(x => EmployeeProfileCompletionCalculator.CalculateIdentityRow(
-                        x.IdentityValue)).ToArray(),
-                    identityRows.Select(x => (bool?)x.IsInfoVerified).ToArray(),
-                    identityRows.Select(x => (bool?)x.IsEditAllowed).ToArray());
+                var applicableIdentityRows = identityRows
+                    .Where(x => x.IsMandatory || x.HasSavedRecord)
+                    .ToArray();
+                var identitySection = EmployeeProfileCompletionCalculator.CreateIdentitySection(
+                    applicableIdentityRows.Select(x => EmployeeProfileCompletionCalculator.CalculateIdentityRow(
+                        x.IdentityValue,
+                        x.HasIdentityUploaded,
+                        x.IsMandatory,
+                        x.HasSavedRecord)).ToArray(),
+                    applicableIdentityRows.Select(x => x.IsInfoVerified).ToArray(),
+                    applicableIdentityRows.Select(x => x.IsEditAllowed).ToArray());
                 var dependentSection = EmployeeProfileCompletionCalculator.CreateSection(
                     "Dependent",
                     dependentRows.Select(x => EmployeeProfileCompletionCalculator.CalculateRowPercentage(
