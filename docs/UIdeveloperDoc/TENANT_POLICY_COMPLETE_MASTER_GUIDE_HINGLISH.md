@@ -4667,9 +4667,12 @@ RowNumber,Status,Errors
   acknowledgement; audit; clone; reject/resubmit/approve.
 - PASS: Policy Type, Definition and Assignment durable imports have live target
   persistence evidence. A repeat assignment reports `Existing`.
-- BLOCKED: document upload/list/delete. Render S3 rejects the configured access
-  key before policy metadata is written. UI should show the API failure and must
-  not claim the document was saved.
+- LOCAL STORAGE PASS: development credentials .NET User Secrets mein source
+  control ke bahar hain. Uploads configured bucket ke central `axionpro/` prefix
+  mein jaate hain; upload, signed download aur cleanup verify ho chuke hain.
+  Render environment configuration aur authenticated deployed policy-document
+  acceptance abhi pending hai. UI storage failure ko surface kare aur failed
+  upload ko saved report na kare.
 - FIXED LOCALLY, DEPLOYMENT PENDING: cancelling a terminal bulk job now returns
   conflict instead of successful no-op.
 - PENDING: successful Retry path needs a genuine failed worker row.

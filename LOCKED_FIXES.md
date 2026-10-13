@@ -112,7 +112,7 @@ Every entry must include:
 | `LOCK-TENANT-LOCATION-008` | Initial TenantLocation creation and Host synchronization | LOCKED | Creation/update 15/15; PostgreSQL rollback 2/2; Role 20/20 | API DEPLOYMENT PENDING | [2026-10-04](docs/testing/tenant/initial-location-lifecycle/2026-10-04.md) |
 | `LOCK-POLICY-DOWNLOAD-009` | Policy Assignment Download module-operation mapping | LOCKED | Policy contract/schema 33/33; Release build; Local/Render mapping verified | DATA APPLIED; API DEPLOYMENT NOT REQUIRED | [2026-10-07](docs/testing/policy/assignment-download-operation/2026-10-07.md) |
 | `LOCK-POLICY-PUBLISH-010` | Policy document, approval fingerprint, clone and archive integrity | LOCKED | Policy contract/schema 37/37; Release build; Angular production build; Local/Render schema verified | API/UI DEPLOYMENT PENDING | [2026-10-07](docs/testing/policy/publication-integrity/2026-10-07.md) |
-| `LOCK-POLICY-LEAVE-011` | Leave Type targeting across policy versions, rules and applicability | LOCKED | Policy contract/schema 40/40; Angular 7/7 and production build; Local/Render schema and 8-type seed verified | DB APPLIED; API/UI DEPLOYMENT PENDING; S3 CREDENTIAL BLOCKED | [2026-10-08](docs/testing/policy/leave-type-targeting/2026-10-08.md) |
+| `LOCK-POLICY-LEAVE-011` | Leave Type targeting across policy versions, rules and applicability | LOCKED | Policy contract/schema 40/40; Angular 7/7 and production build; Local/Render schema and 8-type seed verified | DB APPLIED; API/UI DEPLOYMENT PENDING; LOCAL S3 PASS, RENDER STORAGE ACCEPTANCE PENDING | [2026-10-08](docs/testing/policy/leave-type-targeting/2026-10-08.md) |
 | `LOCK-POLICY-DRAFT-EDIT-012` | Policy list Draft row opens its exact version in Edit | LOCKED | Angular 8/8; production build; localhost Draft-v2 browser verification | UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/draft-version-edit/2026-10-08.md) |
 | `LOCK-POLICY-ACCRUAL-013` | Leave annual entitlement and derived accrual-cycle amount | LOCKED | Backend 47/47; Angular 27/27; Release and production builds; Local/Render metadata verified | DB APPLIED; API/UI DEPLOYMENT PENDING | [2026-10-08](docs/testing/policy/annual-entitlement-accrual/2026-10-08.md) |
 | `LOCK-POLICY-IDENTITY-014` | Tenant policy-name uniqueness and version guidance | LOCKED | Backend 48/48; Release build; Local/Render unique index verified | DB APPLIED; API DEPLOYMENT PENDING | [2026-10-09](docs/testing/policy/policy-name-uniqueness/2026-10-09.md) |
@@ -763,6 +763,27 @@ Expected: Employee/contact 52/52, Bank 1/1, locality 9/9, tenant 14/14, PostgreS
 - Authenticated running-product and deployed API/browser reconciliation: PENDING.
 
 Evidence: [2026-10-10](docs/testing/employee/profile-completion-consistency/2026-10-10.md).
+
+## LOCK-S3-STORAGE-PREFIX-017: External object-storage namespace
+
+### Locked behavior
+
+- Credentials remain outside tracked configuration and are resolved through the established .NET configuration pipeline.
+- `AWSUploads:BasePath` is the central object-key namespace. Every consumer of `IFileStorageService` receives the same prefix without duplicating it in policy, employee, bank, education, identity or asset handlers.
+- Existing caller-provided folder structure is preserved beneath the configured prefix. Stored keys and signed URLs use that complete key.
+- Storage acceptance requires a real upload, signed download with byte comparison and cleanup delete; configuration or compilation alone is not acceptance.
+
+### Protected areas and gate
+
+- `FileStorageService` key construction and `AWSUploads` configuration.
+- Existing `IFileStorageService` callers and their folder conventions.
+
+```powershell
+dotnet test .\axionpro.automationtests\axionpro.automationtests.csproj -c Release --no-restore --filter "FullyQualifiedName~GenericPolicyApiContractTests|FullyQualifiedName~PolicyFrameworkSchemaTests|TestCategory=GenericPolicyRuleMetadata" --logger "console;verbosity=minimal"
+dotnet build .\AxionPro.sln -c Release --no-restore --nologo
+```
+
+Expected: Generic Policy tests pass with zero failures/skips and Release build succeeds with zero errors. The sanitized development probe uploads below `axionpro/`, downloads the same content through a signed URL, deletes the probe object and retains the requested zero-byte `axionpro/` namespace marker. Credentials and signed URLs must never be committed or recorded in evidence. Evidence: [2026-10-13](docs/testing/storage/development-s3-prefix/2026-10-13.md).
 
 ## Adding the next lock
 

@@ -1,5 +1,7 @@
 # Scenario test reports
 
+- [Development S3 storage prefix and connectivity — 2026-10-13](storage/development-s3-prefix/2026-10-13.md)
+
 - [Render seed workbook export and transactional restore verification — 2026-10-09](seed-data/render-seed-workbook/2026-10-09.md)
 
 - [Policy Draft replacement save — 2026-10-09](policy/draft-replacement-save/2026-10-09.md)
