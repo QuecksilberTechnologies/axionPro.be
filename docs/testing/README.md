@@ -1,5 +1,6 @@
 # Scenario test reports
 
+- [Development S3 PDF document lifecycle — 2026-10-14](storage/development-s3-prefix/2026-10-14.md)
 - [Development S3 storage prefix and connectivity — 2026-10-13](storage/development-s3-prefix/2026-10-13.md)
 
 - [Render seed workbook export and transactional restore verification — 2026-10-09](seed-data/render-seed-workbook/2026-10-09.md)
